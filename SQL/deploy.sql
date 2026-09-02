@@ -1217,3 +1217,5 @@ CREATE OR REPLACE TRIGGER `TRG_UPD_COMPANY` BEFORE UPDATE ON `Company` FOR EACH 
 END
 $$
 DELIMITER ;
+
+UPDATE message_resource SET `en`='Wastage', `zh`='损耗', `my`='Pembaziran', `ne`='வீணாக்கல்' WHERE `message_key_code`='reduce_weight_code';
