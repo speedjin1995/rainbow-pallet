@@ -1185,6 +1185,8 @@ INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALU
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('company_code_code', 'Company Code', '公司代码', 'Kod Syarikat', 'நிறுவன குறியீடு');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('mobile_no_code', 'Mobile Number', '手机号码', 'Nombor Telefon Bimbit', 'மொபைல் எண்');
 
+ALTER TABLE `Company` ADD `status` VARCHAR(10) NOT NULL DEFAULT '0' AFTER `name`;
+
 ALTER TABLE `Company` CHANGE `modified_date` `modified_date` DATETIME on update CURRENT_TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP;
 
 DELIMITER $$
