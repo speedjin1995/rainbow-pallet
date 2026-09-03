@@ -91,8 +91,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                             $_SESSION['plant']=$plantlist;
 
-                            // Redirect user to welcome page
-                            header("location: index.php");
+                            if($roles == 'SADMIN'){
+                                $_SESSION['location_id'] = 1;
+                                // Redirect user to welcome page
+                                header("location: index.php");
+                            }
+                            else{
+                                header("location: selectLocation.php");
+                            }
                         } else {
                             // Display an error message if password is not valid
                             $password_err = "The password you entered was not valid.";
