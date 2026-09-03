@@ -1294,3 +1294,5 @@ INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALU
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('location_name_code', 'Location Name', '位置名称', 'Nama Lokasi', 'இடத்தின் பெயர்');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('weighing_count_code', 'Weighing Count', '称重次数', 'Kiraan Timbang', 'கூட்டல் எண்ணிக்கை');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('add_new_location_code', 'Add New Location', '添加新位置', 'Tambah Lokasi Baru', 'புதிய இடத்தைச் சேர்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('user_management_code', 'User Management', '用户管理', 'Pengurusan Pengguna', 'பயனர் மேலாண்மை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('permissions_code', 'Permissions', '权限', 'Kebenaran', 'அனுமதிகள்');

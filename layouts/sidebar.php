@@ -162,6 +162,21 @@
                 </li>
                 
                 <li class="nav-item">
+                    <a class="nav-link menu-link" href="#userManagement" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="userManagement">
+                        <i class="ri-file-chart-line"></i> <span><?=$languageArray['user_management_code'][$language]?></span>
+                    </a>
+                    <div class="collapse menu-dropdown" id="userManagement">
+                        <ul class="nav nav-sm flex-column">
+                            <li class="nav-item">
+                                <li class="nav-item">
+                                    <a href="modules/userManagement/permissions.php" class="nav-link"><?=$languageArray['permissions_code'][$language]?></a>
+                                </li>                    
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+                
+                <li class="nav-item">
                     <a class="nav-link menu-link" href="#sidebarAuth" data-bs-toggle="collapse" role="button"
                         aria-expanded="false" aria-controls="sidebarAuth">
                         <i class="ri-account-circle-line"></i> <span><?=$languageArray['setting_code'][$language]?></span>
