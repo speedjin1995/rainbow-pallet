@@ -163,7 +163,7 @@
                 
                 <li class="nav-item">
                     <a class="nav-link menu-link" href="#userManagement" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="userManagement">
-                        <i class="ri-file-chart-line"></i> <span><?=$languageArray['user_management_code'][$language]?></span>
+                        <i class="ri-shield-user-line"></i> <span><?=$languageArray['user_management_code'][$language]?></span>
                     </a>
                     <div class="collapse menu-dropdown" id="userManagement">
                         <ul class="nav nav-sm flex-column">
