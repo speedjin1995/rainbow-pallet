@@ -1296,3 +1296,33 @@ INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALU
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('add_new_location_code', 'Add New Location', '添加新位置', 'Tambah Lokasi Baru', 'புதிய இடத்தைச் சேர்');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('user_management_code', 'User Management', '用户管理', 'Pengurusan Pengguna', 'பயனர் மேலாண்மை');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('permissions_code', 'Permissions', '权限', 'Kebenaran', 'அனுமதிகள்');
+
+-- 04/09/2026 --
+CREATE TABLE `modules` (
+  `id` int(11) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `category` varchar(100) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ALTER TABLE `modules` ADD PRIMARY KEY (`id`);
+ALTER TABLE `modules` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+CREATE TABLE `permissions` (
+  `id` int(11) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `modules` text NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ALTER TABLE `permissions` ADD PRIMARY KEY (`id`);
+ALTER TABLE `permissions` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+CREATE TABLE `role_permissions` (
+  `role_id` int(11) NOT NULL,
+  `module_id` int(11) NOT NULL,
+  `permission_id` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('manage_modules_code', 'Manage Modules', '权限', 'Kebenaran', 'அனுமதிகள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('module_records_code', 'Module Records', '模块记录', 'Rekod Modul', 'பதிவுகள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('module_name_code', 'Module Name', '模块名称', 'Nama Modul', 'பெயர்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('category_code', 'Category', '类别', 'Kategori', 'பிரிவு');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('add_new_module_code', 'Add New Module', '添加新模块', 'Tambah Modul Baru', 'புதிய தொகுதி சேர்க்க');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('module_code', 'Module', '模块', 'Modul', 'தொகுதி');
