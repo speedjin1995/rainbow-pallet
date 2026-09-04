@@ -28,6 +28,8 @@ if (isset($_POST['userID'])) {
                 $message['contact_name']   = $row['contact_name'];
                 $message['ic_no']          = $row['ic_no'];
                 $message['tin_no']         = $row['tin_no'];
+                $message['payment_term']   = $row['payment_term'];
+                $message['payment_term_period'] = $row['payment_term_period'];
             }
 
             echo json_encode(array("status" => "success", "message" => $message));
