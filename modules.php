@@ -131,6 +131,10 @@ $categories = $db->query("SELECT DISTINCT category FROM modules ORDER BY categor
                                                                 <?php endif; ?>
 
                                                                 <?php if(hasModulePermission('User Management', 'Module', ['create'])): ?>
+                                                                <button type="button" id="insertDefaultModules" class="btn btn-secondary waves-effect waves-light">
+                                                                    <i class="ri-download-line align-middle me-1"></i>
+                                                                    Insert Defaults
+                                                                </button>
                                                                 <button type="button" id="addModule" class="btn btn-danger waves-effect waves-light" data-bs-toggle="modal" data-bs-target="#addModal">
                                                                     <i class="ri-add-circle-line align-middle me-1"></i>
                                                                     <?=$languageArray['add_new_code'][$language]?>
@@ -265,6 +269,27 @@ $(function () {
                 }
             }
         ]
+    });
+
+    $('#insertDefaultModules').on('click', function() {
+        if (!confirm('Insert default modules? Existing ones will be skipped.')) return;
+        $('#spinnerLoading').show();
+        $.post('php/modules/modules/insertDefaultModules.php', function(data) {
+            var obj = JSON.parse(data);
+            $('#spinnerLoading').hide();
+            table.ajax.reload();
+            if (obj.status === 'success') {
+                $("#successBtn").attr('data-toast-text', obj.message);
+                $("#successBtn").click();
+            } else {
+                $("#failBtn").attr('data-toast-text', obj.message);
+                $("#failBtn").click();
+            }
+        }).fail(function() {
+            $('#spinnerLoading').hide();
+            $("#failBtn").attr('data-toast-text', 'Failed to insert default modules.');
+            $("#failBtn").click();
+        });
     });
 
     $('#addModule').on('click', function() {
