@@ -1326,3 +1326,7 @@ INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALU
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('category_code', 'Category', '类别', 'Kategori', 'பிரிவு');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('add_new_module_code', 'Add New Module', '添加新模块', 'Tambah Modul Baru', 'புதிய தொகுதி சேர்க்க');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('module_code', 'Module', '模块', 'Modul', 'தொகுதி');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('insert_defaults_code', 'Insert Defaults', '插入默认值', 'Masukkan Default', 'இயல்புநிலைகளை சேர்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('access_denied_code', 'Access Denied', '访问被拒绝', 'Akses Ditolak', 'அணுகல் மறுக்கப்பட்டது');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('no_permission_code', 'You do not have permission to access this page.', '您没有权限访问此页面。', 'Anda tidak mempunyai kebenaran untuk mengakses halaman ini.', 'இந்தப் பக்கத்தை அணுக உங்களுக்கு அனுமதி இல்லை.');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('back_to_weighing_code', 'Back to Weighing', '返回称重', 'Kembali ke Penimbangan', 'நிறுத்தலுக்கு திரும்பு');

@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/../php/requires/permissions.php';
+
 require_once ("lang.php");
 
 if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true){

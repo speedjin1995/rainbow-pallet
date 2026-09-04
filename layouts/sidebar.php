@@ -168,7 +168,7 @@
                     <div class="collapse menu-dropdown" id="userManagement">
                         <ul class="nav nav-sm flex-column">
                             <li class="nav-item">
-                                <?php if(hasModulePermission('User Management', 'Module', ['view', 'create', 'edit'])): ?>
+                                <?php if(hasModulePermission('User Management', 'Modules', ['view', 'create', 'edit'])): ?>
                                 <li class="nav-item">
                                     <a href="modules.php" class="nav-link"><b><?=$languageArray['module_code'][$language]?></b></a>
                                 </li>

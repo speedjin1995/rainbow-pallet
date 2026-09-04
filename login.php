@@ -91,6 +91,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                             $_SESSION['plant']=$plantlist;
 
+                            // Load user permissions
+                            $permSql = "SELECT m.category, m.name AS module_name, p.name AS permission_name 
+                                FROM role_permissions rp 
+                                JOIN roles r ON r.id = rp.role_id 
+                                JOIN modules m ON m.id = rp.module_id 
+                                JOIN permissions p ON p.id = rp.permission_id 
+                                WHERE r.role_code = ?";
+                            $permStmt = mysqli_prepare($link, $permSql);
+                            mysqli_stmt_bind_param($permStmt, "s", $roles);
+                            mysqli_stmt_execute($permStmt);
+                            $permResult = mysqli_stmt_get_result($permStmt);
+                            $permissions = array();
+                            while($pRow = mysqli_fetch_assoc($permResult)){
+                                $permissions[$pRow['category']][$pRow['module_name']][] = $pRow['permission_name'];
+                            }
+                            mysqli_stmt_close($permStmt);
+                            $_SESSION['permissions'] = $permissions;
+
                             if($roles == 'SADMIN'){
                                 $_SESSION['location_id'] = 1;
                                 // Redirect user to welcome page

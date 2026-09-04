@@ -2,7 +2,7 @@
 <?php include 'layouts/head-main.php'; ?>
 <?php
 require_once "php/db_connect.php";
-if (!hasModulePermission('User Management', 'Module', ['view', 'create', 'edit'])){
+if (!hasModulePermission('User Management', 'Modules', ['view', 'create', 'edit'])){
     header('Location: no-permission.php');
     exit;
 }
@@ -123,14 +123,14 @@ $categories = $db->query("SELECT DISTINCT category FROM modules ORDER BY categor
                                                                 <h5 class="card-title mb-0"><?=$languageArray['module_records_code'][$language]?></h5>
                                                             </div>
                                                             <div class="flex-shrink-0">
-                                                                <?php if(hasModulePermission('User Management', 'Module', ['cancelled'])): ?>
+                                                                <?php if(hasModulePermission('User Management', 'Modules', ['cancelled'])): ?>
                                                                 <button type="button" id="multiDelete" class="btn btn-warning waves-effect waves-light">
                                                                     <i class="ri-delete-bin-fill align-middle me-1"></i>
                                                                     <?=$languageArray['delete_code'][$language]?>
                                                                 </button>
                                                                 <?php endif; ?>
 
-                                                                <?php if(hasModulePermission('User Management', 'Module', ['create'])): ?>
+                                                                <?php if(hasModulePermission('User Management', 'Modules', ['create'])): ?>
                                                                 <button type="button" id="insertDefaultModules" class="btn btn-secondary waves-effect waves-light">
                                                                     <i class="ri-download-line align-middle me-1"></i>
                                                                     Insert Defaults
@@ -233,7 +233,7 @@ $(function () {
                 data: 'id',
                 orderable: false,
                 render: function (data, type, row) {
-                    var perms = (permissions['User Management'] && permissions['User Management']['Module']) || [];
+                    var perms = (permissions['User Management'] && permissions['User Management']['Modules']) || [];
                     if (isSADMIN || ['edit', 'cancelled'].some(p => perms.includes(p))) {
                         var buttons = `
                             <div class="dropdown d-inline-block">
