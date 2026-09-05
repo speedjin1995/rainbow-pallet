@@ -961,15 +961,15 @@ else{
             });
 
             if (selectedIds.length > 0) {
-                window.open("php/export.php?file=weight&fromDate="+fromDateI+"&toDate="+toDateI+
-                "&transactionStatus="+transactionStatusI+"&customer="+customerNoI+"&supplier="+supplierNoI+"&vehicle="+vehicleNoI+
-                "&weighingType="+weightTypeI+"&product="+productI+"&rawMat="+rawMatI+
-                "&destination="+destinationI+"&plant="+plantI+"&status="+statusI+"&isMulti=Y&ids="+selectedIds);
+                window.open("php/export.php?file=weight&fromDate="+encodeURIComponent(fromDateI)+"&toDate="+encodeURIComponent(toDateI)+
+                "&transactionStatus="+encodeURIComponent(transactionStatusI)+"&customer="+encodeURIComponent(customerNoI)+"&supplier="+encodeURIComponent(supplierNoI)+"&vehicle="+encodeURIComponent(vehicleNoI)+
+                "&weighingType="+encodeURIComponent(weightTypeI)+"&product="+encodeURIComponent(productI)+"&rawMat="+encodeURIComponent(rawMatI)+
+                "&destination="+encodeURIComponent(destinationI)+"&plant="+encodeURIComponent(plantI)+"&status="+encodeURIComponent(statusI)+"&isMulti=Y&ids="+encodeURIComponent(selectedIds));
             } else {
-                window.open("php/export.php?file=weight&fromDate="+fromDateI+"&toDate="+toDateI+
-                "&transactionStatus="+transactionStatusI+"&customer="+customerNoI+"&supplier="+supplierNoI+"&vehicle="+vehicleNoI+
-                "&weighingType="+weightTypeI+"&product="+productI+"&rawMat="+rawMatI+
-                "&destination="+destinationI+"&plant="+plantI+"&status="+statusI+"&isMulti=N");
+                window.open("php/export.php?file=weight&fromDate="+encodeURIComponent(fromDateI)+"&toDate="+encodeURIComponent(toDateI)+
+                "&transactionStatus="+encodeURIComponent(transactionStatusI)+"&customer="+encodeURIComponent(customerNoI)+"&supplier="+encodeURIComponent(supplierNoI)+"&vehicle="+encodeURIComponent(vehicleNoI)+
+                "&weighingType="+encodeURIComponent(weightTypeI)+"&product="+encodeURIComponent(productI)+"&rawMat="+encodeURIComponent(rawMatI)+
+                "&destination="+encodeURIComponent(destinationI)+"&plant="+encodeURIComponent(plantI)+"&status="+encodeURIComponent(statusI)+"&isMulti=N");
             }
         });
 

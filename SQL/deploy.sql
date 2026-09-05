@@ -946,10 +946,10 @@ INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALU
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('new_empty_bin_code', 'New Empty Bin', '新空箱', 'Tong Kosong Baru', 'புதிய காலி பெட்டி');
 
 -- 05/09/2026 Rainbow Pallet --
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('reduce_weight_code', 'Wastage', '损耗', 'Pembaziran', 'சேதாரம்');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('sales_code', "Sales", "销售", "Jualan", "விற்பனை");
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('purchase_code', "Purchase", "购买", "Pembelian", "வாங்குதல்");
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('internal_transfer_code', "Transfer to Port", "转运至港口", "Pemindahan ke Pelabuhan", "துறைமுகத்திற்கு இடமாற்றம்");
-INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('wastage_code', 'Wastage', '损耗', 'Pembaziran', 'சேதாரம்');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('date_code', 'Date', '日期', 'Tarikh', 'தேதி');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('trans_type_code', 'Trans. Type', '交通工具类型', 'Jenis pengangkutan', 'போக்குவரத்து வகை');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('driver_code', 'Driver', '司机', 'Pemandu', 'ஓட்டுனர்');
@@ -970,6 +970,10 @@ INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALU
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('customer_side_rainbow_driver_code', 'Rainbow Driver', 'Rainbow 运输司机', 'Pemandu Rainbow', 'ஓட்டுநர்');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('customer_side_time_in_code', 'Time In', '入场时间', 'Masa Masuk', 'உள் நுழைந்த நேரம்');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('customer_side_time_out_code', 'Time Out', '离场时间', 'Masa Keluar', 'வெளியேறிய நேரம்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('customer_side_do_no_code', 'DO. No.', '送货单号', 'Nombor Pesanan Penghantaran', 'விநியோக ஒழுங்கு எண்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('customer_side_mc_code', 'MC', 'MC', 'MC', 'MC');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('customer_side_nett_weight_code', 'Nett Weight', '净重', 'Berat Bersih', 'நிகர எடை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('weight_difference_code', 'Nett Weight Difference', '净重差异', 'Perbezaan Berat Bersih', 'எடை வித்தியாசம்');
 
 ALTER TABLE weight ADD cust_side_company varchar(128);
 ALTER TABLE weight ADD cust_side_removal_pass_no varchar(50);
@@ -979,6 +983,12 @@ ALTER TABLE weight ADD cust_side_officer_name varchar(50);
 ALTER TABLE weight ADD cust_side_rainbow_driver varchar(128);
 ALTER TABLE weight ADD cust_side_time_in datetime;
 ALTER TABLE weight ADD cust_side_time_out datetime;
+ALTER TABLE weight ADD cust_side_do_no varchar(128);
+ALTER TABLE weight ADD cust_side_mc varchar(50);
+ALTER TABLE weight ADD cust_side_first_weight varchar(100);
+ALTER TABLE weight ADD cust_side_second_weight varchar(100);
+ALTER TABLE weight ADD cust_side_nett_weight varchar(100);
+ALTER TABLE weight ADD weight_difference varchar(100);
 
 DROP TABLE IF EXISTS `Product_RawMat`;
 DROP TABLE IF EXISTS `Bitumen`;

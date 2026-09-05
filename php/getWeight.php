@@ -129,6 +129,12 @@ if(isset($_POST['userID'])){
                             $message['customer_side_rainbow_driver'] = $row['customer_side_rainbow_driver'] ?? '';
                             $message['customer_side_time_in'] = !empty($row['customer_side_time_in']) ? date("d/m/Y - h:i:sa", strtotime($row['customer_side_time_in'])) : '';
                             $message['customer_side_time_out'] = !empty($row['customer_side_time_out']) ? date("d/m/Y - h:i:sa", strtotime($row['customer_side_time_out'])) : '';
+                            $message['cust_side_do_no'] = $row['cust_side_do_no'] ?? '';
+                            $message['cust_side_mc'] = $row['cust_side_mc'] ?? '';
+                            $message['cust_side_first_weight'] = $row['cust_side_first_weight'] ?? '';
+                            $message['cust_side_second_weight'] = $row['cust_side_second_weight'] ?? '';
+                            $message['cust_side_nett_weight'] = $row['cust_side_nett_weight'] ?? '';
+                            $message['weight_difference'] = $row['weight_difference'] ?? '';
                         }else{
                             $message['id'] = $row['id'];
                             $message['transaction_id'] = $row['transaction_id'];
@@ -356,6 +362,12 @@ if(isset($_POST['userID'])){
                             $message['customer_side_rainbow_driver'] = $row['customer_side_rainbow_driver'] ?? '';
                             $message['customer_side_time_in'] = !empty($row['customer_side_time_in']) ? date("d/m/Y - h:i:sa", strtotime($row['customer_side_time_in'])) : '';
                             $message['customer_side_time_out'] = !empty($row['customer_side_time_out']) ? date("d/m/Y - h:i:sa", strtotime($row['customer_side_time_out'])) : '';
+                            $message['cust_side_do_no'] = $row['cust_side_do_no'] ?? '';
+                            $message['cust_side_mc'] = $row['cust_side_mc'] ?? '';
+                            $message['cust_side_first_weight'] = $row['cust_side_first_weight'] ?? '';
+                            $message['cust_side_second_weight'] = $row['cust_side_second_weight'] ?? '';
+                            $message['cust_side_nett_weight'] = $row['cust_side_nett_weight'] ?? '';
+                            $message['weight_difference'] = $row['weight_difference'] ?? '';
                         }else{
                             $message['id'] = $row['id'];
                             $message['transaction_id'] = $row['transaction_id'];

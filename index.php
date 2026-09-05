@@ -981,10 +981,9 @@ else{
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                            <div class="col-xxl-4 col-lg-4" id="customerSideCard">
+                                                            <div class="col-xxl-4 col-lg-4" id="customerSideCard" style="display:none;">
                                                                 <div class="card bg-light">
                                                                     <div class="card-body">
-                                                                        <h6 class="mb-3 text-muted">Customer Side</h6>
                                                                         <div class="row mb-3">
                                                                             <label for="customerSideCompany" class="col-sm-4 col-form-label"><?=$languageArray['customer_side_company_code'][$language]?></label>
                                                                             <div class="col-sm-8">
@@ -1211,6 +1210,63 @@ else{
                                         </div>
                                     </div>
                                     
+                                    <div class="modal fade" id="customerSideInfoModal">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <form role="form" id="customerSideInfoForm">
+                                                    <div class="modal-header bg-gray-dark color-palette">
+                                                        <h4 class="modal-title">Fill in Customer Side Info</h4>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <div class="row mb-3">
+                                                            <label for="custSideDoNo" class="col-sm-4 col-form-label"><?=$languageArray['customer_side_do_no_code'][$language]?></label>
+                                                            <div class="col-sm-8">
+                                                                <input type="text" class="form-control" id="custSideDoNo" name="custSideDoNo">
+                                                            </div>
+                                                        </div>
+                                                        <div class="row mb-3">
+                                                            <label for="custSideFirstWeight" class="col-sm-4 col-form-label"><?=$languageArray['first_code'][$language]?> (KG)</label>
+                                                            <div class="col-sm-8">
+                                                                <div class="input-group">
+                                                                    <input type="number" class="form-control cust-side-weight" id="custSideFirstWeight" name="custSideFirstWeight" placeholder="0">
+                                                                    <div class="input-group-text">Kg</div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row mb-3">
+                                                            <label for="custSideSecondWeight" class="col-sm-4 col-form-label"><?=$languageArray['second_code'][$language]?> (KG)</label>
+                                                            <div class="col-sm-8">
+                                                                <div class="input-group">
+                                                                    <input type="number" class="form-control cust-side-weight" id="custSideSecondWeight" name="custSideSecondWeight" placeholder="0">
+                                                                    <div class="input-group-text">Kg</div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row mb-3">
+                                                            <label for="custSideMc" class="col-sm-4 col-form-label"><?=$languageArray['customer_side_mc_code'][$language]?></label>
+                                                            <div class="col-sm-8">
+                                                                <input type="text" class="form-control" id="custSideMc" name="custSideMc">
+                                                            </div>
+                                                        </div>
+                                                        <div class="row mb-3">
+                                                            <label for="custSideNettWeight" class="col-sm-4 col-form-label"><?=$languageArray['nett_weight_code'][$language]?> (KG)</label>
+                                                            <div class="col-sm-8">
+                                                                <input type="number" class="form-control input-readonly" id="custSideNettWeight" name="custSideNettWeight" placeholder="0" readonly>
+                                                            </div>
+                                                        </div>
+                                                        <input type="hidden" class="form-control" id="customerSideInfoId" name="id">
+                                                        <input type="hidden" class="form-control" name="action" value="save">
+                                                    </div>
+                                                    <div class="modal-footer justify-content-between bg-gray-dark color-palette">
+                                                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal"><?=$languageArray['close_code'][$language]?></button>
+                                                        <button type="button" class="btn btn-success" id="submitCustomerSideInfo"><?=$languageArray['submit_code'][$language]?></button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <div class="modal fade" id="cancelModal">
                                         <div class="modal-dialog modal-xl" style="max-width: 90%;">
                                             <div class="modal-content">
@@ -1820,6 +1876,13 @@ else{
                                     <i class="fas fa-print"></i>
                                 </button>
                             </div>`;
+
+                            buttons += `
+                            <div class="col-auto">
+                                <button title="Fill in Customer Side Info" type="button" id="customerSideInfo${data}" onclick="openCustomerSideInfo(${data})" class="btn btn-secondary btn-sm">
+                                    <i class="fas fa-clipboard-list"></i>
+                                </button>
+                            </div>`;
                         }
 
                         if(userRole == 'SADMIN' || userRole == 'ADMIN' || userRole == 'MANAGER'){
@@ -2262,6 +2325,30 @@ else{
             }
         });
 
+        $('.cust-side-weight').on('input', function(){
+            updateCustomerSideNettWeight();
+        });
+
+        $('#submitCustomerSideInfo').on('click', function(){
+            $('#spinnerLoading').show();
+            $.post('php/customerSideInfo.php', $('#customerSideInfoForm').serialize(), function(data){
+                var obj = JSON.parse(data);
+
+                if(obj.status === 'success'){
+                    table.ajax.reload(null, false);
+                    $('#spinnerLoading').hide();
+                    $('#customerSideInfoModal').modal('hide');
+                    $("#successBtn").attr('data-toast-text', obj.message);
+                    $("#successBtn").click();
+                }
+                else{
+                    $('#spinnerLoading').hide();
+                    $("#failBtn").attr('data-toast-text', obj.message);
+                    $("#failBtn").click();
+                }
+            });
+        });
+
         $.post('http://127.0.0.1:5002/', $('#setupForm').serialize(), function(data){
             if(data == "true"){
                 $('#indicatorConnected').addClass('bg-primary');
@@ -2461,6 +2548,13 @@ else{
                                 <div class="col-auto">
                                     <button title="Print" type="button" id="print${data}" onclick="print('${data}', '${row.transaction_status}')" class="btn btn-info btn-sm">
                                         <i class="fas fa-print"></i>
+                                    </button>
+                                </div>`;
+
+                                buttons += `
+                                <div class="col-auto">
+                                    <button title="Fill in Customer Side Info" type="button" id="customerSideInfo${data}" onclick="openCustomerSideInfo(${data})" class="btn btn-secondary btn-sm">
+                                        <i class="fas fa-clipboard-list"></i>
                                     </button>
                                 </div>`;
                             }
@@ -3568,8 +3662,10 @@ else{
                 
                 if ($(this).val() == "Purchase"){
                     $('#divPurchaseOrder').find('label[for="purchaseOrder"]').text('Purchase Order');
+                    $('#customerSideCard').show();
                 }else{
                     $('#divPurchaseOrder').find('label[for="purchaseOrder"]').text('Sale Order');
+                    $('#customerSideCard').hide();
                 }
             }
             else{
@@ -3585,6 +3681,7 @@ else{
                 $('#divPurchaseOrder').find('label[for="purchaseOrder"]').text('Sale Order');
                 // $('#divPurchaseOrder').find('#purchaseOrder').attr('placeholder', 'Sale Order');
                 $('#addModal').find('#divPoSupplyWeight').hide();
+                $('#customerSideCard').hide();
             }
         });
 
@@ -3844,6 +3941,7 @@ else{
     function format (row) {
         var transactionStatus = '';
         var weightType = '';
+        var hasCustomerSideInfo = row.cust_side_do_no || row.cust_side_first_weight || row.cust_side_second_weight || row.cust_side_mc || row.cust_side_nett_weight || row.weight_difference;
 
         if (row.transaction_status == 'Sales') {
             transactionStatus = 'Sales';
@@ -3909,6 +4007,7 @@ else{
         </div>
         <hr>
 
+        ${row.transaction_status == 'Purchase' ? `
         <!-- Customer Side Section -->
         <div class="row">
             <p><span><strong style="font-size:120%; text-decoration: underline;">Customer Side</strong></span><br>
@@ -3925,7 +4024,7 @@ else{
                 <p><strong><?=$languageArray['customer_side_time_out_code'][$language]?>:</strong> ${row.customer_side_time_out || ''}</p>
             </div>
         </div>
-        <hr>
+        <hr>` : ''}
 
         <!-- Weighing Section -->
         <div class="row">
@@ -3954,6 +4053,23 @@ else{
                 <p><strong>NETT WEIGHT 2:</strong> ${row.nett_weight2}</p>            
                 </div>
         </div>
+        <hr>
+
+        ${hasCustomerSideInfo ? `
+        <!-- Customer Side Info Section -->
+        <div class="row">
+            <p><span><strong style="font-size:120%; text-decoration: underline;">Customer Side Info</strong></span><br>
+            <div class="col-6">
+                <p><strong><?=$languageArray['customer_side_do_no_code'][$language]?>:</strong> ${row.cust_side_do_no || ''}</p>
+                <p><strong><?=$languageArray['first_code'][$language]?> (KG):</strong> ${row.cust_side_first_weight || ''}</p>
+                <p><strong><?=$languageArray['second_code'][$language]?> (KG):</strong> ${row.cust_side_second_weight || ''}</p>
+            </div>
+            <div class="col-6">
+                <p><strong><?=$languageArray['customer_side_mc_code'][$language]?>:</strong> ${row.cust_side_mc || ''}</p>
+                <p><strong>Customer Side <?=$languageArray['nett_weight_code'][$language]?> (KG):</strong> ${row.cust_side_nett_weight || ''}</p>
+                <p><strong><?=$languageArray['weight_difference_code'][$language]?> (KG):</strong> ${row.weight_difference || ''}</p>
+            </div>
+        </div>` : ''}
         `;
         
         return returnString;
@@ -4414,6 +4530,42 @@ else{
                 $("#failBtn").click();
             }
         });*/
+    }
+
+    function updateCustomerSideNettWeight() {
+        var firstWeight = $('#custSideFirstWeight').val();
+        var secondWeight = $('#custSideSecondWeight').val();
+
+        if (firstWeight !== '' && secondWeight !== '') {
+            var nettWeight = Math.abs(parseFloat(firstWeight) - parseFloat(secondWeight));
+            $('#custSideNettWeight').val(isNaN(nettWeight) ? '' : nettWeight.toFixed(0));
+        } else {
+            $('#custSideNettWeight').val('');
+        }
+    }
+
+    function openCustomerSideInfo(id) {
+        $('#customerSideInfoForm')[0].reset();
+        $('#customerSideInfoModal').find('#customerSideInfoId').val(id);
+        $('#customerSideInfoModal').find('#custSideNettWeight').val('');
+
+        $.post('php/customerSideInfo.php', { id: id, action: 'get' }, function(data){
+            var obj = JSON.parse(data);
+
+            if(obj.status === 'success'){
+                $('#customerSideInfoModal').find('#custSideDoNo').val(obj.message.cust_side_do_no);
+                $('#customerSideInfoModal').find('#custSideFirstWeight').val(obj.message.cust_side_first_weight);
+                $('#customerSideInfoModal').find('#custSideSecondWeight').val(obj.message.cust_side_second_weight);
+                $('#customerSideInfoModal').find('#custSideMc').val(obj.message.cust_side_mc);
+                $('#customerSideInfoModal').find('#custSideNettWeight').val(obj.message.cust_side_nett_weight);
+                updateCustomerSideNettWeight();
+                $('#customerSideInfoModal').modal('show');
+            }
+            else{
+                $("#failBtn").attr('data-toast-text', obj.message);
+                $("#failBtn").click();
+            }
+        });
     }
     </script>
 </body>
