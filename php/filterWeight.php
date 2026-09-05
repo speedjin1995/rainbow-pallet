@@ -158,11 +158,11 @@ while($row = mysqli_fetch_assoc($empRecords)) {
   $transactionStatus = '';
   if($row['transaction_status'] == 'Sales'){
     $salesCount++;
-    $transactionStatus = 'Dispatch';
+    $transactionStatus = 'Sales';
   }
   else if($row['transaction_status'] == 'Purchase'){
     $purchaseCount++;
-    $transactionStatus = 'Receiving';
+    $transactionStatus = 'Purchase';
   }
   else if($row['transaction_status'] == 'Misc'){
     $miscCount++;
@@ -170,7 +170,7 @@ while($row = mysqli_fetch_assoc($empRecords)) {
   }
   else{
     $localCount++;
-    $transactionStatus = 'Internal Transfer';
+    $transactionStatus = 'Transfer to Port';
   }
 
   if($row['weight_type'] == 'Container'){

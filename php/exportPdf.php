@@ -284,16 +284,16 @@ if(isset($_POST["file"])){
                                         }
 
                                         if($row['transaction_status'] == 'Sales'){
-                                            $transactionStatus = 'Dispatch';
+                                            $transactionStatus = 'Sales';
                                         }
                                         else if($row['transaction_status'] == 'Purchase'){
-                                            $transactionStatus = 'Receiving';
+                                            $transactionStatus = 'Purchase';
                                         }
                                         else if($row['transaction_status'] == 'Misc'){
                                             $transactionStatus = 'Miscellaneous';
                                         }
                                         else{
-                                            $transactionStatus = 'Internal Transfer';
+                                            $transactionStatus = 'Transfer to Port';
                                         }
 
                                         $row['transactionStatus'] = $transactionStatus;

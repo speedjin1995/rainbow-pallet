@@ -13,6 +13,8 @@ $compaddress2 = 'Taman Bagan,';
 $compaddress3 = '13400 Butterworth. Penang. Malaysia.';
 $compphone = '6043325822';
 $compiemail = 'admin@synctronix.com.my';
+$compemail = 'admin@synctronix.com.my';
+$printTemplate = isset($_POST['printTemplate']) ? $_POST['printTemplate'] : 'with_weight';
  
 // Filter the excel data 
 function filterData(&$str){ 
@@ -33,6 +35,15 @@ function formatWeight($weight){
     return $formatted;
 }
 
+function printValue($value){
+    return htmlspecialchars((string)($value ?? ''), ENT_QUOTES, 'UTF-8');
+}
+
+function underlinedValue($value, $width = '180px'){
+    $displayValue = trim((string)($value ?? '')) === '' ? '&nbsp;' : printValue($value);
+    return '<span style="display:inline-block; width: '.$width.'; box-sizing: border-box; border-bottom: 1px solid #000; padding: 0 6px 2px; line-height: 18px; min-height: 20px; vertical-align: bottom;">'.$displayValue.'</span>';
+}
+
 if(isset($_POST['userID'], $_POST["file"], $_POST['isEmptyContainer'])){
     $stmt = $db->prepare("SELECT * FROM Company WHERE id=?");
     $stmt->bind_param('s', $compids);
@@ -48,6 +59,7 @@ if(isset($_POST['userID'], $_POST["file"], $_POST['isEmptyContainer'])){
         $compaddress3 = $row['address_line_3'];
         $compphone = $row['phone_no'];
         $compiemail = $row['fax_no'];
+        $compemail = isset($row['email']) && $row['email'] !== '' ? $row['email'] : '';
     }
 
     if($_POST["file"] == 'weight'){
@@ -75,6 +87,401 @@ if(isset($_POST['userID'], $_POST["file"], $_POST['isEmptyContainer'])){
                 $result = $select_stmt->get_result();
                     
                 if ($row = $result->fetch_assoc()) {
+                    if ($printTemplate == 'without_weight' && $_POST['isEmptyContainer'] != 'Y') {
+                        $driverName = '';
+                        $driverIc = '';
+
+                        if (!empty($row['transporter_code']) && $transporter_stmt = $db->prepare("SELECT contact_name, ic_no FROM Transporter WHERE transporter_code=?")) {
+                            $transporter_stmt->bind_param('s', $row['transporter_code']);
+                            $transporter_stmt->execute();
+                            $transporter_result = $transporter_stmt->get_result();
+
+                            if ($transporter = $transporter_result->fetch_assoc()) {
+                                $driverName = $transporter['contact_name'];
+                                $driverIc = $transporter['ic_no'];
+                            }
+                        }
+
+                        $transactionDate = !empty($row['transaction_date']) ? date("d/m/Y", strtotime($row['transaction_date'])) : '';
+                        $companyAddress = array_filter([$compaddress, $compaddress2, $compaddress3], function($address) {
+                            return trim((string)$address) !== '';
+                        });
+                        $contactLine = 'Tel: '.printValue($compphone);
+
+                        if (trim((string)$compemail) !== '') {
+                            $contactLine .= ' E-mail: '.printValue($compemail);
+                        }
+
+                        $message = '
+                        <!DOCTYPE html>
+                        <html>
+                            <head>
+                                <meta charset="utf-8">
+                                <title>Delivery Note</title>
+                                <style>
+                                    @page { size: A5 landscape; margin: 10mm 12mm; }
+                                    body {
+                                        color: #000;
+                                        font-family: Arial, Helvetica, sans-serif;
+                                        font-size: 13px;
+                                        line-height: 1.25;
+                                        margin: 0;
+                                    }
+                                    .delivery-note {
+                                        width: 100%;
+                                    }
+                                    .title-row {
+                                        position: relative;
+                                        text-align: center;
+                                        margin-bottom: 5px;
+                                    }
+                                    .title {
+                                        display: inline-block;
+                                        font-size: 17px;
+                                        font-weight: 700;
+                                        text-decoration: underline;
+                                    }
+                                    .note-no {
+                                        position: absolute;
+                                        right: 0;
+                                        top: 2px;
+                                        font-size: 12px;
+                                    }
+                                    .company-name {
+                                        text-align: center;
+                                        font-size: 20px;
+                                        font-weight: 700;
+                                        margin-top: 5px;
+                                    }
+                                    .company-reg {
+                                        text-align: center;
+                                        font-size: 11px;
+                                        margin-top: 2px;
+                                    }
+                                    .company-line {
+                                        text-align: center;
+                                        font-size: 12px;
+                                    }
+                                    .contact-line {
+                                        text-align: center;
+                                        margin-top: 2px;
+                                    }
+                                    .separator {
+                                        border-top: 2px solid #000;
+                                        margin: 10px 0;
+                                    }
+                                    .details-table {
+                                        width: 100%;
+                                        table-layout: fixed;
+                                        border-collapse: collapse;
+                                        margin-top: 6px;
+                                    }
+                                    .details-table td {
+                                        padding: 7px 0;
+                                        vertical-align: bottom;
+                                    }
+                                    .label-cell-left {
+                                        width: 16%;
+                                        white-space: nowrap;
+                                    }
+                                    .value-cell-left {
+                                        width: 34%;
+                                        padding-right: 38px !important;
+                                    }
+                                    .label-cell-right {
+                                        width: 18%;
+                                        white-space: nowrap;
+                                    }
+                                    .value-cell-right {
+                                        width: 32%;
+                                    }
+                                    .signatures {
+                                        display: flex;
+                                        justify-content: space-between;
+                                        gap: 70px;
+                                        margin-top: 82px;
+                                    }
+                                    .signature-box {
+                                        width: 42%;
+                                        text-align: center;
+                                    }
+                                    .signature-line {
+                                        border-top: 1px solid #000;
+                                        height: 12px;
+                                        margin-bottom: 8px;
+                                    }
+                                </style>
+                            </head>
+                            <body>
+                                <div class="delivery-note">
+                                    <div class="title-row">
+                                        <span class="title">DELIVERY NOTE</span>
+                                        <span class="note-no">No. RP '.printValue($row['transaction_id']).'</span>
+                                    </div>
+                                    <div class="company-name">'.printValue($compname).'</div>
+                                    <div class="company-reg">(Co. '.printValue($compreg).')</div>';
+
+                        foreach ($companyAddress as $address) {
+                            $message .= '<div class="company-line">'.printValue($address).'</div>';
+                        }
+
+                        $message .= '
+                                    <div class="contact-line">'.$contactLine.'</div>
+                                    <div class="separator"></div>
+                                    <table class="details-table">
+                                        <tr>
+                                            <td class="label-cell-left">Date:</td>
+                                            <td class="value-cell-left">'.underlinedValue($transactionDate, '100%').'</td>
+                                            <td class="label-cell-right"></td>
+                                            <td class="value-cell-right"></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="label-cell-left">Name of Driver:</td>
+                                            <td class="value-cell-left">'.underlinedValue($driverName, '100%').'</td>
+                                            <td class="label-cell-right">Type of Collection:</td>
+                                            <td class="value-cell-right">'.underlinedValue('', '100%').'</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="label-cell-left">Vehicle No.:</td>
+                                            <td class="value-cell-left">'.underlinedValue($row['lorry_plate_no1'], '100%').'</td>
+                                            <td class="label-cell-right">Collection Location:</td>
+                                            <td class="value-cell-right">'.underlinedValue($row['destination'], '100%').'</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="label-cell-left">I/C No. of Driver:</td>
+                                            <td class="value-cell-left">'.underlinedValue($driverIc, '100%').'</td>
+                                            <td class="label-cell-right">Signature of Driver:</td>
+                                            <td class="value-cell-right">'.underlinedValue('', '100%').'</td>
+                                        </tr>
+                                    </table>
+                                    <div class="separator"></div>
+                                    <div class="signatures">
+                                        <div class="signature-box">
+                                            <div class="signature-line"></div>
+                                            <div>Issued by</div>
+                                        </div>
+                                        <div class="signature-box">
+                                            <div class="signature-line"></div>
+                                            <div>Received by</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </body>
+                        </html>';
+
+                        echo json_encode(
+                            array(
+                                "status" => "success",
+                                "message" => $message
+                            )
+                        );
+                        exit;
+                    }
+
+                    if ($printTemplate == 'with_weight' && $_POST['isEmptyContainer'] != 'Y') {
+                        $transactionDate = !empty($row['transaction_date']) ? date("d/m/Y", strtotime($row['transaction_date'])) : '';
+                        $grossWeightTime = !empty($row['gross_weight1_date']) ? date("d/m/Y - H:i:s", strtotime($row['gross_weight1_date'])) : '';
+                        $tareWeightTime = !empty($row['tare_weight1_date']) ? date("d/m/Y - H:i:s", strtotime($row['tare_weight1_date'])) : '';
+                        $companyAddress = array_filter([$compaddress, $compaddress2, $compaddress3], function($address) {
+                            return trim((string)$address) !== '';
+                        });
+                        $contactLine = 'Tel: '.printValue($compphone);
+
+                        if (trim((string)$compemail) !== '') {
+                            $contactLine .= ' E-mail: '.printValue($compemail);
+                        }
+
+                        $message = '
+                        <!DOCTYPE html>
+                        <html>
+                            <head>
+                                <meta charset="utf-8">
+                                <title>Weight Ticket</title>
+                                <style>
+                                    @page { size: A5 landscape; margin: 9mm 11mm; }
+                                    body {
+                                        color: #000;
+                                        font-family: Arial, Helvetica, sans-serif;
+                                        font-size: 12px;
+                                        line-height: 1.22;
+                                        margin: 0;
+                                    }
+                                    .ticket {
+                                        width: 100%;
+                                    }
+                                    .company-name {
+                                        text-align: center;
+                                        font-size: 20px;
+                                        font-weight: 700;
+                                        margin-bottom: 3px;
+                                    }
+                                    .company-line,
+                                    .contact-line {
+                                        text-align: center;
+                                        font-size: 11px;
+                                    }
+                                    .info-table {
+                                        width: 100%;
+                                        border-collapse: collapse;
+                                        table-layout: fixed;
+                                        margin-top: 20px;
+                                        font-size: 12px;
+                                    }
+                                    .info-table td {
+                                        padding: 3px 0;
+                                        white-space: nowrap;
+                                    }
+                                    .info-label {
+                                        font-weight: 700;
+                                        width: 12%;
+                                    }
+                                    .info-value {
+                                        width: 38%;
+                                    }
+                                    .weight-table {
+                                        width: 100%;
+                                        border-collapse: collapse;
+                                        table-layout: fixed;
+                                        margin-top: 10px;
+                                        font-size: 12px;
+                                    }
+                                    .weight-table th,
+                                    .weight-table td {
+                                        border: 1px solid #000;
+                                        padding: 6px 7px;
+                                        vertical-align: middle;
+                                    }
+                                    .weight-table th {
+                                        text-align: center;
+                                        font-weight: 700;
+                                    }
+                                    .text-center {
+                                        text-align: center;
+                                    }
+                                    .text-right {
+                                        text-align: right;
+                                    }
+                                    .no-border {
+                                        border: 0 !important;
+                                    }
+                                    .summary-label {
+                                        font-weight: 700;
+                                        text-align: right;
+                                    }
+                                    .summary-value {
+                                        text-align: right;
+                                        font-weight: 700;
+                                    }
+                                    .signatures {
+                                        display: flex;
+                                        justify-content: space-between;
+                                        gap: 95px;
+                                        margin-top: 72px;
+                                    }
+                                    .signature-box {
+                                        width: 42%;
+                                        text-align: center;
+                                        font-weight: 700;
+                                    }
+                                    .signature-line {
+                                        border-top: 1px solid #000;
+                                        height: 20px;
+                                        margin-bottom: 8px;
+                                    }
+                                </style>
+                            </head>
+                            <body>
+                                <div class="ticket">
+                                    <div class="company-name">'.printValue($compname).'</div>';
+
+                        foreach ($companyAddress as $address) {
+                            $message .= '<div class="company-line">'.printValue($address).'</div>';
+                        }
+
+                        $message .= '
+                                    <div class="contact-line">'.$contactLine.'</div>
+
+                                    <table class="info-table">
+                                        <tr>
+                                            <td class="info-label">CUSTOMER:</td>
+                                            <td class="info-value">'.printValue($row['customer_name']).'</td>
+                                            <td class="info-label">TICKET NO:</td>
+                                            <td class="info-value">'.printValue($row['transaction_id']).'</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="info-label">SUPPLIER:</td>
+                                            <td class="info-value">'.printValue($compname).'</td>
+                                            <td class="info-label">DATE:</td>
+                                            <td class="info-value">'.printValue($transactionDate).'</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="info-label">TRANS.TYPE:</td>
+                                            <td class="info-value">&nbsp;</td>
+                                            <td class="info-label">DN.NUMBER:</td>
+                                            <td class="info-value">'.printValue($row['delivery_no']).'</td>
+                                        </tr>
+                                    </table>
+
+                                    <table class="weight-table">
+                                        <tr>
+                                            <th style="width: 18%;">LORRY NO.</th>
+                                            <th style="width: 32%;">PRODUCT DESCRIPTION</th>
+                                            <th style="width: 25%;">TIME</th>
+                                            <th colspan="2" style="width: 25%;">WEIGHT (KG)</th>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center">'.printValue($row['lorry_plate_no1']).'</td>
+                                            <td>'.printValue($row['product_name']).'</td>
+                                            <td class="text-center">'.printValue($grossWeightTime).'</td>
+                                            <td class="text-center">FIRST</td>
+                                            <td class="text-right">'.printValue(formatWeight($row['gross_weight1'])).'</td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="2" class="no-border">REMARKS: '.printValue($row['remarks']).'</td>
+                                            <td class="text-center">'.printValue($tareWeightTime).'</td>
+                                            <td class="text-center">SECOND</td>
+                                            <td class="text-right">'.printValue(formatWeight($row['tare_weight1'])).'</td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="2" class="no-border"></td>
+                                            <td colspan="2" class="summary-label">NET WEIGHT (KG)</td>
+                                            <td class="summary-value">'.printValue(formatWeight($row['nett_weight1'])).'</td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="2" class="no-border"></td>
+                                            <td colspan="2" class="summary-label">WASTAGE</td>
+                                            <td class="summary-value">'.printValue(formatWeight($row['reduce_weight'])).'</td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="2" class="no-border"></td>
+                                            <td colspan="2" class="summary-label">FINAL WEIGHT (KG)</td>
+                                            <td class="summary-value">'.printValue(formatWeight($row['final_weight'])).'</td>
+                                        </tr>
+                                    </table>
+
+                                    <div class="signatures">
+                                        <div class="signature-box">
+                                            <div class="signature-line"></div>
+                                            <div>DRIVER</div>
+                                        </div>
+                                        <div class="signature-box">
+                                            <div class="signature-line"></div>
+                                            <div>WEIGHING BY</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </body>
+                        </html>';
+
+                        echo json_encode(
+                            array(
+                                "status" => "success",
+                                "message" => $message
+                            )
+                        );
+                        exit;
+                    }
+
                     $customer = '';
                     $customerR = '';
                     $customerP = '';

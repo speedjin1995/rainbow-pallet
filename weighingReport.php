@@ -274,7 +274,7 @@ else{
                                             <div class="d-flex align-items-center">
                                                 <div class="flex-grow-1 overflow-hidden">
                                                     <p class="text-uppercase fw-medium text-white text-truncate mb-0">
-                                                        Dispatch
+                                                        Sales
                                                     </p>
                                                 </div>
                                             </div>
@@ -300,7 +300,7 @@ else{
                                             <div class="d-flex align-items-center">
                                                 <div class="flex-grow-1 overflow-hidden">
                                                     <p class="text-uppercase fw-medium text-white text-truncate mb-0">
-                                                        Receiving
+                                                        Purchase
                                                     </p>
                                                 </div>
                                             </div>
@@ -326,7 +326,7 @@ else{
                                             <div class="d-flex align-items-center">
                                                 <div class="flex-grow-1 overflow-hidden">
                                                     <p class="text-uppercase fw-medium text-white text-truncate mb-0">
-                                                        Internal Transfer
+                                                        Transfer to Port
                                                     </p>
                                                 </div>
                                             </div>

@@ -322,7 +322,7 @@ else{
                                             <div class="d-flex align-items-center">
                                                 <div class="flex-grow-1 overflow-hidden">
                                                     <p class="text-uppercase fw-medium text-white text-truncate mb-0">
-                                                        Dispatch
+                                                        Sales
                                                     </p>
                                                 </div>
                                             </div>
@@ -348,7 +348,7 @@ else{
                                             <div class="d-flex align-items-center">
                                                 <div class="flex-grow-1 overflow-hidden">
                                                     <p class="text-uppercase fw-medium text-white text-truncate mb-0">
-                                                        Receiving
+                                                        Purchase
                                                     </p>
                                                 </div>
                                             </div>
@@ -374,7 +374,7 @@ else{
                                             <div class="d-flex align-items-center">
                                                 <div class="flex-grow-1 overflow-hidden">
                                                     <p class="text-uppercase fw-medium text-white text-truncate mb-0">
-                                                        Internal Transfer
+                                                        Transfer to Port
                                                     </p>
                                                 </div>
                                             </div>
@@ -1125,6 +1125,19 @@ else{
                                                                             <option value="zh">Chinese</option>
                                                                             <option value="my">Bahasa Malaysia</option>
                                                                             <option value="ne">नेपाली</option>
+                                                                        </select>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row mb-3">
+                                                            <label for="printTemplate" class="col-sm-4 col-form-label">Print Template</label>
+                                                            <div class="col-sm-8">
+                                                                <div class="input-group">
+                                                                    <div class="col-12">
+                                                                        <select class="form-select select2" id="printTemplate" name="printTemplate" >
+                                                                            <option value="with_weight" selected>With Weight</option>
+                                                                            <option value="without_weight">Without Weight</option>
                                                                         </select>
                                                                     </div>
                                                                 </div>
@@ -2078,6 +2091,7 @@ else{
                         $('#prePrintModal').find('#id').val(obj.id);
                         $('#prePrintModal').find('#isEmptyContainer').val(isEmptyContainer);
                         $('#prePrintModal').find('#prePrint').val("<?=$language ?>");
+                        $('#prePrintModal').find('#printTemplate').val("with_weight");
                         $("#prePrintModal").modal("show");
 
                         $('#prePrintForm').validate({
@@ -2114,8 +2128,9 @@ else{
                 var id = $('#prePrintModal').find('#id').val();
                 var prePrintStatus = $('#prePrintModal').find('#prePrint').val();
                 var isEmptyContainer = $('#prePrintModal').find('#isEmptyContainer').val();
+                var printTemplate = $('#prePrintModal').find('#printTemplate').val();
 
-                $.post('php/print.php', {userID: id, file: 'weight', prePrint: prePrintStatus, isEmptyContainer: isEmptyContainer}, function(data){
+                $.post('php/print.php', {userID: id, file: 'weight', prePrint: prePrintStatus, isEmptyContainer: isEmptyContainer, printTemplate: printTemplate}, function(data){
                     var obj = JSON.parse(data);
 
                     if(obj.status === 'success'){
@@ -3747,11 +3762,11 @@ else{
         var weightType = '';
 
         if (row.transaction_status == 'Sales') {
-            transactionStatus = 'Dispatch';
+            transactionStatus = 'Sales';
         } else if (row.transaction_status == 'Purchase') {
-            transactionStatus = 'Receiving';
+            transactionStatus = 'Purchase';
         } else if (row.transaction_status == 'Local') {
-            transactionStatus = 'Internal Transfer';
+            transactionStatus = 'Transfer to Port';
         } else {
             transactionStatus = 'Miscellaneous';
         }
@@ -4236,6 +4251,7 @@ else{
         $('#prePrintModal').find('#id').val(id);
         $('#prePrintModal').find('#isEmptyContainer').val(isEmptyContainer);
         $('#prePrintModal').find('#prePrint').val("<?=$language ?>");
+        $('#prePrintModal').find('#printTemplate').val("with_weight");
         $("#prePrintModal").modal("show");
 
         $('#prePrintForm').validate({
