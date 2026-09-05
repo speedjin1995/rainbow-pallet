@@ -1,10 +1,11 @@
 <?php
 ## Fetch records
 // Lorry SQL
-$lorryWeighingSQL = "(select * from Weight where status = '0' AND is_complete = 'N' AND is_cancel='N') UNION ALL (select * from Weight_Container where status = '0' AND is_complete = 'N' AND is_cancel='N')";
+$pendingLorryColumns = "id, transaction_id, transaction_status, weight_type, container_no";
+$lorryWeighingSQL = "(select $pendingLorryColumns from Weight where status = '0' AND is_complete = 'N' AND is_cancel='N') UNION ALL (select $pendingLorryColumns from Weight_Container where status = '0' AND is_complete = 'N' AND is_cancel='N')";
 if($_SESSION["roles"] != 'ADMIN' && $_SESSION["roles"] != 'SADMIN'){
     $username = implode("', '", $_SESSION["plant"]);
-    $normalWeighingSQL = "(select * from Weight where status = '0' AND is_complete = 'N' AND is_cancel='N' AND plant_code IN ('$username')) UNION ALL (select * from Weight_Container where status = '0' AND is_complete = 'N' AND is_cancel='N' AND plant_code IN ('$username'))";
+    $lorryWeighingSQL = "(select $pendingLorryColumns from Weight where status = '0' AND is_complete = 'N' AND is_cancel='N' AND plant_code IN ('$username')) UNION ALL (select $pendingLorryColumns from Weight_Container where status = '0' AND is_complete = 'N' AND is_cancel='N' AND plant_code IN ('$username'))";
 }
 $normalWeighing = $db->query($lorryWeighingSQL);
 
@@ -12,7 +13,7 @@ $normalWeighing = $db->query($lorryWeighingSQL);
 $containerWeighingSQL = "select * from Weight_Container where status = '0' AND is_complete = 'Y' AND is_cancel='N'";
 if($_SESSION["roles"] != 'ADMIN' && $_SESSION["roles"] != 'SADMIN'){
     $username = implode("', '", $_SESSION["plant"]);
-    $normalWeighingSQL = "select * from Weight_Container where status = '0' AND is_complete = 'Y' AND is_cancel='N' AND plant_code IN ('$username'))";
+    $containerWeighingSQL = "select * from Weight_Container where status = '0' AND is_complete = 'Y' AND is_cancel='N' AND plant_code IN ('$username')";
 }
 $containerWeighing = $db->query($containerWeighingSQL);
 

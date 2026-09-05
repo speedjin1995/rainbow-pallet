@@ -121,6 +121,20 @@ if(isset($_POST['userID'])){
                             $message['nett_weight1'] = $row['nett_weight1'] ?? '';
                             $message['reduce_weight'] = $row['reduce_weight'] ?? '';
                             $message['final_weight'] = $row['final_weight'] ?? '';
+                            $message['customer_side_company'] = $row['customer_side_company'] ?? '';
+                            $message['customer_side_removal_pass_no'] = $row['customer_side_removal_pass_no'] ?? '';
+                            $message['customer_side_license_no'] = $row['customer_side_license_no'] ?? '';
+                            $message['customer_side_moisture_content'] = $row['customer_side_moisture_content'] ?? '';
+                            $message['customer_side_officer_name'] = $row['customer_side_officer_name'] ?? '';
+                            $message['customer_side_rainbow_driver'] = $row['customer_side_rainbow_driver'] ?? '';
+                            $message['customer_side_time_in'] = !empty($row['customer_side_time_in']) ? date("d/m/Y - h:i:sa", strtotime($row['customer_side_time_in'])) : '';
+                            $message['customer_side_time_out'] = !empty($row['customer_side_time_out']) ? date("d/m/Y - h:i:sa", strtotime($row['customer_side_time_out'])) : '';
+                            $message['cust_side_do_no'] = $row['cust_side_do_no'] ?? '';
+                            $message['cust_side_mc'] = $row['cust_side_mc'] ?? '';
+                            $message['cust_side_first_weight'] = $row['cust_side_first_weight'] ?? '';
+                            $message['cust_side_second_weight'] = $row['cust_side_second_weight'] ?? '';
+                            $message['cust_side_nett_weight'] = $row['cust_side_nett_weight'] ?? '';
+                            $message['weight_difference'] = $row['weight_difference'] ?? '';
                         }else{
                             $message['id'] = $row['id'];
                             $message['transaction_id'] = $row['transaction_id'];
@@ -191,6 +205,14 @@ if(isset($_POST['userID'])){
                             $message['sst'] = $row['sst'];
                             $message['total_price'] = $row['total_price'];
                             $message['final_weight'] = $row['final_weight'];
+                            $message['customer_side_company'] = $row['customer_side_company'] ?? '';
+                            $message['customer_side_removal_pass_no'] = $row['customer_side_removal_pass_no'] ?? '';
+                            $message['customer_side_license_no'] = $row['customer_side_license_no'] ?? '';
+                            $message['customer_side_moisture_content'] = $row['customer_side_moisture_content'] ?? '';
+                            $message['customer_side_officer_name'] = $row['customer_side_officer_name'] ?? '';
+                            $message['customer_side_rainbow_driver'] = $row['customer_side_rainbow_driver'] ?? '';
+                            $message['customer_side_time_in'] = $row['customer_side_time_in'] ?? '';
+                            $message['customer_side_time_out'] = $row['customer_side_time_out'] ?? '';
     
                             if ($update_stmt2 = $db->prepare("SELECT * FROM Vehicle WHERE veh_number=?")) {
                                 $update_stmt2->bind_param('s', $row['lorry_plate_no1']);
@@ -332,6 +354,20 @@ if(isset($_POST['userID'])){
                             $message['nett_weight2'] = $row['nett_weight2'] ?? '';
                             $message['reduce_weight'] = $row['reduce_weight'] ?? '';
                             $message['final_weight'] = $row['final_weight'] ?? '';
+                            $message['customer_side_company'] = $row['customer_side_company'] ?? '';
+                            $message['customer_side_removal_pass_no'] = $row['customer_side_removal_pass_no'] ?? '';
+                            $message['customer_side_license_no'] = $row['customer_side_license_no'] ?? '';
+                            $message['customer_side_moisture_content'] = $row['customer_side_moisture_content'] ?? '';
+                            $message['customer_side_officer_name'] = $row['customer_side_officer_name'] ?? '';
+                            $message['customer_side_rainbow_driver'] = $row['customer_side_rainbow_driver'] ?? '';
+                            $message['customer_side_time_in'] = !empty($row['customer_side_time_in']) ? date("d/m/Y - h:i:sa", strtotime($row['customer_side_time_in'])) : '';
+                            $message['customer_side_time_out'] = !empty($row['customer_side_time_out']) ? date("d/m/Y - h:i:sa", strtotime($row['customer_side_time_out'])) : '';
+                            $message['cust_side_do_no'] = $row['cust_side_do_no'] ?? '';
+                            $message['cust_side_mc'] = $row['cust_side_mc'] ?? '';
+                            $message['cust_side_first_weight'] = $row['cust_side_first_weight'] ?? '';
+                            $message['cust_side_second_weight'] = $row['cust_side_second_weight'] ?? '';
+                            $message['cust_side_nett_weight'] = $row['cust_side_nett_weight'] ?? '';
+                            $message['weight_difference'] = $row['weight_difference'] ?? '';
                         }else{
                             $message['id'] = $row['id'];
                             $message['transaction_id'] = $row['transaction_id'];
@@ -402,6 +438,14 @@ if(isset($_POST['userID'])){
                             $message['sst'] = $row['sst'];
                             $message['total_price'] = $row['total_price'];
                             $message['final_weight'] = $row['final_weight'];
+                            $message['customer_side_company'] = $row['customer_side_company'] ?? '';
+                            $message['customer_side_removal_pass_no'] = $row['customer_side_removal_pass_no'] ?? '';
+                            $message['customer_side_license_no'] = $row['customer_side_license_no'] ?? '';
+                            $message['customer_side_moisture_content'] = $row['customer_side_moisture_content'] ?? '';
+                            $message['customer_side_officer_name'] = $row['customer_side_officer_name'] ?? '';
+                            $message['customer_side_rainbow_driver'] = $row['customer_side_rainbow_driver'] ?? '';
+                            $message['customer_side_time_in'] = $row['customer_side_time_in'] ?? '';
+                            $message['customer_side_time_out'] = $row['customer_side_time_out'] ?? '';
     
                             if ($update_stmt2 = $db->prepare("SELECT * FROM Vehicle WHERE veh_number=?")) {
                                 $update_stmt2->bind_param('s', $row['lorry_plate_no1']);
