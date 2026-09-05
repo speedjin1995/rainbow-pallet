@@ -179,6 +179,23 @@ function searchActionNameById($value, $db) {
     return $id;
 }
 
+function searchSupplierById($value, $db) {
+    $id = null;
+
+    if ($select_stmt = $db->prepare("SELECT * FROM Supplier WHERE id=?")) {
+        $select_stmt->bind_param('s', $value);
+        $select_stmt->execute();
+        $result = $select_stmt->get_result();
+        if ($row = $result->fetch_assoc()) {
+            $id = $row;
+        }
+        $select_stmt->close();
+    }
+
+    return $id;
+}
+
+
 function excelSerialToDate($serial) {
     // Excel date starts from 1900-01-01, subtract 1 for correct calculation
     $baseDate = strtotime('1899-12-30');
