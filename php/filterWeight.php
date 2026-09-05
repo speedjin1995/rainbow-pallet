@@ -83,14 +83,15 @@ if($searchValue != ''){
   $searchQuery = " and (transaction_id like '%".$searchValue."%' or lorry_plate_no1 like '%".$searchValue."%')";
 }
 
+$weightUnionColumns = "id, transaction_id, transaction_status, weight_type, transaction_date, lorry_plate_no1, lorry_plate_no2, supplier_weight, customer_code, customer_name, plant_code, plant_name, supplier_code, supplier_name, raw_mat_code, raw_mat_name, product_code, product_name, container_no, container_no2, seal_no, seal_no2, invoice_no, purchase_order, delivery_no, transporter_code, transporter, destination_code, destination, remarks, gross_weight1, gross_weight1_date, tare_weight1, tare_weight1_date, nett_weight1, gross_weight2, gross_weight2_date, tare_weight2, tare_weight2_date, nett_weight2, final_weight, weight_different, is_complete, is_cancel, is_approved, manual_weight, indicator_id, weighbridge_id, created_date, created_by, modified_date, modified_by, indicator_id_2, product_description";
 
 if ($_POST['batch'] == 'N') { //if pending
   ## Total number of records without filtering
-  $allQuery = "select COUNT(*) as allcount FROM (SELECT * FROM Weight WHERE status = '0' UNION ALL SELECT * FROM Weight_Container WHERE status = '0') AS combined";
+  $allQuery = "select COUNT(*) as allcount FROM (SELECT id FROM Weight WHERE status = '0' UNION ALL SELECT id FROM Weight_Container WHERE status = '0') AS combined";
     
   if($_SESSION["roles"] != 'ADMIN' && $_SESSION["roles"] != 'SADMIN'){
     $username = implode("', '", $_SESSION["plant"]);
-    $allQuery = "select COUNT(*) as allcount FROM (SELECT * FROM Weight WHERE status = '0' and plant_code IN ('$username') UNION ALL SELECT * FROM Weight WHERE status = '0' and plant_code IN ('$username')) AS combined";
+    $allQuery = "select COUNT(*) as allcount FROM (SELECT id FROM Weight WHERE status = '0' and plant_code IN ('$username') UNION ALL SELECT id FROM Weight_Container WHERE status = '0' and plant_code IN ('$username')) AS combined";
   }
 
   $sel = mysqli_query($db, $allQuery);
@@ -98,10 +99,10 @@ if ($_POST['batch'] == 'N') { //if pending
   $totalRecords = $records['allcount'];
 
   ## Total number of record with filtering
-  $filteredQuery = "select count(*) as allcount from (SELECT * FROM Weight where status = '0'".$searchQuery." UNION ALL SELECT * FROM Weight_Container where status = '0'".$searchQuery.") AS combined"; 
+  $filteredQuery = "select count(*) as allcount from (SELECT id FROM Weight where status = '0'".$searchQuery." UNION ALL SELECT id FROM Weight_Container where status = '0'".$searchQuery.") AS combined"; 
   if($_SESSION["roles"] != 'ADMIN' && $_SESSION["roles"] != 'SADMIN'){
     $username = implode("', '", $_SESSION["plant"]);
-    $filteredQuery = "select count(*) as allcount from (SELECT * FROM Weight where status = '0' and plant_code IN ('$username')".$searchQuery." UNION ALL SELECT * FROM Weight_Container where status = '0' and plant_code IN ('$username')".$searchQuery.") AS combined";
+    $filteredQuery = "select count(*) as allcount from (SELECT id FROM Weight where status = '0' and plant_code IN ('$username')".$searchQuery." UNION ALL SELECT id FROM Weight_Container where status = '0' and plant_code IN ('$username')".$searchQuery.") AS combined";
   }
 
   $sel = mysqli_query($db, $filteredQuery);
@@ -109,11 +110,11 @@ if ($_POST['batch'] == 'N') { //if pending
   $totalRecordwithFilter = $records['allcount'];
 
   ## Fetch records
-  $empQuery = "(select * from Weight where status = '0'".$searchQuery.") UNION ALL (select * from Weight_Container where status = '0'".$searchQuery.") order by ".$columnName." ".$columnSortOrder." limit ".$row.",".$rowperpage;
+  $empQuery = "(select $weightUnionColumns from Weight where status = '0'".$searchQuery.") UNION ALL (select $weightUnionColumns from Weight_Container where status = '0'".$searchQuery.") order by ".$columnName." ".$columnSortOrder." limit ".$row.",".$rowperpage;
 
   if($_SESSION["roles"] != 'ADMIN' && $_SESSION["roles"] != 'SADMIN'){
     $username = implode("', '", $_SESSION["plant"]);
-    $empQuery = "(select * from Weight where status = '0' and plant_code IN ('$username')".$searchQuery.") UNION ALL (select * from Weight_Container where status = '0' and plant_code IN ('$username')".$searchQuery.") order by ".$columnName." ".$columnSortOrder." limit ".$row.",".$rowperpage;
+    $empQuery = "(select $weightUnionColumns from Weight where status = '0' and plant_code IN ('$username')".$searchQuery.") UNION ALL (select $weightUnionColumns from Weight_Container where status = '0' and plant_code IN ('$username')".$searchQuery.") order by ".$columnName." ".$columnSortOrder." limit ".$row.",".$rowperpage;
   }
 }else{
   ## Total number of records without filtering

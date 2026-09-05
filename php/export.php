@@ -176,10 +176,11 @@ $excelData = implode("\t", array_values($fields)) . "\n";
 // Fetch records from database
 if($_GET["file"] == 'weight'){
     // $query = $db->query("select * from Weight WHERE status='0'".$searchQuery);
+    $weightUnionColumns = "transaction_id, transaction_status, weight_type, transaction_date, lorry_plate_no1, customer_code, customer_name, supplier_code, supplier_name, raw_mat_code, raw_mat_name, product_code, product_name, product_description, destination_code, destination, transporter_code, transporter, purchase_order, delivery_no, container_no, seal_no, container_no2, seal_no2, order_weight, supplier_weight, gross_weight1, tare_weight1, nett_weight1, gross_weight1_date, tare_weight1_date, gross_weight2, tare_weight2, nett_weight2, gross_weight2_date, tare_weight2_date, reduce_weight, weight_different, final_weight, manual_weight, is_cancel, plant_code, plant_name, created_by, remarks, created_date";
     $query = $db->query("
-        SELECT * FROM Weight WHERE Weight.status = '0'".$searchQuery."
+        SELECT $weightUnionColumns FROM Weight WHERE Weight.status = '0'".$searchQuery."
         UNION ALL
-        SELECT * FROM Weight_Container WHERE Weight_Container.status = '0'".$searchContainerQuery."
+        SELECT $weightUnionColumns FROM Weight_Container WHERE Weight_Container.status = '0'".$searchContainerQuery."
         ORDER BY created_date ASC
     ");
 }

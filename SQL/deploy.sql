@@ -93,6 +93,16 @@ VALUES (
 )
 $$
 DELIMITER ;
+
+ALTER TABLE `Weight`
+    ADD `customer_side_company` VARCHAR(255) NULL,
+    ADD `customer_side_removal_pass_no` VARCHAR(100) NULL,
+    ADD `customer_side_license_no` VARCHAR(100) NULL,
+    ADD `customer_side_moisture_content` VARCHAR(100) NULL,
+    ADD `customer_side_officer_name` VARCHAR(255) NULL,
+    ADD `customer_side_rainbow_driver` VARCHAR(255) NULL,
+    ADD `customer_side_time_in` DATETIME NULL,
+    ADD `customer_side_time_out` DATETIME NULL;
 DELIMITER $$
 CREATE TRIGGER `TRG_UPD_WEIGHT_CONTAINER` BEFORE UPDATE ON `Weight_Container` FOR EACH ROW BEGIN
     DECLARE action_value INT;
@@ -952,6 +962,23 @@ INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALU
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('issued_by_code', 'Issued By', '签发人', 'Dikeluarkan oleh', 'வழங்கியவர்');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('first_code', 'First', '第一次', 'Kali Pertama', 'வழங்கியவர்');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('second_code', 'Second', '第二次', 'Kali kedua', 'இரண்டாம் முறை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('customer_side_company_code', 'Company', '公司', 'Syarikat', 'நநிறுவனம்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('customer_side_removal_pass_no_code', 'Removal Pass No.', '移运证编号', 'Nombor Pas Memindah', 'அகற்றுதல் அனுமதிச் சீட்டு எண்ை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('customer_side_license_no_code', 'License No.', '执照号码', 'Nombor Lesen', 'உரிம எண்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('customer_side_moisture_content_code', 'Moisture Content', '含水量', 'Kandungan Kelembapan', 'ஈரப்பதம்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('customer_side_officer_name_code', 'Officer Name', '官员姓名', 'Nama Pegawai', 'அதிகாரியின் பெயர்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('customer_side_rainbow_driver_code', 'Rainbow Driver', 'Rainbow 运输司机', 'Pemandu Rainbow', 'ஓட்டுநர்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('customer_side_time_in_code', 'Time In', '入场时间', 'Masa Masuk', 'உள் நுழைந்த நேரம்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('customer_side_time_out_code', 'Time Out', '离场时间', 'Masa Keluar', 'வெளியேறிய நேரம்');
+
+ALTER TABLE weight ADD cust_side_company varchar(128);
+ALTER TABLE weight ADD cust_side_removal_pass_no varchar(50);
+ALTER TABLE weight ADD cust_side_license_no varchar(50);
+ALTER TABLE weight ADD cust_side_moisture_content varchar(50);
+ALTER TABLE weight ADD cust_side_officer_name varchar(50);
+ALTER TABLE weight ADD cust_side_rainbow_driver varchar(128);
+ALTER TABLE weight ADD cust_side_time_in datetime;
+ALTER TABLE weight ADD cust_side_time_out datetime;
 
 DROP TABLE IF EXISTS `Product_RawMat`;
 DROP TABLE IF EXISTS `Bitumen`;

@@ -732,9 +732,8 @@ else{
                                                                                     <div class="col-sm-8">
                                                                                         <select class="form-select select2" id="transporter" name="transporter" required>
                                                                                             <option selected="-">-</option>
-                                                                                            <?php while($rowTransporter=mysqli_fetch_assoc($transporter)){ ?>
-                                                                                                <option value="<?=$rowTransporter['name'] ?>" data-code="<?=$rowTransporter['transporter_code'] ?>"><?=$rowTransporter['name'] ?></option>
-                                                                                            <?php } ?>
+                                                                                            <option value="Own Transport" data-code="Own Transport">Own Transport</option>
+                                                                                            <option value="Third Party" data-code="Third Party">Third Party</option>
                                                                                         </select>
                                                                                     </div>
                                                                                 </div>
@@ -979,6 +978,61 @@ else{
                                                                                 </div>
                                                                             </div>
                                                                         </div>                                                                    
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-xxl-4 col-lg-4" id="customerSideCard">
+                                                                <div class="card bg-light">
+                                                                    <div class="card-body">
+                                                                        <h6 class="mb-3 text-muted">Customer Side</h6>
+                                                                        <div class="row mb-3">
+                                                                            <label for="customerSideCompany" class="col-sm-4 col-form-label"><?=$languageArray['customer_side_company_code'][$language]?></label>
+                                                                            <div class="col-sm-8">
+                                                                                <input type="text" class="form-control" id="customerSideCompany" name="customerSideCompany" placeholder="<?=$languageArray['customer_side_company_code'][$language]?>">
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="row mb-3">
+                                                                            <label for="customerSideRemovalPassNo" class="col-sm-4 col-form-label"><?=$languageArray['customer_side_removal_pass_no_code'][$language]?></label>
+                                                                            <div class="col-sm-8">
+                                                                                <input type="text" class="form-control" id="customerSideRemovalPassNo" name="customerSideRemovalPassNo" placeholder="<?=$languageArray['customer_side_removal_pass_no_code'][$language]?>">
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="row mb-3">
+                                                                            <label for="customerSideLicenseNo" class="col-sm-4 col-form-label"><?=$languageArray['customer_side_license_no_code'][$language]?></label>
+                                                                            <div class="col-sm-8">
+                                                                                <input type="text" class="form-control" id="customerSideLicenseNo" name="customerSideLicenseNo" placeholder="<?=$languageArray['customer_side_license_no_code'][$language]?>">
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="row mb-3">
+                                                                            <label for="customerSideMoistureContent" class="col-sm-4 col-form-label"><?=$languageArray['customer_side_moisture_content_code'][$language]?></label>
+                                                                            <div class="col-sm-8">
+                                                                                <input type="text" class="form-control" id="customerSideMoistureContent" name="customerSideMoistureContent" placeholder="<?=$languageArray['customer_side_moisture_content_code'][$language]?>">
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="row mb-3">
+                                                                            <label for="customerSideOfficerName" class="col-sm-4 col-form-label"><?=$languageArray['customer_side_officer_name_code'][$language]?></label>
+                                                                            <div class="col-sm-8">
+                                                                                <input type="text" class="form-control" id="customerSideOfficerName" name="customerSideOfficerName" placeholder="<?=$languageArray['customer_side_officer_name_code'][$language]?>">
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="row mb-3">
+                                                                            <label for="customerSideRainbowDriver" class="col-sm-4 col-form-label"><?=$languageArray['customer_side_rainbow_driver_code'][$language]?></label>
+                                                                            <div class="col-sm-8">
+                                                                                <input type="text" class="form-control" id="customerSideRainbowDriver" name="customerSideRainbowDriver" placeholder="<?=$languageArray['customer_side_rainbow_driver_code'][$language]?>">
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="row mb-3">
+                                                                            <label for="customerSideTimeIn" class="col-sm-4 col-form-label"><?=$languageArray['customer_side_time_in_code'][$language]?></label>
+                                                                            <div class="col-sm-8">
+                                                                                <input type="text" class="form-control" id="customerSideTimeIn" name="customerSideTimeIn">
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="row mb-3">
+                                                                            <label for="customerSideTimeOut" class="col-sm-4 col-form-label"><?=$languageArray['customer_side_time_out_code'][$language]?></label>
+                                                                            <div class="col-sm-8">
+                                                                                <input type="text" class="form-control" id="customerSideTimeOut" name="customerSideTimeOut">
+                                                                            </div>
+                                                                        </div>
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -1445,6 +1499,8 @@ else{
     var tareOutgoingDatePicker; 
     var grossIncomingDatePicker2;
     var tareOutgoingDatePicker2; 
+    var customerSideTimeInPicker;
+    var customerSideTimeOutPicker;
 
     $(function () {
         var userRole = '<?=$role ?>';
@@ -1552,6 +1608,28 @@ else{
             altFormat: "d/m/Y H:i:S K",
             allowInput: (userRole == 'SADMIN' || userRole == 'ADMIN' || userRole == 'MANAGER') ? true : false,
             clickOpens: (userRole == 'SADMIN' || userRole == 'ADMIN' || userRole == 'MANAGER') ? true : false,
+        });
+
+        customerSideTimeInPicker = $('#customerSideTimeIn').flatpickr({
+            enableTime: true,
+            enableSeconds: true,
+            time_24hr: true,
+            dateFormat: "Y-m-d H:i:S",
+            altInput: true,
+            altFormat: "d/m/Y H:i:S K",
+            allowInput: true,
+            clickOpens: true,
+        });
+
+        customerSideTimeOutPicker = $('#customerSideTimeOut').flatpickr({
+            enableTime: true,
+            enableSeconds: true,
+            time_24hr: true,
+            dateFormat: "Y-m-d H:i:S",
+            altInput: true,
+            altFormat: "d/m/Y H:i:S K",
+            allowInput: true,
+            clickOpens: true,
         });
 
         // Clear All Filter Function
@@ -2557,6 +2635,14 @@ else{
             tareOutgoingDatePicker2.clear();
             $('#addModal').find('#nettWeight2').val("");
             $('#addModal').find('#reduceWeight').val("");
+            $('#addModal').find('#customerSideCompany').val("");
+            $('#addModal').find('#customerSideRemovalPassNo').val("");
+            $('#addModal').find('#customerSideLicenseNo').val("");
+            $('#addModal').find('#customerSideMoistureContent').val("");
+            $('#addModal').find('#customerSideOfficerName').val("");
+            $('#addModal').find('#customerSideRainbowDriver').val("");
+            customerSideTimeInPicker.clear();
+            customerSideTimeOutPicker.clear();
             $('#addModal').find('#weightDifference').val("");
             $('#addModal').find('#weightDifferencePerc').val("");
             $('#addModal').find('#manualWeightNo').trigger('click');
@@ -3823,6 +3909,24 @@ else{
         </div>
         <hr>
 
+        <!-- Customer Side Section -->
+        <div class="row">
+            <p><span><strong style="font-size:120%; text-decoration: underline;">Customer Side</strong></span><br>
+            <div class="col-6">
+                <p><strong><?=$languageArray['customer_side_company_code'][$language]?>:</strong> ${row.customer_side_company || ''}</p>
+                <p><strong><?=$languageArray['customer_side_removal_pass_no_code'][$language]?>:</strong> ${row.customer_side_removal_pass_no || ''}</p>
+                <p><strong><?=$languageArray['customer_side_license_no_code'][$language]?>:</strong> ${row.customer_side_license_no || ''}</p>
+                <p><strong><?=$languageArray['customer_side_moisture_content_code'][$language]?>:</strong> ${row.customer_side_moisture_content || ''}</p>
+            </div>
+            <div class="col-6">
+                <p><strong><?=$languageArray['customer_side_officer_name_code'][$language]?>:</strong> ${row.customer_side_officer_name || ''}</p>
+                <p><strong><?=$languageArray['customer_side_rainbow_driver_code'][$language]?>:</strong> ${row.customer_side_rainbow_driver || ''}</p>
+                <p><strong><?=$languageArray['customer_side_time_in_code'][$language]?>:</strong> ${row.customer_side_time_in || ''}</p>
+                <p><strong><?=$languageArray['customer_side_time_out_code'][$language]?>:</strong> ${row.customer_side_time_out || ''}</p>
+            </div>
+        </div>
+        <hr>
+
         <!-- Weighing Section -->
         <div class="row">
             <p><span><strong style="font-size:120%; text-decoration: underline;">Weighing Information</strong></span><br>
@@ -4032,6 +4136,14 @@ else{
                 $('#addModal').find('#tareWeightBy2').val(obj.message.tare_weight_by2);
                 $('#addModal').find('#nettWeight2').val(obj.message.nett_weight2);
                 $('#addModal').find('#reduceWeight').val(obj.message.reduce_weight);
+                $('#addModal').find('#customerSideCompany').val(obj.message.customer_side_company);
+                $('#addModal').find('#customerSideRemovalPassNo').val(obj.message.customer_side_removal_pass_no);
+                $('#addModal').find('#customerSideLicenseNo').val(obj.message.customer_side_license_no);
+                $('#addModal').find('#customerSideMoistureContent').val(obj.message.customer_side_moisture_content);
+                $('#addModal').find('#customerSideOfficerName').val(obj.message.customer_side_officer_name);
+                $('#addModal').find('#customerSideRainbowDriver').val(obj.message.customer_side_rainbow_driver);
+                customerSideTimeInPicker.setDate(obj.message.customer_side_time_in != null && obj.message.customer_side_time_in != '' ? new Date(obj.message.customer_side_time_in) : null);
+                customerSideTimeOutPicker.setDate(obj.message.customer_side_time_out != null && obj.message.customer_side_time_out != '' ? new Date(obj.message.customer_side_time_out) : null);
                 $('#addModal').find('#weightDifference').val(obj.message.weight_different);
                 $('#addModal').find('#weightDifferencePerc').val(obj.message.weight_different_perc);
                 $('#addModal').find('#currentWeight').text(obj.message.final_weight);
