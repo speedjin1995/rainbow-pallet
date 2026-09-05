@@ -950,6 +950,8 @@ INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALU
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('collection_location_code', 'Collection Location', '收集地点', 'Lokasi Kutipan', 'சேகரிப்பு இடம்');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('signature_of_driver_code', 'Signature of Driver', '司机签名', 'Tandatangan Pemandu', 'ஓட்டுநரின் கையொப்பம்');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('issued_by_code', 'Issued By', '签发人', 'Dikeluarkan oleh', 'வழங்கியவர்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('first_code', 'First', '第一次', 'Kali Pertama', 'வழங்கியவர்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('second_code', 'Second', '第二次', 'Kali kedua', 'இரண்டாம் முறை');
 
 DROP TABLE IF EXISTS `Product_RawMat`;
 DROP TABLE IF EXISTS `Bitumen`;

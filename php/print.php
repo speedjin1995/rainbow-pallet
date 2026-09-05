@@ -504,13 +504,13 @@ if(isset($_POST['userID'], $_POST["file"], $_POST['isEmptyContainer'])){
                                             <td class="text-center">'.printValue($row['lorry_plate_no1']).'</td>
                                             <td>'.printValue($row['product_name']).'</td>
                                             <td class="text-center">'.printValue($grossWeightTime).'</td>
-                                            <td class="text-center">FIRST</td>
+                                            <td class="text-center">'.messageLabel($languageArray, $language, 'first_code').'</td>
                                             <td class="text-right">'.printValue(formatWeight($row['gross_weight1'])).'</td>
                                         </tr>
                                         <tr>
                                             <td colspan="2" class="no-border">REMARKS: '.printValue($row['remarks']).'</td>
                                             <td class="text-center">'.printValue($tareWeightTime).'</td>
-                                            <td class="text-center">SECOND</td>
+                                            <td class="text-center">'.messageLabel($languageArray, $language, 'second_code').'</td>
                                             <td class="text-right">'.printValue(formatWeight($row['tare_weight1'])).'</td>
                                         </tr>
                                         <tr>
