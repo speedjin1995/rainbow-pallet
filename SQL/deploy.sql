@@ -278,6 +278,7 @@ ALTER TABLE `Company_Log` ADD `tin_no` VARCHAR(100) NULL AFTER `fax_no`, ADD `mo
 
 -- 05/09/2026 Rainbow Pallet --
 ALTER TABLE `Company` ADD `email` VARCHAR(255) NOT NULL DEFAULT '';
+ALTER TABLE `Customer` ADD `email` VARCHAR(255) NOT NULL DEFAULT '';
 
 -- 14/06/2025 --
 ALTER TABLE `Vehicle` ADD `supplier_code` VARCHAR(50) NOT NULL AFTER `customer_name`, ADD `supplier_name` VARCHAR(100) NOT NULL AFTER `supplier_code`;

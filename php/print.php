@@ -14,7 +14,6 @@ $compaddress3 = '13400 Butterworth. Penang. Malaysia.';
 $compphone = '6043325822';
 $compiemail = 'admin@synctronix.com.my';
 $compemail = 'admin@synctronix.com.my';
-$printTemplate = isset($_POST['printTemplate']) ? $_POST['printTemplate'] : 'with_weight';
  
 // Filter the excel data 
 function filterData(&$str){ 
@@ -44,6 +43,46 @@ function underlinedValue($value, $width = '180px'){
     return '<span style="display:inline-block; width: '.$width.'; box-sizing: border-box; border-bottom: 1px solid #000; padding: 0 6px 2px; line-height: 18px; min-height: 20px; vertical-align: bottom;">'.$displayValue.'</span>';
 }
 
+function getPrintHeaderDetails($db, $weightRow, $companyDetails){
+    if (($weightRow['transaction_status'] ?? '') == 'Purchase' && !empty($weightRow['customer_code'])) {
+        if ($customer_stmt = $db->prepare("SELECT name, company_reg_no, address_line_1, address_line_2, address_line_3, phone_no, email FROM Customer WHERE customer_code=?")) {
+            $customer_stmt->bind_param('s', $weightRow['customer_code']);
+            $customer_stmt->execute();
+            $customer_result = $customer_stmt->get_result();
+
+            if ($customer = $customer_result->fetch_assoc()) {
+                return array(
+                    "name" => $customer['name'],
+                    "reg" => $customer['company_reg_no'],
+                    "address1" => $customer['address_line_1'],
+                    "address2" => $customer['address_line_2'],
+                    "address3" => $customer['address_line_3'],
+                    "phone" => $customer['phone_no'],
+                    "email" => isset($customer['email']) ? $customer['email'] : ''
+                );
+            }
+        }
+    }
+
+    return $companyDetails;
+}
+
+function getAddressLines($details){
+    return array_filter([$details['address1'], $details['address2'], $details['address3']], function($address) {
+        return trim((string)$address) !== '';
+    });
+}
+
+function getContactLine($details){
+    $contactLine = 'Tel: '.printValue($details['phone']);
+
+    if (trim((string)$details['email']) !== '') {
+        $contactLine .= ' E-mail: '.printValue($details['email']);
+    }
+
+    return $contactLine;
+}
+
 if(isset($_POST['userID'], $_POST["file"], $_POST['isEmptyContainer'])){
     $stmt = $db->prepare("SELECT * FROM Company WHERE id=?");
     $stmt->bind_param('s', $compids);
@@ -61,6 +100,15 @@ if(isset($_POST['userID'], $_POST["file"], $_POST['isEmptyContainer'])){
         $compiemail = $row['fax_no'];
         $compemail = isset($row['email']) && $row['email'] !== '' ? $row['email'] : '';
     }
+    $companyDetails = array(
+        "name" => $compname,
+        "reg" => $compreg,
+        "address1" => $compaddress,
+        "address2" => $compaddress2,
+        "address3" => $compaddress3,
+        "phone" => $compphone,
+        "email" => $compemail
+    );
 
     if($_POST["file"] == 'weight'){
         //i remove this because both(billboard and weight) also call this print page.
@@ -87,6 +135,8 @@ if(isset($_POST['userID'], $_POST["file"], $_POST['isEmptyContainer'])){
                 $result = $select_stmt->get_result();
                     
                 if ($row = $result->fetch_assoc()) {
+                    $printTemplate = $row['transaction_status'] == 'Purchase' ? 'with_weight' : 'without_weight';
+
                     if ($printTemplate == 'without_weight' && $_POST['isEmptyContainer'] != 'Y') {
                         $driverName = '';
                         $driverIc = '';
@@ -103,14 +153,9 @@ if(isset($_POST['userID'], $_POST["file"], $_POST['isEmptyContainer'])){
                         }
 
                         $transactionDate = !empty($row['transaction_date']) ? date("d/m/Y", strtotime($row['transaction_date'])) : '';
-                        $companyAddress = array_filter([$compaddress, $compaddress2, $compaddress3], function($address) {
-                            return trim((string)$address) !== '';
-                        });
-                        $contactLine = 'Tel: '.printValue($compphone);
-
-                        if (trim((string)$compemail) !== '') {
-                            $contactLine .= ' E-mail: '.printValue($compemail);
-                        }
+                        $headerDetails = getPrintHeaderDetails($db, $row, $companyDetails);
+                        $companyAddress = getAddressLines($headerDetails);
+                        $contactLine = getContactLine($headerDetails);
 
                         $message = '
                         <!DOCTYPE html>
@@ -218,8 +263,8 @@ if(isset($_POST['userID'], $_POST["file"], $_POST['isEmptyContainer'])){
                                         <span class="title">DELIVERY NOTE</span>
                                         <span class="note-no">No. RP '.printValue($row['transaction_id']).'</span>
                                     </div>
-                                    <div class="company-name">'.printValue($compname).'</div>
-                                    <div class="company-reg">(Co. '.printValue($compreg).')</div>';
+                                    <div class="company-name">'.printValue($headerDetails['name']).'</div>
+                                    <div class="company-reg">(Co. '.printValue($headerDetails['reg']).')</div>';
 
                         foreach ($companyAddress as $address) {
                             $message .= '<div class="company-line">'.printValue($address).'</div>';
@@ -282,13 +327,15 @@ if(isset($_POST['userID'], $_POST["file"], $_POST['isEmptyContainer'])){
                         $transactionDate = !empty($row['transaction_date']) ? date("d/m/Y", strtotime($row['transaction_date'])) : '';
                         $grossWeightTime = !empty($row['gross_weight1_date']) ? date("d/m/Y - H:i:s", strtotime($row['gross_weight1_date'])) : '';
                         $tareWeightTime = !empty($row['tare_weight1_date']) ? date("d/m/Y - H:i:s", strtotime($row['tare_weight1_date'])) : '';
-                        $companyAddress = array_filter([$compaddress, $compaddress2, $compaddress3], function($address) {
-                            return trim((string)$address) !== '';
-                        });
-                        $contactLine = 'Tel: '.printValue($compphone);
+                        $headerDetails = getPrintHeaderDetails($db, $row, $companyDetails);
+                        $companyAddress = getAddressLines($headerDetails);
+                        $contactLine = getContactLine($headerDetails);
+                        $customerName = $row['customer_name'];
+                        $supplierName = $compname;
 
-                        if (trim((string)$compemail) !== '') {
-                            $contactLine .= ' E-mail: '.printValue($compemail);
+                        if ($row['transaction_status'] == 'Purchase') {
+                            $customerName = $compname;
+                            $supplierName = $row['customer_name'];
                         }
 
                         $message = '
@@ -392,7 +439,7 @@ if(isset($_POST['userID'], $_POST["file"], $_POST['isEmptyContainer'])){
                             </head>
                             <body>
                                 <div class="ticket">
-                                    <div class="company-name">'.printValue($compname).'</div>';
+                                    <div class="company-name">'.printValue($headerDetails['name']).'</div>';
 
                         foreach ($companyAddress as $address) {
                             $message .= '<div class="company-line">'.printValue($address).'</div>';
@@ -404,13 +451,13 @@ if(isset($_POST['userID'], $_POST["file"], $_POST['isEmptyContainer'])){
                                     <table class="info-table">
                                         <tr>
                                             <td class="info-label">CUSTOMER:</td>
-                                            <td class="info-value">'.printValue($row['customer_name']).'</td>
+                                            <td class="info-value">'.printValue($customerName).'</td>
                                             <td class="info-label">TICKET NO:</td>
                                             <td class="info-value">'.printValue($row['transaction_id']).'</td>
                                         </tr>
                                         <tr>
                                             <td class="info-label">SUPPLIER:</td>
-                                            <td class="info-value">'.printValue($compname).'</td>
+                                            <td class="info-value">'.printValue($supplierName).'</td>
                                             <td class="info-label">DATE:</td>
                                             <td class="info-value">'.printValue($transactionDate).'</td>
                                         </tr>

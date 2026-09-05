@@ -1130,19 +1130,6 @@ else{
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div class="row mb-3">
-                                                            <label for="printTemplate" class="col-sm-4 col-form-label">Print Template</label>
-                                                            <div class="col-sm-8">
-                                                                <div class="input-group">
-                                                                    <div class="col-12">
-                                                                        <select class="form-select select2" id="printTemplate" name="printTemplate" >
-                                                                            <option value="with_weight" selected>With Weight</option>
-                                                                            <option value="without_weight">Without Weight</option>
-                                                                        </select>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
                                                             
                                                         <input type="hidden" class="form-control" id="isEmptyContainer" name="isEmptyContainer">
                                                         <input type="hidden" class="form-control" id="id" name="id">
@@ -2091,7 +2078,6 @@ else{
                         $('#prePrintModal').find('#id').val(obj.id);
                         $('#prePrintModal').find('#isEmptyContainer').val(isEmptyContainer);
                         $('#prePrintModal').find('#prePrint').val("<?=$language ?>");
-                        $('#prePrintModal').find('#printTemplate').val("with_weight");
                         $("#prePrintModal").modal("show");
 
                         $('#prePrintForm').validate({
@@ -2128,9 +2114,7 @@ else{
                 var id = $('#prePrintModal').find('#id').val();
                 var prePrintStatus = $('#prePrintModal').find('#prePrint').val();
                 var isEmptyContainer = $('#prePrintModal').find('#isEmptyContainer').val();
-                var printTemplate = $('#prePrintModal').find('#printTemplate').val();
-
-                $.post('php/print.php', {userID: id, file: 'weight', prePrint: prePrintStatus, isEmptyContainer: isEmptyContainer, printTemplate: printTemplate}, function(data){
+                $.post('php/print.php', {userID: id, file: 'weight', prePrint: prePrintStatus, isEmptyContainer: isEmptyContainer}, function(data){
                     var obj = JSON.parse(data);
 
                     if(obj.status === 'success'){
@@ -4251,7 +4235,6 @@ else{
         $('#prePrintModal').find('#id').val(id);
         $('#prePrintModal').find('#isEmptyContainer').val(isEmptyContainer);
         $('#prePrintModal').find('#prePrint').val("<?=$language ?>");
-        $('#prePrintModal').find('#printTemplate').val("with_weight");
         $("#prePrintModal").modal("show");
 
         $('#prePrintForm').validate({
