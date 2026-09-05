@@ -939,6 +939,17 @@ INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALU
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('sales_code', "Sales", "销售", "Jualan", "விற்பனை");
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('purchase_code', "Purchase", "购买", "Pembelian", "வாங்குதல்");
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('internal_transfer_code', "Transfer to Port", "转运至港口", "Pemindahan ke Pelabuhan", "துறைமுகத்திற்கு இடமாற்றம்");
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('wastage_code', 'Wastage', '损耗', 'Pembaziran', 'சேதாரம்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('date_code', 'Date', '日期', 'Tarikh', 'தேதி');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('trans_type_code', 'Trans. Type', '交通工具类型', 'Jenis pengangkutan', 'போக்குவரத்து வகை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('driver_code', 'Driver', '司机', 'Pemandu', 'ஓட்டுனர்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('weighing_by_code', 'Weighing By', '称重负责人', 'Ditimbang oleh', 'பொறுப்பாளர் மூலம்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('name_driver_code', 'Name of Driver', '司机姓名', 'Nama Pemandu', 'ஓட்டுநரின் பெயர்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('ic_no_of_driver_code', 'I/C No. of Driver', '司机身份证号码', 'No. K/P pemandu', 'ஓட்டுநரின் அடையாள அட்டை எண்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('type_of_collection_code', 'Type of Collection', '收集类型', 'Jenis kutipan', 'சேகரிப்பு வகை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('collection_location_code', 'Collection Location', '收集地点', 'Lokasi Kutipan', 'சேகரிப்பு இடம்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('signature_of_driver_code', 'Signature of Driver', '司机签名', 'Tandatangan Pemandu', 'ஓட்டுநரின் கையொப்பம்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('issued_by_code', 'Issued By', '签发人', 'Dikeluarkan oleh', 'வழங்கியவர்');
 
 DROP TABLE IF EXISTS `Product_RawMat`;
 DROP TABLE IF EXISTS `Bitumen`;

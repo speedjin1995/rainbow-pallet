@@ -38,6 +38,26 @@ function printValue($value){
     return htmlspecialchars((string)($value ?? ''), ENT_QUOTES, 'UTF-8');
 }
 
+function messageLabel($languageArray, $language, $key){
+    if (isset($languageArray[$key][$language])) {
+        return printValue($languageArray[$key][$language]);
+    }
+
+    global $db;
+
+    if ($stmt = $db->prepare("SELECT en, zh, my, ne FROM message_resource WHERE message_key_code=?")) {
+        $stmt->bind_param('s', $key);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($row = $result->fetch_assoc()) {
+            return printValue(isset($row[$language]) ? $row[$language] : $row['en']);
+        }
+    }
+
+    return printValue($key);
+}
+
 function underlinedValue($value, $width = '180px'){
     $displayValue = trim((string)($value ?? '')) === '' ? '&nbsp;' : printValue($value);
     return '<span style="display:inline-block; width: '.$width.'; box-sizing: border-box; border-bottom: 1px solid #000; padding: 0 6px 2px; line-height: 18px; min-height: 20px; vertical-align: bottom;">'.$displayValue.'</span>';
@@ -135,7 +155,11 @@ if(isset($_POST['userID'], $_POST["file"], $_POST['isEmptyContainer'])){
                 $result = $select_stmt->get_result();
                     
                 if ($row = $result->fetch_assoc()) {
-                    $printTemplate = $row['transaction_status'] == 'Purchase' ? 'with_weight' : 'without_weight';
+                    $printTemplate = isset($_POST['printTemplate']) ? $_POST['printTemplate'] : 'with_weight';
+
+                    if ($row['transaction_status'] == 'Purchase') {
+                        $printTemplate = 'with_weight';
+                    }
 
                     if ($printTemplate == 'without_weight' && $_POST['isEmptyContainer'] != 'Y') {
                         $driverName = '';
@@ -275,27 +299,27 @@ if(isset($_POST['userID'], $_POST["file"], $_POST['isEmptyContainer'])){
                                     <div class="separator"></div>
                                     <table class="details-table">
                                         <tr>
-                                            <td class="label-cell-left">Date:</td>
+                                            <td class="label-cell-left">'.messageLabel($languageArray, $language, 'date_code').':</td>
                                             <td class="value-cell-left">'.underlinedValue($transactionDate, '100%').'</td>
                                             <td class="label-cell-right"></td>
                                             <td class="value-cell-right"></td>
                                         </tr>
                                         <tr>
-                                            <td class="label-cell-left">Name of Driver:</td>
+                                            <td class="label-cell-left">'.messageLabel($languageArray, $language, 'name_driver_code').':</td>
                                             <td class="value-cell-left">'.underlinedValue($driverName, '100%').'</td>
-                                            <td class="label-cell-right">Type of Collection:</td>
+                                            <td class="label-cell-right">'.messageLabel($languageArray, $language, 'type_of_collection_code').':</td>
                                             <td class="value-cell-right">'.underlinedValue('', '100%').'</td>
                                         </tr>
                                         <tr>
-                                            <td class="label-cell-left">Vehicle No.:</td>
+                                            <td class="label-cell-left">'.messageLabel($languageArray, $language, 'vehicle_no_code').':</td>
                                             <td class="value-cell-left">'.underlinedValue($row['lorry_plate_no1'], '100%').'</td>
-                                            <td class="label-cell-right">Collection Location:</td>
+                                            <td class="label-cell-right">'.messageLabel($languageArray, $language, 'collection_location_code').':</td>
                                             <td class="value-cell-right">'.underlinedValue($row['destination'], '100%').'</td>
                                         </tr>
                                         <tr>
-                                            <td class="label-cell-left">I/C No. of Driver:</td>
+                                            <td class="label-cell-left">'.messageLabel($languageArray, $language, 'ic_no_of_driver_code').':</td>
                                             <td class="value-cell-left">'.underlinedValue($driverIc, '100%').'</td>
-                                            <td class="label-cell-right">Signature of Driver:</td>
+                                            <td class="label-cell-right">'.messageLabel($languageArray, $language, 'signature_of_driver_code').':</td>
                                             <td class="value-cell-right">'.underlinedValue('', '100%').'</td>
                                         </tr>
                                     </table>
@@ -303,11 +327,11 @@ if(isset($_POST['userID'], $_POST["file"], $_POST['isEmptyContainer'])){
                                     <div class="signatures">
                                         <div class="signature-box">
                                             <div class="signature-line"></div>
-                                            <div>Issued by</div>
+                                            <div>'.messageLabel($languageArray, $language, 'issued_by_code').'</div>
                                         </div>
                                         <div class="signature-box">
                                             <div class="signature-line"></div>
-                                            <div>Received by</div>
+                                            <div>'.messageLabel($languageArray, $language, 'received_by_code').'</div>
                                         </div>
                                     </div>
                                 </div>
@@ -450,31 +474,31 @@ if(isset($_POST['userID'], $_POST["file"], $_POST['isEmptyContainer'])){
 
                                     <table class="info-table">
                                         <tr>
-                                            <td class="info-label">CUSTOMER:</td>
+                                            <td class="info-label">'.messageLabel($languageArray, $language, 'customer_code').':</td>
                                             <td class="info-value">'.printValue($customerName).'</td>
-                                            <td class="info-label">TICKET NO:</td>
+                                            <td class="info-label">'.messageLabel($languageArray, $language, 'ticket_no_code').':</td>
                                             <td class="info-value">'.printValue($row['transaction_id']).'</td>
                                         </tr>
                                         <tr>
-                                            <td class="info-label">SUPPLIER:</td>
+                                            <td class="info-label">'.messageLabel($languageArray, $language, 'supplier_code').':</td>
                                             <td class="info-value">'.printValue($supplierName).'</td>
-                                            <td class="info-label">DATE:</td>
+                                            <td class="info-label">'.messageLabel($languageArray, $language, 'date_code').':</td>
                                             <td class="info-value">'.printValue($transactionDate).'</td>
                                         </tr>
                                         <tr>
-                                            <td class="info-label">TRANS.TYPE:</td>
+                                            <td class="info-label">'.messageLabel($languageArray, $language, 'trans_type_code').':</td>
                                             <td class="info-value">&nbsp;</td>
-                                            <td class="info-label">DN.NUMBER:</td>
+                                            <td class="info-label">'.messageLabel($languageArray, $language, 'do_no_code').':</td>
                                             <td class="info-value">'.printValue($row['delivery_no']).'</td>
                                         </tr>
                                     </table>
 
                                     <table class="weight-table">
                                         <tr>
-                                            <th style="width: 18%;">LORRY NO.</th>
-                                            <th style="width: 32%;">PRODUCT DESCRIPTION</th>
-                                            <th style="width: 25%;">TIME</th>
-                                            <th colspan="2" style="width: 25%;">WEIGHT (KG)</th>
+                                            <th style="width: 18%;">'.messageLabel($languageArray, $language, 'vehicle_no_code').'</th>
+                                            <th style="width: 32%;">'.messageLabel($languageArray, $language, 'product_description_code').'</th>
+                                            <th style="width: 25%;">'.messageLabel($languageArray, $language, 'datetime_code').'</th>
+                                            <th colspan="2" style="width: 25%;">'.messageLabel($languageArray, $language, 'weight_code').' (KG)</th>
                                         </tr>
                                         <tr>
                                             <td class="text-center">'.printValue($row['lorry_plate_no1']).'</td>
@@ -491,17 +515,17 @@ if(isset($_POST['userID'], $_POST["file"], $_POST['isEmptyContainer'])){
                                         </tr>
                                         <tr>
                                             <td colspan="2" class="no-border"></td>
-                                            <td colspan="2" class="summary-label">NET WEIGHT (KG)</td>
+                                            <td colspan="2" class="summary-label">'.messageLabel($languageArray, $language, 'nett_weight_code').' (KG)</td>
                                             <td class="summary-value">'.printValue(formatWeight($row['nett_weight1'])).'</td>
                                         </tr>
                                         <tr>
                                             <td colspan="2" class="no-border"></td>
-                                            <td colspan="2" class="summary-label">WASTAGE</td>
+                                            <td colspan="2" class="summary-label">'.messageLabel($languageArray, $language, 'reduce_weight_code').'</td>
                                             <td class="summary-value">'.printValue(formatWeight($row['reduce_weight'])).'</td>
                                         </tr>
                                         <tr>
                                             <td colspan="2" class="no-border"></td>
-                                            <td colspan="2" class="summary-label">FINAL WEIGHT (KG)</td>
+                                            <td colspan="2" class="summary-label">'.messageLabel($languageArray, $language, 'final_weight_code').' (KG)</td>
                                             <td class="summary-value">'.printValue(formatWeight($row['final_weight'])).'</td>
                                         </tr>
                                     </table>
@@ -509,11 +533,11 @@ if(isset($_POST['userID'], $_POST["file"], $_POST['isEmptyContainer'])){
                                     <div class="signatures">
                                         <div class="signature-box">
                                             <div class="signature-line"></div>
-                                            <div>DRIVER</div>
+                                            <div>'.messageLabel($languageArray, $language, 'driver_code').'</div>
                                         </div>
                                         <div class="signature-box">
                                             <div class="signature-line"></div>
-                                            <div>WEIGHING BY</div>
+                                            <div>'.messageLabel($languageArray, $language, 'weighing_by_code').'</div>
                                         </div>
                                     </div>
                                 </div>

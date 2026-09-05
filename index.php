@@ -1130,8 +1130,22 @@ else{
                                                                 </div>
                                                             </div>
                                                         </div>
+                                                        <div class="row mb-3" id="printTemplateDisplay">
+                                                            <label for="printTemplate" class="col-sm-4 col-form-label">Print Template</label>
+                                                            <div class="col-sm-8">
+                                                                <div class="input-group">
+                                                                    <div class="col-12">
+                                                                        <select class="form-select select2" id="printTemplate" name="printTemplate" >
+                                                                            <option value="with_weight" selected>With Weight</option>
+                                                                            <option value="without_weight">Without Weight</option>
+                                                                        </select>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                             
                                                         <input type="hidden" class="form-control" id="isEmptyContainer" name="isEmptyContainer">
+                                                        <input type="hidden" class="form-control" id="prePrintTransactionStatus" name="prePrintTransactionStatus">
                                                         <input type="hidden" class="form-control" id="id" name="id">
                                                     </div>
                                                     <div class="modal-footer justify-content-between bg-gray-dark color-palette">
@@ -2075,9 +2089,7 @@ else{
                         $('#addModal').modal('hide');
                         $("#successBtn").attr('data-toast-text', obj.message);
                         $("#successBtn").click();
-                        $('#prePrintModal').find('#id').val(obj.id);
-                        $('#prePrintModal').find('#isEmptyContainer').val(isEmptyContainer);
-                        $('#prePrintModal').find('#prePrint').val("<?=$language ?>");
+                        preparePrePrintModal(obj.id, $('#transactionStatus').val(), isEmptyContainer);
                         $("#prePrintModal").modal("show");
 
                         $('#prePrintForm').validate({
@@ -2114,7 +2126,9 @@ else{
                 var id = $('#prePrintModal').find('#id').val();
                 var prePrintStatus = $('#prePrintModal').find('#prePrint').val();
                 var isEmptyContainer = $('#prePrintModal').find('#isEmptyContainer').val();
-                $.post('php/print.php', {userID: id, file: 'weight', prePrint: prePrintStatus, isEmptyContainer: isEmptyContainer}, function(data){
+                var printTemplate = $('#prePrintModal').find('#printTemplate').val();
+                var transactionStatus = $('#prePrintModal').find('#prePrintTransactionStatus').val();
+                $.post('php/print.php', {userID: id, file: 'weight', prePrint: prePrintStatus, isEmptyContainer: isEmptyContainer, printTemplate: printTemplate, transactionStatus: transactionStatus}, function(data){
                     var obj = JSON.parse(data);
 
                     if(obj.status === 'success'){
@@ -4231,10 +4245,22 @@ else{
         }
     }
 
-    function print(id, transactionStatus, isEmptyContainer = 'N') {
+    function preparePrePrintModal(id, transactionStatus, isEmptyContainer) {
         $('#prePrintModal').find('#id').val(id);
         $('#prePrintModal').find('#isEmptyContainer').val(isEmptyContainer);
+        $('#prePrintModal').find('#prePrintTransactionStatus').val(transactionStatus);
         $('#prePrintModal').find('#prePrint').val("<?=$language ?>");
+        $('#prePrintModal').find('#printTemplate').val("with_weight");
+
+        if (transactionStatus == 'Purchase' || isEmptyContainer == 'Y') {
+            $('#prePrintModal').find('#printTemplateDisplay').hide();
+        } else {
+            $('#prePrintModal').find('#printTemplateDisplay').show();
+        }
+    }
+
+    function print(id, transactionStatus, isEmptyContainer = 'N') {
+        preparePrePrintModal(id, transactionStatus, isEmptyContainer);
         $("#prePrintModal").modal("show");
 
         $('#prePrintForm').validate({
