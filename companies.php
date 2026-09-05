@@ -2,7 +2,7 @@
 <?php include 'layouts/head-main.php'; ?>
 
 <head>
-    <title><?=$languageArray['supplier_code'][$language]?> | Synctronix - Weighing System</title>
+    <title><?=$languageArray['companies_code'][$language] ?? 'Companies'?> | Synctronix - Weighing System</title>
     <?php include 'layouts/title-meta.php'; ?>
 
     <!-- jsvectormap css -->
@@ -74,7 +74,7 @@
                                                     </button>
                                                 </div>
                                                 <div class="modal-body">
-                                                    <form role="form" id="supplierForm" class="needs-validation" novalidate autocomplete="off">
+                                                    <form role="form" id="companyForm" class="needs-validation" novalidate autocomplete="off">
                                                         <div class=" row col-12">
                                                             <div class="col-xxl-12 col-lg-12">
                                                                 <div class="card bg-light">
@@ -82,9 +82,9 @@
                                                                         <div class="row">
                                                                             <div class="col-xxl-12 col-lg-12 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="supplierCode" class="col-sm-4 col-form-label"><?=$languageArray['supplier_code_code'][$language]?></label>
+                                                                                    <label for="companyCode" class="col-sm-4 col-form-label"><?=$languageArray['company_code_code'][$language]?></label>
                                                                                     <div class="col-sm-8">
-                                                                                        <input type="text" class="form-control" id="supplierCode" name="supplierCode" placeholder="<?=$languageArray['supplier_code_code'][$language]?>" required>
+                                                                                        <input type="text" class="form-control" id="companyCode" name="companyCode" placeholder="<?=$languageArray['company_code_code'][$language]?>" required>
                                                                                         <div class="invalid-feedback">
                                                                                             <?=$languageArray['please_fill_in_the_field_code'][$language]?>
                                                                                         </div>
@@ -95,21 +95,20 @@
                                                                                 <div class="row">
                                                                                     <label for="companyRegNo" class="col-sm-4 col-form-label"><?=$languageArray['company_reg_no_code'][$language]?></label>
                                                                                     <div class="col-sm-8">
-                                                                                        <div class="row">
-                                                                                            <div class="col-sm-4">
-                                                                                                <input type="text" class="form-control" id="companyRegNo" name="companyRegNo">
-                                                                                            </div>
-                                                                                            <div class="col-sm-8">
-                                                                                                <div class="row">
-                                                                                                    <label for="newRegNo" class="col-sm-4 col-form-label"><?=$languageArray['new_reg_no_code'][$language]?></label>
-                                                                                                    <div class="col-sm-8">
-                                                                                                        <input type="text" class="form-control" id="newRegNo" name="newRegNo" required>
-                                                                                                        <div class="invalid-feedback">
-                                                                                                            <?=$languageArray['please_fill_in_the_field_code'][$language]?>
-                                                                                                        </div>
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                            </div>
+                                                                                        <input type="text" class="form-control" id="companyRegNo" name="companyRegNo" placeholder="<?=$languageArray['company_reg_no_code'][$language]?>" required>
+                                                                                        <div class="invalid-feedback">
+                                                                                            <?=$languageArray['please_fill_in_the_field_code'][$language]?>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="col-xxl-12 col-lg-12 mb-3">
+                                                                                <div class="row">
+                                                                                    <label for="companyNewRegNo" class="col-sm-4 col-form-label"><?=$languageArray['company_new_reg_no_code'][$language]?></label>
+                                                                                    <div class="col-sm-8">
+                                                                                        <input type="text" class="form-control" id="companyNewRegNo" name="companyNewRegNo" placeholder="<?=$languageArray['company_new_reg_no_code'][$language]?>" required>
+                                                                                        <div class="invalid-feedback">
+                                                                                            <?=$languageArray['please_fill_in_the_field_code'][$language]?>
                                                                                         </div>
                                                                                     </div>
                                                                                 </div>
@@ -127,36 +126,28 @@
                                                                             </div>
                                                                             <div class="col-xxl-12 col-lg-12 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="addressLine1" class="col-sm-4 col-form-label"><?=$languageArray['address_line_code'][$language]?> 1</label>
+                                                                                    <label for="addressLine1" class="col-sm-4 col-form-label"><?=$languageArray['address_code'][$language]?> 1</label>
                                                                                     <div class="col-sm-8">
-                                                                                        <input type="text" class="form-control" id="addressLine1" name="addressLine1" placeholder="<?=$languageArray['address_line_code'][$language]?> 1">
+                                                                                        <input type="text" class="form-control" id="addressLine1" name="addressLine1" placeholder="<?=$languageArray['address_code'][$language]?>1">
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
                                                                             <div class="col-xxl-12 col-lg-12 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="addressLine2" class="col-sm-4 col-form-label"><?=$languageArray['address_line_code'][$language]?> 2</label>
+                                                                                    <label for="addressLine2" class="col-sm-4 col-form-label"><?=$languageArray['address_code'][$language]?> 2</label>
                                                                                     <div class="col-sm-8">
-                                                                                        <input type="text" class="form-control" id="addressLine2" name="addressLine2" placeholder="<?=$languageArray['address_line_code'][$language]?> 2">
+                                                                                        <input type="text" class="form-control" id="addressLine2" name="addressLine2" placeholder="<?=$languageArray['address_code'][$language]?>2">
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
                                                                             <div class="col-xxl-12 col-lg-12 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="addressLine3" class="col-sm-4 col-form-label"><?=$languageArray['address_line_code'][$language]?> 3</label>
+                                                                                    <label for="addressLine3" class="col-sm-4 col-form-label"><?=$languageArray['address_code'][$language]?> 3</label>
                                                                                     <div class="col-sm-8">
-                                                                                        <input type="text" class="form-control" id="addressLine3" name="addressLine3" placeholder="<?=$languageArray['address_line_code'][$language]?> 3">
+                                                                                        <input type="text" class="form-control" id="addressLine3" name="addressLine3" placeholder="<?=$languageArray['address_code'][$language]?>3">
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
-                                                                            <!-- <div class="col-xxl-12 col-lg-12 mb-3">
-                                                                                <div class="row">
-                                                                                    <label for="addressLine4" class="col-sm-4 col-form-label">Address Line 4</label>
-                                                                                    <div class="col-sm-8">
-                                                                                        <input type="text" class="form-control" id="addressLine4" name="addressLine4" placeholder="Address Line 4">
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div> -->
                                                                             <div class="col-xxl-12 col-lg-12 mb-3">
                                                                                 <div class="row">
                                                                                     <label for="phoneNo" class="col-sm-4 col-form-label"><?=$languageArray['phone_code'][$language]?></label>
@@ -172,23 +163,7 @@
                                                                                         <input type="text" class="form-control" id="faxNo" name="faxNo" placeholder="<?=$languageArray['fax_code'][$language]?>">
                                                                                     </div>
                                                                                 </div>
-                                                                            </div>
-                                                                            <div class="col-xxl-12 col-lg-12 mb-3">
-                                                                                <div class="row">
-                                                                                    <label for="contactName" class="col-sm-4 col-form-label"><?=$languageArray['pic_code'][$language]?></label>
-                                                                                    <div class="col-sm-8">
-                                                                                        <input type="text" class="form-control" id="contactName" name="contactName" placeholder="<?=$languageArray['pic_code'][$language]?>">
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-xxl-12 col-lg-12 mb-3">
-                                                                                <div class="row">
-                                                                                    <label for="icNo" class="col-sm-4 col-form-label"><?=$languageArray['ic_code'][$language]?></label>
-                                                                                    <div class="col-sm-8">
-                                                                                        <input type="text" class="form-control" id="icNo" name="icNo" placeholder="<?=$languageArray['ic_code'][$language]?>">
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
+                                                                            </div>                                                                        
                                                                             <div class="col-xxl-12 col-lg-12 mb-3">
                                                                                 <div class="row">
                                                                                     <label for="tinNo" class="col-sm-4 col-form-label"><?=$languageArray['tin_code'][$language]?></label>
@@ -196,43 +171,25 @@
                                                                                         <input type="text" class="form-control" id="tinNo" name="tinNo" placeholder="<?=$languageArray['tin_code'][$language]?>">
                                                                                     </div>
                                                                                 </div>
-                                                                            </div>
+                                                                            </div>                                                                        
                                                                             <div class="col-xxl-12 col-lg-12 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="paymentTerm" class="col-sm-4 col-form-label"><?=$languageArray['payment_term_code'][$language]?></label>
+                                                                                    <label for="mobileNo" class="col-sm-4 col-form-label"><?=$languageArray['mobile_no_code'][$language]?></label>
                                                                                     <div class="col-sm-8">
-                                                                                        <select class="form-control select2" style="width: 100%;" id="paymentTerm" name="paymentTerm">
-                                                                                            <option value="Term"><?=$languageArray['term_code'][$language]?></option>
-                                                                                            <option value="Cash"><?=$languageArray['cash_code'][$language]?></option>
-                                                                                        </select>
+                                                                                        <input type="text" class="form-control" id="mobileNo" name="mobileNo" placeholder="<?=$languageArray['mobile_no_code'][$language]?>">
                                                                                     </div>
                                                                                 </div>
-                                                                            </div>
-                                                                            <div class="col-xxl-12 col-lg-12 mb-3" id="paymentTermPeriodDisplay">
-                                                                                <div class="row">
-                                                                                    <label for="paymentTermPeriod" class="col-sm-4 col-form-label"><?=$languageArray['payment_term_period_code'][$language]?></label>
-                                                                                    <div class="col-sm-8">
-                                                                                        <select class="form-control select2" style="width: 100%;" id="paymentTermPeriod" name="paymentTermPeriod">
-                                                                                            <option value="Daily"><?=$languageArray['daily_code'][$language]?></option>
-                                                                                            <option value="Weekly"><?=$languageArray['weekly_code'][$language]?></option>
-                                                                                            <option value="Bi-Weekly"><?=$languageArray['bi_weekly_code'][$language]?></option>
-                                                                                            <option value="Monthly"><?=$languageArray['monthly_code'][$language]?></option>
-                                                                                        </select>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <input type="hidden" class="form-control" id="id" name="id">
+                                                                            </div>                                                                        
+                                                                            <input type="hidden" class="form-control" id="id" name="id">                                                                        
                                                                         </div>
                                                                     </div>
                                                                 </div>
                                                             </div>
-
                                                         </div>
-                                                        
                                                         <div class="col-lg-12">
                                                             <div class="hstack gap-2 justify-content-end">
                                                                 <button type="button" class="btn btn-light" data-bs-dismiss="modal"><?=$languageArray['close_code'][$language]?></button>
-                                                                <button type="button" class="btn btn-success" id="submitCustomer"><?=$languageArray['submit_code'][$language]?></button>
+                                                                <button type="button" class="btn btn-success" id="submitCompany"><?=$languageArray['submit_code'][$language]?></button>
                                                             </div>
                                                         </div><!--end col-->                                                               
                                                     </form>
@@ -240,8 +197,7 @@
                                             </div><!-- /.modal-content -->
                                         </div><!-- /.modal-dialog -->
                                     </div><!-- /.modal -->
-
-                                    <div class="modal fade" id="uploadModal">
+                                    <div class="modal fade" id="uploadModal" style="display:none">
                                         <div class="modal-dialog modal-xl" style="max-width: 90%;">
                                             <div class="modal-content">
                                                 <form role="form" id="uploadForm">
@@ -256,12 +212,12 @@
                                                     </div>
                                                     <div class="modal-footer justify-content-between bg-gray-dark color-palette">
                                                         <button type="button" class="btn btn-primary" data-bs-dismiss="modal"><?=$languageArray['close_code'][$language]?></button>
-                                                        <button type="button" class="btn btn-success" id="submitWeights"><?=$languageArray['submit_code'][$language]?></button>
+                                                        <button type="button" class="btn btn-success" id="uploadCompany"><?=$languageArray['submit_code'][$language]?></button>
                                                     </div>
                                                 </form>
                                             </div>
                                         </div>
-                                    </div>
+                                    </div> 
                                     <div class="modal fade" id="errorModal" style="display:none">
                                         <div class="modal-dialog modal-xl" style="max-width: 50%;">
                                             <div class="modal-content">
@@ -278,7 +234,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>   
+                                    </div>
                                 </div>
                             </div> <!-- end row-->
 
@@ -295,9 +251,9 @@
                                                                 <h5 class="card-title mb-0"><?=$languageArray['previous_records_code'][$language]?></h5>
                                                             </div>
                                                             <div class="flex-shrink-0">
-                                                                <a href="template/Supplier_Template.xlsx" download>
-                                                                    <button type="button" class="btn btn-info waves-effect waves-light">
-                                                                        <i class="mdi mdi-file-import-outline align-middle me-1"></i>
+                                                                <a href="template/Company_Template.xlsx" download>
+                                                                    <button type="button" id="downloadTemplate" class="btn btn-info waves-effect waves-light">
+                                                                        <i class="ri-file-pdf-line align-middle me-1"></i>
                                                                         <?=$languageArray['download_template_code'][$language]?>
                                                                     </button>
                                                                 </a>
@@ -309,7 +265,7 @@
                                                                     <i class="ri-delete-bin-fill align-middle me-1"></i>
                                                                     <?=$languageArray['delete_code'][$language]?>
                                                                 </button>
-                                                                <button type="button" id="addSupplier" class="btn btn-success waves-effect waves-light" data-bs-toggle="modal" data-bs-target="#addModal">
+                                                                <button type="button" id="addCompany" class="btn btn-success waves-effect waves-light" data-bs-toggle="modal" data-bs-target="#addModal">
                                                                     <i class="ri-add-circle-line align-middle me-1"></i>
                                                                     <?=$languageArray['add_new_code'][$language]?>
                                                                 </button>
@@ -317,22 +273,21 @@
                                                         </div> 
                                                     </div>
                                                     <div class="card-body">
-                                                        <table id="supplierTable" class="table table-bordered nowrap table-striped align-middle" style="width:100%">
+                                                        <table id="companyTable" class="table table-bordered nowrap table-striped align-middle" style="width:100%">
                                                             <thead>
                                                                 <tr>
                                                                     <th><input type="checkbox" id="selectAllCheckbox" class="selectAllCheckbox"></th>
-                                                                    <th><?=$languageArray['supplier_code_code'][$language]?></th>
-                                                                    <th><?=$languageArray['company_reg_no_code'][$language]?></th>
-                                                                    <th><?=$languageArray['new_reg_no_code'][$language]?></th>
-                                                                    <th><?=$languageArray['company_name_code'][$language]?></th>
-                                                                    <th><?=$languageArray['address_line_code'][$language]?> 1</th>
-                                                                    <th><?=$languageArray['address_line_code'][$language]?> 2</th>
-                                                                    <th><?=$languageArray['address_line_code'][$language]?> 3</th>
+                                                                    <th><?=$languageArray['company_code_code'][$language]?></th>
+                                                                    <th><?=$languageArray['company_name_code'][$language]?></th> 
+                                                                    <th><?=$languageArray['company_reg_no_code'][$language]?></th> 
+                                                                    <th><?=$languageArray['company_new_reg_no_code'][$language]?></th>
+                                                                    <th><?=$languageArray['address_code'][$language]?> 1</th>
+                                                                    <th><?=$languageArray['address_code'][$language]?> 2</th>
+                                                                    <th><?=$languageArray['address_code'][$language]?> 3</th>
                                                                     <th><?=$languageArray['phone_code'][$language]?></th>
                                                                     <th><?=$languageArray['fax_code'][$language]?></th>
-                                                                    <th><?=$languageArray['pic_code'][$language]?></th>
-                                                                    <th><?=$languageArray['ic_code'][$language]?></th>
                                                                     <th><?=$languageArray['tin_code'][$language]?></th>
+                                                                    <th><?=$languageArray['mobile_no_code'][$language]?></th>
                                                                     <th><?=$languageArray['status_code'][$language]?></th>
                                                                     <th><?=$languageArray['action_code'][$language]?></th>
                                                                 </tr>
@@ -391,15 +346,19 @@
 var table;
 
 $(function () {
+    $('#selectAllCheckbox').on('change', function() {
+        var checkboxes = $('#companyTable tbody input[type="checkbox"]');
+        checkboxes.prop('checked', $(this).prop('checked')).trigger('change');
+    });
 
-    table = $("#supplierTable").DataTable({
+    table = $("#companyTable").DataTable({
         "responsive": true,
         "autoWidth": false,
         'processing': true,
         'serverSide': true,
         'serverMethod': 'post',
         'ajax': {
-            'url':'php/modules/supplier/loadSupplier.php'
+            'url':'php/modules/company/loadCompanies.php'
         },
         'columns': [
             {
@@ -411,19 +370,18 @@ $(function () {
                     return '<input type="checkbox" class="select-checkbox" id="checkbox_' + data + '" value="'+data+'"/>';
                 }
             },
-            { data: 'supplier_code' },
+            { data: 'company_code' },
+            { data: 'name' },
             { data: 'company_reg_no' },
             { data: 'new_reg_no' },
-            { data: 'name' },
             { data: 'address_line_1' },
             { data: 'address_line_2' },
             { data: 'address_line_3' },
             { data: 'phone_no' },
             { data: 'fax_no' },
-            { data: 'contact_name' },
-            { data: 'ic_no' },
             { data: 'tin_no' },
-            { 
+            { data: 'mobile_no' },
+            {
                 data: 'id',
                 render: function ( data, type, row ) {
                     if (row.status == '1'){
@@ -445,29 +403,63 @@ $(function () {
         ]       
     });
     
-    // $.validator.setDefaults({
-    //     submitHandler: function () {
-        $('#submitCustomer').on('click', function(){
-            if($('#supplierForm').valid()){
-                $('#spinnerLoading').show();
-                $.post('php/modules/supplier/supplier.php', $('#supplierForm').serialize(), function(data){
-                    var obj = JSON.parse(data);
-                    if(obj.status === 'success'){
-                        table.ajax.reload();
-                        $('#spinnerLoading').hide();
-                        $('#addModal').modal('hide');
-                        toastr["success"](obj.message, "Success:");
-                    }
-                    else if(obj.status === 'failed'){
-                        $('#spinnerLoading').hide();
-                        toastr["error"](obj.message, "Failed:");
-                    }
-                    else{}
-                });
+    $('#submitCompany').on('click', function(){
+        if($('#companyForm').valid()){
+            $('#spinnerLoading').show();
+            $.post('php/modules/company/companies.php', $('#companyForm').serialize(), function(data){
+                var obj = JSON.parse(data);
+                if(obj.status === 'success') {
+                    table.ajax.reload();
+                    $('#spinnerLoading').hide();
+                    $('#addModal').modal('hide');
+                    toastr["success"](obj.message, "Success:");
+                }
+                else if(obj.status === 'failed') {
+                    $('#spinnerLoading').hide();
+                    toastr["error"](obj.message, "Failed:");
+                }
+                else {
+                    toastr["error"]("Something went wrong!", "Failed:");
+                }
+            });
+        }
+    });
+
+    $('#addCompany').on('click', function(){
+        $('#addModal').find('#id').val("");
+        $('#addModal').find('#companyCode').val("");
+        $('#addModal').find('#companyRegNo').val("");
+        $('#addModal').find('#companyNewRegNo').val("");
+        $('#addModal').find('#companyName').val("");
+        $('#addModal').find('#addressLine1').val("");
+        $('#addModal').find('#addressLine2').val("");
+        $('#addModal').find('#addressLine3').val("");
+        $('#addModal').find('#phoneNo').val("");
+        $('#addModal').find('#faxNo').val("");
+        $('#addModal').find('#tinNo').val("");
+        $('#addModal').find('#mobileNo').val("");
+
+        // Remove Validation Error Message
+        $('#addModal .is-invalid').removeClass('is-invalid');
+
+        $('#addModal').modal('show');
+        
+        $('#companyForm').validate({
+            errorElement: 'span',
+            errorPlacement: function (error, element) {
+                error.addClass('invalid-feedback');
+                element.closest('.form-group').append(error);
+            },
+            highlight: function (element, errorClass, validClass) {
+                $(element).addClass('is-invalid');
+            },
+            unhighlight: function (element, errorClass, validClass) {
+                $(element).removeClass('is-invalid');
             }
         });
+    });
 
-    $('#submitWeights').on('click', function(){
+    $('#uploadCompany').on('click', function(){
         $('#spinnerLoading').show();
         var formData = $('#uploadForm').serializeArray();
         var data = [];
@@ -487,7 +479,7 @@ $(function () {
 
         // Send the JSON array to the server
         $.ajax({
-            url: 'php/modules/supplier/uploadSuppliers.php',
+            url: 'php/modules/company/uploadCompany.php',
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(data),
@@ -497,7 +489,7 @@ $(function () {
                     $('#spinnerLoading').hide();
                     $('#uploadModal').modal('hide');
                     toastr["success"](obj.message, "Success:");
-                    $('#supplierTable').DataTable().ajax.reload(null, false);
+                    $('#companyTable').DataTable().ajax.reload(null, false);
                 }
                 else if (obj.status === 'failed') {
                     $('#spinnerLoading').hide();
@@ -506,7 +498,7 @@ $(function () {
                 else if (obj.status === 'error') {
                     $('#spinnerLoading').hide();
                     $('#uploadModal').modal('hide');
-                    $('#supplierTable').DataTable().ajax.reload(null, false);
+                    $('#companyTable').DataTable().ajax.reload(null, false);
                     $('#errorModal').find('#errorList').empty();
                     var errorMessage = obj.message;
                     for (var i = 0; i < errorMessage.length; i++) {
@@ -518,43 +510,6 @@ $(function () {
                     $('#spinnerLoading').hide();
                     toastr["error"]("Failed to save", "Failed:");
                 }
-            }
-        });
-    });
-
-    $('#addSupplier').on('click', function(){
-        $('#addModal').find('#id').val("");
-        $('#addModal').find('#supplierCode').val("");
-        $('#addModal').find('#companyName').val("");
-        $('#addModal').find('#companyRegNo').val("");
-        $('#addModal').find('#newRegNo').val("");
-        $('#addModal').find('#addressLine1').val("");
-        $('#addModal').find('#addressLine2').val("");
-        $('#addModal').find('#addressLine3').val("");
-        $('#addModal').find('#phoneNo').val("");
-        $('#addModal').find('#faxNo').val("");
-        $('#addModal').find('#contactName').val("");
-        $('#addModal').find('#icNo').val("");
-        $('#addModal').find('#tinNo').val("");
-        $('#addModal').find('#paymentTerm').val("Cash");
-        $('#addModal').find('#paymentTermPeriod').val("Daily").trigger('change');
-
-        // Remove Validation Error Message
-        $('#addModal .is-invalid').removeClass('is-invalid');
-
-        $('#addModal').modal('show');
-        
-        $('#supplierForm').validate({
-            errorElement: 'span',
-            errorPlacement: function (error, element) {
-                error.addClass('invalid-feedback');
-                element.closest('.form-group').append(error);
-            },
-            highlight: function (element, errorClass, validClass) {
-                $(element).addClass('is-invalid');
-            },
-            unhighlight: function (element, errorClass, validClass) {
-                $(element).removeClass('is-invalid');
             }
         });
     });
@@ -597,15 +552,15 @@ $(function () {
         $('#spinnerLoading').show();
         var selectedIds = []; // An array to store the selected 'id' values
 
-        $("#supplierTable tbody input[type='checkbox']").each(function () {
+        $("#companyTable tbody input[type='checkbox']").each(function () {
             if (this.checked) {
                 selectedIds.push($(this).val());
             }
         });
 
         if (selectedIds.length > 0) {
-            if (confirm('Are you sure you want to delete these suppliers?')) {
-                $.post('php/modules/supplier/deleteSupplier.php', {userID: selectedIds, type: 'MULTI'}, function(data){
+            if (confirm('Are you sure you want to delete these companies?')) {
+                $.post('php/modules/company/deleteCompany.php', {userID: selectedIds, type: 'MULTI'}, function(data){
                     var obj = JSON.parse(data);
                     
                     if(obj.status === 'success'){
@@ -628,118 +583,37 @@ $(function () {
         } 
         else {
             // Optionally, you can display a message or take another action if no IDs are selected
-            alert("Please select at least one supplier to delete.");
+            alert("Please select at least one company to delete.");
             $('#spinnerLoading').hide();
         }     
     });
-
-    $('#addModal').find('#paymentTerm').on('change', function() {
-        if ($(this).val() === 'Term') {
-            $('#addModal').find('#paymentTermPeriodDisplay').show();
-        } else {
-            $('#addModal').find('#paymentTermPeriodDisplay').hide();
-        }
-    });
 });
-
-$('#supplierForm').validate({
-    errorElement: 'span',
-    errorPlacement: function (error, element) {
-      error.addClass('invalid-feedback');
-      element.closest('.form-group').append(error);
-    },
-    highlight: function (element, errorClass, validClass) {
-      $(element).addClass('is-invalid');
-    },
-    unhighlight: function (element, errorClass, validClass) {
-      $(element).removeClass('is-invalid');
-    }
-});
-
-function displayPreview(data) {
-    // Parse the Excel data
-    var workbook = XLSX.read(data, { type: 'binary' });
-
-    // Get the first sheet
-    var sheetName = workbook.SheetNames[0];
-    var sheet = workbook.Sheets[sheetName];
-
-    // Convert the sheet to an array of objects
-    var jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-
-    // Get the headers
-    var headers = jsonData[0];
-
-    // Ensure we handle cases where there may be less than 15 columns
-    while (headers.length < 12) {
-        headers.push(''); // Adding empty headers to reach 15 columns
-    }
-
-    // Create HTML table headers
-    var htmlTable = '<table style="width:100%;"><thead><tr>';
-    headers.forEach(function(header) {
-        htmlTable += '<th>' + header + '</th>';
-    });
-    htmlTable += '</tr></thead><tbody>';
-
-    // Iterate over the data and create table rows
-    for (var i = 1; i < jsonData.length; i++) {
-        htmlTable += '<tr>';
-        var rowData = jsonData[i];
-
-        // Ensure we handle cases where there may be less than 15 cells in a row
-        while (rowData.length < 12) {
-            rowData.push(''); // Adding empty cells to reach 15 columns
-        }
-
-        for (var j = 0; j < 12; j++) {
-            var cellData = rowData[j];
-            var formattedData = cellData;
-
-            // Check if cellData is a valid Excel date serial number and format it to DD/MM/YYYY
-            if (typeof cellData === 'number' && cellData > 0) {
-                var excelDate = XLSX.SSF.parse_date_code(cellData);
-            }
-
-            htmlTable += '<td><input type="text" id="'+headers[j].replace(/[^a-zA-Z0-9]/g, '')+(i-1)+'" name="'+headers[j].replace(/[^a-zA-Z0-9]/g, '')+'['+(i-1)+']" value="' + (formattedData == null ? '' : formattedData) + '" /></td>';
-        }
-        htmlTable += '</tr>';
-    }
-
-    htmlTable += '</tbody></table>';
-
-    var previewTable = document.getElementById('previewTable');
-    previewTable.innerHTML = htmlTable;
-}
 
 function edit(id){
     $('#spinnerLoading').show();
-    $.post('php/modules/supplier/getSupplier.php', {userID: id}, function(data){
+    $.post('php/modules/company/getCompany.php', {userID: id}, function(data)
+    {
         var obj = JSON.parse(data);
-        
         if(obj.status === 'success'){
             $('#addModal').find('#id').val(obj.message.id);
-            $('#addModal').find('#supplierCode').val(obj.message.supplier_code);
-            $('#addModal').find('#companyName').val(obj.message.name);
+            $('#addModal').find('#companyCode').val(obj.message.company_code);
             $('#addModal').find('#companyRegNo').val(obj.message.company_reg_no);
-            $('#addModal').find('#newRegNo').val(obj.message.new_reg_no);
+            $('#addModal').find('#companyNewRegNo').val(obj.message.new_reg_no);
+            $('#addModal').find('#companyName').val(obj.message.name);
             $('#addModal').find('#addressLine1').val(obj.message.address_line_1);
             $('#addModal').find('#addressLine2').val(obj.message.address_line_2);
             $('#addModal').find('#addressLine3').val(obj.message.address_line_3);
             $('#addModal').find('#phoneNo').val(obj.message.phone_no);
             $('#addModal').find('#faxNo').val(obj.message.fax_no);
-            $('#addModal').find('#contactName').val(obj.message.contact_name);
-            $('#addModal').find('#icNo').val(obj.message.ic_no);
             $('#addModal').find('#tinNo').val(obj.message.tin_no);
-            $('#addModal').find('#paymentTerm').val(obj.message.payment_term).trigger('change');
-            $('#addModal').find('#paymentTermPeriod').val(obj.message.payment_term_period);
+            $('#addModal').find('#mobileNo').val(obj.message.mobile_no);
 
             // Remove Validation Error Message
             $('#addModal .is-invalid').removeClass('is-invalid');
 
             $('#addModal').modal('show');
 
-            $('#supplierForm').validate({
+            $('#companyForm').validate({
                 errorElement: 'span',
                 errorPlacement: function (error, element) {
                     error.addClass('invalid-feedback');
@@ -767,8 +641,8 @@ function edit(id){
 
 function deactivate(id){
     $('#spinnerLoading').show();
-    if (confirm('Are you sure you want to delete this supplier?')) {
-        $.post('php/modules/supplier/deleteSupplier.php', {userID: id}, function(data){
+    if (confirm('Are you sure you want to delete this company?')) {
+        $.post('php/modules/company/deleteCompany.php', {userID: id}, function(data){
             var obj = JSON.parse(data);
 
             if(obj.status === 'success'){
@@ -789,10 +663,66 @@ function deactivate(id){
     $('#spinnerLoading').hide();
 }
 
+function displayPreview(data) {
+    // Parse the Excel data
+    var workbook = XLSX.read(data, { type: 'binary' });
+
+    // Get the first sheet
+    var sheetName = workbook.SheetNames[0];
+    var sheet = workbook.Sheets[sheetName];
+
+    // Convert the sheet to an array of objects
+    var jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+    // Get the headers
+    var headers = jsonData[0];
+
+    // Ensure we handle cases where there may be less than 11 columns
+    while (headers.length < 11) {
+        headers.push(''); // Adding empty headers to reach 11 columns
+    }
+
+    // Create HTML table headers
+    var htmlTable = '<table style="width:50%;"><thead><tr>';
+    headers.forEach(function(header) {
+        htmlTable += '<th>' + header + '</th>';
+    });
+    htmlTable += '</tr></thead><tbody>';
+
+    // Iterate over the data and create table rows
+    for (var i = 1; i < jsonData.length; i++) {
+        htmlTable += '<tr>';
+        var rowData = jsonData[i];
+
+        // Ensure we handle cases where there may be less than 11 cells in a row
+        while (rowData.length < 11) {
+            rowData.push(''); // Adding empty cells to reach 11 columns
+        }
+
+        for (var j = 0; j < 11; j++) {
+            var cellData = rowData[j];
+            var formattedData = cellData;
+
+            // Check if cellData is a valid Excel date serial number and format it to DD/MM/YYYY
+            if (typeof cellData === 'number' && cellData > 0) {
+                var excelDate = XLSX.SSF.parse_date_code(cellData);
+            }
+
+            htmlTable += '<td><input type="text" id="'+headers[j].replace(/[^a-zA-Z0-9]/g, '')+(i-1)+'" name="'+headers[j].replace(/[^a-zA-Z0-9]/g, '')+'['+(i-1)+']" value="' + (formattedData == null ? '' : formattedData) + '" /></td>';
+        }
+        htmlTable += '</tr>';
+    }
+
+    htmlTable += '</tbody></table>';
+
+    var previewTable = document.getElementById('previewTable');
+    previewTable.innerHTML = htmlTable;
+}
+
 function reactivate(id) {
-  if (confirm('Do you want to reactivate this supplier?')) {
+  if (confirm('Do you want to reactivate this plant?')) {
     $('#spinnerLoading').show();
-    $.post('php/reactivateMasterData.php', {userID: id, type: "Supplier"}, function(data){
+    $.post('php/reactivateMasterData.php', {userID: id, type: "Plant"}, function(data){
         var obj = JSON.parse(data);
 
         if(obj.status === 'success'){
@@ -815,7 +745,8 @@ function reactivate(id) {
 
   $('#spinnerLoading').hide();
 }
-</script>
-</body>
 
-</html>
+</script>
+    </body>
+
+    </html>

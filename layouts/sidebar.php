@@ -91,7 +91,11 @@
                                     }
 
                                     if($_SESSION["roles"] == 'MANAGER' || $_SESSION["roles"] == 'ADMIN' || $_SESSION["roles"] == 'SADMIN'){
-                                        echo '<li class="nav-item">
+                                        echo '
+                                            <li class="nav-item">
+                                                <a href="companies.php" class="nav-link">'.$languageArray['companies_code'][$language].'</a>
+                                            </li>
+                                            <li class="nav-item">
                                                 <a href="customer.php" class="nav-link">'.$languageArray['customer_code'][$language].'</a>
                                             </li>
                                             <li class="nav-item">
@@ -118,6 +122,9 @@
                                             <li class="nav-item">
                                                 <a href="plant.php" class="nav-link">'.$languageArray['plant_code'][$language].'</a>
                                             </li>
+                                            <li class="nav-item">
+                                                <a href="locations.php" class="nav-link">'.$languageArray['locations_code'][$language].'</a>
+                                            </li>
                                         ';
                                     }
                             echo '</ul>
@@ -127,9 +134,8 @@
                 ?>
 
                 <li class="nav-item">
-                    <a class="nav-link menu-link" href="#sidebarReport" data-bs-toggle="collapse" role="button"
-                        aria-expanded="false" aria-controls="sidebarReport">
-                        <i class="ri-account-circle-line"></i> <span><?=$languageArray['report_code'][$language]?></span>
+                    <a class="nav-link menu-link" href="#sidebarReport" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="sidebarReport">
+                        <i class="ri-file-chart-line"></i> <span><?=$languageArray['report_code'][$language]?></span>
                     </a>
                     <div class="collapse menu-dropdown" id="sidebarReport">
                         <ul class="nav nav-sm flex-column">
@@ -163,13 +169,13 @@
                     <div class="collapse menu-dropdown" id="sidebarAuth">
                         <ul class="nav nav-sm flex-column">
                             <li class="nav-item">
-                                <?php
+                                <!-- <?php
                                     if($_SESSION["roles"] == 'ADMIN' || $_SESSION["roles"] == 'SADMIN'){
                                         echo '<li class="nav-item">
                                             <a href="companyProfile.php" class="nav-link">'.$languageArray['company_profile_code'][$language].'</a>
                                         </li> ';
                                     }
-                                ?>
+                                ?> -->
                                 
                                 <li class="nav-item">
                                     <a href="portSetup.php" class="nav-link"><?=$languageArray['port_setup_code'][$language]?></a>

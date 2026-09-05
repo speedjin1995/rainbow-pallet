@@ -1179,3 +1179,163 @@ END
 $$
 DELIMITER ;
 
+-- 02/09/2026 --
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('companies_code', 'Companies', '公司', 'Syarikat-Syarikat', 'நிறுவனங்கள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('company_new_reg_no_code', 'New Registration Number', '新注册号码', 'Nombor Pendaftaran Baru', 'புதிய பதிவு எண்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('company_code_code', 'Company Code', '公司代码', 'Kod Syarikat', 'நிறுவன குறியீடு');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('mobile_no_code', 'Mobile Number', '手机号码', 'Nombor Telefon Bimbit', 'மொபைல் எண்');
+
+ALTER TABLE `Company` ADD `status` VARCHAR(10) NOT NULL DEFAULT '0' AFTER `name`;
+
+ALTER TABLE `Company` CHANGE `modified_date` `modified_date` DATETIME on update CURRENT_TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_COMPANY` AFTER INSERT ON `Company` FOR EACH ROW INSERT INTO Company_Log (
+    company_id, company_code, company_reg_no, new_reg_no, name, address_line_1, address_line_2, address_line_3, phone_no, fax_no, tin_no, mobile_no, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.company_code, NEW.company_reg_no, NEW.new_reg_no, NEW.name, NEW.address_line_1, NEW.address_line_2, NEW.address_line_3, NEW.phone_no, NEW.fax_no, NEW.tin_no, NEW.mobile_no, 1, NEW.created_by, NOW()
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_COMPANY` BEFORE UPDATE ON `Company` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Check if status = 1, set action_id to 3, otherwise set to 2
+    IF NEW.status = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Company_Log table
+    INSERT INTO Company_Log (
+        company_id, company_code, company_reg_no, new_reg_no, name, address_line_1, address_line_2, address_line_3, phone_no, fax_no, tin_no, mobile_no, action_id, action_by, event_date
+    ) 
+    VALUES (
+        NEW.id, NEW.company_code, NEW.company_reg_no, NEW.new_reg_no, NEW.name, NEW.address_line_1, NEW.address_line_2, NEW.address_line_3, NEW.phone_no, NEW.fax_no, NEW.tin_no, NEW.mobile_no, action_value, NEW.modified_by, NOW()
+    );
+END
+$$
+DELIMITER ;
+
+UPDATE message_resource SET `en`='Wastage', `zh`='损耗', `my`='Pembaziran', `ne`='வீணாக்கல்' WHERE `message_key_code`='reduce_weight_code';
+
+-- 03/09/2026 --
+CREATE TABLE `Location` (
+  `id` int(11) NOT NULL,
+  `location_code` varchar(30) NOT NULL,
+  `location_name` varchar(100) NOT NULL,
+  `port_id` int(11) DEFAULT NULL,
+  `weighing_count` int(11) NOT NULL DEFAULT 2,
+  `plant_id` int(5) DEFAULT 1,
+  `status` int(3) DEFAULT 0,
+  `created_by` varchar(50) DEFAULT NULL,
+  `created_date` datetime NOT NULL DEFAULT current_timestamp(),
+  `modified_by` varchar(50) DEFAULT NULL,
+  `modified_date` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE `Location` ADD PRIMARY KEY (`id`);
+
+ALTER TABLE `Location` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+CREATE TABLE `Location_Log` (
+  `id` int(11) NOT NULL,
+  `location_id` int(11) NOT NULL,
+  `location_code` varchar(30) NOT NULL,
+  `location_name` varchar(100) NOT NULL,
+  `port_id` int(11) DEFAULT NULL,
+  `weighing_count` int(11) NOT NULL DEFAULT 2,
+  `plant_id` int(5) DEFAULT 1,
+  `action_id` int(11) DEFAULT NULL,
+  `action_by` varchar(50) DEFAULT NULL,
+  `event_date` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE `Location_Log` ADD PRIMARY KEY (`id`);
+
+ALTER TABLE `Location_Log` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+DELIMITER $$
+CREATE TRIGGER `TRG_INS_LOCATION` AFTER INSERT ON `Location` FOR EACH ROW INSERT INTO Location_Log (
+    location_id, location_code, location_name, port_id, weighing_count, plant_id, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.location_code, NEW.location_name, NEW.port_id, NEW.weighing_count, NEW.plant_id, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `TRG_UPD_LOCATION` BEFORE UPDATE ON `Location` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Check if status = 1, set action_id to 3, otherwise set to 2
+    IF NEW.status = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Location_Log table
+    INSERT INTO Location_Log (
+        location_id, location_code, location_name, port_id, weighing_count, plant_id, action_id, action_by, event_date
+    ) 
+    VALUES (
+        NEW.id, NEW.location_code, NEW.location_name, NEW.port_id, NEW.weighing_count, NEW.plant_id, action_value, NEW.modified_by, NEW.modified_date
+    );
+END
+$$
+DELIMITER ;
+
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('locations_code', 'Locations', '位置', 'Lokasi', 'இடங்கள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('location_code_code', 'Location Code', '位置代码', 'Kod Lokasi', 'இடத்தின் குறியீடு');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('location_name_code', 'Location Name', '位置名称', 'Nama Lokasi', 'இடத்தின் பெயர்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('weighing_count_code', 'Weighing Count', '称重次数', 'Kiraan Timbang', 'கூட்டல் எண்ணிக்கை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('add_new_location_code', 'Add New Location', '添加新位置', 'Tambah Lokasi Baru', 'புதிய இடத்தைச் சேர்');
+
+-- 04/09/2026 --
+ALTER TABLE `Supplier` ADD `payment_term` VARCHAR(10) NULL AFTER `tin_no`, ADD `payment_term_period` VARCHAR(10) NULL AFTER `payment_term`;
+ALTER TABLE `Supplier_Log` ADD `payment_term` VARCHAR(10) NULL AFTER `tin_no`, ADD `payment_term_period` VARCHAR(10) NULL AFTER `payment_term`;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_SUPPLIER` AFTER INSERT ON `Supplier` FOR EACH ROW 
+INSERT INTO Supplier_Log (
+    supplier_id, supplier_code, company_reg_no, new_reg_no, name, address_line_1, address_line_2, address_line_3, phone_no, fax_no, contact_name, ic_no, tin_no, payment_term, payment_term_period, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.supplier_code, NEW.company_reg_no, NEW.new_reg_no, NEW.name, NEW.address_line_1, NEW.address_line_2, NEW.address_line_3, NEW.phone_no, NEW.fax_no, NEW.contact_name, NEW.ic_no, NEW.tin_no, NEW.payment_term, NEW.payment_term_period, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_SUPPLIER` BEFORE UPDATE ON `Supplier` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Check if status = 1, set action_id to 3, otherwise set to 2
+    IF NEW.status = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Supplier_Log table
+    INSERT INTO Supplier_Log (
+        supplier_id, supplier_code, company_reg_no, new_reg_no, name, address_line_1, address_line_2, address_line_3, phone_no, fax_no, contact_name, ic_no, tin_no, payment_term, payment_term_period, action_id, action_by, event_date
+    ) 
+    VALUES (
+        NEW.id, NEW.supplier_code, NEW.company_reg_no, NEW.new_reg_no, NEW.name, NEW.address_line_1, NEW.address_line_2, NEW.address_line_3, NEW.phone_no, NEW.fax_no, NEW.contact_name, NEW.ic_no, NEW.tin_no, NEW.payment_term, NEW.payment_term_period, action_value, NEW.modified_by, NEW.modified_date
+    );
+END
+$$
+DELIMITER ;
+
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('payment_term_code', 'Payment Term', '分期', 'Tempoh', 'காலம்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('payment_term_period_code', 'Payment Term Period', '分期期限', 'Tempoh Pembayaran', 'செலுத்தல் காலம்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('term_code', 'Term', '分期', 'Tempoh', 'காலம்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('cash_code', 'Cash', '现金', 'Tunai', 'பணம்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('daily_code', 'Daily', '每日', 'Harian', 'தினம்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('weekly_code', 'Weekly', '每周', 'Mingguan', 'வாரம்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('bi_weekly_code', 'Bi-Weekly', '每两周', 'Dua Mingguan', 'இரண்டு வாரங்கள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('monthly_code', 'Monthly', '每月', 'Bulanan', 'மாதம்');

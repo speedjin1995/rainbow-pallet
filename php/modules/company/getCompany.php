@@ -5,7 +5,7 @@ require_once '../../db_connect.php';
 if (isset($_POST['userID'])) {
     $id = filter_input(INPUT_POST, 'userID', FILTER_SANITIZE_STRING);
 
-    if ($stmt = $db->prepare("SELECT * FROM Supplier WHERE id=?")) {
+    if ($stmt = $db->prepare("SELECT * FROM Company WHERE id=?")) {
         $stmt->bind_param('s', $id);
 
         if (!$stmt->execute()) {
@@ -16,7 +16,7 @@ if (isset($_POST['userID'])) {
 
             while ($row = $result->fetch_assoc()) {
                 $message['id']             = $row['id'];
-                $message['supplier_code']  = $row['supplier_code'];
+                $message['company_code']   = $row['company_code'];
                 $message['company_reg_no'] = $row['company_reg_no'];
                 $message['new_reg_no']     = $row['new_reg_no'];
                 $message['name']           = $row['name'];
@@ -25,11 +25,8 @@ if (isset($_POST['userID'])) {
                 $message['address_line_3'] = $row['address_line_3'];
                 $message['phone_no']       = $row['phone_no'];
                 $message['fax_no']         = $row['fax_no'];
-                $message['contact_name']   = $row['contact_name'];
-                $message['ic_no']          = $row['ic_no'];
                 $message['tin_no']         = $row['tin_no'];
-                $message['payment_term']   = $row['payment_term'];
-                $message['payment_term_period'] = $row['payment_term_period'];
+                $message['mobile_no']      = $row['mobile_no'];
             }
 
             echo json_encode(array("status" => "success", "message" => $message));
