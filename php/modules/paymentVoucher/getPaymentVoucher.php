@@ -16,6 +16,7 @@ if (isset($_POST['pvId'])) {
 
             while ($row = $result->fetch_assoc()) {
                 $message['id'] = $row['id'];
+                $message['company_id'] = $row['company_id'];
                 $message['type'] = $row['type'];
                 $message['supplier_id'] = $row['supplier_id'];
                 $message['voucher_no'] = $row['voucher_no'];

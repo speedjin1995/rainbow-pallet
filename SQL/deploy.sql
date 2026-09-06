@@ -1523,7 +1523,7 @@ INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALU
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('weighing_count_code', 'Weighing Count', '称重次数', 'Kiraan Timbang', 'கூட்டல் எண்ணிக்கை');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('add_new_location_code', 'Add New Location', '添加新位置', 'Tambah Lokasi Baru', 'புதிய இடத்தைச் சேர்');
 
--- 04/09/2026 --
+-- 06/09/2026 (Part 03) --
 ALTER TABLE `Supplier` ADD `payment_term` VARCHAR(10) NULL AFTER `tin_no`, ADD `payment_term_period` VARCHAR(10) NULL AFTER `payment_term`;
 ALTER TABLE `Supplier_Log` ADD `payment_term` VARCHAR(10) NULL AFTER `tin_no`, ADD `payment_term_period` VARCHAR(10) NULL AFTER `payment_term`;
 
@@ -1568,10 +1568,10 @@ INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALU
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('bi_weekly_code', 'Bi-Weekly', '每两周', 'Dua Mingguan', 'இரண்டு வாரங்கள்');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('monthly_code', 'Monthly', '每月', 'Bulanan', 'மாதம்');
 
--- 05/09/2026 --
 CREATE TABLE `Payment_Voucher` (
   `id` int(11) NOT NULL,
   `type` varchar(10) NOT NULL,
+  `company_id` int(11) NOT NULL,
   `supplier_id` int(11) DEFAULT NULL,
   `voucher_no` varchar(100) NOT NULL,
   `voucher_date` datetime NOT NULL,
@@ -1603,8 +1603,9 @@ ALTER TABLE `Payment_Voucher` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 CREATE TABLE `Payment_Voucher_Log` (
   `id` int(11) NOT NULL,
-  `type` varchar(10) NOT NULL,
   `payment_voucher_id` int(11) NOT NULL,
+  `type` varchar(10) NOT NULL,
+  `company_id` int(11) NOT NULL,
   `supplier_id` int(11) DEFAULT NULL,
   `voucher_no` varchar(100) NOT NULL,
   `voucher_date` datetime NOT NULL,
@@ -1634,10 +1635,10 @@ ALTER TABLE `Payment_Voucher_Log` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, A
 
 DELIMITER $$
 CREATE OR REPLACE TRIGGER `TRG_INS_PAY` AFTER INSERT ON `Payment_Voucher` FOR EACH ROW INSERT INTO Payment_Voucher_Log (
-    payment_voucher_id, type, voucher_no, supplier_id, voucher_date, from_date, to_date, weighing_type, invoice_no, unit_price, tax, total_nett_weight, total_amount, deduction_amount, addition_amount, final_amount, outstanding_amount, outstanding_details, deduction_details, addition_details, action_id, action_by, event_date
+    payment_voucher_id, company_id, type, voucher_no, supplier_id, voucher_date, from_date, to_date, weighing_type, invoice_no, unit_price, tax, total_nett_weight, total_amount, deduction_amount, addition_amount, final_amount, outstanding_amount, outstanding_details, deduction_details, addition_details, action_id, action_by, event_date
 ) 
 VALUES (
-    NEW.id, NEW.type, NEW.voucher_no, NEW.supplier_id, NEW.voucher_date, NEW.from_date, NEW.to_date, NEW.weighing_type, NEW.invoice_no, NEW.unit_price, NEW.tax, NEW.total_nett_weight, NEW.total_amount, NEW.deduction_amount, NEW.addition_amount, NEW.final_amount, NEW.outstanding_amount, NEW.outstanding_details, NEW.deduction_details, NEW.addition_details, 1, NEW.created_by, NEW.created_date
+    NEW.id, NEW.company_id, NEW.type, NEW.voucher_no, NEW.supplier_id, NEW.voucher_date, NEW.from_date, NEW.to_date, NEW.weighing_type, NEW.invoice_no, NEW.unit_price, NEW.tax, NEW.total_nett_weight, NEW.total_amount, NEW.deduction_amount, NEW.addition_amount, NEW.final_amount, NEW.outstanding_amount, NEW.outstanding_details, NEW.deduction_details, NEW.addition_details, 1, NEW.created_by, NEW.created_date
 )
 $$
 DELIMITER ;
@@ -1654,10 +1655,10 @@ CREATE OR REPLACE TRIGGER `TRG_UPD_PAY` BEFORE UPDATE ON `Payment_Voucher` FOR E
 
     -- Insert into Payment_Voucher_Log table
     INSERT INTO Payment_Voucher_Log (
-        payment_voucher_id, type, voucher_no, supplier_id, voucher_date, from_date, to_date, weighing_type, invoice_no, unit_price, tax, total_nett_weight, total_amount, deduction_amount, addition_amount, final_amount, outstanding_amount, outstanding_details, deduction_details, addition_details, action_id, action_by, event_date
+        payment_voucher_id, company_id, type, voucher_no, supplier_id, voucher_date, from_date, to_date, weighing_type, invoice_no, unit_price, tax, total_nett_weight, total_amount, deduction_amount, addition_amount, final_amount, outstanding_amount, outstanding_details, deduction_details, addition_details, action_id, action_by, event_date
     ) 
     VALUES (
-        NEW.id, NEW.type, NEW.voucher_no, NEW.supplier_id, NEW.voucher_date, NEW.from_date, NEW.to_date, NEW.weighing_type, NEW.invoice_no, NEW.unit_price, NEW.tax, NEW.total_nett_weight, NEW.total_amount, NEW.deduction_amount, NEW.addition_amount, NEW.final_amount, NEW.outstanding_amount, NEW.outstanding_details, NEW.deduction_details, NEW.addition_details, action_value, NEW.modified_by, NEW.modified_date
+        NEW.id, NEW.company_id, NEW.type, NEW.voucher_no, NEW.supplier_id, NEW.voucher_date, NEW.from_date, NEW.to_date, NEW.weighing_type, NEW.invoice_no, NEW.unit_price, NEW.tax, NEW.total_nett_weight, NEW.total_amount, NEW.deduction_amount, NEW.addition_amount, NEW.final_amount, NEW.outstanding_amount, NEW.outstanding_details, NEW.deduction_details, NEW.addition_details, action_value, NEW.modified_by, NEW.modified_date
     );
 END
 $$
@@ -1803,3 +1804,11 @@ INSERT INTO `Running_No_Setup` (`id`, `document`, `document_name`, `value`) VALU
 ALTER TABLE `Running_No_Setup` ADD PRIMARY KEY (`id`);
   
 ALTER TABLE `Running_No_Setup` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('select_slip_to_print_code', 'Select Slip to Print', '选择要打印的单据', 'Pilih Slip untuk Dicetak', 'அச்சிட ஸ்லிப்பை தேர்ந்தெடுக்கவும்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('slip_type_code', 'Slip Type', '单据类型', 'Jenis Slip', 'ஸ்லிப் வகை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('statement_code', 'Statement', '报表', 'Penyata', 'அறிக்கை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('download_pdf_code', 'Download PDF', '下载PDF', 'Muat Turun PDF', 'PDF பதிவிறக்கம்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('print_code', 'Print', '打印', 'Cetak', 'அச்சிடு');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('select_export_method_code', 'Select Export Method', '选择导出方式', 'Pilih Kaedah Eksport', 'ஏற்றுமதி முறையை தேர்ந்தெடுக்கவும்');
+

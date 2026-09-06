@@ -7,18 +7,8 @@ $plantId = $_SESSION['plant'];
 $supplier = $db->query("SELECT * FROM Supplier WHERE status = '0' AND payment_term = 'Term' ORDER BY name ASC");
 $supplier2 = $db->query("SELECT * FROM Supplier WHERE status = '0' AND payment_term = 'Term' ORDER BY name ASC");
 $supplierCash2 = $db->query("SELECT * FROM Supplier WHERE status = '0' AND payment_term = 'Cash' ORDER BY name ASC");
-
-// Get Company Detail
-$stmt = $db->prepare("SELECT * from Company WHERE id = 1");
-$stmt->execute();
-$result = $stmt->get_result();
-
-$includePrice = '';
-$includeContainer = '';
-if(($row = $result->fetch_assoc()) !== null){
-    $includePrice = $row['include_price'];
-    // $includeContainer = $row['include_container'];
-}
+$company = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC");
+$company2 = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC");
 ?>
 
 <head>
@@ -113,6 +103,32 @@ if(($row = $result->fetch_assoc()) !== null){
                                                                 </select>
                                                             </div>
                                                         </div><!--end col-->
+                                                        <div class="col-3">
+                                                            <div class="mb-3">
+                                                                <label for="companySearch" class="form-label"><?=$languageArray['company_code'][$language]?></label>
+                                                                <select id="companySearch" class="form-select select2">
+                                                                    <option selected>-</option>
+                                                                    <?php while($rowCompany=mysqli_fetch_assoc($company)){ ?>
+                                                                        <option value="<?=$rowCompany['id'] ?>"><?=$rowCompany['name'] ?></option>
+                                                                    <?php } ?>
+                                                                </select>
+                                                            </div>
+                                                        </div><!--end col-->
+                                                        <div class="col-3">
+                                                            <div class="mb-3">
+                                                                <label for="invoiceSearch" class="form-label"><?=$languageArray['invoice_no_code'][$language]?></label>
+                                                                <input type="text" class="form-control" id="invoiceSearch" name="invoiceSearch" placeholder="Invoice No.">
+                                                            </div>
+                                                        </div><!--end col-->
+                                                        <div class="col-3">
+                                                            <div class="mb-3">
+                                                                <label for="typeSearch" class="form-label"><?=$languageArray['type_code'][$language]?></label>
+                                                                <select id="typeSearch" class="form-select">
+                                                                    <option selected><?=$languageArray['term_code'][$language]?></option>
+                                                                    <option value="Internal"><?=$languageArray['internal_code'][$language]?></option>
+                                                                </select>
+                                                            </div>
+                                                        </div><!--end col-->
                                                         <div class="col-3" id="supplierSearchDisplay">
                                                             <div class="mb-3">
                                                                 <label for="supplierSearch" class="form-label"><?=$languageArray['supplier_name_code'][$language]?></label>
@@ -122,12 +138,6 @@ if(($row = $result->fetch_assoc()) !== null){
                                                                         <option value="<?=$rowSF['id'] ?>"><?=$rowSF['name'] ?></option>
                                                                     <?php } ?>
                                                                 </select>
-                                                            </div>
-                                                        </div><!--end col-->
-                                                        <div class="col-3">
-                                                            <div class="mb-3">
-                                                                <label for="invoiceSearch" class="form-label"><?=$languageArray['invoice_no_code'][$language]?></label>
-                                                                <input type="text" class="form-control" id="invoiceSearch" name="invoiceSearch" placeholder="Invoice No.">
                                                             </div>
                                                         </div><!--end col-->
                                                         <div class="col-lg-12">
@@ -297,7 +307,15 @@ if(($row = $result->fetch_assoc()) !== null){
                                                         <!-- Voucher Info -->
                                                         <div class="row g-3 mb-4">
                                                             <div class="col-md-4">
-                                                                <label class="form-label"><?=$languageArray['voucher_date_code'][$language]?></label>
+                                                                <label class="form-label"><?=$languageArray['company_code'][$language]?> *</label>
+                                                                <select class="form-control select2" id="companyId" name="companyId" required>
+                                                                    <?php while($rowCompany=mysqli_fetch_assoc($company2)){ ?>
+                                                                        <option value="<?=$rowCompany['id'] ?>"><?=$rowCompany['name'] ?></option>
+                                                                    <?php } ?>
+                                                                </select>
+                                                            </div>
+                                                            <div class="col-md-4">
+                                                                <label class="form-label"><?=$languageArray['voucher_date_code'][$language]?> *</label>
                                                                 <input type="text" class="form-control" id="voucherDate" name="voucherDate" required>
                                                             </div>
                                                             <div class="col-md-4">
@@ -784,6 +802,16 @@ if(($row = $result->fetch_assoc()) !== null){
             renderTable('Cash');
         });
 
+        $('#typeSearch').on('change', function(){
+            var type = $('#typeSearch').val();
+
+            if (type == 'Term'){
+                $('#supplierSearchDisplay').show();
+            }else{
+                $('#supplierSearchDisplay').hide();
+            }
+        });
+
         $.validator.setDefaults({
             submitHandler: function () {
                 if($('#printModal').hasClass('show')){
@@ -907,6 +935,7 @@ if(($row = $result->fetch_assoc()) !== null){
             $('#pricingModal').find('#voucherNo').val('');
             $('#pricingModal').find('#invoiceNo').val('');
             $('#pricingModal').find('#pvType').val('Term').trigger('change');
+            $('#pricingModal').find('#companyId').val(1).trigger('change');
             $('#pricingModal').find('#supplierId').val('').trigger('change');
             $('#pricingModal').find('#transactionFromDate').val('');
             $('#pricingModal').find('#transactionToDate').val('');
@@ -1193,7 +1222,9 @@ if(($row = $result->fetch_assoc()) !== null){
             var fromDateI = $('#fromDateSearch').val();
             var toDateI = $('#toDateSearch').val();
             var weighingTypeI = $('#weighingTypeSearch').val() ? $('#weighingTypeSearch').val() : '';
+            var typeI = $('#typeSearch').val() ? $('#typeSearch').val() : '';
             var supplierNoI = $('#supplierSearch').val() ? $('#supplierSearch').val() : '';
+            var companyI = $('#companySearch').val() ? $('#companySearch').val() : '';
             var invoiceNoI = $('#invoiceSearch').val() ? $('#invoiceSearch').val() : '';
 
             //Destroy the old Datatable
@@ -1215,7 +1246,9 @@ if(($row = $result->fetch_assoc()) !== null){
                         fromDate: fromDateI,
                         toDate: toDateI,
                         weighingType: weighingTypeI,
+                        type: typeI,
                         supplier: supplierNoI,
+                        company: companyI,
                         invoiceNo: invoiceNoI
                     } 
                 },
@@ -1411,6 +1444,7 @@ if(($row = $result->fetch_assoc()) !== null){
             if (obj.status == 'success'){
                 var data = obj.message;
                 $('#pricingModal').find('#pvId').val(data.id);
+                $('#pricingModal').find('#companyId').val(data.company_id).trigger('change');
                 $('#voucherDate').val(formatDate2(new Date(data.voucher_date)));
                 $('#pricingModal').find('#voucherNo').val(data.voucher_no);
                 $('#pricingModal').find('#invoiceNo').val(data.invoice_no);

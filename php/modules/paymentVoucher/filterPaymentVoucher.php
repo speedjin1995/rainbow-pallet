@@ -31,8 +31,16 @@ if($_POST['weighingType'] != null && $_POST['weighingType'] != '' && $_POST['wei
 	// $searchQuery .= " and p.weighing_type = '".$_POST['weighingType']."'";
 }
 
+if($_POST['type'] != null && $_POST['type'] != '' && $_POST['type'] != '-'){
+	$searchQuery .= " and p.type = '".$_POST['type']."'";
+}
+
 if($_POST['supplier'] != null && $_POST['supplier'] != '' && $_POST['supplier'] != '-'){
 	$searchQuery .= " and p.supplier_id = '".$_POST['supplier']."'";
+}
+
+if($_POST['company'] != null && $_POST['company'] != '' && $_POST['company'] != '-'){
+	$searchQuery .= " and p.company_id = '".$_POST['company']."'";
 }
 
 if($_POST['invoiceNo'] != null && $_POST['invoiceNo'] != '' && $_POST['invoiceNo'] != '-'){
@@ -40,7 +48,7 @@ if($_POST['invoiceNo'] != null && $_POST['invoiceNo'] != '' && $_POST['invoiceNo
 }
 
 if($searchValue != ''){
-    $searchQuery = " and (p.voucher_no like '%".$searchValue."%')";
+    $searchQuery .= " and (p.voucher_no like '%".$searchValue."%')";
 }
 
 ## Total number of records without filtering

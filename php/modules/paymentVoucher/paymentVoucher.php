@@ -11,7 +11,9 @@ if(!isset($_SESSION['id'])){
 // Check if the user is already logged in, if yes then redirect him to index page
 $id = $_SESSION['id'];
 // Processing form data when form is submitted
-if (isset($_POST['voucherDate'], $_POST['pvType']) && !empty($_POST['voucherDate']) && !empty($_POST['pvType'])) {
+if (isset($_POST['companyId'], $_POST['voucherDate'], $_POST['pvType']) && !empty($_POST['voucherDate']) && !empty($_POST['pvType'])) {
+    $companyId = trim($_POST["companyId"]);
+
     if (empty($_POST["voucherDate"])) {
         $voucherDate = null;
     } else {
@@ -241,11 +243,11 @@ if (isset($_POST['voucherDate'], $_POST['pvType']) && !empty($_POST['voucherDate
         // Checking to see if there are existing payment voucher record
         if (!empty($pvId) && $pvId != null && $pvId != 'null' && $pvId != '') {
             // Update existing record
-            if ($update_payment_stmt = $db->prepare("UPDATE Payment_Voucher SET type=?, supplier_id=?, voucher_date=?, from_date=?, to_date=?, unit_price=?, tax=?, total_nett_weight=?, total_amount=?, deduction_amount=?, addition_amount=?, final_amount=?, outstanding_amount=?, deduction_details=?, addition_details=?, modified_by=? WHERE id=?")) {
+            if ($update_payment_stmt = $db->prepare("UPDATE Payment_Voucher SET company_id=?, type=?, supplier_id=?, voucher_date=?, from_date=?, to_date=?, unit_price=?, tax=?, total_nett_weight=?, total_amount=?, deduction_amount=?, addition_amount=?, final_amount=?, outstanding_amount=?, deduction_details=?, addition_details=?, modified_by=? WHERE id=?")) {
                 $deductionsJson = json_encode($deductionRecords);
                 $additionJson = json_encode($additionRecords);
                 
-                $update_payment_stmt->bind_param('sssssssssssssssss', $pvType, $supplierId, $voucherDate, $transactionFromDate, $transactionToDate, $unitPrice, $tax, $totalNettWeight, $subtotal, $totalDeductions, $totalAdditions, $finalAmount, $finalAmount, $deductionsJson, $additionJson, $username, $pvId);
+                $update_payment_stmt->bind_param('ssssssssssssssssss', $companyId, $pvType, $supplierId, $voucherDate, $transactionFromDate, $transactionToDate, $unitPrice, $tax, $totalNettWeight, $subtotal, $totalDeductions, $totalAdditions, $finalAmount, $finalAmount, $deductionsJson, $additionJson, $username, $pvId);
                 
                 if (!$update_payment_stmt->execute()) {
                     echo json_encode(array(
@@ -275,11 +277,11 @@ if (isset($_POST['voucherDate'], $_POST['pvType']) && !empty($_POST['voucherDate
                 $update_payment_stmt->close();
             }
         }else{
-            if ($insert_payment_stmt = $db->prepare("INSERT INTO Payment_Voucher (type, supplier_id, voucher_no, invoice_no, voucher_date, from_date, to_date, unit_price, tax, total_nett_weight, total_amount, deduction_amount, addition_amount, final_amount, outstanding_amount, deduction_details, addition_details, created_by, modified_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+            if ($insert_payment_stmt = $db->prepare("INSERT INTO Payment_Voucher (company_id, type, supplier_id, voucher_no, invoice_no, voucher_date, from_date, to_date, unit_price, tax, total_nett_weight, total_amount, deduction_amount, addition_amount, final_amount, outstanding_amount, deduction_details, addition_details, created_by, modified_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
                 $deductionsJson = json_encode($deductionRecords);
                 $additionJson = json_encode($additionRecords);
                 
-                $insert_payment_stmt->bind_param('sssssssssssssssssss', $pvType, $supplierId, $voucherNo, $invoiceNo, $voucherDate, $transactionFromDate, $transactionToDate, $unitPrice, $tax, $totalNettWeight, $subtotal, $totalDeductions, $totalAdditions, $finalAmount, $finalAmount, $deductionsJson, $additionJson, $username, $username);
+                $insert_payment_stmt->bind_param('ssssssssssssssssssss', $companyId, $pvType, $supplierId, $voucherNo, $invoiceNo, $voucherDate, $transactionFromDate, $transactionToDate, $unitPrice, $tax, $totalNettWeight, $subtotal, $totalDeductions, $totalAdditions, $finalAmount, $finalAmount, $deductionsJson, $additionJson, $username, $username);
 
                 if (! $insert_payment_stmt->execute()) {
                     echo json_encode(
