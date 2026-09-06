@@ -173,6 +173,10 @@ $company2 = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC
                                                                         <i class="ri-scissors-cut-line align-middle me-1"></i>
                                                                         <?=$languageArray['cut_off_code'][$language]?>
                                                                     </button> -->
+                                                                    <button type="button" id="postToSql" class="btn btn-warning waves-effect waves-light">
+                                                                        <i class="ri-send-plane-line align-middle me-1"></i>
+                                                                        <?=$languageArray['post_to_sql_code'][$language]?>
+                                                                    </button>
                                                                     <button type="button" id="addPv" class="btn btn-success waves-effect waves-light">
                                                                         <i class="ri-add-circle-line align-middle me-1"></i>
                                                                         <?=$languageArray['add_new_code'][$language]?>
@@ -192,6 +196,7 @@ $company2 = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC
                                                                         <th><?=$languageArray['supplier_code'][$language]?></th>
                                                                         <th><?=$languageArray['invoice_no_code'][$language]?></th>
                                                                         <th><?=$languageArray['outstanding_amount_code'][$language]?> (RM)</th>
+                                                                        <th><?=$languageArray['status_code'][$language] ?? 'Status'?></th>
                                                                         <th><?=$languageArray['action_code'][$language]?></th>
                                                                     </tr>
                                                                 </thead>
@@ -531,6 +536,7 @@ $company2 = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC
                                             </div>
                                         </div>
                                     </div><!-- /.modal -->
+
                                     <div class="modal fade" id="errorModal" style="display:none">
                                         <div class="modal-dialog modal-xl" style="max-width: 50%;">
                                             <div class="modal-content">
@@ -614,6 +620,32 @@ $company2 = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC
                                             </div>
                                         </div>
                                     </div>
+
+                                    <div class="modal fade" id="approvalModal" tabindex="-1" role="dialog" aria-labelledby="approvalModalTitle" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="approvalModalTitle"><?=$languageArray['approval_code'][$language] ?? 'Approval'?></h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <form id="approvalForm">
+                                                    <div class="modal-body">
+                                                        <p><?=$languageArray['confirm_approve_code'][$language] ?? 'Are you sure you want to approve this payment voucher?'?></p>
+                                                        <div class="mb-3">
+                                                            <label for="approvalRemark" class="form-label"><?=$languageArray['remark_code'][$language] ?? 'Remark'?></label>
+                                                            <textarea class="form-control" id="approvalRemark" name="approvalRemark" rows="3"></textarea>
+                                                        </div>
+                                                        <input type="hidden" id="approvalPvId" name="approvalPvId">
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-light" data-bs-dismiss="modal"><?=$languageArray['close_code'][$language]?></button>
+                                                        <button type="submit" class="btn btn-primary"><?=$languageArray['approve_code'][$language] ?? 'Approve'?></button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <!-- <div class="modal fade" id="cutOffModal" tabindex="-1" role="dialog" aria-labelledby="printModalTitle" aria-hidden="true">
                                         <div class="modal-dialog modal-dialog-centered">
                                             <div class="modal-content">
@@ -1211,6 +1243,32 @@ $company2 = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC
                 }
             });
         });
+
+        $('#approvalForm').on('submit', function(e) {
+            e.preventDefault();
+            $('#spinnerLoading').show();
+
+            var pvId = $('#approvalPvId').val();
+            var remark = $('#approvalRemark').val();
+
+            $.post('php/modules/paymentVoucher/updateApprovalStatus.php', {
+                pvId: pvId,
+                remark: remark
+            }, function(response) {
+                var obj = JSON.parse(response);
+                if (obj.status === 'success') {
+                    $('#weightTable').DataTable().ajax.reload();
+                    $('#approvalModal').modal('hide');
+                    toastr["success"](obj.message, "Success:");
+                } else {
+                    toastr["error"](obj.message, "Failed:");
+                }
+                $('#spinnerLoading').hide();
+            }).fail(function() {
+                $('#spinnerLoading').hide();
+                toastr["error"]("An error occurred while updating approval status.", "Failed:");
+            });
+        });
     });
 
     function renderTable(termCash){
@@ -1255,7 +1313,12 @@ $company2 = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC
                         className: 'select-checkbox',
                         orderable: false,
                         render: function (data, type, row) {
-                            return '<input type="checkbox" class="select-checkbox" id="checkbox_' + data + '" value="'+data+'"/>';
+                            // Only allow checkbox if status is Approved
+                            if (row.approval_status == 'Approved') {
+                                return '<input type="checkbox" class="select-checkbox" id="checkbox_' + data + '" value="'+data+'"/>';
+                            } else {
+                                return '<input type="checkbox" class="select-checkbox" disabled title="Only approved records can be selected"/>';
+                            }
                         }
                     },
                     { data: 'voucher_date' },
@@ -1264,13 +1327,32 @@ $company2 = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC
                     { data: 'invoice_no' },
                     { data: 'outstanding_amount' },
                     { 
+                        data: 'approval_status',
+                        render: function (data, type, row) {
+                            var badgeClass = 'bg-warning';
+                            if (data == 'Approved') {
+                                badgeClass = 'bg-success';
+                            }
+                            return '<span class="badge ' + badgeClass + '">' + (data || 'Pending') + '</span>';
+                        }
+                    },
+                    { 
                         data: 'id',
                         render: function ( data, type, row ) {
+                            var approvalBtn = '';
+                            if (row.approval_status !== 'Approved') {
+                                approvalBtn = '<li>' +
+                                    '<a class="dropdown-item" onclick="openApprovalModal(\'' + row.id + '\')">' +
+                                        '<i class="ri-checkbox-circle-line align-bottom me-2 text-muted"></i> Approval' +
+                                    '</a>' +
+                                '</li>';
+                            }
                             return '<div class="dropdown d-inline-block">' +
                                 '<button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">' +
                                     '<i class="ri-more-fill align-middle"></i>' +
                                 '</button>' +
                                 '<ul class="dropdown-menu dropdown-menu-end">' +
+                                    approvalBtn +
                                     '<li>' +
                                         '<a class="dropdown-item print-item-btn" id="print'+data+'" onclick="print(\'' + row.id + '\')">' +
                                             '<i class="ri-printer-fill align-bottom me-2 text-muted"></i> Print' +
@@ -1543,6 +1625,12 @@ $company2 = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC
                 $(element).removeClass('is-invalid');
             }
         });
+    }
+
+    function openApprovalModal(pvId) {
+        $('#approvalModal').find('#approvalPvId').val(pvId);
+        $('#approvalModal').find('#approvalRemark').val('');
+        $('#approvalModal').modal('show');
     }
     </script>
 </body>

@@ -341,6 +341,9 @@
                                                                     <th><?=$languageArray['pic_code'][$language]?></th>
                                                                     <th><?=$languageArray['ic_code'][$language]?></th>
                                                                     <th><?=$languageArray['tin_code'][$language]?></th>
+                                                                    <th><?=$languageArray['account_no_code'][$language]?></th>
+                                                                    <th><?=$languageArray['payment_term_code'][$language]?></th>
+                                                                    <th><?=$languageArray['payment_term_period_code'][$language]?></th>
                                                                     <th><?=$languageArray['status_code'][$language]?></th>
                                                                     <th><?=$languageArray['action_code'][$language]?></th>
                                                                 </tr>
@@ -399,7 +402,6 @@
 var table;
 
 $(function () {
-
     table = $("#supplierTable").DataTable({
         "responsive": true,
         "autoWidth": false,
@@ -431,6 +433,9 @@ $(function () {
             { data: 'contact_name' },
             { data: 'ic_no' },
             { data: 'tin_no' },
+            { data: 'account_no' },
+            { data: 'payment_term' },
+            { data: 'payment_term_period' },
             { 
                 data: 'id',
                 render: function ( data, type, row ) {
@@ -545,8 +550,8 @@ $(function () {
         $('#addModal').find('#icNo').val("");
         $('#addModal').find('#tinNo').val("");
         $('#addModal').find('#accountNo').val("");
-        $('#addModal').find('#paymentTerm').val("Cash");
-        $('#addModal').find('#paymentTermPeriod').val("Daily").trigger('change');
+        $('#addModal').find('#paymentTerm').val("Cash").trigger('change');
+        $('#addModal').find('#paymentTermPeriod').val("Daily");
 
         // Remove Validation Error Message
         $('#addModal .is-invalid').removeClass('is-invalid');
@@ -642,11 +647,13 @@ $(function () {
         }     
     });
 
-    $('#addModal').find('#paymentTerm').on('change', function() {
-        if ($(this).val() === 'Term') {
-            $('#addModal').find('#paymentTermPeriodDisplay').show();
-        } else {
+    $('#paymentTerm').on('change', function() {
+        if ($(this).val() == 'Cash') {
+            $('#paymentTermPeriod').val('').prop('disabled', true);
             $('#addModal').find('#paymentTermPeriodDisplay').hide();
+        } else {
+            $('#paymentTermPeriod').prop('disabled', false);
+            $('#addModal').find('#paymentTermPeriodDisplay').show();
         }
     });
 });
