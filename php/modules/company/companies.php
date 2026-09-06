@@ -9,7 +9,6 @@ if (!isset($_SESSION['id'])) {
 }
 
 if (isset($_POST['companyCode'], $_POST['companyName'])) {
-
     $companyId = empty($_POST["id"]) ? null : trim($_POST["id"]);
     $companyCode = empty($_POST["companyCode"]) ? null : trim($_POST["companyCode"]);
     $companyRegNo = empty($_POST["companyRegNo"]) ? null : trim($_POST["companyRegNo"]);
@@ -22,6 +21,24 @@ if (isset($_POST['companyCode'], $_POST['companyName'])) {
     $faxNo = empty($_POST["faxNo"]) ? null : trim($_POST["faxNo"]);
     $tinNo = empty($_POST["tinNo"]) ? null : trim($_POST["tinNo"]);
     $mobileNo = empty($_POST["mobileNo"]) ? null : trim($_POST["mobileNo"]);
+
+    // Check for duplicate company_code (exclude current record when updating)
+    $duplicateCheck = $db->prepare("SELECT id FROM Company WHERE company_code = ? AND status = 0" . (!empty($companyId) ? " AND id != ?" : ""));
+    if (!empty($companyId)) {
+        $duplicateCheck->bind_param('si', $companyCode, $companyId);
+    } else {
+        $duplicateCheck->bind_param('s', $companyCode);
+    }
+    $duplicateCheck->execute();
+    $duplicateCheck->store_result();
+
+    if ($duplicateCheck->num_rows > 0) {
+        echo json_encode(array("status" => "failed", "message" => "Company code already exists"));
+        $duplicateCheck->close();
+        $db->close();
+        exit;
+    }
+    $duplicateCheck->close();
 
     if (!empty($companyId)) {
         if ($stmt = $db->prepare("UPDATE Company SET company_code=?, company_reg_no=?, new_reg_no=?, name=?, address_line_1=?, address_line_2=?, address_line_3=?, phone_no=?, fax_no=?, tin_no=?, mobile_no=?, modified_by=? WHERE id=?")) {
