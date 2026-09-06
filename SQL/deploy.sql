@@ -1850,4 +1850,5 @@ DELIMITER ;
 
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('account_no_code', 'Account No', '选择导出方式', 'Pilih Kaedah Eksport', 'ஏற்றுமதி முறையை தேர்ந்தெடுக்கவும்');
 
-ALTER TABLE raw_mat ADD raw_mat_type varchar(50);
+ALTER TABLE Raw_Mat ADD raw_mat_type varchar(50);
+ALTER TABLE Raw_Mat_Log ADD raw_mat_type varchar(50);
