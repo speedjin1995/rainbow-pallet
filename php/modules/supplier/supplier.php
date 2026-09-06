@@ -28,6 +28,24 @@ if (isset($_POST['supplierCode'])) {
     $paymentTermPeriod = empty($_POST["paymentTermPeriod"]) ? null : trim($_POST["paymentTermPeriod"]);
     $accountNo = empty($_POST["accountNo"]) ? null : trim($_POST["accountNo"]);
 
+    // Check for duplicate supplier_code (exclude current record when updating)
+    $duplicateCheck = $db->prepare("SELECT id FROM Supplier WHERE supplier_code = ? AND status = 0" . (!empty($supplierId) ? " AND id != ?" : ""));
+    if (!empty($supplierId)) {
+        $duplicateCheck->bind_param('si', $supplierCode, $supplierId);
+    } else {
+        $duplicateCheck->bind_param('s', $supplierCode);
+    }
+    $duplicateCheck->execute();
+    $duplicateCheck->store_result();
+
+    if ($duplicateCheck->num_rows > 0) {
+        echo json_encode(array("status" => "failed", "message" => "Supplier code already exists"));
+        $duplicateCheck->close();
+        $db->close();
+        exit;
+    }
+    $duplicateCheck->close();
+
     if (!empty($supplierId)) {
         if ($stmt = $db->prepare("UPDATE Supplier SET supplier_code=?, company_reg_no=?, new_reg_no=?, name=?, address_line_1=?, address_line_2=?, address_line_3=?, phone_no=?, fax_no=?, contact_name=?, ic_no=?, tin_no=?, payment_term=?, payment_term_period=?, account_no=?, created_by=?, modified_by=? WHERE id=?")) {
             $stmt->bind_param('ssssssssssssssssss', $supplierCode, $companyRegNo, $newRegNo, $companyName, $addressLine1, $addressLine2, $addressLine3, $phoneNo, $faxNo, $contactName, $icNo, $tinNo, $paymentTerm, $paymentTermPeriod, $accountNo, $username, $username, $supplierId);
