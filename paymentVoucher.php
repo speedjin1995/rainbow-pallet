@@ -327,8 +327,8 @@ $company2 = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC
                                                                 <input type="text" class="form-control" id="invoiceNo" name="invoiceNo" readonly style="background-color: var(--vz-input-disabled-bg);">
                                                             </div>
                                                             <div class="col-md-4">
-                                                                <label class="form-label"><?=$languageArray['type_code'][$language]?></label>
-                                                                <select class="form-control select2" id="pvType" name="pvType">
+                                                                <label class="form-label"><?=$languageArray['type_code'][$language]?> *</label>
+                                                                <select class="form-control" id="pvType" name="pvType">
                                                                     <option selected><?=$languageArray['term_code'][$language]?></option>
                                                                     <option value="Internal"><?=$languageArray['internal_code'][$language]?></option>
                                                                 </select>
@@ -561,7 +561,7 @@ $company2 = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC
                                                         <div class="mb-3">
                                                             <label for="printSlipType" class="form-label"><?=$languageArray['slip_type_code'][$language]?> *</label>
                                                             <select id="printSlipType" name="printSlipType" class="form-select" required>
-                                                                <option value="ffbStatement"><?=$languageArray['ffb_statement_code'][$language]?></option>
+                                                                <option value="ffbStatement"><?=$languageArray['statement_code'][$language]?></option>
                                                                 <option value="pv"><?=$languageArray['payment_voucher_code'][$language]?></option>
                                                             </select>
                                                         </div>
@@ -569,17 +569,15 @@ $company2 = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC
                                                         <div class="mb-3">
                                                             <label for="exportMethod" class="form-label"><?=$languageArray['select_export_method_code'][$language]?> *</label>
                                                             <select id="exportMethod" name="exportMethod" class="form-select" required>
-                                                                <option value="exportDownload" selected><?=$languageArray['download_pdf_code'][$language]?></option>
-                                                                <option value="exportPrint"><?=$languageArray['print_code'][$language]?></option>
+                                                                <option value="exportDownload"><?=$languageArray['download_pdf_code'][$language]?></option>
+                                                                <option value="exportPrint" selected><?=$languageArray['print_code'][$language]?></option>
                                                             </select>
                                                         </div>
 
-                                                        <input type="hidden" id="customerSupplierPrint" name="customerSupplierPrint">
-                                                        <input type="hidden" id="transactionDatePrint" name="transactionDatePrint">
-                                                        <input type="hidden" id="weighingTypePrint" name="weighingTypePrint">
-                                                        <input type="hidden" id="transactionStatusPrint" name="transactionStatusPrint">
                                                         <input type="hidden" id="pvIdPrint" name="pvIdPrint">
                                                         <input type="hidden" id="supplierType" name="supplierType">
+                                                        <input type="hidden" id="printSlipType" name="printSlipType">
+                                                        <input type="hidden" id="exportMethod" name="exportMethod">
                                                     </div> 
 
                                                     <div class="modal-footer">
@@ -815,10 +813,6 @@ $company2 = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC
         $.validator.setDefaults({
             submitHandler: function () {
                 if($('#printModal').hasClass('show')){
-                    var customerSupplierI = $('#printModal').find('#customerSupplierPrint').val();
-                    var transactionDateI = $('#printModal').find('#transactionDatePrint').val();
-                    var transactionStatusI = $('#printModal').find('#transactionStatusPrint').val();
-                    var weightTypeI = $('#printModal').find('#weighingTypePrint').val();
                     var printSlipTypeI = $('#printModal').find('#printSlipType').val();
                     var exportMethod = $('#printModal').find('#exportMethod').val();
                     var pvIdI = $('#printModal').find('#pvIdPrint').val();
@@ -826,20 +820,43 @@ $company2 = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC
 
                     if (exportMethod == 'exportDownload') {
                         // Direct download (no AJAX)
-                        if (supplierType == 'Cash'){
+                        // if (supplierType == 'Cash'){
+                        //     window.open(
+                        //         'php/printCashSupplierFfbStatement.php?supplierCode=' + customerSupplierI + '&monthLabel=' + transactionDateI + '&printType=exportDownload',
+                        //         '_blank'
+                        //     );
+                        // }else{
                             window.open(
-                                'php/printCashSupplierFfbStatement.php?supplierCode=' + customerSupplierI + '&monthLabel=' + transactionDateI + '&printType=exportDownload',
+                                'php/modules/paymentVoucher/print.php?slipType=' + printSlipTypeI + '&printType=exportDownload&pvId=' + pvIdI,
                                 '_blank'
                             );
-                        }else{
-                            window.open(
-                                'php/printPaymentVoucherSlip.php?slipType=' + printSlipTypeI + '&customerSupplier=' + customerSupplierI + '&transactionDate=' + transactionDateI + '&transactionStatus=' + transactionStatusI + '&weightType=' + weightTypeI + '&printType=exportDownload&pvId=' + pvIdI,
-                                '_blank'
-                            );
-                        }
+                        // }
                     } else {
-                        if (supplierType == 'Cash'){
-                            $.post('php/printCashSupplierFfbStatement.php', {supplierCode: customerSupplierI, monthLabel: transactionDateI}, function(data){
+                        // if (supplierType == 'Cash'){
+                        //     $.post('php/printCashSupplierFfbStatement.php', {supplierCode: customerSupplierI, monthLabel: transactionDateI}, function(data){
+                        //         var obj = JSON.parse(data);
+
+                        //         if(obj.status === 'success'){
+                        //             var printWindow = window.open('', '', 'height=' + screen.height + ',width=' + screen.width);
+                        //             printWindow.document.write(obj.message);
+                        //             printWindow.document.close();
+                        //             setTimeout(function(){
+                        //                 printWindow.print();
+                        //                 printWindow.close();
+                        //             }, 500);
+                        //         }
+                        //         else if(obj.status === 'failed'){
+                        //             alert(obj.message);
+                        //         }
+                        //         else{
+                        //             alert("Something wrong when printing");
+                        //         }
+                        //     }).fail(function(error){
+                        //         console.error("Error exporting PDF:", error);
+                        //         alert("An error occurred while generating the PDF.");
+                        //     });
+                        // }else{
+                            $.post('php/modules/paymentVoucher/print.php', {slipType: printSlipTypeI, pvId: pvIdI}, function(data){
                                 var obj = JSON.parse(data);
 
                                 if(obj.status === 'success'){
@@ -861,31 +878,7 @@ $company2 = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC
                                 console.error("Error exporting PDF:", error);
                                 alert("An error occurred while generating the PDF.");
                             });
-                        }else{
-                            $.post('php/printPaymentVoucherSlip.php', {slipType: printSlipTypeI, customerSupplier: customerSupplierI, transactionDate: transactionDateI, transactionStatus: transactionStatusI, weightType: weightTypeI, pvId: pvIdI}, function(data){
-                                var obj = JSON.parse(data);
-
-                                if(obj.status === 'success'){
-                                    var printWindow = window.open('', '', 'height=' + screen.height + ',width=' + screen.width);
-                                    printWindow.document.write(obj.message);
-                                    printWindow.document.close();
-                                    setTimeout(function(){
-                                        printWindow.print();
-                                        printWindow.close();
-                                    }, 500);
-                                }
-                                else if(obj.status === 'failed'){
-                                    alert(obj.message);
-                                }
-                                else{
-                                    alert("Something wrong when printing");
-                                }
-                            }).fail(function(error){
-                                console.error("Error exporting PDF:", error);
-                                alert("An error occurred while generating the PDF.");
-                            });
-                        }
-                        
+                        // }
                     }
                 }else if($('#cutOffModal').hasClass('show')){
                     var cutOffDate = $('#cutOffModal').find('#cutOffDate').val();
@@ -1275,11 +1268,11 @@ $company2 = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC
                                     '<i class="ri-more-fill align-middle"></i>' +
                                 '</button>' +
                                 '<ul class="dropdown-menu dropdown-menu-end">' +
-                                    // '<li>' +
-                                    //     '<a class="dropdown-item print-item-btn" id="print'+data+'" onclick="print(\'' + row.customer + '\', \'' + row.voucher_date + '\', \'' + row.transaction_status + '\', \'' + row.weight_type + '\', \'' + (row.pv_id || '') + '\')">' +
-                                    //         '<i class="ri-printer-fill align-bottom me-2 text-muted"></i> Print' +
-                                    //     '</a>' +
-                                    // '</li>' +
+                                    '<li>' +
+                                        '<a class="dropdown-item print-item-btn" id="print'+data+'" onclick="print(\'' + row.id + '\')">' +
+                                            '<i class="ri-printer-fill align-bottom me-2 text-muted"></i> Print' +
+                                        '</a>' +
+                                    '</li>' +
                                     '<li>' +
                                         '<a class="dropdown-item apply-unit-price-btn" onclick="edit(\'' + row.id + '\')">' +
                                             '<i class="ri-calculator-fill align-bottom me-2 text-muted"></i> Edit' +
@@ -1508,11 +1501,7 @@ $company2 = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC
         });
     }
 
-    function print(customerSupplier, transactionDate, transactionStatus, weightType, id) {
-        $('#printModal').find('#customerSupplierPrint').val(customerSupplier);
-        $('#printModal').find('#transactionDatePrint').val(transactionDate);
-        $('#printModal').find('#weighingTypePrint').val(weightType);
-        $('#printModal').find('#transactionStatusPrint').val(transactionStatus);
+    function print(id) {
         $('#printModal').find('#pvIdPrint').val(id);
         $('#printModal').find('#supplierType').val('Term');
         $('#printModal').modal('show');
