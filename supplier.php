@@ -199,6 +199,14 @@
                                                                             </div>
                                                                             <div class="col-xxl-12 col-lg-12 mb-3">
                                                                                 <div class="row">
+                                                                                    <label for="accountNo" class="col-sm-4 col-form-label"><?=$languageArray['account_no_code'][$language]?></label>
+                                                                                    <div class="col-sm-8">
+                                                                                        <input type="text" class="form-control" id="accountNo" name="accountNo" placeholder="<?=$languageArray['account_no_code'][$language]?>">
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="col-xxl-12 col-lg-12 mb-3">
+                                                                                <div class="row">
                                                                                     <label for="paymentTerm" class="col-sm-4 col-form-label"><?=$languageArray['payment_term_code'][$language]?></label>
                                                                                     <div class="col-sm-8">
                                                                                         <select class="form-control select2" style="width: 100%;" id="paymentTerm" name="paymentTerm">
@@ -536,6 +544,7 @@ $(function () {
         $('#addModal').find('#contactName').val("");
         $('#addModal').find('#icNo').val("");
         $('#addModal').find('#tinNo').val("");
+        $('#addModal').find('#accountNo').val("");
         $('#addModal').find('#paymentTerm').val("Cash");
         $('#addModal').find('#paymentTermPeriod').val("Daily").trigger('change');
 
@@ -731,6 +740,7 @@ function edit(id){
             $('#addModal').find('#contactName').val(obj.message.contact_name);
             $('#addModal').find('#icNo').val(obj.message.ic_no);
             $('#addModal').find('#tinNo').val(obj.message.tin_no);
+            $('#addModal').find('#accountNo').val(obj.message.account_no);
             $('#addModal').find('#paymentTerm').val(obj.message.payment_term).trigger('change');
             $('#addModal').find('#paymentTermPeriod').val(obj.message.payment_term_period);
 
