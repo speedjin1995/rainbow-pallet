@@ -165,10 +165,10 @@ $company2 = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC
                                                                     <h5 class="card-title text-white mb-0"><?=$languageArray['payment_voucher_code'][$language]?></h5>
                                                                 </div>
                                                                 <div class="flex-shrink-0">
-                                                                    <button type="button" id="exportPdfTerm" class="btn btn-warning waves-effect waves-light">
+                                                                    <!-- <button type="button" id="exportPdfTerm" class="btn btn-warning waves-effect waves-light">
                                                                         <i class="ri-file-pdf-line align-middle me-1"></i>
                                                                         <?=$languageArray['export_pdf_code'][$language]?>
-                                                                    </button>
+                                                                    </button> -->
                                                                     <!-- <button type="button" id="cutOffBtn" class="btn btn-success waves-effect waves-light">
                                                                         <i class="ri-scissors-cut-line align-middle me-1"></i>
                                                                         <?=$languageArray['cut_off_code'][$language]?>
@@ -863,10 +863,12 @@ $company2 = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC
                                     var printWindow = window.open('', '', 'height=' + screen.height + ',width=' + screen.width);
                                     printWindow.document.write(obj.message);
                                     printWindow.document.close();
-                                    setTimeout(function(){
+                                    
+                                    // Wait for all images and resources to load
+                                    printWindow.onload = function(){
                                         printWindow.print();
                                         printWindow.close();
-                                    }, 500);
+                                    };
                                 }
                                 else if(obj.status === 'failed'){
                                     alert(obj.message);
@@ -878,6 +880,7 @@ $company2 = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC
                                 console.error("Error exporting PDF:", error);
                                 alert("An error occurred while generating the PDF.");
                             });
+
                         // }
                     }
                 }else if($('#cutOffModal').hasClass('show')){
