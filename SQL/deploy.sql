@@ -1851,10 +1851,9 @@ DELIMITER ;
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('account_no_code', 'Account No', '选择导出方式', 'Pilih Kaedah Eksport', 'ஏற்றுமதி முறையை தேர்ந்தெடுக்கவும்');
 
 ALTER TABLE Raw_Mat ADD raw_mat_type varchar(50);
-
--- 07/09/2026 --
 ALTER TABLE Raw_Mat_Log ADD raw_mat_type varchar(50);
 
+-- 07/09/2026 --
 DELIMITER $$
 CREATE OR REPLACE TRIGGER `TRG_INS_RAW_MAT` AFTER INSERT ON `Raw_Mat` FOR EACH ROW 
 INSERT INTO Raw_Mat_Log (
@@ -1929,4 +1928,3 @@ $$
 DELIMITER ;
 
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('post_to_sql_code', 'Post To SQL', '发布到SQL', 'Hantar Ke SQL', 'SQL க்கு அனுப்பு');
-
