@@ -1298,6 +1298,7 @@ INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALU
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('customer_side_mc_code', 'MC', 'MC', 'MC', 'MC');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('customer_side_nett_weight_code', 'Nett Weight', '净重', 'Berat Bersih', 'நிகர எடை');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('weight_difference_code', 'Nett Weight Difference', '净重差异', 'Perbezaan Berat Bersih', 'எடை வித்தியாசம்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('raw_material_type_code', 'Raw Material Type', '原材料类型', 'Jenis Bahan Mentah', 'மூலப்பொருள் வகை');
 
 -- 06/09/2026 --
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('company_code', 'Company', '公司', 'Syarikat', 'நிறுவனம்');
@@ -1848,3 +1849,5 @@ $$
 DELIMITER ;
 
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('account_no_code', 'Account No', '选择导出方式', 'Pilih Kaedah Eksport', 'ஏற்றுமதி முறையை தேர்ந்தெடுக்கவும்');
+
+ALTER TABLE raw_mat ADD raw_mat_type varchar(50);

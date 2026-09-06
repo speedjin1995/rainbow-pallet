@@ -13,6 +13,7 @@ if (!empty($data)) {
     foreach ($data as $rows) {
         $Code = $rows['Code'];
         $Name = !empty($rows['Name']) ? trim($rows['Name']) : '';
+        $RawMaterialType = !empty($rows['RawMaterialType']) ? trim($rows['RawMaterialType']) : 'Other';
         $Description = !empty($rows['Description']) ? trim($rows['Description']) : '';
         $action = "1";
         
@@ -25,8 +26,8 @@ if (!empty($data)) {
             }
 
             if(empty($rawMatRow)){
-                if ($insert_stmt = $db->prepare("INSERT INTO Raw_Mat (raw_mat_code, name, description, created_by, modified_by) VALUES (?, ?, ?, ?, ?)")) {
-                    $insert_stmt->bind_param('sssss', $Code, $Name, $Description, $uid, $uid);
+                if ($insert_stmt = $db->prepare("INSERT INTO Raw_Mat (raw_mat_code, name, raw_mat_type, description, created_by, modified_by) VALUES (?, ?, ?, ?, ?, ?)")) {
+                    $insert_stmt->bind_param('ssssss', $Code, $Name, $RawMaterialType, $Description, $uid, $uid);
                     $insert_stmt->execute();
                     $insert_stmt->close(); 
                 }

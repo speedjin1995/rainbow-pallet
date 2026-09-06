@@ -104,6 +104,21 @@
                                                                             </div>
                                                                             <div class="col-xxl-12 col-lg-12 mb-3">
                                                                                 <div class="row">
+                                                                                    <label for="rawMatType" class="col-sm-4 col-form-label"><?=$languageArray['raw_material_type_code'][$language]?></label>
+                                                                                    <div class="col-sm-8">
+                                                                                        <select class="form-control select2" style="width: 100%;" id="rawMatType" name="rawMatType" required>
+                                                                                            <option value="" selected disabled hidden>Please Select</option>
+                                                                                            <option value="Other">Other</option>
+                                                                                            <option value="Sawn Timber">Sawn Timber</option>
+                                                                                        </select>
+                                                                                        <div class="invalid-feedback">
+                                                                                            <?=$languageArray['please_fill_in_the_field_code'][$language]?>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="col-xxl-12 col-lg-12 mb-3">
+                                                                                <div class="row">
                                                                                     <label for="description" class="col-sm-4 col-form-label"><?=$languageArray['description_code'][$language]?></label>
                                                                                     <div class="col-sm-8">
                                                                                         <input type="text" class="form-control" id="description" name="description" placeholder="<?=$languageArray['description_code'][$language]?>">
@@ -239,6 +254,7 @@
                                                                     <th><input type="checkbox" id="selectAllCheckbox" class="selectAllCheckbox"></th>
                                                                     <th><?=$languageArray['raw_material_code_code'][$language]?></th>
                                                                     <th><?=$languageArray['raw_material_name_code'][$language]?></th>
+                                                                    <th><?=$languageArray['raw_material_type_code'][$language]?></th>
                                                                     <th><?=$languageArray['description_code'][$language]?></th>
                                                                     <th><?=$languageArray['status_code'][$language]?></th>
                                                                     <th><?=$languageArray['action_code'][$language]?></th>
@@ -341,6 +357,7 @@ $(function () {
             },
             { data: 'raw_mat_code' },
             { data: 'name' },
+            { data: 'raw_mat_type' },
             { data: 'description' },
             { 
                 data: 'id',
@@ -475,6 +492,7 @@ $(function () {
         $('#addModal').find('#id').val("");
         $('#addModal').find('#rawMatCode').val("");
         $('#addModal').find('#rawMatName').val("");
+        $('#addModal').find('#rawMatType').val("Other").trigger('change');
         $('#addModal').find('#description').val("");
         $('#addModal').find('#varianceType').val("").trigger('change');
         $('#addModal').find('#high').val("0");
@@ -592,6 +610,7 @@ function edit(id){
             $('#addModal').find('#id').val(obj.message.id);
             $('#addModal').find('#rawMatCode').val(obj.message.product_code);
             $('#addModal').find('#rawMatName').val(obj.message.name);
+            $('#addModal').find('#rawMatType').val(obj.message.raw_mat_type).trigger('change');
             $('#addModal').find('#description').val(obj.message.description);
             $('#addModal').find('#varianceType').val(obj.message.variance).trigger('change');
             $('#addModal').find('#high').val(obj.message.high);
@@ -674,9 +693,9 @@ function displayPreview(data) {
     // Get the headers
     var headers = jsonData[0];
 
-    // Ensure we handle cases where there may be less than 3 columns
-    while (headers.length < 3) {
-        headers.push(''); // Adding empty headers to reach 3 columns
+    // Ensure we handle cases where there may be less than 4 columns
+    while (headers.length < 4) {
+        headers.push(''); // Adding empty headers to reach 4 columns
     }
 
     // Create HTML table headers
@@ -691,12 +710,12 @@ function displayPreview(data) {
         htmlTable += '<tr>';
         var rowData = jsonData[i];
 
-        // Ensure we handle cases where there may be less than 3 cells in a row
-        while (rowData.length < 3) {
-            rowData.push(''); // Adding empty cells to reach 3 columns
+        // Ensure we handle cases where there may be less than 4 cells in a row
+        while (rowData.length < 4) {
+            rowData.push(''); // Adding empty cells to reach 4 columns
         }
 
-        for (var j = 0; j < 3; j++) {
+        for (var j = 0; j < 4; j++) {
             var cellData = rowData[j];
             var formattedData = cellData;
 
