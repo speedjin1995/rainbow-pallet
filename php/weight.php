@@ -2,6 +2,46 @@
 session_start();
 require_once 'db_connect.php';
 
+function optionalPostValue($key) {
+    return isset($_POST[$key]) && $_POST[$key] !== '' ? trim($_POST[$key]) : null;
+}
+
+function saveCustomerSideFields($db, $weightId, $customerSideCompany, $customerSideRemovalPassNo, $customerSideLicenseNo, $customerSideMoistureContent, $customerSideOfficerName, $customerSideRainbowDriver, $customerSideTimeIn, $customerSideTimeOut) {
+    if (empty($weightId)) {
+        return true;
+    }
+
+    try {
+        $stmt = $db->prepare("UPDATE Weight SET customer_side_company=?, customer_side_removal_pass_no=?, customer_side_license_no=?, customer_side_moisture_content=?, customer_side_officer_name=?, customer_side_rainbow_driver=?, customer_side_time_in=?, customer_side_time_out=? WHERE id=?");
+    } catch (mysqli_sql_exception $e) {
+        return $e->getMessage();
+    }
+
+    if ($stmt) {
+        $stmt->bind_param('sssssssss', $customerSideCompany, $customerSideRemovalPassNo, $customerSideLicenseNo, $customerSideMoistureContent, $customerSideOfficerName, $customerSideRainbowDriver, $customerSideTimeIn, $customerSideTimeOut, $weightId);
+
+        if (!$stmt->execute()) {
+            $error = $stmt->error;
+            $stmt->close();
+            return $error;
+        }
+
+        $stmt->close();
+        return true;
+    }
+
+    return $db->error;
+}
+
+function failCustomerSideFields($error) {
+    echo json_encode(
+        array(
+            "status"=> "failed",
+            "message"=> $error
+        )
+    );
+}
+
 if(!isset($_SESSION['id'])){
 	echo '<script type="text/javascript">location.href = "../login.php";</script>'; 
 } else{
@@ -353,6 +393,15 @@ if (isset($_POST['transactionId'], $_POST['transactionStatus'], $_POST['weightTy
     } else {
         $totalPrice = trim($_POST["totalPrice"]);
     }
+
+    $customerSideCompany = optionalPostValue("customerSideCompany");
+    $customerSideRemovalPassNo = optionalPostValue("customerSideRemovalPassNo");
+    $customerSideLicenseNo = optionalPostValue("customerSideLicenseNo");
+    $customerSideMoistureContent = optionalPostValue("customerSideMoistureContent");
+    $customerSideOfficerName = optionalPostValue("customerSideOfficerName");
+    $customerSideRainbowDriver = optionalPostValue("customerSideRainbowDriver");
+    $customerSideTimeIn = optionalPostValue("customerSideTimeIn");
+    $customerSideTimeOut = optionalPostValue("customerSideTimeOut");
 
     if (empty($_POST["otherRemarks"])) {
         $otherRemarks = null;
@@ -714,6 +763,12 @@ if (isset($_POST['transactionId'], $_POST['transactionStatus'], $_POST['weightTy
                     );
                 }
                 else{
+                    $customerSideResult = saveCustomerSideFields($db, $weightId, $customerSideCompany, $customerSideRemovalPassNo, $customerSideLicenseNo, $customerSideMoistureContent, $customerSideOfficerName, $customerSideRainbowDriver, $customerSideTimeIn, $customerSideTimeOut);
+
+                    if ($customerSideResult !== true) {
+                        failCustomerSideFields($customerSideResult);
+                        exit;
+                    }
 
                     // update empty container status
                     if(!empty($containerNo) && $weightType == 'Different Container'){
@@ -973,6 +1028,13 @@ if (isset($_POST['transactionId'], $_POST['transactionStatus'], $_POST['weightTy
                 else{
                     $misValue++;
                     $id = $insert_stmt->insert_id;
+
+                    $customerSideResult = saveCustomerSideFields($db, $id, $customerSideCompany, $customerSideRemovalPassNo, $customerSideLicenseNo, $customerSideMoistureContent, $customerSideOfficerName, $customerSideRainbowDriver, $customerSideTimeIn, $customerSideTimeOut);
+
+                    if ($customerSideResult !== true) {
+                        failCustomerSideFields($customerSideResult);
+                        exit;
+                    }
     
                     $queryPlantU = "UPDATE Plant SET sales=? WHERE plant_code='$plantCode'";
     
@@ -1142,6 +1204,13 @@ if (isset($_POST['transactionId'], $_POST['transactionStatus'], $_POST['weightTy
                     );
                 }
                 else{
+                    $customerSideResult = saveCustomerSideFields($db, $weightId, $customerSideCompany, $customerSideRemovalPassNo, $customerSideLicenseNo, $customerSideMoistureContent, $customerSideOfficerName, $customerSideRainbowDriver, $customerSideTimeIn, $customerSideTimeOut);
+
+                    if ($customerSideResult !== true) {
+                        failCustomerSideFields($customerSideResult);
+                        exit;
+                    }
+
                     // update empty container status
                     if(!empty($containerNo) && $weightType == 'Container'){
                         if ($update_container = $db->prepare("UPDATE Weight_Container SET is_cancel=? WHERE container_no=? AND status='0'")){
@@ -1208,6 +1277,13 @@ if (isset($_POST['transactionId'], $_POST['transactionStatus'], $_POST['weightTy
                 else{
                     $misValue++;
                     $id = $insert_stmt->insert_id;
+
+                    $customerSideResult = saveCustomerSideFields($db, $id, $customerSideCompany, $customerSideRemovalPassNo, $customerSideLicenseNo, $customerSideMoistureContent, $customerSideOfficerName, $customerSideRainbowDriver, $customerSideTimeIn, $customerSideTimeOut);
+
+                    if ($customerSideResult !== true) {
+                        failCustomerSideFields($customerSideResult);
+                        exit;
+                    }
     
                     $queryPlantU = "UPDATE Plant SET sales=? WHERE plant_code='$plantCode'";
     

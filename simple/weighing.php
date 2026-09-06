@@ -115,7 +115,10 @@
       <div class="field">
         <label>Weight Status</label>
         <select>
-          <option>Dispatch</option>
+          <option>Sales</option>
+          <option>Purchase</option>
+          <option>Transfer to Port</option>
+          <option>Miscellaneous</option>
         </select>
       </div>
       <div class="field">
