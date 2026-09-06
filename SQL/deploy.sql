@@ -1852,3 +1852,79 @@ INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALU
 
 ALTER TABLE Raw_Mat ADD raw_mat_type varchar(50);
 ALTER TABLE Raw_Mat_Log ADD raw_mat_type varchar(50);
+
+-- 07/09/2026 --
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_RAW_MAT` AFTER INSERT ON `Raw_Mat` FOR EACH ROW 
+INSERT INTO Raw_Mat_Log (
+    raw_mat_id, raw_mat_code, name, description, variance, high, low, raw_mat_type, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.raw_mat_code, NEW.name, NEW.description, NEW.variance, NEW.high, NEW.low, NEW.raw_mat_type, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_RAW_MAT` BEFORE UPDATE ON `Raw_Mat` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Check if status = 1, set action_id to 3, otherwise set to 2
+    IF NEW.status = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Raw_Mat_Log table
+    INSERT INTO Raw_Mat_Log (
+        raw_mat_id, raw_mat_code, name, description, variance, high, low, raw_mat_type, action_id, action_by, event_date
+    ) 
+    VALUES (
+        NEW.id, NEW.raw_mat_code, NEW.name, NEW.description, NEW.variance, NEW.high, NEW.low, NEW.raw_mat_type, action_value, NEW.modified_by, NEW.modified_date
+    );
+END
+$$
+DELIMITER ;
+
+ALTER TABLE `Payment_Voucher` ADD `approval_status` VARCHAR(20) DEFAULT 'Pending' AFTER `addition_details`;
+ALTER TABLE `Payment_Voucher` ADD `approval_remarks` TEXT NULL AFTER `approval_status`;
+ALTER TABLE `Payment_Voucher` ADD `approved_by` INT(11) NULL AFTER `approval_remarks`;
+ALTER TABLE `Payment_Voucher` ADD `approved_date` DATETIME NULL AFTER `approved_by`;
+
+ALTER TABLE `Payment_Voucher_Log` ADD `approval_status` VARCHAR(20) DEFAULT 'Pending' AFTER `addition_details`;
+ALTER TABLE `Payment_Voucher_Log` ADD `approval_remarks` TEXT NULL AFTER `approval_status`;
+ALTER TABLE `Payment_Voucher_Log` ADD `approved_by` INT(11) NULL AFTER `approval_remarks`;
+ALTER TABLE `Payment_Voucher_Log` ADD `approved_date` DATETIME NULL AFTER `approved_by`;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_PAY` AFTER INSERT ON `Payment_Voucher` FOR EACH ROW INSERT INTO Payment_Voucher_Log (
+    payment_voucher_id, company_id, type, voucher_no, supplier_id, voucher_date, from_date, to_date, weighing_type, invoice_no, unit_price, tax, total_nett_weight, total_amount, deduction_amount, addition_amount, final_amount, outstanding_amount, outstanding_details, deduction_details, addition_details, approval_status, approval_remarks, approved_by, approved_date, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.company_id, NEW.type, NEW.voucher_no, NEW.supplier_id, NEW.voucher_date, NEW.from_date, NEW.to_date, NEW.weighing_type, NEW.invoice_no, NEW.unit_price, NEW.tax, NEW.total_nett_weight, NEW.total_amount, NEW.deduction_amount, NEW.addition_amount, NEW.final_amount, NEW.outstanding_amount, NEW.outstanding_details, NEW.deduction_details, NEW.addition_details, NEW.approval_status, NEW.approval_remarks, NEW.approved_by, NEW.approved_date, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_PAY` BEFORE UPDATE ON `Payment_Voucher` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Check if deleted = 1, set action_id to 3, otherwise set to 2
+    IF NEW.deleted = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Payment_Voucher_Log table
+    INSERT INTO Payment_Voucher_Log (
+        payment_voucher_id, company_id, type, voucher_no, supplier_id, voucher_date, from_date, to_date, weighing_type, invoice_no, unit_price, tax, total_nett_weight, total_amount, deduction_amount, addition_amount, final_amount, outstanding_amount, outstanding_details, deduction_details, addition_details, approval_status, approval_remarks, approved_by, approved_date, action_id, action_by, event_date
+    ) 
+    VALUES (
+        NEW.id, NEW.company_id, NEW.type, NEW.voucher_no, NEW.supplier_id, NEW.voucher_date, NEW.from_date, NEW.to_date, NEW.weighing_type, NEW.invoice_no, NEW.unit_price, NEW.tax, NEW.total_nett_weight, NEW.total_amount, NEW.deduction_amount, NEW.addition_amount, NEW.final_amount, NEW.outstanding_amount, NEW.outstanding_details, NEW.deduction_details, NEW.addition_details, NEW.approval_status, NEW.approval_remarks, NEW.approved_by, NEW.approved_date, action_value, NEW.modified_by, NEW.modified_date
+    );
+END
+$$
+DELIMITER ;
+
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('post_to_sql_code', 'Post To SQL', '发布到SQL', 'Hantar Ke SQL', 'SQL க்கு அனுப்பு');
