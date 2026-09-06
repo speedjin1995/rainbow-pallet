@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once '../../db_connect.php';
+require_once '../../requires/functions.php';
 
 if (!isset($_SESSION['id'])) {
     echo '<script type="text/javascript">location.href = "../login.php";</script>';
@@ -46,30 +47,65 @@ if (isset($_POST['supplierCode'])) {
     }
     $duplicateCheck->close();
 
-    if (!empty($supplierId)) {
-        if ($stmt = $db->prepare("UPDATE Supplier SET supplier_code=?, company_reg_no=?, new_reg_no=?, name=?, address_line_1=?, address_line_2=?, address_line_3=?, phone_no=?, fax_no=?, contact_name=?, ic_no=?, tin_no=?, payment_term=?, payment_term_period=?, account_no=?, created_by=?, modified_by=? WHERE id=?")) {
+    try {
+        $db->begin_transaction();
+        if (!empty($supplierId)) {
+            // Get current supplier_code before update
+            $oldCode = null;
+            $stmt = $db->prepare('SELECT supplier_code FROM Supplier WHERE id = ?');
+            if (!$stmt) {
+                throw new Exception($db->error);
+            }
+            $stmt->bind_param('s', $supplierId);
+            $stmt->execute();
+            $stmt->bind_result($oldCode);
+            $stmt->fetch();
+            $stmt->close();
+
+            // Update existing record
+            $stmt = $db->prepare("UPDATE Supplier SET supplier_code=?, company_reg_no=?, new_reg_no=?, name=?, address_line_1=?, address_line_2=?, address_line_3=?, phone_no=?, fax_no=?, contact_name=?, ic_no=?, tin_no=?, payment_term=?, payment_term_period=?, account_no=?, created_by=?, modified_by=? WHERE id=?");
+            if (!$stmt) {
+                throw new Exception($db->error);
+            }
             $stmt->bind_param('ssssssssssssssssss', $supplierCode, $companyRegNo, $newRegNo, $companyName, $addressLine1, $addressLine2, $addressLine3, $phoneNo, $faxNo, $contactName, $icNo, $tinNo, $paymentTerm, $paymentTermPeriod, $accountNo, $username, $username, $supplierId);
 
             if (!$stmt->execute()) {
-                echo json_encode(array("status" => "failed", "message" => $stmt->error));
-            } else {
-                $stmt->close();
-                $db->close();
-                echo json_encode(array("status" => "success", "message" => "Updated Successfully!!"));
+                throw new Exception($stmt->error);
             }
-        }
-    } else {
-        if ($stmt = $db->prepare("INSERT INTO Supplier (supplier_code, company_reg_no, new_reg_no, name, address_line_1, address_line_2, address_line_3, phone_no, fax_no, contact_name, ic_no, tin_no, payment_term, payment_term_period, account_no, created_by, modified_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+
+            // Update related tables if supplier code is changed
+            if ($oldCode !== null && $oldCode !== $supplierCode) {
+                updateMasterDataCodeValue($db, $oldCode, $supplierCode, 'Supplier');
+            }
+
+            $stmt->close();
+            $db->commit();
+            $db->close();
+
+            echo json_encode(['status' => 'success', 'message' => 'Updated Successfully!!']);
+            exit();
+        } else {
+            $stmt = $db->prepare("INSERT INTO Supplier (supplier_code, company_reg_no, new_reg_no, name, address_line_1, address_line_2, address_line_3, phone_no, fax_no, contact_name, ic_no, tin_no, payment_term, payment_term_period, account_no, created_by, modified_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            if (!$stmt) {
+                throw new Exception($db->error);
+            }
             $stmt->bind_param('sssssssssssssssss', $supplierCode, $companyRegNo, $newRegNo, $companyName, $addressLine1, $addressLine2, $addressLine3, $phoneNo, $faxNo, $contactName, $icNo, $tinNo, $paymentTerm, $paymentTermPeriod, $accountNo, $username, $username);
 
             if (!$stmt->execute()) {
-                echo json_encode(array("status" => "failed", "message" => $stmt->error));
-            } else {
-                $stmt->close();
-                $db->close();
-                echo json_encode(array("status" => "success", "message" => "Added Successfully!!"));
+                throw new Exception($stmt->error);
             }
+
+            $stmt->close();
+            $db->commit();
+            $db->close();
+
+            echo json_encode(['status' => 'success', 'message' => 'Added Successfully!!']);
+            exit();
         }
+    } catch (Exception $e) {
+        $db->rollback();
+        echo json_encode(['status' => 'failed', 'message' => $e->getMessage()]);
+        exit();
     }
 } else {
     echo json_encode(array("status" => "failed", "message" => "Please fill in all the fields"));
