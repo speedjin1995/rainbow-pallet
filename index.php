@@ -803,7 +803,6 @@ else{
                                                                                     <label for="companyId" class="col-sm-4 col-form-label"><?=$languageArray['company_code'][$language]?></label>
                                                                                     <div class="col-sm-8">
                                                                                         <select class="form-select select2" id="companyId" name="companyId" required>
-                                                                                            <option selected="-">-</option>
                                                                                             <?php while($rowCompany=mysqli_fetch_assoc($company)){ ?>
                                                                                                 <option value="<?=$rowCompany['id'] ?>"><?=$rowCompany['name'] ?></option>
                                                                                             <?php } ?>
