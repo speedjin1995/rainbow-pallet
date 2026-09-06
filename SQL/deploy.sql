@@ -1298,6 +1298,7 @@ INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALU
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('customer_side_mc_code', 'MC', 'MC', 'MC', 'MC');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('customer_side_nett_weight_code', 'Nett Weight', '净重', 'Berat Bersih', 'நிகர எடை');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('weight_difference_code', 'Nett Weight Difference', '净重差异', 'Perbezaan Berat Bersih', 'எடை வித்தியாசம்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('raw_material_type_code', 'Raw Material Type', '原材料类型', 'Jenis Bahan Mentah', 'மூலப்பொருள் வகை');
 
 -- 06/09/2026 --
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('company_code', 'Company', '公司', 'Syarikat', 'நிறுவனம்');
@@ -1849,7 +1850,43 @@ DELIMITER ;
 
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('account_no_code', 'Account No', '选择导出方式', 'Pilih Kaedah Eksport', 'ஏற்றுமதி முறையை தேர்ந்தெடுக்கவும்');
 
+ALTER TABLE Raw_Mat ADD raw_mat_type varchar(50);
+
 -- 07/09/2026 --
+ALTER TABLE Raw_Mat_Log ADD raw_mat_type varchar(50);
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_RAW_MAT` AFTER INSERT ON `Raw_Mat` FOR EACH ROW 
+INSERT INTO Raw_Mat_Log (
+    raw_mat_id, raw_mat_code, name, description, variance, high, low, raw_mat_type, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.raw_mat_code, NEW.name, NEW.description, NEW.variance, NEW.high, NEW.low, NEW.raw_mat_type, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_RAW_MAT` BEFORE UPDATE ON `Raw_Mat` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Check if status = 1, set action_id to 3, otherwise set to 2
+    IF NEW.status = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Raw_Mat_Log table
+    INSERT INTO Raw_Mat_Log (
+        raw_mat_id, raw_mat_code, name, description, variance, high, low, raw_mat_type, action_id, action_by, event_date
+    ) 
+    VALUES (
+        NEW.id, NEW.raw_mat_code, NEW.name, NEW.description, NEW.variance, NEW.high, NEW.low, NEW.raw_mat_type, action_value, NEW.modified_by, NEW.modified_date
+    );
+END
+$$
+DELIMITER ;
+
 ALTER TABLE `Payment_Voucher` ADD `approval_status` VARCHAR(20) DEFAULT 'Pending' AFTER `addition_details`;
 ALTER TABLE `Payment_Voucher` ADD `approval_remarks` TEXT NULL AFTER `approval_status`;
 ALTER TABLE `Payment_Voucher` ADD `approved_by` INT(11) NULL AFTER `approval_remarks`;

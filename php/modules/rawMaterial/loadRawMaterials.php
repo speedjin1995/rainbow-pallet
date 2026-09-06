@@ -38,6 +38,7 @@ while($row = mysqli_fetch_assoc($empRecords)) {
       "id"=>$row['id'],
       "raw_mat_code"=>$row['raw_mat_code'],
       "name"=>$row['name'],
+      "raw_mat_type"=>$row['raw_mat_type'] ?? '',
       "description"=>$row['description'],
       "status"=>$row['status']
     );
