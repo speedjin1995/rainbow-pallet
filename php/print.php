@@ -43,18 +43,6 @@ function messageLabel($languageArray, $language, $key){
         return printValue($languageArray[$key][$language]);
     }
 
-    global $db;
-
-    if ($stmt = $db->prepare("SELECT en, zh, my, ne FROM message_resource WHERE message_key_code=?")) {
-        $stmt->bind_param('s', $key);
-        $stmt->execute();
-        $result = $stmt->get_result();
-
-        if ($row = $result->fetch_assoc()) {
-            return printValue(isset($row[$language]) ? $row[$language] : $row['en']);
-        }
-    }
-
     return printValue($key);
 }
 
