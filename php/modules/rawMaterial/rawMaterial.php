@@ -31,6 +31,12 @@ if (isset($_POST['rawMatCode'])) {
         $rawMatName = trim($_POST["rawMatName"]);
     }
 
+    if (empty($_POST["rawMatType"])) {
+        $rawMatType = null;
+    } else {
+        $rawMatType = trim($_POST["rawMatType"]);
+    }
+
     if (empty($_POST["description"])) {
         $description = null;
     } else {
@@ -57,9 +63,9 @@ if (isset($_POST['rawMatCode'])) {
 
     if(! empty($rawMatId))
     {
-        if ($update_stmt = $db->prepare("UPDATE Raw_Mat SET raw_mat_code=?, name=?, description=?, variance=?, high=?, low=?, created_by=?, modified_by=? WHERE id=?")) 
+        if ($update_stmt = $db->prepare("UPDATE Raw_Mat SET raw_mat_code=?, name=?, raw_mat_type=?, description=?, variance=?, high=?, low=?, created_by=?, modified_by=? WHERE id=?")) 
         {
-            $update_stmt->bind_param('sssssssss', $rawMatCode, $rawMatName, $description, $varianceType, $high, $low, $username, $username, $rawMatId);
+            $update_stmt->bind_param('ssssssssss', $rawMatCode, $rawMatName, $rawMatType, $description, $varianceType, $high, $low, $username, $username, $rawMatId);
 
             // Execute the prepared query.
             if (! $update_stmt->execute()) {
@@ -85,8 +91,8 @@ if (isset($_POST['rawMatCode'])) {
     }
     else
     {
-        if ($insert_stmt = $db->prepare("INSERT INTO Raw_Mat (raw_mat_code, name, description, variance, high, low, created_by, modified_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")) {
-            $insert_stmt->bind_param('ssssssss', $rawMatCode, $rawMatName, $description, $varianceType, $high, $low, $username, $username);
+        if ($insert_stmt = $db->prepare("INSERT INTO Raw_Mat (raw_mat_code, name, raw_mat_type, description, variance, high, low, created_by, modified_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+            $insert_stmt->bind_param('sssssssss', $rawMatCode, $rawMatName, $rawMatType, $description, $varianceType, $high, $low, $username, $username);
 
             // Execute the prepared query.
             if (! $insert_stmt->execute()) {
