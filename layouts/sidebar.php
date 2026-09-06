@@ -114,8 +114,8 @@
                                             </li>       
                                             <li class="nav-item">
                                                 <a href="vehicle.php" class="nav-link">'.$languageArray['vehicle_code'][$language].'</a>
-                                            </li>             
-                                            <li class="nav-item">
+                                            </li>
+                                            <li class="nav-item" style="display:none;">
                                                 <a href="transporter.php" class="nav-link">'.$languageArray['transporter_code'][$language].'</a>
                                             </li>
                                             <li class="nav-item">
