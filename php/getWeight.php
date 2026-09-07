@@ -464,6 +464,7 @@ if(isset($_POST['userID'])){
                                 $grRecords = $gr_stmt->get_result();
                                 $weighingData = array();
 
+                                $totalFinalWeight = 0;
                                 while($row = $grRecords->fetch_assoc()) {
                                     $weighingData[] = array( 
                                         "id"=>$row['id'],
@@ -484,10 +485,13 @@ if(isset($_POST['userID'])){
                                         'destination' => $row['destination'],
                                         'unit_price' => $row['unit_price'] ?? '0.00'     
                                     );
+
+                                    $totalFinalWeight += floatval($row['final_weight']);
                                 }
                                 $gr_stmt->close();
 
                                 $message['weights'] = $weighingData;
+                                $message['total_final_weight'] = $totalFinalWeight;
                             }
                         }else{
                             $message['id'] = $row['id'];

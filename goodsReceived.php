@@ -455,13 +455,12 @@ else{
         $('#exportExcel').on('click', function () {
             var fromDateI = $('#fromDateSearch').val();
             var toDateI = $('#toDateSearch').val();
-            var statusI = 'Purchase';
-            var customerNoI = $('#customerNoSearch').val() ? $('#customerNoSearch').val() : '';
-            var supplierNoI = $('#supplierSearch').val() ? $('#supplierSearch').val() : '';
-            var productI = $('#productSearch').val() ? $('#productSearch').val() : '';
-            var rawMatI = $('#rawMatSearch').val() ? $('#rawMatSearch').val() : '';
-            var plantI = $('#plantSearch').val() ? $('#plantSearch').val() : '';
-            var poI = $('#poSearch').val() ? $('#poSearch').val() : '';
+            var companyI = $('#companySearch').val() || '';
+            var supplierNoI = $('#supplierSearch').val() || '';
+            var rawMatI = $('#rawMatSearch').val() || '';
+            var plantI = $('#plantSearch').val() || '';
+            var poI = $('#poSearch').val() || '';
+            var transactionIdI = $('#transactionIdSearch').val() || '';
             var selectedIds = []; // An array to store the selected 'id' values
 
             $("#weightTable tbody input[type='checkbox']").each(function () {
@@ -471,14 +470,11 @@ else{
             });
 
             if (selectedIds.length > 0) {
-                window.open("php/exportDoGr.php?type=gr&isMulti=Y&fromDate="+fromDateI+"&toDate="+toDateI+
-                "&status="+statusI+"&customer="+customerNoI+"&supplier="+supplierNoI+"&product="+productI+
-                "&rawMaterial="+rawMatI+"&plant="+plantI+"&purchaseOrder="+poI+"&id="+selectedIds);
+                window.open("php/modules/goodsReceived/exportExcel.php?&isMulti=Y&fromDate="+fromDateI+"&toDate="+toDateI+"&company="+companyI+"&supplier="+supplierNoI+
+                "&rawMaterial="+rawMatI+"&plant="+plantI+"&purchaseOrder="+poI+"&transactionId="+transactionIdI+"&id="+selectedIds);
             } 
             else {
-                window.open("php/exportDoGr.php?type=gr&isMulti=N&fromDate="+fromDateI+"&toDate="+toDateI+
-                "&status="+statusI+"&customer="+customerNoI+"&supplier="+supplierNoI+"&product="+productI+
-                "&rawMaterial="+rawMatI+"&plant="+plantI+"&purchaseOrder="+poI);
+                window.open("php/modules/goodsReceived/exportExcel.php?&isMulti=N&fromDate="+fromDateI+"&toDate="+toDateI+"&company="+companyI+"&supplier="+supplierNoI+"&rawMaterial="+rawMatI+"&plant="+plantI+"&purchaseOrder="+poI+"&transactionId="+transactionIdI);
             }     
         });
     });
@@ -542,18 +538,18 @@ else{
         var returnString = `
         <!-- Weighing Section -->
         <div class="row">
-            <p><span><strong style="font-size:120%; text-decoration: underline;">Goods Received Information</strong></span><br>
+            <p><span><strong style="font-size:120%; text-decoration: underline;"><?=$languageArray['goods_received_information_code'][$language]?></strong></span><br>
             <div class="col-4">
-                <p><strong>TOTAL RECEIVED AMOUNT:</strong> ${parseFloat(row.po_supply_weight)/1000} MT</p>
+                <p><strong class="text-uppercase"><?=$languageArray['total_received_amount_code'][$language]?>:</strong> ${parseFloat(row.total_final_weight)/1000} MT</p>
             </div>`;
 
             if (isSADMIN) {
                 returnString += `
                     <div class="col-4">
-                        <p><strong>UNIT PRICE:</strong> RM ${row.weights[0].unit_price}</p>
+                        <p><strong class="text-uppercase"><?=$languageArray['unit_price_code'][$language]?>:</strong> RM ${row.weights[0].unit_price}</p>
                     </div>
                     <div class="col-4">
-                        <p><strong>TOTAL PRICE:</strong> RM ${parseFloat(parseFloat(row.weights[0].unit_price) * (parseFloat(row.po_supply_weight)/1000)).toFixed(2)}</p>
+                        <p><strong class="text-uppercase"><?=$languageArray['total_price_code'][$language]?>:</strong> RM ${parseFloat(parseFloat(row.weights[0].unit_price) * (parseFloat(row.total_final_weight)/1000)).toFixed(2)}</p>
                     </div>
                 `;
             }
@@ -565,19 +561,19 @@ else{
             <table class="table table-bordered nowrap table-striped align-middle" style="width:100%">
                 <thead>
                     <tr>
-                        <th>Transaction ID</th>
-                        <th>DO No.</th>
-                        <th>Vehicle</th>
-                        <th>Transporter</th>
-                        <th>Destination</th>
-                        <th>Gross Incoming</th>
-                        <th>Incoming Date</th>
-                        <th>Tare Outgoing</th>
-                        <th>Outgoing Date</th>
-                        <th>Nett Weight</th>`;
-                        if (isSADMIN) {
-                            returnString += `<th>Action</th>`;
-                        }
+                        <th><?=$languageArray['transaction_id_code'][$language]?></th>
+                        <th><?=$languageArray['po_no_code'][$language]?></th>
+                        <th><?=$languageArray['vehicle_no_code'][$language]?></th>
+                        <th><?=$languageArray['transporter_code'][$language]?></th>
+                        <th><?=$languageArray['destination_code'][$language]?></th>
+                        <th><?=$languageArray['gross_incoming_code'][$language]?></th>
+                        <th><?=$languageArray['incoming_date_code'][$language]?></th>
+                        <th><?=$languageArray['tare_outgoing_code'][$language]?></th>
+                        <th><?=$languageArray['outgoing_date_code'][$language]?></th>
+                        <th><?=$languageArray['nett_weight_code'][$language]?></th>`;
+                        // if (isSADMIN) {
+                        //     returnString += `<th>Action</th>`;
+                        // }
 
                         returnString += `</tr>
                 </thead>
@@ -598,14 +594,14 @@ else{
                             <td>${parseFloat(weights[i].tare_weight1)/1000} MT</td>
                             <td>${weights[i].tare_weight1_date}</td>
                             <td>${parseFloat(weights[i].nett_weight1)/1000} MT</td>`
-                            if (isSADMIN) {
-                                returnString += `
-                                <td>
-                                    <button title="Edit" type="button" id="edit${weights[i].id}" onclick="edit(${weights[i].id})" class="btn btn-warning btn-sm">
-                                        <i class="fas fa-pen"></i>
-                                    </button>
-                                </td>`;
-                            }
+                            // if (isSADMIN) {
+                            //     returnString += `
+                            //     <td>
+                            //         <button title="Edit" type="button" id="edit${weights[i].id}" onclick="edit(${weights[i].id})" class="btn btn-warning btn-sm">
+                            //             <i class="fas fa-pen"></i>
+                            //         </button>
+                            //     </td>`;
+                            // }
                         returnString += `</tr>`;
                 }
 

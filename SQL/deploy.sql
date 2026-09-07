@@ -2058,4 +2058,5 @@ INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALU
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('goods_received_records_code', 'Goods Received Records', '收货记录', 'Rekod Barang Diterima', 'பொருட்கள் பெறப்பட்ட பதிவுகள்');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('received_date_code', 'Received Date', '收货日期', 'Tarikh Diterima', 'பெறப்பட்ட தேதி');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('total_received_amount_code', 'Total Received Amount', '收货总金额', 'Jumlah Diterima', 'மொத்த பெறப்பட்ட தொகை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('goods_received_information_code', 'Goods Received Information', '收货信息', 'Maklumat Barang Diterima', 'பொருட்கள் பெறப்பட்ட தகவல்');
 
