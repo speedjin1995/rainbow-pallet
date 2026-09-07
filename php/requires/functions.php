@@ -48,6 +48,13 @@ function updateMasterDataCodeValue($db, $oldValue, $newValue, $modules)
         // Update Weight_Container Table
         $containerSql = "UPDATE Weight_Container SET raw_mat_code = ? WHERE raw_mat_code = ?";
     }
+    else if($modules == 'Plant'){
+        // Update Weight Table
+        $sql = "UPDATE Weight SET plant_code = ? WHERE plant_code = ?";
+
+        // Update Weight_Container Table
+        $containerSql = "UPDATE Weight_Container SET plant_code = ? WHERE plant_code = ?";
+    }
 
     if($sql != ""){
         $weight_stmt = $db->prepare($sql);
@@ -119,6 +126,13 @@ function updateMasterDataNameValue($db, $oldValue, $newValue, $modules)
 
         // Update Weight_Container Table
         $containerSql = "UPDATE Weight_Container SET raw_mat_name = ? WHERE raw_mat_name = ?";
+    }
+    else if($modules == 'Plant'){
+        // Update Weight Table
+        $sql = "UPDATE Weight SET plant_name = ? WHERE plant_name = ?";
+
+        // Update Weight_Container Table
+        $containerSql = "UPDATE Weight_Container SET plant_name = ? WHERE plant_name = ?";
     }
 
     if($sql != ""){
