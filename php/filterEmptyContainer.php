@@ -69,23 +69,25 @@ $purchaseCount = 0;
 $localCount = 0;
 $miscCount = 0;
 
+$language = $_SESSION['language'];
+$languageArray = $_SESSION['languageArray'];
 while($row = mysqli_fetch_assoc($empRecords)) {
   $transactionStatus = '';
   if($row['transaction_status'] == 'Sales'){
     $salesCount++;
-    $transactionStatus = 'Sales';
+    $transactionStatus = $languageArray['dispatch_code'][$language];
   }
   else if($row['transaction_status'] == 'Purchase'){
     $purchaseCount++;
-    $transactionStatus = 'Purchase';
+    $transactionStatus = $languageArray['receiving_code'][$language];
   }
   else if($row['transaction_status'] == 'Misc'){
     $miscCount++;
-    $transactionStatus = 'Miscellaneous';
+    $transactionStatus = $languageArray['miscellaneous_code'][$language];
   }
   else{
     $localCount++;
-    $transactionStatus = 'Transfer to Port';
+    $transactionStatus = $languageArray['internal_transfer_code'][$language];
   }
 
   $data[] = array( 

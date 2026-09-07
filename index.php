@@ -53,7 +53,7 @@ if ($user != null && $user != ''){
 }
 
 //$lots = $db->query("SELECT * FROM lots WHERE deleted = '0'");
-$company = $db->query("SELECT * FROM Company ORDER BY name ASC");
+$company = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
 $vehicles = $db->query("SELECT * FROM Vehicle WHERE status = '0' ORDER BY veh_number ASC");
 $vehicles2 = $db->query("SELECT * FROM Vehicle WHERE status = '0' ORDER BY veh_number ASC");
 $customer = $db->query("SELECT * FROM Customer WHERE status = '0' ORDER BY name ASC");
@@ -89,7 +89,7 @@ else{
 
 <head>
 
-    <title>Weighing | Synctronix - Weighing System</title>
+    <title><?=$languageArray['weighing_code'][$language]?> | Synctronix - Weighing System</title>
     <?php include 'layouts/title-meta.php'; ?>
 
     <!-- jsvectormap css -->
@@ -230,9 +230,9 @@ else{
                                                             <select id="invoiceNoSearch" class="form-select select2"  >
                                                                 <option selected>-</option>
                                                                 <option value="Normal"><?=$languageArray['normal_weighing_code'][$language]?></option>
-                                                                <option value="Container">Primer Mover</option>
-                                                                <option value="Empty Container">Primer Mover + Container</option>
-                                                                <option value="Different Container">Primer Mover + Different Bins</option>
+                                                                <option value="Container"><?=$languageArray['primer_mover_code'][$language]?></option>
+                                                                <option value="Empty Container"><?=$languageArray['primer_mover_container_code'][$language]?></option>
+                                                                <option value="Different Container"><?=$languageArray['primer_mover_different_bins_code'][$language]?></option>
                                                             </select>
                                                         </div>
                                                     </div><!--end col-->
@@ -552,9 +552,9 @@ else{
                                                                                     <div class="col-sm-8">
                                                                                         <select id="weightType" name="weightType" class="form-select select2">
                                                                                             <option value="Normal" selected><?=$languageArray['normal_weighing_code'][$language]?></option>
-                                                                                            <option value="Container">Primer Mover</option>
-                                                                                            <option value="Empty Container">Primer Mover + Container</option>
-                                                                                            <option value="Different Container">Primer Mover + Different Bins</option>
+                                                                                            <option value="Container"><?=$languageArray['primer_mover_code'][$language]?></option>
+                                                                                            <option value="Empty Container"><?=$languageArray['primer_mover_container_code'][$language]?></option>
+                                                                                            <option value="Different Container"><?=$languageArray['primer_mover_different_bins_code'][$language]?></option>
                                                                                         </select>   
                                                                                     </div>
                                                                                 </div>
@@ -732,8 +732,8 @@ else{
                                                                                     <div class="col-sm-8">
                                                                                         <select class="form-select select2" id="transporter" name="transporter" required>
                                                                                             <option selected="-">-</option>
-                                                                                            <option value="Own Transport" data-code="Own Transport">Own Transport</option>
-                                                                                            <option value="Third Party" data-code="Third Party">Third Party</option>
+                                                                                            <option value="Own Transport" data-code="Own Transport"><?=$languageArray['own_transport_code'][$language]?></option>
+                                                                                            <option value="Third Party" data-code="Third Party"><?=$languageArray['third_party_code'][$language]?></option>
                                                                                         </select>
                                                                                     </div>
                                                                                 </div>
@@ -1198,13 +1198,13 @@ else{
                                                             </div>
                                                         </div>
                                                         <div class="row mb-3" id="printTemplateDisplay">
-                                                            <label for="printTemplate" class="col-sm-4 col-form-label">Print Template</label>
+                                                            <label for="printTemplate" class="col-sm-4 col-form-label"><?=$languageArray['>print_template_code'][$language]?></label>
                                                             <div class="col-sm-8">
                                                                 <div class="input-group">
                                                                     <div class="col-12">
                                                                         <select class="form-select select2" id="printTemplate" name="printTemplate" >
-                                                                            <option value="with_weight" selected>With Weight</option>
-                                                                            <option value="without_weight">Without Weight</option>
+                                                                            <option value="with_weight" selected><?=$languageArray['>with_weight_code'][$language]?></option>
+                                                                            <option value="without_weight"><?=$languageArray['>without_weight_code'][$language]?></option>
                                                                         </select>
                                                                     </div>
                                                                 </div>
@@ -1229,7 +1229,7 @@ else{
                                             <div class="modal-content">
                                                 <form role="form" id="customerSideInfoForm">
                                                     <div class="modal-header bg-gray-dark color-palette">
-                                                        <h4 class="modal-title">Fill in Customer Side Info</h4>
+                                                        <h4 class="modal-title"><?=$languageArray['fill_in_customer_side_info_code'][$language]?></h4>
                                                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                     </div>
                                                     <div class="modal-body">
@@ -1286,13 +1286,13 @@ else{
                                             <div class="modal-content">
                                                 <form role="form" id="cancelForm">
                                                     <div class="modal-header bg-gray-dark color-palette">
-                                                        <h4 class="modal-title">Cancellation Reason</h4>
+                                                        <h4 class="modal-title"><?=$languageArray['cancellation_reason_code'][$language]?></h4>
                                                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                     </div>
                                                     <div class="modal-body">
                                                         <div class="row">
                                                             <div class="form-group">
-                                                                <label>Cancellation Reason *</label>
+                                                                <label><?=$languageArray['cancellation_reason_code'][$language]?> *</label>
                                                                 <textarea class="form-control" id="cancelReason" name="cancelReason" rows="3"></textarea>
                                                             </div>
                                                             <input type="hidden" class="form-control" id="id" name="id">                                   
@@ -3226,12 +3226,22 @@ else{
                         var supplierName = obj.message.supplier_name;
                         var supplierCode = obj.message.supplier_code;
 
-                        if (transactionStatus == 'Sales' || transactionStatus == 'Misc'){
-                            $('#addModal').find('#customerName').val(customerName).trigger('change');
-                            $('#addModal').find('#customerCode').val(customerCode);
-                        }else{
-                            $('#addModal').find('#supplierName').val(supplierName).trigger('change');
-                            $('#addModal').find('#supplierCode').val(supplierCode);
+                        if (transactionStatus == 'Sales' || transactionStatus == 'Misc') {
+                            var existingCustomerName = $('#addModal').find('#customerName').val();
+                            var existingCustomerCode = $('#addModal').find('#customerCode').val();
+                            
+                            if ((!existingCustomerName && !existingCustomerCode) || (customerName && customerCode)) {
+                                $('#addModal').find('#customerName').val(customerName).trigger('change');
+                                $('#addModal').find('#customerCode').val(customerCode);
+                            }
+                        } else {
+                            var existingSupplierName = $('#addModal').find('#supplierName').val();
+                            var existingSupplierCode = $('#addModal').find('#supplierCode').val();
+                            
+                            if ((!existingSupplierName && !existingSupplierCode) || (supplierName && supplierCode)) {
+                                $('#addModal').find('#supplierName').val(supplierName).trigger('change');
+                                $('#addModal').find('#supplierCode').val(supplierCode);
+                            }
                         }
                     }
                     else if(obj.status === 'error'){
@@ -3265,12 +3275,22 @@ else{
                         var supplierName = obj.message.supplier_name;
                         var supplierCode = obj.message.supplier_code;
 
-                        if (transactionStatus == 'Sales' || transactionStatus == 'Misc'){
-                            $('#addModal').find('#customerName').val(customerName).trigger('change');
-                            $('#addModal').find('#customerCode').val(customerCode);
-                        }else{
-                            $('#addModal').find('#supplierName').val(supplierName).trigger('change');
-                            $('#addModal').find('#supplierCode').val(supplierCode);
+                        if (transactionStatus == 'Sales' || transactionStatus == 'Misc') {
+                            var existingCustomerName = $('#addModal').find('#customerName').val();
+                            var existingCustomerCode = $('#addModal').find('#customerCode').val();
+                            
+                            if ((!existingCustomerName && !existingCustomerCode) || (customerName && customerCode)) {
+                                $('#addModal').find('#customerName').val(customerName).trigger('change');
+                                $('#addModal').find('#customerCode').val(customerCode);
+                            }
+                        } else {
+                            var existingSupplierName = $('#addModal').find('#supplierName').val();
+                            var existingSupplierCode = $('#addModal').find('#supplierCode').val();
+                            
+                            if ((!existingSupplierName && !existingSupplierCode) || (supplierName && supplierCode)) {
+                                $('#addModal').find('#supplierName').val(supplierName).trigger('change');
+                                $('#addModal').find('#supplierCode').val(supplierCode);
+                            }
                         }
                     }
                     else if(obj.status === 'error'){
@@ -3958,24 +3978,24 @@ else{
         var hasCustomerSideInfo = row.cust_side_do_no || row.cust_side_first_weight || row.cust_side_second_weight || row.cust_side_mc || row.cust_side_nett_weight || row.weight_difference;
 
         if (row.transaction_status == 'Sales') {
-            transactionStatus = 'Sales';
+            transactionStatus = '<?=$languageArray['dispatch_code'][$language]?>';
         } else if (row.transaction_status == 'Purchase') {
-            transactionStatus = 'Purchase';
+            transactionStatus = '<?=$languageArray['receiving_code'][$language]?>';
         } else if (row.transaction_status == 'Local') {
-            transactionStatus = 'Transfer to Port';
+            transactionStatus = '<?=$languageArray['internal_transfer_code'][$language]?>';
         } else {
-            transactionStatus = 'Miscellaneous';
+            transactionStatus = '<?=$languageArray['miscellaneous_code'][$language]?>';
         }
 
-        if(row.weight_type == 'Container'){
-            weightType = 'Primer Mover';
-        }else if(row.weight_type == 'Empty Container'){
-            weightType = 'Primer Mover + Container';
-        }else if(row.weight_type == 'Normal'){
-            weightType = 'Normal Weighing';
-        }else if(row.weight_type == 'Different Container'){
-            weightType = 'Primer Mover + Different Bins';
-        }else{
+        if (row.weight_type == 'Container') {
+            weightType = '<?=$languageArray['primer_mover_code'][$language]?>';
+        } else if (row.weight_type == 'Empty Container') {
+            weightType = '<?=$languageArray['primer_mover_container_code'][$language]?>';
+        } else if (row.weight_type == 'Normal') {
+            weightType = '<?=$languageArray['normal_weighing_code'][$language]?>';
+        } else if (row.weight_type == 'Different Container') {
+            weightType = '<?=$languageArray['primer_mover_different_bins_code'][$language]?>';
+        } else {
             weightType = row.weight_type;
         }
 
