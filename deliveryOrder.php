@@ -557,12 +557,7 @@ else{
                         return '';
                     }
                 }
-            ],
-            "drawCallback": function (settings) {
-                $('#salesInfo').text(settings.json.salesTotal);
-                $('#purchaseInfo').text(settings.json.purchaseTotal);
-                $('#localInfo').text(settings.json.localTotal);
-            }
+            ]
         });
     }
 
