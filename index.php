@@ -53,7 +53,7 @@ if ($user != null && $user != ''){
 }
 
 //$lots = $db->query("SELECT * FROM lots WHERE deleted = '0'");
-$company = $db->query("SELECT * FROM Company ORDER BY name ASC");
+$company = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
 $vehicles = $db->query("SELECT * FROM Vehicle WHERE status = '0' ORDER BY veh_number ASC");
 $vehicles2 = $db->query("SELECT * FROM Vehicle WHERE status = '0' ORDER BY veh_number ASC");
 $customer = $db->query("SELECT * FROM Customer WHERE status = '0' ORDER BY name ASC");
