@@ -13,7 +13,6 @@ $customer = $db->query("SELECT * FROM Customer WHERE status = '0' ORDER BY name 
 $customer2 = $db->query("SELECT * FROM Customer WHERE status = '0' ORDER BY name ASC");
 $product = $db->query("SELECT * FROM Product WHERE status = '0' ORDER BY name ASC");
 $product2 = $db->query("SELECT * FROM Product WHERE status = '0' ORDER BY name ASC");
-$destination = $db->query("SELECT * FROM Destination WHERE status = '0' ORDER BY name ASC");
 
 if($_SESSION['roles'] == 'SADMIN' || $_SESSION['roles'] == 'ADMIN'){
     $plant = $db->query("SELECT * FROM Plant WHERE status = '0'");
