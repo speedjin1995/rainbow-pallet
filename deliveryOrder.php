@@ -373,9 +373,12 @@ else{
         $('#postSQL').on('click', function () {
             var fromDateI = $('#fromDateSearch').val();
             var toDateI = $('#toDateSearch').val();
-            var customerNoI = $('#customerNoSearch').val() ? $('#customerNoSearch').val() : '';
-            var productI = $('#productSearch').val() ? $('#productSearch').val() : '';
-            var plantI = $('#plantSearch').val() ? $('#plantSearch').val() : '';
+            var companyI = $('#companySearch').val() || '';
+            var customerNoI = $('#customerNoSearch').val() || '';
+            var productI = $('#productSearch').val() || '';
+            var plantI = $('#plantSearch').val() || '';
+            var deliveryNoI = $('#deliveryNoSearch').val() || '';
+            var transactionIdI = $('#transactionIdSearch').val() || '';
             var selectedIds = []; // An array to store the selected 'id' values
 
             $("#weightTable tbody input[type='checkbox']").each(function () {
@@ -387,14 +390,15 @@ else{
             if (selectedIds.length > 0) {
                 if (confirm('Are you sure you want to post to SQL these items?')) {
                     $('#spinnerLoading').show();
-                    $.post('php/postDo.php', {
+                    $.post('php/modules/deliveryOrder/postDo.php', {
                         fromDate: fromDateI,
                         toDate: toDateI,
-                        status: statusI,
+                        company: companyI,
                         customer: customerNoI,
                         product: productI,
                         plant: plantI,
-                        purchaseOrder: soI,
+                        deliveryNo: deliveryNoI,
+                        transactionId: transactionIdI,
                         userID: selectedIds, 
                         type: 'MULTI'
                     }, function(data){
@@ -419,14 +423,15 @@ else{
             else {
                 if (confirm('Are you sure you want to post to SQL?')) {
                     $('#spinnerLoading').show();
-                    $.post('php/postDo.php', {
+                    $.post('php/modules/deliveryOrder/postDo.php', {
                         fromDate: fromDateI,
                         toDate: toDateI,
-                        status: statusI,
+                        company: companyI,
                         customer: customerNoI,
                         product: productI,
                         plant: plantI,
-                        purchaseOrder: soI,
+                        deliveryNo: deliveryNoI,
+                        transactionId: transactionIdI,
                         type: 'ALL'
                     }, function(data){
                         var obj = JSON.parse(data);
@@ -739,7 +744,7 @@ else{
                     if (selectedDOs.length > 0) {
                         if (confirm('Are you sure you want to post to SQL these items?')) {
                             $('#spinnerLoading').show();
-                            $.post('php/postDo.php', {
+                            $.post('php/modules/deliveryOrder/postDo.php', {
                                 userID: selectedDOs, 
                                 type: 'MULTIDO'
                             }, function(data){

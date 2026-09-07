@@ -84,8 +84,7 @@ if ($isMulti == 'N'){
         while($row = $do_stmt->fetch_assoc()){
             $lineData = []; // Ensure it starts as an empty array each iteration
             $transactionDate = DateTime::createFromFormat('Y-m-d H:i:s', $row['transaction_date']);
-            $transactionDateTime = $transactionDate->format('d/m/Y');
-            $productId = searchProductIdByCode($row['product_code'], $db);
+            $transactionDateTime = $transactionDate->format('Y-m-d');
             $uom = 'MT';
             $finalPlantCode = $row['plant_code'];
             $qty = (float) $row['nett_weight1']/1000;
@@ -147,8 +146,7 @@ if ($isMulti == 'N'){
             while($row2 = $doRecords->fetch_assoc()) { 
                 $lineData = []; // Ensure it starts as an empty array each iteration
                 $transactionDate = DateTime::createFromFormat('Y-m-d H:i:s', $row2['transaction_date']);
-                $transactionDateTime = $transactionDate->format('d/m/Y');
-                $productId = searchProductIdByCode($row2['product_code'], $db);
+                $transactionDateTime = $transactionDate->format('Y-m-d');
                 $uom = 'MT';
                 $finalPlantCode = $row2['plant_code'];
                 $qty = (float) $row2['nett_weight1']/1000;
