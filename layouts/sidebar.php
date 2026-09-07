@@ -71,6 +71,11 @@
                             <li class="nav-item">
                                 <a href="paymentVoucher.php" class="nav-link"><?=$languageArray['payment_voucher_code'][$language]?></a>
                             </li>
+
+                            <li class="nav-item">
+                                <a href="deliveryOrder.php" class="nav-link"><b><?=$languageArray['delivery_order_code'][$language]?></b></a>
+                            </li>
+
                         </ul>
                     </div>
                 </li>

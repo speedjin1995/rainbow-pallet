@@ -1931,6 +1931,9 @@ DELIMITER ;
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('post_to_sql_code', 'Post To SQL', '发布到SQL', 'Hantar Ke SQL', 'SQL க்கு அனுப்பு');
 
 -- 07/09/2026 (Sky Part 02) --
+UPDATE message_resource SET en = 'Sales', zh = '销售', my = 'Jualan', ne = 'விற்பனை' WHERE message_key_code = 'dispatch_code';
+UPDATE message_resource SET en = 'Purchase', zh = '采购', my = 'Pembelian', ne = 'கொள்முதல்' WHERE message_key_code = 'receiving_code';
+
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('delivery_order_code', 'Delivery Order', '送货单', 'Pesanan Penghantaran', 'டெலிவரி ஆர்டர்');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('goods_received_code', 'Goods Received', '收货', 'Barang Diterima', 'பொருட்கள் பெறப்பட்டது');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('delivery_order_records', 'Delivery Order Records', '送货单记录', 'Rekod Pesanan Penghantaran', 'டெலிவரி ஆர்டர் பதிவுகள்');
@@ -1946,6 +1949,12 @@ INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALU
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('without_weight_code', 'Without Weight', '不含重量', 'Tanpa Berat', 'எடை இல்லாமல்');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('fill_in_customer_side_info_code', 'Fill in Customer Side Info', '填写客户方信息', 'Isi Maklumat Pihak Pelanggan', 'வாடிக்கையாளர் தரப்பு தகவலை நிரப்பவும்');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('cancellation_reason_code', 'Cancellation Reason', '取消原因', 'Sebab Pembatalan', 'ரத்து காரணம்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('post_code', 'Post', '发布', 'Hantar', 'பதிவிடு');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('delivery_order_information_code', 'Delivery Order Information', '发布', 'Hantar', 'பதிவிடு');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('total_delivery_amount_code', 'Total Delivery Amount', '发布', 'Hantar', 'பதிவிடு');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('so_no_code', 'S/O No', '销售订单号', 'No. S/O', 'விற்பனை ஆர்டர் எண்');
 
-UPDATE message_resource SET en = 'Sales', zh = '销售', my = 'Jualan', ne = 'விற்பனை' WHERE message_key_code = 'dispatch_code';
-UPDATE message_resource SET en = 'Purchase', zh = '采购', my = 'Pembelian', ne = 'கொள்முதல்' WHERE message_key_code = 'receiving_code';
+
+
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('total_delivery_amount_code', 'Total Delivery Amount', '发布', 'Hantar', 'பதிவிடு');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('total_delivery_amount_code', 'Total Delivery Amount', '发布', 'Hantar', 'பதிவிடு');
