@@ -2,7 +2,7 @@
 session_start();
 require_once '../../db_connect.php';
 require_once '../../requires/lookup.php';
-// $config = include(dirname(__DIR__, 2) . '/sql_config.php');
+$config = include(dirname(__DIR__, 2) . '/sql_config.php');
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
 $uid = $_SESSION['username'];

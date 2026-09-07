@@ -369,13 +369,12 @@ else{
             $('#spinnerLoading').show();
             var fromDateI = $('#fromDateSearch').val();
             var toDateI = $('#toDateSearch').val();
-            var statusI = 'Purchase';
-            var customerNoI = $('#customerNoSearch').val() ? $('#customerNoSearch').val() : '';
-            var supplierNoI = $('#supplierSearch').val() ? $('#supplierSearch').val() : '';
-            var productI = $('#productSearch').val() ? $('#productSearch').val() : '';
-            var rawMatI = $('#rawMatSearch').val() ? $('#rawMatSearch').val() : '';
-            var plantI = $('#plantSearch').val() ? $('#plantSearch').val() : '';
-            var poI = $('#poSearch').val() ? $('#poSearch').val() : '';
+            var companyI = $('#companySearch').val() || '';
+            var supplierNoI = $('#supplierSearch').val() || '';
+            var rawMatI = $('#rawMatSearch').val() || '';
+            var plantI = $('#plantSearch').val() || '';
+            var poI = $('#poSearch').val() || '';
+            var transactionIdI = $('#transactionIdSearch').val() || '';
             var selectedIds = []; // An array to store the selected 'id' values
 
             $("#weightTable tbody input[type='checkbox']").each(function () {
@@ -386,14 +385,15 @@ else{
 
             if (selectedIds.length > 0) {
                 if (confirm('Are you sure you want to post to SQL these items?')) {
-                    $.post('php/postGr.php', {
+                    $.post('php/modules/goodsReceived/postGr.php', {
                         fromDate: fromDateI,
                         toDate: toDateI,
-                        status: statusI,
+                        company: companyI,
                         supplier: supplierNoI,
                         rawMat: rawMatI,
                         plant: plantI,
                         purchaseOrder: poI,
+                        transactionId: transactionIdI,
                         userID: selectedIds, 
                         type: 'MULTI'
                     }, function(data){
@@ -419,14 +419,15 @@ else{
             } 
             else {
                 if (confirm('Are you sure you want to post to SQL?')) {
-                    $.post('php/postGr.php', {
+                    $.post('php/modules/goodsReceived/postGr.php', {
                         fromDate: fromDateI,
                         toDate: toDateI,
-                        status: statusI,
+                        company: companyI,
                         supplier: supplierNoI,
                         rawMat: rawMatI,
                         plant: plantI,
                         purchaseOrder: poI,
+                        transactionId: transactionIdI,
                         type: 'ALL'
                     }, function(data){
                         var obj = JSON.parse(data);
