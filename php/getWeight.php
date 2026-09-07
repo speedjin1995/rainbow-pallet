@@ -436,7 +436,8 @@ if(isset($_POST['userID'])){
                                 $message['totalDeliverAmt'] = $totalDeliverAmt;
                                 $message['weights'] = $weighingData;
                             }elseif ($acctType == 'GR') {
-                                $poNo = $row['purchase_order'];
+                                $plant = $row['plant_code'];
+                                $company = $row['company_id'];
                                 $rawMatCode = $row['raw_mat_code'];
                                 $supplierCode = $row['supplier_code'];
                                 $fromDate = DateTime::createFromFormat('d-m-Y H:i:s', $_POST['fromDate']);
@@ -447,17 +448,18 @@ if(isset($_POST['userID'])){
                                 $gr_stmt = $db->prepare("
                                     SELECT * 
                                     FROM Weight 
-                                    WHERE purchase_order = ? 
-                                    AND tare_weight1_date >= ? 
-                                    AND tare_weight1_date <= ? 
+                                    WHERE plant_code = ? 
+                                    AND raw_mat_code = ?
+                                    AND supplier_code = ?
+                                    AND company_id = ?
+                                    AND transaction_date >= ? 
+                                    AND transaction_date <= ? 
                                     AND is_complete = 'Y' 
                                     AND is_cancel <> 'Y' 
                                     AND status = '0' 
-                                    AND transaction_status = 'Purchase' 
-                                    AND raw_mat_code = ? 
-                                    AND supplier_code = ?
+                                    AND transaction_status = 'Purchase'
                                 ");
-                                $gr_stmt->bind_param('sssss', $poNo, $fromDateTime, $toDateTime, $rawMatCode, $supplierCode);
+                                $gr_stmt->bind_param('ssssss', $plant, $rawMatCode, $supplierCode, $company, $fromDateTime, $toDateTime);
                                 $gr_stmt->execute();
                                 $grRecords = $gr_stmt->get_result();
                                 $weighingData = array();
