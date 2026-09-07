@@ -35,7 +35,11 @@ function updateMasterDataCodeValue($db, $oldValue, $newValue, $modules)
         $containerSql = "UPDATE Weight_Container SET destination_code = ? WHERE destination_code = ?";
     }
     else if($modules == 'Product'){
+        // Update Weight Table
         $sql = "UPDATE Weight SET product_code = ? WHERE product_code = ?";
+
+        // Update Weight_Container Table
+        $containerSql = "UPDATE Weight_Container SET product_code = ? WHERE product_code = ?";
     }
     else if($modules == 'Raw Material'){
         $sql = "UPDATE Weight SET raw_mat_code = ? WHERE raw_mat_code = ?";
@@ -97,6 +101,13 @@ function updateMasterDataNameValue($db, $oldValue, $newValue, $modules)
 
         // Update Weight_Container Table
         $containerSql = "UPDATE Weight_Container SET destination = ? WHERE destination = ?";
+    }
+    else if($modules == 'Product'){
+        // Update Weight Table
+        $sql = "UPDATE Weight SET product_name = ? WHERE product_name = ?";
+
+        // Update Weight_Container Table
+        $containerSql = "UPDATE Weight_Container SET product_name = ? WHERE product_name = ?";
     }
 
     if($sql != ""){
