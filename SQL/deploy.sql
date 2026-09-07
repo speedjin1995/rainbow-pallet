@@ -1930,3 +1930,22 @@ DELIMITER ;
 
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('post_to_sql_code', 'Post To SQL', '发布到SQL', 'Hantar Ke SQL', 'SQL க்கு அனுப்பு');
 
+-- 07/09/2026 (Sky Part 02) --
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('delivery_order_code', 'Delivery Order', '送货单', 'Pesanan Penghantaran', 'டெலிவரி ஆர்டர்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('goods_received_code', 'Goods Received', '收货', 'Barang Diterima', 'பொருட்கள் பெறப்பட்டது');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('delivery_order_records', 'Delivery Order Records', '送货单记录', 'Rekod Pesanan Penghantaran', 'டெலிவரி ஆர்டர் பதிவுகள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('delivery_date_code', 'Delivery Date', '送货日期', 'Tarikh Penghantaran', 'டெலிவரி தேதி');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('total_delivery_amount_code', 'Total Delivery Amount', '送货总金额', 'Jumlah Penghantaran', 'மொத்த டெலிவரி தொகை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('primer_mover_code', 'Primer Mover', '底漆车', 'Penggerak Primer', 'பிரைமர் மூவர்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('primer_mover_container_code', 'Primer Mover + Container', '底漆车 + 集装箱', 'Penggerak Primer + Kontena', 'பிரைமர் மூவர் + கொள்கலன்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('primer_mover_different_bins_code', 'Primer Mover + Different Bins', '底漆车 + 不同箱子', 'Penggerak Primer + Tong Berbeza', 'பிரைமர் மூவர் + வெவ்வேறு தொட்டிகள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('own_transport_code', 'Own Transport', '自有运输', 'Pengangkutan Sendiri', 'சொந்த போக்குவரத்து');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('third_party_code', 'Third Party', '第三方', 'Pihak Ketiga', 'மூன்றாம் தரப்பு');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('print_template_code', 'Print Template', '打印模板', 'Templat Cetak', 'அச்சு வார்ப்புரு');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('with_weight_code', 'With Weight', '含重量', 'Dengan Berat', 'எடையுடன்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('without_weight_code', 'Without Weight', '不含重量', 'Tanpa Berat', 'எடை இல்லாமல்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('fill_in_customer_side_info_code', 'Fill in Customer Side Info', '填写客户方信息', 'Isi Maklumat Pihak Pelanggan', 'வாடிக்கையாளர் தரப்பு தகவலை நிரப்பவும்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('cancellation_reason_code', 'Cancellation Reason', '取消原因', 'Sebab Pembatalan', 'ரத்து காரணம்');
+
+UPDATE message_resource SET en = 'Sales', zh = '销售', my = 'Jualan', ne = 'விற்பனை' WHERE message_key_code = 'dispatch_code';
+UPDATE message_resource SET en = 'Purchase', zh = '采购', my = 'Pembelian', ne = 'கொள்முதல்' WHERE message_key_code = 'receiving_code';
