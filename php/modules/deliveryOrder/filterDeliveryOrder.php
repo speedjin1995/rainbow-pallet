@@ -57,22 +57,22 @@ if($searchValue != ''){
   $searchQuery = " and (transaction_id like '%".$searchValue."%' or lorry_plate_no1 like '%".$searchValue."%')";
 }
 
-$allQuery = "select * from Weight where is_complete = 'Y' AND  is_cancel <> 'Y' AND transaction_status = 'Sales' group by purchase_order, product_code, customer_code";
+$allQuery = "select * from Weight where is_complete = 'Y' AND  is_cancel <> 'Y' AND transaction_status = 'Sales' group by company_id, plant_code, product_code, customer_code";
 // if (($_POST['type'] == 'DO' && !hasModulePermission('Accounting', 'Delivery Order (DO)', ['view_all_plants'])) || ($_POST['type'] == 'GR' && !hasModulePermission('Accounting', 'Goods Received (GR)', ['view_all_plants']))){
 if($_SESSION["roles"] != 'ADMIN' && $_SESSION["roles"] != 'SADMIN'){
   $username = implode("', '", $_SESSION["plant"]);
-  $allQuery = "select * from Weight where is_complete = 'Y' AND  is_cancel <> 'Y' AND transaction_status = 'Sales' and plant_code IN ('$username') group by purchase_order, product_code, customer_code";
+  $allQuery = "select * from Weight where is_complete = 'Y' AND  is_cancel <> 'Y' AND transaction_status = 'Sales' and plant_code IN ('$username') group by company_id, plant_code, product_code, customer_code";
 }
 
 $sel = mysqli_query($db, $allQuery); 
 $totalRecords = mysqli_num_rows($sel);
 
 ## Total number of record with filtering
-$filteredQuery = "select * from Weight where is_complete = 'Y' AND is_cancel <> 'Y' AND transaction_status = 'Sales'".$searchQuery." group by purchase_order, product_code, customer_code";
+$filteredQuery = "select * from Weight where is_complete = 'Y' AND is_cancel <> 'Y' AND transaction_status = 'Sales'".$searchQuery." group by company_id, plant_code, product_code, customer_code";
 // if (($_POST['type'] == 'DO' && !hasModulePermission('Accounting', 'Delivery Order (DO)', ['view_all_plants'])) || ($_POST['type'] == 'GR' && !hasModulePermission('Accounting', 'Goods Received (GR)', ['view_all_plants']))){
 if($_SESSION["roles"] != 'ADMIN' && $_SESSION["roles"] != 'SADMIN'){
     $username = implode("', '", $_SESSION["plant"]);
-    $filteredQuery = "select * from Weight where is_complete = 'Y' AND is_cancel <> 'Y' AND transaction_status = 'Sales' and plant_code IN ('$username')".$searchQuery." group by purchase_order, product_code, customer_code";
+    $filteredQuery = "select * from Weight where is_complete = 'Y' AND is_cancel <> 'Y' AND transaction_status = 'Sales' and plant_code IN ('$username')".$searchQuery." group by company_id, plant_code, product_code, customer_code";
 }
 
 $sel = mysqli_query($db, $filteredQuery);
@@ -80,11 +80,11 @@ $records = mysqli_fetch_assoc($sel);
 $totalRecordwithFilter = mysqli_num_rows($sel);
 
 ## Fetch records
-$empQuery = "select * from Weight where is_complete = 'Y' AND is_cancel <> 'Y' AND transaction_status = 'Sales'".$searchQuery." group by purchase_order, product_code, customer_code order by ".$columnName." ".$columnSortOrder." limit ".$row.",".$rowperpage;
+$empQuery = "select * from Weight where is_complete = 'Y' AND is_cancel <> 'Y' AND transaction_status = 'Sales'".$searchQuery." group by company_id, plant_code, product_code, customer_code order by ".$columnName." ".$columnSortOrder." limit ".$row.",".$rowperpage;
 // if (($_POST['type'] == 'DO' && !hasModulePermission('Accounting', 'Delivery Order (DO)', ['view_all_plants'])) || ($_POST['type'] == 'GR' && !hasModulePermission('Accounting', 'Goods Received (GR)', ['view_all_plants']))){
 if($_SESSION["roles"] != 'ADMIN' && $_SESSION["roles"] != 'SADMIN'){
   $username = implode("', '", $_SESSION["plant"]);
-  $empQuery = "select * from Weight where is_complete = 'Y' AND is_cancel <> 'Y' AND transaction_status = 'Sales' and plant_code IN ('$username')".$searchQuery." group by purchase_order, product_code, customer_code order by ".$columnName." ".$columnSortOrder." limit ".$row.",".$rowperpage;
+  $empQuery = "select * from Weight where is_complete = 'Y' AND is_cancel <> 'Y' AND transaction_status = 'Sales' and plant_code IN ('$username')".$searchQuery." group by company_id, plant_code, product_code, customer_code order by ".$columnName." ".$columnSortOrder." limit ".$row.",".$rowperpage;
 }
 
 $empRecords = mysqli_query($db, $empQuery); 
