@@ -56,3 +56,54 @@ function updateMasterDataCodeValue($db, $oldValue, $newValue, $modules)
     }
 }
 ################################################
+
+######### Update relevant table when updating master data name with modules #########
+function updateMasterDataNameValue($db, $oldValue, $newValue, $modules)
+{
+    $sql = "";
+    $containerSql = "";
+    $vehicleSql = "";
+
+    if($modules == 'Customer'){
+        // Update Weight Table
+        $sql = "UPDATE Weight SET customer_name = ? WHERE customer_name = ?";
+
+        // Update Weight_Container Table
+        $containerSql = "UPDATE Weight_Container SET customer_name = ? WHERE customer_name = ?";
+
+        // Update Vehicle Table
+        $vehicleSql = "UPDATE Vehicle SET customer_name = ? WHERE customer_name = ?";
+    }
+    else if($modules == 'Supplier'){
+        // Update Weight Table
+        $sql = "UPDATE Weight SET supplier_name = ? WHERE supplier_name = ?";
+
+        // Update Weight_Container Table
+        $containerSql = "UPDATE Weight_Container SET supplier_name = ? WHERE supplier_name = ?";
+
+        // Update Vehicle Table
+        $vehicleSql = "UPDATE Vehicle SET supplier_name = ? WHERE supplier_name = ?";
+    }
+
+    if($sql != ""){
+        $weight_stmt = $db->prepare($sql);
+        $weight_stmt->bind_param("ss", $newValue, $oldValue);
+        $weight_stmt->execute();
+        $weight_stmt->close();
+    }
+
+    if($containerSql != ""){
+        $container_stmt = $db->prepare($containerSql);
+        $container_stmt->bind_param("ss", $newValue, $oldValue);
+        $container_stmt->execute();
+        $container_stmt->close();
+    }
+
+    if($vehicleSql != ""){
+        $vehicle_stmt = $db->prepare($vehicleSql);
+        $vehicle_stmt->bind_param("ss", $newValue, $oldValue);
+        $vehicle_stmt->execute();
+        $vehicle_stmt->close();
+    }
+}
+################################################

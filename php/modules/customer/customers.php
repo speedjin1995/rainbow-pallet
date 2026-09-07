@@ -48,15 +48,16 @@ if (isset($_POST['customerCode'])) {
     try {
         $db->begin_transaction();
         if (!empty($customerId)) {
-            // Get current customer_code before update
+            // Get current customer_code and name before update
             $oldCode = null;
-            $stmt = $db->prepare('SELECT customer_code FROM Customer WHERE id = ?');
+            $oldName = null;
+            $stmt = $db->prepare('SELECT customer_code, name FROM Customer WHERE id = ?');
             if (!$stmt) {
                 throw new Exception($db->error);
             }
             $stmt->bind_param('s', $customerId);
             $stmt->execute();
-            $stmt->bind_result($oldCode);
+            $stmt->bind_result($oldCode, $oldName);
             $stmt->fetch();
             $stmt->close();
 
@@ -74,6 +75,11 @@ if (isset($_POST['customerCode'])) {
             // Update related tables if customer code is changed
             if ($oldCode !== null && $oldCode !== $customerCode) {
                 updateMasterDataCodeValue($db, $oldCode, $customerCode, 'Customer');
+            }
+
+            // Update related tables if customer name is changed
+            if ($oldName !== null && $oldName !== $companyName) {
+                updateMasterDataNameValue($db, $oldName, $companyName, 'Customer');
             }
 
             $update_stmt->close();

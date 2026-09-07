@@ -50,15 +50,16 @@ if (isset($_POST['supplierCode'])) {
     try {
         $db->begin_transaction();
         if (!empty($supplierId)) {
-            // Get current supplier_code before update
+            // Get current supplier_code and name before update
             $oldCode = null;
-            $stmt = $db->prepare('SELECT supplier_code FROM Supplier WHERE id = ?');
+            $oldName = null;
+            $stmt = $db->prepare('SELECT supplier_code, name FROM Supplier WHERE id = ?');
             if (!$stmt) {
                 throw new Exception($db->error);
             }
             $stmt->bind_param('s', $supplierId);
             $stmt->execute();
-            $stmt->bind_result($oldCode);
+            $stmt->bind_result($oldCode, $oldName);
             $stmt->fetch();
             $stmt->close();
 
@@ -76,6 +77,11 @@ if (isset($_POST['supplierCode'])) {
             // Update related tables if supplier code is changed
             if ($oldCode !== null && $oldCode !== $supplierCode) {
                 updateMasterDataCodeValue($db, $oldCode, $supplierCode, 'Supplier');
+            }
+
+            // Update related tables if supplier name is changed
+            if ($oldName !== null && $oldName !== $companyName) {
+                updateMasterDataNameValue($db, $oldName, $companyName, 'Supplier');
             }
 
             $stmt->close();
