@@ -3226,12 +3226,22 @@ else{
                         var supplierName = obj.message.supplier_name;
                         var supplierCode = obj.message.supplier_code;
 
-                        if (transactionStatus == 'Sales' || transactionStatus == 'Misc'){
-                            $('#addModal').find('#customerName').val(customerName).trigger('change');
-                            $('#addModal').find('#customerCode').val(customerCode);
-                        }else{
-                            $('#addModal').find('#supplierName').val(supplierName).trigger('change');
-                            $('#addModal').find('#supplierCode').val(supplierCode);
+                        if (transactionStatus == 'Sales' || transactionStatus == 'Misc') {
+                            var existingCustomerName = $('#addModal').find('#customerName').val();
+                            var existingCustomerCode = $('#addModal').find('#customerCode').val();
+                            
+                            if ((!existingCustomerName && !existingCustomerCode) || (customerName && customerCode)) {
+                                $('#addModal').find('#customerName').val(customerName).trigger('change');
+                                $('#addModal').find('#customerCode').val(customerCode);
+                            }
+                        } else {
+                            var existingSupplierName = $('#addModal').find('#supplierName').val();
+                            var existingSupplierCode = $('#addModal').find('#supplierCode').val();
+                            
+                            if ((!existingSupplierName && !existingSupplierCode) || (supplierName && supplierCode)) {
+                                $('#addModal').find('#supplierName').val(supplierName).trigger('change');
+                                $('#addModal').find('#supplierCode').val(supplierCode);
+                            }
                         }
                     }
                     else if(obj.status === 'error'){
@@ -3265,12 +3275,22 @@ else{
                         var supplierName = obj.message.supplier_name;
                         var supplierCode = obj.message.supplier_code;
 
-                        if (transactionStatus == 'Sales' || transactionStatus == 'Misc'){
-                            $('#addModal').find('#customerName').val(customerName).trigger('change');
-                            $('#addModal').find('#customerCode').val(customerCode);
-                        }else{
-                            $('#addModal').find('#supplierName').val(supplierName).trigger('change');
-                            $('#addModal').find('#supplierCode').val(supplierCode);
+                        if (transactionStatus == 'Sales' || transactionStatus == 'Misc') {
+                            var existingCustomerName = $('#addModal').find('#customerName').val();
+                            var existingCustomerCode = $('#addModal').find('#customerCode').val();
+                            
+                            if ((!existingCustomerName && !existingCustomerCode) || (customerName && customerCode)) {
+                                $('#addModal').find('#customerName').val(customerName).trigger('change');
+                                $('#addModal').find('#customerCode').val(customerCode);
+                            }
+                        } else {
+                            var existingSupplierName = $('#addModal').find('#supplierName').val();
+                            var existingSupplierCode = $('#addModal').find('#supplierCode').val();
+                            
+                            if ((!existingSupplierName && !existingSupplierCode) || (supplierName && supplierCode)) {
+                                $('#addModal').find('#supplierName').val(supplierName).trigger('change');
+                                $('#addModal').find('#supplierCode').val(supplierCode);
+                            }
                         }
                     }
                     else if(obj.status === 'error'){
