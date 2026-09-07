@@ -8,7 +8,14 @@ function updateMasterDataCodeValue($db, $oldValue, $newValue, $modules)
     $vehicleSql = "";
 
     if($modules == 'Customer'){
+        // Update Weight Table
         $sql = "UPDATE Weight SET customer_code = ? WHERE customer_code = ?";
+        
+        // Update Weight_Container Table
+        $containerSql = "UPDATE Weight_Container SET customer_code = ? WHERE customer_code = ?";
+
+        // Update Vehicle Table
+        $vehicleSql = "UPDATE Vehicle SET customer_code = ? WHERE customer_code = ?";
     }
     else if($modules == 'Supplier'){
         // Update Weight Table
