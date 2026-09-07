@@ -27,6 +27,13 @@ function updateMasterDataCodeValue($db, $oldValue, $newValue, $modules)
         // Update Vehicle Table
         $vehicleSql = "UPDATE Vehicle SET supplier_code = ? WHERE supplier_code = ?";
     }
+    else if($modules == 'Destination'){
+        // Update Weight Table
+        $sql = "UPDATE Weight SET destination_code = ? WHERE destination_code = ?";
+
+        // Update Weight_Container Table
+        $containerSql = "UPDATE Weight_Container SET destination_code = ? WHERE destination_code = ?";
+    }
     else if($modules == 'Product'){
         $sql = "UPDATE Weight SET product_code = ? WHERE product_code = ?";
     }
@@ -83,6 +90,13 @@ function updateMasterDataNameValue($db, $oldValue, $newValue, $modules)
 
         // Update Vehicle Table
         $vehicleSql = "UPDATE Vehicle SET supplier_name = ? WHERE supplier_name = ?";
+    }
+    else if($modules == 'Destination'){
+        // Update Weight Table
+        $sql = "UPDATE Weight SET destination = ? WHERE destination = ?";
+
+        // Update Weight_Container Table
+        $containerSql = "UPDATE Weight_Container SET destination = ? WHERE destination = ?";
     }
 
     if($sql != ""){
