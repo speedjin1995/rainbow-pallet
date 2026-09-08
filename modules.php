@@ -131,11 +131,11 @@ $categories = $db->query("SELECT DISTINCT category FROM modules ORDER BY categor
                                                                 <?php endif; ?>
 
                                                                 <?php if(hasModulePermission('User Management', 'Modules', ['create'])): ?>
-                                                                <button type="button" id="insertDefaultModules" class="btn btn-secondary waves-effect waves-light">
+                                                                <button type="button" id="insertDefaultModules" class="btn btn-info waves-effect waves-light">
                                                                     <i class="ri-download-line align-middle me-1"></i>
-                                                                    Insert Defaults
+                                                                    <?=$languageArray['insert_defaults_code'][$language]?>
                                                                 </button>
-                                                                <button type="button" id="addModule" class="btn btn-danger waves-effect waves-light" data-bs-toggle="modal" data-bs-target="#addModal">
+                                                                <button type="button" id="addModule" class="btn btn-success waves-effect waves-light" data-bs-toggle="modal" data-bs-target="#addModal">
                                                                     <i class="ri-add-circle-line align-middle me-1"></i>
                                                                     <?=$languageArray['add_new_code'][$language]?>
                                                                 </button>
