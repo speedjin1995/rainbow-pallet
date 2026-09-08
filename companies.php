@@ -128,7 +128,7 @@
                                                                                 <div class="row">
                                                                                     <label for="addressLine1" class="col-sm-4 col-form-label"><?=$languageArray['address_code'][$language]?> 1</label>
                                                                                     <div class="col-sm-8">
-                                                                                        <input type="text" class="form-control" id="addressLine1" name="addressLine1" placeholder="<?=$languageArray['address_code'][$language]?>1">
+                                                                                        <input type="text" class="form-control" id="addressLine1" name="addressLine1" placeholder="<?=$languageArray['address_code'][$language]?> 1">
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
@@ -136,7 +136,7 @@
                                                                                 <div class="row">
                                                                                     <label for="addressLine2" class="col-sm-4 col-form-label"><?=$languageArray['address_code'][$language]?> 2</label>
                                                                                     <div class="col-sm-8">
-                                                                                        <input type="text" class="form-control" id="addressLine2" name="addressLine2" placeholder="<?=$languageArray['address_code'][$language]?>2">
+                                                                                        <input type="text" class="form-control" id="addressLine2" name="addressLine2" placeholder="<?=$languageArray['address_code'][$language]?> 2">
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
@@ -144,7 +144,7 @@
                                                                                 <div class="row">
                                                                                     <label for="addressLine3" class="col-sm-4 col-form-label"><?=$languageArray['address_code'][$language]?> 3</label>
                                                                                     <div class="col-sm-8">
-                                                                                        <input type="text" class="form-control" id="addressLine3" name="addressLine3" placeholder="<?=$languageArray['address_code'][$language]?>3">
+                                                                                        <input type="text" class="form-control" id="addressLine3" name="addressLine3" placeholder="<?=$languageArray['address_code'][$language]?> 3">
                                                                                     </div>
                                                                                 </div>
                                                                             </div>

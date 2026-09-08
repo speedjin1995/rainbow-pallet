@@ -52,8 +52,8 @@ if ($user != null && $user != ''){
     }
 }
 
-
 //$lots = $db->query("SELECT * FROM lots WHERE deleted = '0'");
+$company = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
 $vehicles = $db->query("SELECT * FROM Vehicle WHERE status = '0' ORDER BY veh_number ASC");
 $vehicles2 = $db->query("SELECT * FROM Vehicle WHERE status = '0' ORDER BY veh_number ASC");
 $customer = $db->query("SELECT * FROM Customer WHERE status = '0' ORDER BY name ASC");
@@ -89,7 +89,7 @@ else{
 
 <head>
 
-    <title>Weighing | Synctronix - Weighing System</title>
+    <title><?=$languageArray['weighing_code'][$language]?> | Synctronix - Weighing System</title>
     <?php include 'layouts/title-meta.php'; ?>
 
     <!-- jsvectormap css -->
@@ -230,9 +230,9 @@ else{
                                                             <select id="invoiceNoSearch" class="form-select select2"  >
                                                                 <option selected>-</option>
                                                                 <option value="Normal"><?=$languageArray['normal_weighing_code'][$language]?></option>
-                                                                <option value="Container">Primer Mover</option>
-                                                                <option value="Empty Container">Primer Mover + Container</option>
-                                                                <option value="Different Container">Primer Mover + Different Bins</option>
+                                                                <option value="Container"><?=$languageArray['primer_mover_code'][$language]?></option>
+                                                                <option value="Empty Container"><?=$languageArray['primer_mover_container_code'][$language]?></option>
+                                                                <option value="Different Container"><?=$languageArray['primer_mover_different_bins_code'][$language]?></option>
                                                             </select>
                                                         </div>
                                                     </div><!--end col-->
@@ -322,7 +322,7 @@ else{
                                             <div class="d-flex align-items-center">
                                                 <div class="flex-grow-1 overflow-hidden">
                                                     <p class="text-uppercase fw-medium text-white text-truncate mb-0">
-                                                        Dispatch
+                                                        Sales
                                                     </p>
                                                 </div>
                                             </div>
@@ -348,7 +348,7 @@ else{
                                             <div class="d-flex align-items-center">
                                                 <div class="flex-grow-1 overflow-hidden">
                                                     <p class="text-uppercase fw-medium text-white text-truncate mb-0">
-                                                        Receiving
+                                                        Purchase
                                                     </p>
                                                 </div>
                                             </div>
@@ -374,7 +374,7 @@ else{
                                             <div class="d-flex align-items-center">
                                                 <div class="flex-grow-1 overflow-hidden">
                                                     <p class="text-uppercase fw-medium text-white text-truncate mb-0">
-                                                        Internal Transfer
+                                                        Transfer to Port
                                                     </p>
                                                 </div>
                                             </div>
@@ -552,9 +552,9 @@ else{
                                                                                     <div class="col-sm-8">
                                                                                         <select id="weightType" name="weightType" class="form-select select2">
                                                                                             <option value="Normal" selected><?=$languageArray['normal_weighing_code'][$language]?></option>
-                                                                                            <option value="Container">Primer Mover</option>
-                                                                                            <option value="Empty Container">Primer Mover + Container</option>
-                                                                                            <option value="Different Container">Primer Mover + Different Bins</option>
+                                                                                            <option value="Container"><?=$languageArray['primer_mover_code'][$language]?></option>
+                                                                                            <option value="Empty Container"><?=$languageArray['primer_mover_container_code'][$language]?></option>
+                                                                                            <option value="Different Container"><?=$languageArray['primer_mover_different_bins_code'][$language]?></option>
                                                                                         </select>   
                                                                                     </div>
                                                                                 </div>
@@ -732,9 +732,8 @@ else{
                                                                                     <div class="col-sm-8">
                                                                                         <select class="form-select select2" id="transporter" name="transporter" required>
                                                                                             <option selected="-">-</option>
-                                                                                            <?php while($rowTransporter=mysqli_fetch_assoc($transporter)){ ?>
-                                                                                                <option value="<?=$rowTransporter['name'] ?>" data-code="<?=$rowTransporter['transporter_code'] ?>"><?=$rowTransporter['name'] ?></option>
-                                                                                            <?php } ?>
+                                                                                            <option value="Own Transport" data-code="Own Transport"><?=$languageArray['own_transport_code'][$language]?></option>
+                                                                                            <option value="Third Party" data-code="Third Party"><?=$languageArray['third_party_code'][$language]?></option>
                                                                                         </select>
                                                                                     </div>
                                                                                 </div>
@@ -794,6 +793,20 @@ else{
                                                                                     <label for="replacementContainer" class="col-sm-4 col-form-label"><?=$languageArray['new_empty_bin_code'][$language]?></label>
                                                                                     <div class="col-sm-8">
                                                                                         <input type="text" class="form-control" id="replacementContainer" name="replacementContainer" placeholder="Replacement Container" required>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="row">
+                                                                            <div class="col-xxl-4 col-lg-4 mb-3">
+                                                                                <div class="row">
+                                                                                    <label for="companyId" class="col-sm-4 col-form-label"><?=$languageArray['company_code'][$language]?></label>
+                                                                                    <div class="col-sm-8">
+                                                                                        <select class="form-select select2" id="companyId" name="companyId" required>
+                                                                                            <?php while($rowCompany=mysqli_fetch_assoc($company)){ ?>
+                                                                                                <option value="<?=$rowCompany['id'] ?>"><?=$rowCompany['name'] ?></option>
+                                                                                            <?php } ?>
+                                                                                        </select>           
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
@@ -982,6 +995,60 @@ else{
                                                                     </div>
                                                                 </div>
                                                             </div>
+                                                            <div class="col-xxl-4 col-lg-4" id="customerSideCard" style="display:none;">
+                                                                <div class="card bg-light">
+                                                                    <div class="card-body">
+                                                                        <div class="row mb-3">
+                                                                            <label for="customerSideCompany" class="col-sm-4 col-form-label"><?=$languageArray['customer_side_company_code'][$language]?></label>
+                                                                            <div class="col-sm-8">
+                                                                                <input type="text" class="form-control" id="customerSideCompany" name="customerSideCompany" placeholder="<?=$languageArray['customer_side_company_code'][$language]?>">
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="row mb-3">
+                                                                            <label for="customerSideRemovalPassNo" class="col-sm-4 col-form-label"><?=$languageArray['customer_side_removal_pass_no_code'][$language]?></label>
+                                                                            <div class="col-sm-8">
+                                                                                <input type="text" class="form-control" id="customerSideRemovalPassNo" name="customerSideRemovalPassNo" placeholder="<?=$languageArray['customer_side_removal_pass_no_code'][$language]?>">
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="row mb-3">
+                                                                            <label for="customerSideLicenseNo" class="col-sm-4 col-form-label"><?=$languageArray['customer_side_license_no_code'][$language]?></label>
+                                                                            <div class="col-sm-8">
+                                                                                <input type="text" class="form-control" id="customerSideLicenseNo" name="customerSideLicenseNo" placeholder="<?=$languageArray['customer_side_license_no_code'][$language]?>">
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="row mb-3">
+                                                                            <label for="customerSideMoistureContent" class="col-sm-4 col-form-label"><?=$languageArray['customer_side_moisture_content_code'][$language]?></label>
+                                                                            <div class="col-sm-8">
+                                                                                <input type="text" class="form-control" id="customerSideMoistureContent" name="customerSideMoistureContent" placeholder="<?=$languageArray['customer_side_moisture_content_code'][$language]?>">
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="row mb-3">
+                                                                            <label for="customerSideOfficerName" class="col-sm-4 col-form-label"><?=$languageArray['customer_side_officer_name_code'][$language]?></label>
+                                                                            <div class="col-sm-8">
+                                                                                <input type="text" class="form-control" id="customerSideOfficerName" name="customerSideOfficerName" placeholder="<?=$languageArray['customer_side_officer_name_code'][$language]?>">
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="row mb-3">
+                                                                            <label for="customerSideRainbowDriver" class="col-sm-4 col-form-label"><?=$languageArray['customer_side_rainbow_driver_code'][$language]?></label>
+                                                                            <div class="col-sm-8">
+                                                                                <input type="text" class="form-control" id="customerSideRainbowDriver" name="customerSideRainbowDriver" placeholder="<?=$languageArray['customer_side_rainbow_driver_code'][$language]?>">
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="row mb-3">
+                                                                            <label for="customerSideTimeIn" class="col-sm-4 col-form-label"><?=$languageArray['customer_side_time_in_code'][$language]?></label>
+                                                                            <div class="col-sm-8">
+                                                                                <input type="text" class="form-control" id="customerSideTimeIn" name="customerSideTimeIn">
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="row mb-3">
+                                                                            <label for="customerSideTimeOut" class="col-sm-4 col-form-label"><?=$languageArray['customer_side_time_out_code'][$language]?></label>
+                                                                            <div class="col-sm-8">
+                                                                                <input type="text" class="form-control" id="customerSideTimeOut" name="customerSideTimeOut">
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
                                                             <div class="col-xxl-4 col-lg-4" id="priceCard" style="display:none;">
                                                                 <div class="card bg-light">
                                                                     <div class="card-body">
@@ -1130,8 +1197,22 @@ else{
                                                                 </div>
                                                             </div>
                                                         </div>
+                                                        <div class="row mb-3" id="printTemplateDisplay">
+                                                            <label for="printTemplate" class="col-sm-4 col-form-label"><?=$languageArray['>print_template_code'][$language]?></label>
+                                                            <div class="col-sm-8">
+                                                                <div class="input-group">
+                                                                    <div class="col-12">
+                                                                        <select class="form-select select2" id="printTemplate" name="printTemplate" >
+                                                                            <option value="with_weight" selected><?=$languageArray['>with_weight_code'][$language]?></option>
+                                                                            <option value="without_weight"><?=$languageArray['>without_weight_code'][$language]?></option>
+                                                                        </select>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                             
                                                         <input type="hidden" class="form-control" id="isEmptyContainer" name="isEmptyContainer">
+                                                        <input type="hidden" class="form-control" id="prePrintTransactionStatus" name="prePrintTransactionStatus">
                                                         <input type="hidden" class="form-control" id="id" name="id">
                                                     </div>
                                                     <div class="modal-footer justify-content-between bg-gray-dark color-palette">
@@ -1143,18 +1224,75 @@ else{
                                         </div>
                                     </div>
                                     
+                                    <div class="modal fade" id="customerSideInfoModal">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <form role="form" id="customerSideInfoForm">
+                                                    <div class="modal-header bg-gray-dark color-palette">
+                                                        <h4 class="modal-title"><?=$languageArray['fill_in_customer_side_info_code'][$language]?></h4>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <div class="row mb-3">
+                                                            <label for="custSideDoNo" class="col-sm-4 col-form-label"><?=$languageArray['customer_side_do_no_code'][$language]?></label>
+                                                            <div class="col-sm-8">
+                                                                <input type="text" class="form-control" id="custSideDoNo" name="custSideDoNo">
+                                                            </div>
+                                                        </div>
+                                                        <div class="row mb-3">
+                                                            <label for="custSideFirstWeight" class="col-sm-4 col-form-label"><?=$languageArray['first_code'][$language]?> (KG)</label>
+                                                            <div class="col-sm-8">
+                                                                <div class="input-group">
+                                                                    <input type="number" class="form-control cust-side-weight" id="custSideFirstWeight" name="custSideFirstWeight" placeholder="0">
+                                                                    <div class="input-group-text">Kg</div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row mb-3">
+                                                            <label for="custSideSecondWeight" class="col-sm-4 col-form-label"><?=$languageArray['second_code'][$language]?> (KG)</label>
+                                                            <div class="col-sm-8">
+                                                                <div class="input-group">
+                                                                    <input type="number" class="form-control cust-side-weight" id="custSideSecondWeight" name="custSideSecondWeight" placeholder="0">
+                                                                    <div class="input-group-text">Kg</div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row mb-3">
+                                                            <label for="custSideMc" class="col-sm-4 col-form-label"><?=$languageArray['customer_side_mc_code'][$language]?></label>
+                                                            <div class="col-sm-8">
+                                                                <input type="text" class="form-control" id="custSideMc" name="custSideMc">
+                                                            </div>
+                                                        </div>
+                                                        <div class="row mb-3">
+                                                            <label for="custSideNettWeight" class="col-sm-4 col-form-label"><?=$languageArray['nett_weight_code'][$language]?> (KG)</label>
+                                                            <div class="col-sm-8">
+                                                                <input type="number" class="form-control input-readonly" id="custSideNettWeight" name="custSideNettWeight" placeholder="0" readonly>
+                                                            </div>
+                                                        </div>
+                                                        <input type="hidden" class="form-control" id="customerSideInfoId" name="id">
+                                                        <input type="hidden" class="form-control" name="action" value="save">
+                                                    </div>
+                                                    <div class="modal-footer justify-content-between bg-gray-dark color-palette">
+                                                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal"><?=$languageArray['close_code'][$language]?></button>
+                                                        <button type="button" class="btn btn-success" id="submitCustomerSideInfo"><?=$languageArray['submit_code'][$language]?></button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <div class="modal fade" id="cancelModal">
                                         <div class="modal-dialog modal-xl" style="max-width: 90%;">
                                             <div class="modal-content">
                                                 <form role="form" id="cancelForm">
                                                     <div class="modal-header bg-gray-dark color-palette">
-                                                        <h4 class="modal-title">Cancellation Reason</h4>
+                                                        <h4 class="modal-title"><?=$languageArray['cancellation_reason_code'][$language]?></h4>
                                                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                     </div>
                                                     <div class="modal-body">
                                                         <div class="row">
                                                             <div class="form-group">
-                                                                <label>Cancellation Reason *</label>
+                                                                <label><?=$languageArray['cancellation_reason_code'][$language]?> *</label>
                                                                 <textarea class="form-control" id="cancelReason" name="cancelReason" rows="3"></textarea>
                                                             </div>
                                                             <input type="hidden" class="form-control" id="id" name="id">                                   
@@ -1431,6 +1569,8 @@ else{
     var tareOutgoingDatePicker; 
     var grossIncomingDatePicker2;
     var tareOutgoingDatePicker2; 
+    var customerSideTimeInPicker;
+    var customerSideTimeOutPicker;
 
     $(function () {
         var userRole = '<?=$role ?>';
@@ -1538,6 +1678,28 @@ else{
             altFormat: "d/m/Y H:i:S K",
             allowInput: (userRole == 'SADMIN' || userRole == 'ADMIN' || userRole == 'MANAGER') ? true : false,
             clickOpens: (userRole == 'SADMIN' || userRole == 'ADMIN' || userRole == 'MANAGER') ? true : false,
+        });
+
+        customerSideTimeInPicker = $('#customerSideTimeIn').flatpickr({
+            enableTime: true,
+            enableSeconds: true,
+            time_24hr: true,
+            dateFormat: "Y-m-d H:i:S",
+            altInput: true,
+            altFormat: "d/m/Y H:i:S K",
+            allowInput: true,
+            clickOpens: true,
+        });
+
+        customerSideTimeOutPicker = $('#customerSideTimeOut').flatpickr({
+            enableTime: true,
+            enableSeconds: true,
+            time_24hr: true,
+            dateFormat: "Y-m-d H:i:S",
+            altInput: true,
+            altFormat: "d/m/Y H:i:S K",
+            allowInput: true,
+            clickOpens: true,
         });
 
         // Clear All Filter Function
@@ -1726,6 +1888,13 @@ else{
                             <div class="col-auto">
                                 <button title="Print" type="button" id="print${data}" onclick="print('${data}', '${row.transaction_status}')" class="btn btn-info btn-sm">
                                     <i class="fas fa-print"></i>
+                                </button>
+                            </div>`;
+
+                            buttons += `
+                            <div class="col-auto">
+                                <button title="Fill in Customer Side Info" type="button" id="customerSideInfo${data}" onclick="openCustomerSideInfo(${data})" class="btn btn-secondary btn-sm">
+                                    <i class="fas fa-clipboard-list"></i>
                                 </button>
                             </div>`;
                         }
@@ -2075,9 +2244,7 @@ else{
                         $('#addModal').modal('hide');
                         $("#successBtn").attr('data-toast-text', obj.message);
                         $("#successBtn").click();
-                        $('#prePrintModal').find('#id').val(obj.id);
-                        $('#prePrintModal').find('#isEmptyContainer').val(isEmptyContainer);
-                        $('#prePrintModal').find('#prePrint').val("<?=$language ?>");
+                        preparePrePrintModal(obj.id, $('#transactionStatus').val(), isEmptyContainer);
                         $("#prePrintModal").modal("show");
 
                         $('#prePrintForm').validate({
@@ -2114,8 +2281,9 @@ else{
                 var id = $('#prePrintModal').find('#id').val();
                 var prePrintStatus = $('#prePrintModal').find('#prePrint').val();
                 var isEmptyContainer = $('#prePrintModal').find('#isEmptyContainer').val();
-
-                $.post('php/print.php', {userID: id, file: 'weight', prePrint: prePrintStatus, isEmptyContainer: isEmptyContainer}, function(data){
+                var printTemplate = $('#prePrintModal').find('#printTemplate').val();
+                var transactionStatus = $('#prePrintModal').find('#prePrintTransactionStatus').val();
+                $.post('php/print.php', {userID: id, file: 'weight', prePrint: prePrintStatus, isEmptyContainer: isEmptyContainer, printTemplate: printTemplate, transactionStatus: transactionStatus}, function(data){
                     var obj = JSON.parse(data);
 
                     if(obj.status === 'success'){
@@ -2169,6 +2337,30 @@ else{
                     }
                 });
             }
+        });
+
+        $('.cust-side-weight').on('input', function(){
+            updateCustomerSideNettWeight();
+        });
+
+        $('#submitCustomerSideInfo').on('click', function(){
+            $('#spinnerLoading').show();
+            $.post('php/customerSideInfo.php', $('#customerSideInfoForm').serialize(), function(data){
+                var obj = JSON.parse(data);
+
+                if(obj.status === 'success'){
+                    table.ajax.reload(null, false);
+                    $('#spinnerLoading').hide();
+                    $('#customerSideInfoModal').modal('hide');
+                    $("#successBtn").attr('data-toast-text', obj.message);
+                    $("#successBtn").click();
+                }
+                else{
+                    $('#spinnerLoading').hide();
+                    $("#failBtn").attr('data-toast-text', obj.message);
+                    $("#failBtn").click();
+                }
+            });
         });
 
         $.post('http://127.0.0.1:5002/', $('#setupForm').serialize(), function(data){
@@ -2372,6 +2564,13 @@ else{
                                         <i class="fas fa-print"></i>
                                     </button>
                                 </div>`;
+
+                                buttons += `
+                                <div class="col-auto">
+                                    <button title="Fill in Customer Side Info" type="button" id="customerSideInfo${data}" onclick="openCustomerSideInfo(${data})" class="btn btn-secondary btn-sm">
+                                        <i class="fas fa-clipboard-list"></i>
+                                    </button>
+                                </div>`;
                             }
 
                             if(userRole == 'SADMIN' || userRole == 'ADMIN' || userRole == 'MANAGER'){
@@ -2544,6 +2743,14 @@ else{
             tareOutgoingDatePicker2.clear();
             $('#addModal').find('#nettWeight2').val("");
             $('#addModal').find('#reduceWeight').val("");
+            $('#addModal').find('#customerSideCompany').val("");
+            $('#addModal').find('#customerSideRemovalPassNo').val("");
+            $('#addModal').find('#customerSideLicenseNo').val("");
+            $('#addModal').find('#customerSideMoistureContent').val("");
+            $('#addModal').find('#customerSideOfficerName').val("");
+            $('#addModal').find('#customerSideRainbowDriver').val("");
+            customerSideTimeInPicker.clear();
+            customerSideTimeOutPicker.clear();
             $('#addModal').find('#weightDifference').val("");
             $('#addModal').find('#weightDifferencePerc').val("");
             $('#addModal').find('#manualWeightNo').trigger('click');
@@ -3019,12 +3226,22 @@ else{
                         var supplierName = obj.message.supplier_name;
                         var supplierCode = obj.message.supplier_code;
 
-                        if (transactionStatus == 'Sales' || transactionStatus == 'Misc'){
-                            $('#addModal').find('#customerName').val(customerName).trigger('change');
-                            $('#addModal').find('#customerCode').val(customerCode);
-                        }else{
-                            $('#addModal').find('#supplierName').val(supplierName).trigger('change');
-                            $('#addModal').find('#supplierCode').val(supplierCode);
+                        if (transactionStatus == 'Sales' || transactionStatus == 'Misc') {
+                            var existingCustomerName = $('#addModal').find('#customerName').val();
+                            var existingCustomerCode = $('#addModal').find('#customerCode').val();
+                            
+                            if ((!existingCustomerName && !existingCustomerCode) || (customerName && customerCode)) {
+                                $('#addModal').find('#customerName').val(customerName).trigger('change');
+                                $('#addModal').find('#customerCode').val(customerCode);
+                            }
+                        } else {
+                            var existingSupplierName = $('#addModal').find('#supplierName').val();
+                            var existingSupplierCode = $('#addModal').find('#supplierCode').val();
+                            
+                            if ((!existingSupplierName && !existingSupplierCode) || (supplierName && supplierCode)) {
+                                $('#addModal').find('#supplierName').val(supplierName).trigger('change');
+                                $('#addModal').find('#supplierCode').val(supplierCode);
+                            }
                         }
                     }
                     else if(obj.status === 'error'){
@@ -3058,12 +3275,22 @@ else{
                         var supplierName = obj.message.supplier_name;
                         var supplierCode = obj.message.supplier_code;
 
-                        if (transactionStatus == 'Sales' || transactionStatus == 'Misc'){
-                            $('#addModal').find('#customerName').val(customerName).trigger('change');
-                            $('#addModal').find('#customerCode').val(customerCode);
-                        }else{
-                            $('#addModal').find('#supplierName').val(supplierName).trigger('change');
-                            $('#addModal').find('#supplierCode').val(supplierCode);
+                        if (transactionStatus == 'Sales' || transactionStatus == 'Misc') {
+                            var existingCustomerName = $('#addModal').find('#customerName').val();
+                            var existingCustomerCode = $('#addModal').find('#customerCode').val();
+                            
+                            if ((!existingCustomerName && !existingCustomerCode) || (customerName && customerCode)) {
+                                $('#addModal').find('#customerName').val(customerName).trigger('change');
+                                $('#addModal').find('#customerCode').val(customerCode);
+                            }
+                        } else {
+                            var existingSupplierName = $('#addModal').find('#supplierName').val();
+                            var existingSupplierCode = $('#addModal').find('#supplierCode').val();
+                            
+                            if ((!existingSupplierName && !existingSupplierCode) || (supplierName && supplierCode)) {
+                                $('#addModal').find('#supplierName').val(supplierName).trigger('change');
+                                $('#addModal').find('#supplierCode').val(supplierCode);
+                            }
                         }
                     }
                     else if(obj.status === 'error'){
@@ -3469,8 +3696,10 @@ else{
                 
                 if ($(this).val() == "Purchase"){
                     $('#divPurchaseOrder').find('label[for="purchaseOrder"]').text('Purchase Order');
+                    $('#customerSideCard').show();
                 }else{
                     $('#divPurchaseOrder').find('label[for="purchaseOrder"]').text('Sale Order');
+                    $('#customerSideCard').hide();
                 }
             }
             else{
@@ -3486,6 +3715,7 @@ else{
                 $('#divPurchaseOrder').find('label[for="purchaseOrder"]').text('Sale Order');
                 // $('#divPurchaseOrder').find('#purchaseOrder').attr('placeholder', 'Sale Order');
                 $('#addModal').find('#divPoSupplyWeight').hide();
+                $('#customerSideCard').hide();
             }
         });
 
@@ -3745,26 +3975,27 @@ else{
     function format (row) {
         var transactionStatus = '';
         var weightType = '';
+        var hasCustomerSideInfo = row.cust_side_do_no || row.cust_side_first_weight || row.cust_side_second_weight || row.cust_side_mc || row.cust_side_nett_weight || row.weight_difference;
 
         if (row.transaction_status == 'Sales') {
-            transactionStatus = 'Dispatch';
+            transactionStatus = '<?=$languageArray['dispatch_code'][$language]?>';
         } else if (row.transaction_status == 'Purchase') {
-            transactionStatus = 'Receiving';
+            transactionStatus = '<?=$languageArray['receiving_code'][$language]?>';
         } else if (row.transaction_status == 'Local') {
-            transactionStatus = 'Internal Transfer';
+            transactionStatus = '<?=$languageArray['internal_transfer_code'][$language]?>';
         } else {
-            transactionStatus = 'Miscellaneous';
+            transactionStatus = '<?=$languageArray['miscellaneous_code'][$language]?>';
         }
 
-        if(row.weight_type == 'Container'){
-            weightType = 'Primer Mover';
-        }else if(row.weight_type == 'Empty Container'){
-            weightType = 'Primer Mover + Container';
-        }else if(row.weight_type == 'Normal'){
-            weightType = 'Normal Weighing';
-        }else if(row.weight_type == 'Different Container'){
-            weightType = 'Primer Mover + Different Bins';
-        }else{
+        if (row.weight_type == 'Container') {
+            weightType = '<?=$languageArray['primer_mover_code'][$language]?>';
+        } else if (row.weight_type == 'Empty Container') {
+            weightType = '<?=$languageArray['primer_mover_container_code'][$language]?>';
+        } else if (row.weight_type == 'Normal') {
+            weightType = '<?=$languageArray['normal_weighing_code'][$language]?>';
+        } else if (row.weight_type == 'Different Container') {
+            weightType = '<?=$languageArray['primer_mover_different_bins_code'][$language]?>';
+        } else {
             weightType = row.weight_type;
         }
 
@@ -3810,6 +4041,25 @@ else{
         </div>
         <hr>
 
+        ${row.transaction_status == 'Purchase' ? `
+        <!-- Customer Side Section -->
+        <div class="row">
+            <p><span><strong style="font-size:120%; text-decoration: underline;">Customer Side</strong></span><br>
+            <div class="col-6">
+                <p><strong><?=$languageArray['customer_side_company_code'][$language]?>:</strong> ${row.customer_side_company || ''}</p>
+                <p><strong><?=$languageArray['customer_side_removal_pass_no_code'][$language]?>:</strong> ${row.customer_side_removal_pass_no || ''}</p>
+                <p><strong><?=$languageArray['customer_side_license_no_code'][$language]?>:</strong> ${row.customer_side_license_no || ''}</p>
+                <p><strong><?=$languageArray['customer_side_moisture_content_code'][$language]?>:</strong> ${row.customer_side_moisture_content || ''}</p>
+            </div>
+            <div class="col-6">
+                <p><strong><?=$languageArray['customer_side_officer_name_code'][$language]?>:</strong> ${row.customer_side_officer_name || ''}</p>
+                <p><strong><?=$languageArray['customer_side_rainbow_driver_code'][$language]?>:</strong> ${row.customer_side_rainbow_driver || ''}</p>
+                <p><strong><?=$languageArray['customer_side_time_in_code'][$language]?>:</strong> ${row.customer_side_time_in || ''}</p>
+                <p><strong><?=$languageArray['customer_side_time_out_code'][$language]?>:</strong> ${row.customer_side_time_out || ''}</p>
+            </div>
+        </div>
+        <hr>` : ''}
+
         <!-- Weighing Section -->
         <div class="row">
             <p><span><strong style="font-size:120%; text-decoration: underline;">Weighing Information</strong></span><br>
@@ -3837,6 +4087,23 @@ else{
                 <p><strong>NETT WEIGHT 2:</strong> ${row.nett_weight2}</p>            
                 </div>
         </div>
+        <hr>
+
+        ${hasCustomerSideInfo ? `
+        <!-- Customer Side Info Section -->
+        <div class="row">
+            <p><span><strong style="font-size:120%; text-decoration: underline;">Customer Side Info</strong></span><br>
+            <div class="col-6">
+                <p><strong><?=$languageArray['customer_side_do_no_code'][$language]?>:</strong> ${row.cust_side_do_no || ''}</p>
+                <p><strong><?=$languageArray['first_code'][$language]?> (KG):</strong> ${row.cust_side_first_weight || ''}</p>
+                <p><strong><?=$languageArray['second_code'][$language]?> (KG):</strong> ${row.cust_side_second_weight || ''}</p>
+            </div>
+            <div class="col-6">
+                <p><strong><?=$languageArray['customer_side_mc_code'][$language]?>:</strong> ${row.cust_side_mc || ''}</p>
+                <p><strong>Customer Side <?=$languageArray['nett_weight_code'][$language]?> (KG):</strong> ${row.cust_side_nett_weight || ''}</p>
+                <p><strong><?=$languageArray['weight_difference_code'][$language]?> (KG):</strong> ${row.weight_difference || ''}</p>
+            </div>
+        </div>` : ''}
         `;
         
         return returnString;
@@ -4019,6 +4286,14 @@ else{
                 $('#addModal').find('#tareWeightBy2').val(obj.message.tare_weight_by2);
                 $('#addModal').find('#nettWeight2').val(obj.message.nett_weight2);
                 $('#addModal').find('#reduceWeight').val(obj.message.reduce_weight);
+                $('#addModal').find('#customerSideCompany').val(obj.message.customer_side_company);
+                $('#addModal').find('#customerSideRemovalPassNo').val(obj.message.customer_side_removal_pass_no);
+                $('#addModal').find('#customerSideLicenseNo').val(obj.message.customer_side_license_no);
+                $('#addModal').find('#customerSideMoistureContent').val(obj.message.customer_side_moisture_content);
+                $('#addModal').find('#customerSideOfficerName').val(obj.message.customer_side_officer_name);
+                $('#addModal').find('#customerSideRainbowDriver').val(obj.message.customer_side_rainbow_driver);
+                customerSideTimeInPicker.setDate(obj.message.customer_side_time_in != null && obj.message.customer_side_time_in != '' ? new Date(obj.message.customer_side_time_in) : null);
+                customerSideTimeOutPicker.setDate(obj.message.customer_side_time_out != null && obj.message.customer_side_time_out != '' ? new Date(obj.message.customer_side_time_out) : null);
                 $('#addModal').find('#weightDifference').val(obj.message.weight_different);
                 $('#addModal').find('#weightDifferencePerc').val(obj.message.weight_different_perc);
                 $('#addModal').find('#currentWeight').text(obj.message.final_weight);
@@ -4232,10 +4507,22 @@ else{
         }
     }
 
-    function print(id, transactionStatus, isEmptyContainer = 'N') {
+    function preparePrePrintModal(id, transactionStatus, isEmptyContainer) {
         $('#prePrintModal').find('#id').val(id);
         $('#prePrintModal').find('#isEmptyContainer').val(isEmptyContainer);
+        $('#prePrintModal').find('#prePrintTransactionStatus').val(transactionStatus);
         $('#prePrintModal').find('#prePrint').val("<?=$language ?>");
+        $('#prePrintModal').find('#printTemplate').val("with_weight");
+
+        if (transactionStatus == 'Purchase' || isEmptyContainer == 'Y') {
+            $('#prePrintModal').find('#printTemplateDisplay').hide();
+        } else {
+            $('#prePrintModal').find('#printTemplateDisplay').show();
+        }
+    }
+
+    function print(id, transactionStatus, isEmptyContainer = 'N') {
+        preparePrePrintModal(id, transactionStatus, isEmptyContainer);
         $("#prePrintModal").modal("show");
 
         $('#prePrintForm').validate({
@@ -4277,6 +4564,42 @@ else{
                 $("#failBtn").click();
             }
         });*/
+    }
+
+    function updateCustomerSideNettWeight() {
+        var firstWeight = $('#custSideFirstWeight').val();
+        var secondWeight = $('#custSideSecondWeight').val();
+
+        if (firstWeight !== '' && secondWeight !== '') {
+            var nettWeight = Math.abs(parseFloat(firstWeight) - parseFloat(secondWeight));
+            $('#custSideNettWeight').val(isNaN(nettWeight) ? '' : nettWeight.toFixed(0));
+        } else {
+            $('#custSideNettWeight').val('');
+        }
+    }
+
+    function openCustomerSideInfo(id) {
+        $('#customerSideInfoForm')[0].reset();
+        $('#customerSideInfoModal').find('#customerSideInfoId').val(id);
+        $('#customerSideInfoModal').find('#custSideNettWeight').val('');
+
+        $.post('php/customerSideInfo.php', { id: id, action: 'get' }, function(data){
+            var obj = JSON.parse(data);
+
+            if(obj.status === 'success'){
+                $('#customerSideInfoModal').find('#custSideDoNo').val(obj.message.cust_side_do_no);
+                $('#customerSideInfoModal').find('#custSideFirstWeight').val(obj.message.cust_side_first_weight);
+                $('#customerSideInfoModal').find('#custSideSecondWeight').val(obj.message.cust_side_second_weight);
+                $('#customerSideInfoModal').find('#custSideMc').val(obj.message.cust_side_mc);
+                $('#customerSideInfoModal').find('#custSideNettWeight').val(obj.message.cust_side_nett_weight);
+                updateCustomerSideNettWeight();
+                $('#customerSideInfoModal').modal('show');
+            }
+            else{
+                $("#failBtn").attr('data-toast-text', obj.message);
+                $("#failBtn").click();
+            }
+        });
     }
     </script>
 </body>

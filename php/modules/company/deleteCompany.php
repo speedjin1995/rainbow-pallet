@@ -12,8 +12,8 @@ if (isset($_POST['userID'])) {
     if ($type == 'MULTI') {
         $ids = is_array($_POST['userID']) ? implode(",", $_POST['userID']) : $_POST['userID'];
 
-        if ($stmt = $db->prepare("UPDATE Company SET status=? WHERE id IN ($ids)")) {
-            $stmt->bind_param('s', $del);
+        if ($stmt = $db->prepare("UPDATE Company SET status=?, modified_by=? WHERE id IN ($ids)")) {
+            $stmt->bind_param('ss', $del, $username);
 
             if ($stmt->execute()) {
                 $stmt->close();
@@ -26,8 +26,8 @@ if (isset($_POST['userID'])) {
             echo json_encode(array("status" => "failed", "message" => "Something went wrong"));
         }
     } else {
-        if ($stmt = $db->prepare("UPDATE Company SET status=? WHERE id=?")) {
-            $stmt->bind_param('ss', $del, $id);
+        if ($stmt = $db->prepare("UPDATE Company SET status=?, modified_by=? WHERE id=?")) {
+            $stmt->bind_param('sss', $del, $username, $id);
 
             if ($stmt->execute()) {
                 $stmt->close();

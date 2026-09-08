@@ -1,10 +1,11 @@
 <?php
 ## Fetch records
 // Lorry SQL
-$lorryWeighingSQL = "(select * from Weight where status = '0' AND is_complete = 'N' AND is_cancel='N') UNION ALL (select * from Weight_Container where status = '0' AND is_complete = 'N' AND is_cancel='N')";
+$pendingLorryColumns = "id, transaction_id, transaction_status, weight_type, container_no";
+$lorryWeighingSQL = "(select $pendingLorryColumns from Weight where status = '0' AND is_complete = 'N' AND is_cancel='N') UNION ALL (select $pendingLorryColumns from Weight_Container where status = '0' AND is_complete = 'N' AND is_cancel='N')";
 if($_SESSION["roles"] != 'ADMIN' && $_SESSION["roles"] != 'SADMIN'){
     $username = implode("', '", $_SESSION["plant"]);
-    $normalWeighingSQL = "(select * from Weight where status = '0' AND is_complete = 'N' AND is_cancel='N' AND plant_code IN ('$username')) UNION ALL (select * from Weight_Container where status = '0' AND is_complete = 'N' AND is_cancel='N' AND plant_code IN ('$username'))";
+    $lorryWeighingSQL = "(select $pendingLorryColumns from Weight where status = '0' AND is_complete = 'N' AND is_cancel='N' AND plant_code IN ('$username')) UNION ALL (select $pendingLorryColumns from Weight_Container where status = '0' AND is_complete = 'N' AND is_cancel='N' AND plant_code IN ('$username'))";
 }
 $normalWeighing = $db->query($lorryWeighingSQL);
 
@@ -12,7 +13,7 @@ $normalWeighing = $db->query($lorryWeighingSQL);
 $containerWeighingSQL = "select * from Weight_Container where status = '0' AND is_complete = 'Y' AND is_cancel='N'";
 if($_SESSION["roles"] != 'ADMIN' && $_SESSION["roles"] != 'SADMIN'){
     $username = implode("', '", $_SESSION["plant"]);
-    $normalWeighingSQL = "select * from Weight_Container where status = '0' AND is_complete = 'Y' AND is_cancel='N' AND plant_code IN ('$username'))";
+    $containerWeighingSQL = "select * from Weight_Container where status = '0' AND is_complete = 'Y' AND is_cancel='N' AND plant_code IN ('$username')";
 }
 $containerWeighing = $db->query($containerWeighingSQL);
 
@@ -36,15 +37,19 @@ $localList2 = array();
 $miscList2 = array();
 $count2 = 0;
 
+$language = $_SESSION['language'];
+$languageArray = $_SESSION['languageArray'];
 while($row=mysqli_fetch_assoc($normalWeighing)){
     $weightType = '';
-    if ($row['weight_type'] == 'Empty Container') {
-        $weightType = 'Primer Mover + Container';
-    } elseif ($row['weight_type'] == 'Container') {
-        $weightType = 'Primer Mover';
-    } else if($row['weight_type'] == 'Different Container'){
-        $weightType = 'Primer Mover + Different Bins';
-    } else {
+    if($row['weight_type'] == 'Container'){
+        $weightType = $languageArray['primer_mover_code'][$language];
+    }elseif($row['weight_type'] == 'Empty Container'){
+        $weightType = $languageArray['primer_mover_container_code'][$language];
+    }else if($row['weight_type'] == 'Different Container'){
+        $weightType = $languageArray['primer_mover_different_bins_code'][$language];
+    }elseif($row['weight_type'] == 'Normal'){
+        $weightType = $languageArray['normal_weighing_code'][$language];
+    }else{
         $weightType = $row['weight_type'];
     }
 
@@ -79,14 +84,16 @@ while($row=mysqli_fetch_assoc($normalWeighing)){
 }
 
 while($row3=mysqli_fetch_assoc($containerWeighing)){
-    $weightType = ''; 
-    if ($row3['weight_type'] == 'Empty Container') {
-        $weightType = 'Primer Mover + Container';
-    } else if($row3['weight_type'] == 'Different Container'){
-        $weightType = 'Primer Mover + Different Bins';
-    } elseif ($row3['weight_type'] == 'Container') {
-        $weightType = 'Primer Mover';
-    } else {
+    $weightType = '';
+    if($row3['weight_type'] == 'Container'){
+        $weightType = $languageArray['primer_mover_code'][$language];
+    }elseif($row3['weight_type'] == 'Empty Container'){
+        $weightType = $languageArray['primer_mover_container_code'][$language];
+    }else if($row3['weight_type'] == 'Different Container'){
+        $weightType = $languageArray['primer_mover_different_bins_code'][$language];
+    }elseif($row3['weight_type'] == 'Normal'){
+        $weightType = $languageArray['normal_weighing_code'][$language];
+    }else{
         $weightType = $row3['weight_type'];
     }
 

@@ -55,31 +55,42 @@
                         </ul>
                     </div>
                 </li> -->
-                <!--li class="nav-item">
+                <li class="nav-item">
                     <a class="nav-link menu-link" href="#sidebarAccounting" data-bs-toggle="collapse" role="button"
                         aria-expanded="false" aria-controls="sidebarAccounting">
-                        <i class="ri-pages-line"></i> <span><?=$lang['t-accounting']?></span>
+                        <i class="ri-money-dollar-circle-line"></i> <span><?=$languageArray['accounting_code'][$language]?></span>
                     </a>
                     <div class="collapse menu-dropdown" id="sidebarAccounting">
                         <ul class="nav nav-sm flex-column">
-                            <li class="nav-item">
+                            <!-- <li class="nav-item">
                                 <a href="salesOrder.php" class="nav-link"><?=$lang['t-so']?></a>
                             </li>
                             <li class="nav-item">
                                 <a href="purchaseOrder.php" class="nav-link"><?=$lang['t-po']?></a>
-                            </li>               
+                            </li> -->
+                            <li class="nav-item">
+                                <a href="paymentVoucher.php" class="nav-link"><?=$languageArray['payment_voucher_code'][$language]?></a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a href="deliveryOrder.php" class="nav-link"><b><?=$languageArray['delivery_order_code'][$language]?></b></a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a href="goodsReceived.php" class="nav-link"><b><?=$languageArray['goods_received_code'][$language]?></b></a>
+                            </li>
+
                         </ul>
                     </div>
-                </li-->
+                </li>
                 <?php
                     if($_SESSION["roles"] == 'SADMIN' || $_SESSION["roles"] == 'MANAGER' || $_SESSION["roles"] == 'ADMIN'){
                         echo '<!--li class="nav-item">
                             <a href="inventory.php" class="nav-link"><i class="mdi mdi-shipping-pallet"></i></i>'.$lang['t-inventory'].'</a>
                         </li--> 
                         <li class="nav-item">
-                            <a class="nav-link menu-link" href="#sidebarMasterdata" data-bs-toggle="collapse" role="button"
-                                aria-expanded="false" aria-controls="sidebarMasterdata">
-                                <i class="ri-pages-line"></i> <span>'.$languageArray['master_data_code'][$language].'</span>
+                            <a class="nav-link menu-link" href="#sidebarMasterdata" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="sidebarMasterdata">
+                                <i class="ri-database-2-line"></i> <span>'.$languageArray['master_data_code'][$language].'</span>
                             </a>
                             <div class="collapse menu-dropdown" id="sidebarMasterdata">
                                 <ul class="nav nav-sm flex-column">';
@@ -112,8 +123,8 @@
                                             </li>       
                                             <li class="nav-item">
                                                 <a href="vehicle.php" class="nav-link">'.$languageArray['vehicle_code'][$language].'</a>
-                                            </li>             
-                                            <li class="nav-item">
+                                            </li>
+                                            <li class="nav-item" style="display:none;">
                                                 <a href="transporter.php" class="nav-link">'.$languageArray['transporter_code'][$language].'</a>
                                             </li>
                                             <li class="nav-item">

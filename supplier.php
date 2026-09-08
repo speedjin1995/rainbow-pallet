@@ -118,7 +118,10 @@
                                                                                 <div class="row">
                                                                                     <label for="companyName" class="col-sm-4 col-form-label"><?=$languageArray['company_name_code'][$language]?></label>
                                                                                     <div class="col-sm-8">
-                                                                                        <input type="text" class="form-control" id="companyName" name="companyName" placeholder="<?=$languageArray['company_name_code'][$language]?>">
+                                                                                        <input type="text" class="form-control" id="companyName" name="companyName" placeholder="<?=$languageArray['company_name_code'][$language]?>" required>
+                                                                                        <div class="invalid-feedback">
+                                                                                            <?=$languageArray['please_fill_in_the_field_code'][$language]?>
+                                                                                        </div>
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
@@ -194,7 +197,39 @@
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
-                                                                            <input type="hidden" class="form-control" id="id" name="id">                                                                                                                                                         
+                                                                            <div class="col-xxl-12 col-lg-12 mb-3">
+                                                                                <div class="row">
+                                                                                    <label for="accountNo" class="col-sm-4 col-form-label"><?=$languageArray['account_no_code'][$language]?></label>
+                                                                                    <div class="col-sm-8">
+                                                                                        <input type="text" class="form-control" id="accountNo" name="accountNo" placeholder="<?=$languageArray['account_no_code'][$language]?>">
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="col-xxl-12 col-lg-12 mb-3">
+                                                                                <div class="row">
+                                                                                    <label for="paymentTerm" class="col-sm-4 col-form-label"><?=$languageArray['payment_term_code'][$language]?></label>
+                                                                                    <div class="col-sm-8">
+                                                                                        <select class="form-control select2" style="width: 100%;" id="paymentTerm" name="paymentTerm">
+                                                                                            <option value="Term"><?=$languageArray['term_code'][$language]?></option>
+                                                                                            <option value="Cash"><?=$languageArray['cash_code'][$language]?></option>
+                                                                                        </select>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="col-xxl-12 col-lg-12 mb-3" id="paymentTermPeriodDisplay">
+                                                                                <div class="row">
+                                                                                    <label for="paymentTermPeriod" class="col-sm-4 col-form-label"><?=$languageArray['payment_term_period_code'][$language]?></label>
+                                                                                    <div class="col-sm-8">
+                                                                                        <select class="form-control select2" style="width: 100%;" id="paymentTermPeriod" name="paymentTermPeriod">
+                                                                                            <option value="Daily"><?=$languageArray['daily_code'][$language]?></option>
+                                                                                            <option value="Weekly"><?=$languageArray['weekly_code'][$language]?></option>
+                                                                                            <option value="Bi-Weekly"><?=$languageArray['bi_weekly_code'][$language]?></option>
+                                                                                            <option value="Monthly"><?=$languageArray['monthly_code'][$language]?></option>
+                                                                                        </select>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <input type="hidden" class="form-control" id="id" name="id">
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -306,6 +341,9 @@
                                                                     <th><?=$languageArray['pic_code'][$language]?></th>
                                                                     <th><?=$languageArray['ic_code'][$language]?></th>
                                                                     <th><?=$languageArray['tin_code'][$language]?></th>
+                                                                    <th><?=$languageArray['account_no_code'][$language]?></th>
+                                                                    <th><?=$languageArray['payment_term_code'][$language]?></th>
+                                                                    <th><?=$languageArray['payment_term_period_code'][$language]?></th>
                                                                     <th><?=$languageArray['status_code'][$language]?></th>
                                                                     <th><?=$languageArray['action_code'][$language]?></th>
                                                                 </tr>
@@ -364,7 +402,6 @@
 var table;
 
 $(function () {
-
     table = $("#supplierTable").DataTable({
         "responsive": true,
         "autoWidth": false,
@@ -396,6 +433,9 @@ $(function () {
             { data: 'contact_name' },
             { data: 'ic_no' },
             { data: 'tin_no' },
+            { data: 'account_no' },
+            { data: 'payment_term' },
+            { data: 'payment_term_period' },
             { 
                 data: 'id',
                 render: function ( data, type, row ) {
@@ -509,6 +549,9 @@ $(function () {
         $('#addModal').find('#contactName').val("");
         $('#addModal').find('#icNo').val("");
         $('#addModal').find('#tinNo').val("");
+        $('#addModal').find('#accountNo').val("");
+        $('#addModal').find('#paymentTerm').val("Cash").trigger('change');
+        $('#addModal').find('#paymentTermPeriod').val("Daily");
 
         // Remove Validation Error Message
         $('#addModal .is-invalid').removeClass('is-invalid');
@@ -603,6 +646,16 @@ $(function () {
             $('#spinnerLoading').hide();
         }     
     });
+
+    $('#paymentTerm').on('change', function() {
+        if ($(this).val() == 'Cash') {
+            $('#paymentTermPeriod').val('').prop('disabled', true);
+            $('#addModal').find('#paymentTermPeriodDisplay').hide();
+        } else {
+            $('#paymentTermPeriod').prop('disabled', false);
+            $('#addModal').find('#paymentTermPeriodDisplay').show();
+        }
+    });
 });
 
 $('#supplierForm').validate({
@@ -694,6 +747,9 @@ function edit(id){
             $('#addModal').find('#contactName').val(obj.message.contact_name);
             $('#addModal').find('#icNo').val(obj.message.ic_no);
             $('#addModal').find('#tinNo').val(obj.message.tin_no);
+            $('#addModal').find('#accountNo').val(obj.message.account_no);
+            $('#addModal').find('#paymentTerm').val(obj.message.payment_term).trigger('change');
+            $('#addModal').find('#paymentTermPeriod').val(obj.message.payment_term_period);
 
             // Remove Validation Error Message
             $('#addModal .is-invalid').removeClass('is-invalid');
