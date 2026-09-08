@@ -2,6 +2,7 @@
 session_start();
 require_once '../../db_connect.php';
 
+$languageArray = $_SESSION['languageArray'];
 $draw = $_POST['draw'];
 $row = $_POST['start'];
 $rowperpage = $_POST['length'];
@@ -14,7 +15,26 @@ $searchValue = mysqli_real_escape_string($db, $_POST['search']['value']);
 $modResult = mysqli_query($db, "SELECT id, name, category FROM modules");
 $moduleLookup = array();
 while($mr = mysqli_fetch_assoc($modResult)) {
-    $moduleLookup[$mr['id']] = $mr['category'] . ' - ' . $mr['name'];
+    if ($mr['category'] == 'Weighing'){
+        if ($mr['name'] == 'Sales') {
+            $name = $languageArray['dispatch_code']['en'];
+        } else if ($mr['name'] == 'Purchase') {
+            $name = $languageArray['receiving_code']['en'];
+        } else if ($mr['name'] == 'Local') {
+            $name = $languageArray['internal_transfer_code']['en'];
+        } else if ($mr['name'] == 'Port') {
+            $name = $languageArray['trx_to_port_code']['en'];
+        } else if ($mr['name'] == 'Misc') {
+            $name = $languageArray['miscellaneous_code']['en'];
+        } else {
+            $name = $mr['name'];
+        }
+
+        $lookup = $mr['category'] . ' - ' . $name;
+    }else{
+        $lookup = $mr['category'] . ' - ' . $mr['name'];
+    }
+    $moduleLookup[$mr['id']] = $lookup;
 }
 
 $searchQuery = " ";

@@ -25,7 +25,8 @@ $defaultModules = [
     ['name' => 'Payment Voucher', 'category' => 'Accounting'],
     ['name' => 'Sales', 'category' => 'Weighing'],
     ['name' => 'Purchase', 'category' => 'Weighing'],
-    ['name' => 'Internal Transfer', 'category' => 'Weighing'],
+    // ['name' => 'Internal Transfer', 'category' => 'Weighing'],
+    ['name' => 'Port', 'category' => 'Weighing'],
     ['name' => 'Miscellaneous', 'category' => 'Weighing']
 ];
 

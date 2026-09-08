@@ -2107,9 +2107,6 @@ $$
 DELIMITER ;
 
 -- Role & Permissions
-INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('user_management_code', 'User Management', '用户管理', 'Pengurusan Pengguna', 'பயனர் மேலாண்மை');
-INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('permissions_code', 'Permissions', '权限', 'Kebenaran', 'அனுமதிகள்');
-
 CREATE TABLE `modules` (
   `id` int(11) NOT NULL,
   `name` varchar(100) NOT NULL,
@@ -2132,6 +2129,8 @@ CREATE TABLE `role_permissions` (
   `permission_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('user_management_code', 'User Management', '用户管理', 'Pengurusan Pengguna', 'பயனர் மேலாண்மை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('permissions_code', 'Permissions', '权限', 'Kebenaran', 'அனுமதிகள்');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('manage_modules_code', 'Manage Modules', '权限', 'Kebenaran', 'அனுமதிகள்');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('module_records_code', 'Module Records', '模块记录', 'Rekod Modul', 'பதிவுகள்');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('module_name_code', 'Module Name', '模块名称', 'Nama Modul', 'பெயர்');

@@ -54,6 +54,8 @@ foreach ($rows as &$row) {
         $row['name'] = $languageArray['internal_transfer_code']['en'];
     }elseif($row['name'] == 'Miscellaneous'){
         $row['name'] = $languageArray['miscellaneous_code']['en'];
+    }elseif($row['name'] == 'Port'){
+        $row['name'] = $languageArray['trx_to_port_code']['en'];
     }
 }
 unset($row);
