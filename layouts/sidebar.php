@@ -128,9 +128,6 @@
                                                 <a href="transporter.php" class="nav-link">'.$languageArray['transporter_code'][$language].'</a>
                                             </li>
                                             <li class="nav-item">
-                                                <a href="user.php" class="nav-link">'.$languageArray['staff_code'][$language].'</a>
-                                            </li>
-                                            <li class="nav-item">
                                                 <a href="plant.php" class="nav-link">'.$languageArray['plant_code'][$language].'</a>
                                             </li>
                                             <li class="nav-item">
@@ -179,14 +176,18 @@
                     <div class="collapse menu-dropdown" id="userManagement">
                         <ul class="nav nav-sm flex-column">
                             <li class="nav-item">
+                                <li class="nav-item">
+                                    <a href="user.php" class="nav-link"><?=$languageArray['staff_code'][$language]?></a>
+                                </li>
+
                                 <?php if(hasModulePermission('User Management', 'Modules', ['view', 'create', 'edit'])): ?>
                                 <li class="nav-item">
-                                    <a href="modules.php" class="nav-link"><b><?=$languageArray['module_code'][$language]?></b></a>
+                                    <a href="modules.php" class="nav-link"><?=$languageArray['module_code'][$language]?></a>
                                 </li>
                                 <?php endif; ?>
 
                                 <li class="nav-item">
-                                    <a href="modules/userManagement/permissions.php" class="nav-link"><?=$languageArray['permissions_code'][$language]?></a>
+                                    <a href="permissions.php" class="nav-link"><?=$languageArray['permissions_code'][$language]?></a>
                                 </li>                    
                             </li>
                         </ul>
