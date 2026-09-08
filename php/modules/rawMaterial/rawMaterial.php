@@ -1,130 +1,111 @@
 <?php
 session_start();
 require_once '../../db_connect.php';
+require_once '../../requires/functions.php';
 
-if(!isset($_SESSION['id'])){
-	echo '<script type="text/javascript">location.href = "../login.php";</script>'; 
-} else{
-	$username = $_SESSION["username"];
+if (!isset($_SESSION['id'])) {
+    echo '<script type="text/javascript">location.href = "../login.php";</script>';
+} else {
+    $username = $_SESSION["username"];
 }
-// Check if the user is already logged in, if yes then redirect him to index page
 $id = $_SESSION['id'];
 
-// Processing form data when form is submitted
 if (isset($_POST['rawMatCode'])) {
 
-    if (empty($_POST["id"])) {
-        $rawMatId = null;
-    } else {
-        $rawMatId = trim($_POST["id"]);
-    }
+    $rawMatId = empty($_POST["id"]) ? null : trim($_POST["id"]);
+    $rawMatCode = empty($_POST["rawMatCode"]) ? null : trim($_POST["rawMatCode"]);
+    $rawMatName = empty($_POST["rawMatName"]) ? null : trim($_POST["rawMatName"]);
+    $rawMatType = empty($_POST["rawMatType"]) ? null : trim($_POST["rawMatType"]);
+    $description = empty($_POST["description"]) ? null : trim($_POST["description"]);
+    $varianceType = empty($_POST["varianceType"]) ? null : trim($_POST["varianceType"]);
+    $high = empty($_POST["high"]) ? null : trim($_POST["high"]);
+    $low = empty($_POST["low"]) ? null : trim($_POST["low"]);
 
-    if (empty($_POST["rawMatCode"])) {
-        $rawMatCode = null;
+    // Check for duplicate raw_mat_code (exclude current record when updating)
+    $duplicateCheck = $db->prepare("SELECT id FROM Raw_Mat WHERE raw_mat_code = ? AND status = 0" . (!empty($rawMatId) ? " AND id != ?" : ""));
+    if (!empty($rawMatId)) {
+        $duplicateCheck->bind_param('si', $rawMatCode, $rawMatId);
     } else {
-        $rawMatCode = trim($_POST["rawMatCode"]);
+        $duplicateCheck->bind_param('s', $rawMatCode);
     }
+    $duplicateCheck->execute();
+    $duplicateCheck->store_result();
 
-    if (empty($_POST["rawMatName"])) {
-        $rawMatName = null;
-    } else {
-        $rawMatName = trim($_POST["rawMatName"]);
+    if ($duplicateCheck->num_rows > 0) {
+        echo json_encode(array("status" => "failed", "message" => "Raw material code already exists"));
+        $duplicateCheck->close();
+        $db->close();
+        exit;
     }
+    $duplicateCheck->close();
 
-    if (empty($_POST["rawMatType"])) {
-        $rawMatType = null;
-    } else {
-        $rawMatType = trim($_POST["rawMatType"]);
-    }
-
-    if (empty($_POST["description"])) {
-        $description = null;
-    } else {
-        $description = trim($_POST["description"]);
-    }
-    
-    if (empty($_POST["varianceType"])) {
-        $varianceType = null;
-    } else {
-        $varianceType = trim($_POST["varianceType"]);
-    }
-
-    if (empty($_POST["high"])) {
-        $high = null;
-    } else {
-        $high = trim($_POST["high"]);
-    }
-
-    if (empty($_POST["low"])) {
-        $low = null;
-    } else {
-        $low = trim($_POST["low"]);
-    }
-
-    if(! empty($rawMatId))
-    {
-        if ($update_stmt = $db->prepare("UPDATE Raw_Mat SET raw_mat_code=?, name=?, raw_mat_type=?, description=?, variance=?, high=?, low=?, created_by=?, modified_by=? WHERE id=?")) 
-        {
-            $update_stmt->bind_param('ssssssssss', $rawMatCode, $rawMatName, $rawMatType, $description, $varianceType, $high, $low, $username, $username, $rawMatId);
-
-            // Execute the prepared query.
-            if (! $update_stmt->execute()) {
-                echo json_encode(
-                    array(
-                        "status"=> "failed", 
-                        "message"=> $update_stmt->error
-                    )
-                );
+    try {
+        $db->begin_transaction();
+        if (!empty($rawMatId)) {
+            // Get current raw_mat_code and name before update
+            $oldCode = null;
+            $oldName = null;
+            $stmt = $db->prepare('SELECT raw_mat_code, name FROM Raw_Mat WHERE id = ?');
+            if (!$stmt) {
+                throw new Exception($db->error);
             }
-            else{
-                $update_stmt->close();
-                $db->close();
+            $stmt->bind_param('s', $rawMatId);
+            $stmt->execute();
+            $stmt->bind_result($oldCode, $oldName);
+            $stmt->fetch();
+            $stmt->close();
 
-                echo json_encode(
-                    array(
-                        "status"=> "success", 
-                        "message"=> "Updated Successfully!!" 
-                    )
-                );
+            // Update existing record
+            $stmt = $db->prepare("UPDATE Raw_Mat SET raw_mat_code=?, name=?, raw_mat_type=?, description=?, variance=?, high=?, low=?, created_by=?, modified_by=? WHERE id=?");
+            if (!$stmt) {
+                throw new Exception($db->error);
             }
+            $stmt->bind_param('ssssssssss', $rawMatCode, $rawMatName, $rawMatType, $description, $varianceType, $high, $low, $username, $username, $rawMatId);
+
+            if (!$stmt->execute()) {
+                throw new Exception($stmt->error);
+            }
+
+            // Update related tables if raw material code is changed
+            if ($oldCode !== null && $oldCode !== $rawMatCode) {
+                updateMasterDataCodeValue($db, $oldCode, $rawMatCode, 'Raw Material');
+            }
+
+            // Update related tables if raw material name is changed
+            if ($oldName !== null && $oldName !== $rawMatName) {
+                updateMasterDataNameValue($db, $oldName, $rawMatName, 'Raw Material');
+            }
+
+            $stmt->close();
+            $db->commit();
+            $db->close();
+
+            echo json_encode(['status' => 'success', 'message' => 'Updated Successfully!!']);
+            exit();
+        } else {
+            $stmt = $db->prepare("INSERT INTO Raw_Mat (raw_mat_code, name, raw_mat_type, description, variance, high, low, created_by, modified_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            if (!$stmt) {
+                throw new Exception($db->error);
+            }
+            $stmt->bind_param('sssssssss', $rawMatCode, $rawMatName, $rawMatType, $description, $varianceType, $high, $low, $username, $username);
+
+            if (!$stmt->execute()) {
+                throw new Exception($stmt->error);
+            }
+
+            $stmt->close();
+            $db->commit();
+            $db->close();
+
+            echo json_encode(['status' => 'success', 'message' => 'Added Successfully!!']);
+            exit();
         }
+    } catch (Exception $e) {
+        $db->rollback();
+        echo json_encode(['status' => 'failed', 'message' => $e->getMessage()]);
+        exit();
     }
-    else
-    {
-        if ($insert_stmt = $db->prepare("INSERT INTO Raw_Mat (raw_mat_code, name, raw_mat_type, description, variance, high, low, created_by, modified_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
-            $insert_stmt->bind_param('sssssssss', $rawMatCode, $rawMatName, $rawMatType, $description, $varianceType, $high, $low, $username, $username);
-
-            // Execute the prepared query.
-            if (! $insert_stmt->execute()) {
-                echo json_encode(
-                    array(
-                        "status"=> "failed", 
-                        "message"=> $insert_stmt->error
-                    )
-                );
-            }
-            else{
-                echo json_encode(
-                    array(
-                        "status"=> "success", 
-                        "message"=> "Added Successfully!!" 
-                    )
-                );
-
-                $insert_stmt->close();
-                $db->close();
-            }
-        }
-    }
-    
-}
-else
-{
-    echo json_encode(
-        array(
-            "status"=> "failed", 
-            "message"=> "Please fill in all the fields"
-        )
-    );
+} else {
+    echo json_encode(array("status" => "failed", "message" => "Please fill in all the fields"));
 }
 ?>
