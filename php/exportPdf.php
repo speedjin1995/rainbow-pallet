@@ -2,6 +2,7 @@
 session_start();
 require_once 'db_connect.php';
 
+// $languageArray = $_SESSION['languageArray'] ?? [];
 $searchQuery = "";
 if($_SESSION["roles"] != 'ADMIN' && $_SESSION["roles"] != 'SADMIN'){
     $username = implode("', '", $_SESSION["plant"]);
@@ -234,17 +235,17 @@ if(isset($_POST["file"])){
                                             <th>TRANSACTION <br>STATUS</th>
                                             <th>LORRY <br>NO.</th>';
                                             
-                                        if($_POST['status'] == 'Sales' || $_POST['status'] == 'Misc'){
-                                            $message .= '<th>CUSTOMER <br>CODE</th>';
-                                            $message .= '<th>CUSTOMER</th>';
-                                        }
-                                        else{
+                                        if($_POST['status'] == 'Purchase' || $_POST['status'] == 'Local'){
                                             $message .= '<th>SUPPLIER <br>CODE</th>';
                                             $message .= '<th>SUPPLIER</th>';
                                         }
+                                        else{
+                                            $message .= '<th>CUSTOMER <br>CODE</th>';
+                                            $message .= '<th>CUSTOMER</th>';
+                                        }
                                             
-                                            $message .= '<th>'.(($_POST['status'] == 'Sales' || $_POST['status'] == 'Misc') ? 'PRODUCT <br>CODE' : 'RAW MAT <br>CODE').'</th>
-                                            <th>'.(($_POST['status'] == 'Sales' || $_POST['status'] == 'Misc') ? 'PRODUCT' : 'RAW MAT').'</th>
+                                            $message .= '<th>'.(($_POST['status'] == 'Purchase' || $_POST['status'] == 'Local') ? 'RAW MAT <br>CODE' : 'PRODUCT <br>CODE').'</th>
+                                            <th>'.(($_POST['status'] == 'Purchase' || $_POST['status'] == 'Local') ? 'RAW MAT' : 'PRODUCT').'</th>
                                             <th>DESTINATION <br>CODE</th>
                                             <th>DESTINATION</th>
                                             <th>PO NO.</th>
@@ -277,23 +278,26 @@ if(isset($_POST["file"])){
                                     
                                     // Fetch data and group by product_name
                                     while ($row = $result->fetch_assoc()) {
-                                        $productName = ($row['transaction_status'] == 'Sales' || $row['transaction_status'] == 'Misc' ? $row['product_name'] : $row['raw_mat_name']);
+                                        $productName = ($row['transaction_status'] == 'Purchase' || $row['transaction_status'] == 'Local' ? $row['raw_mat_name'] : $row['product_name']);
                                     
                                         if (!isset($groupedData[$productName])) {
                                             $groupedData[$productName] = [];
                                         }
 
                                         if($row['transaction_status'] == 'Sales'){
-                                            $transactionStatus = 'Sales';
+                                            $transactionStatus = $languageArray['dispatch_code']['en'];
                                         }
                                         else if($row['transaction_status'] == 'Purchase'){
-                                            $transactionStatus = 'Purchase';
+                                            $transactionStatus = $languageArray['receiving_code']['en'];
+                                        }
+                                        else if($row['transaction_status'] == 'Port'){
+                                            $transactionStatus = $languageArray['trx_to_port_code']['en'];
                                         }
                                         else if($row['transaction_status'] == 'Misc'){
-                                            $transactionStatus = 'Miscellaneous';
+                                            $transactionStatus = $languageArray['miscellaneous_code']['en'];
                                         }
                                         else{
-                                            $transactionStatus = 'Transfer to Port';
+                                            $transactionStatus = $languageArray['local_code']['en'];
                                         }
 
                                         $row['transactionStatus'] = $transactionStatus;
@@ -337,17 +341,17 @@ if(isset($_POST["file"])){
                                                 <td>' . $row['transactionStatus'] . '</td>
                                                 <td>' . $row['lorry_plate_no1'] . '</td>';
                                                 
-                                                if($_POST['status'] == 'Sales' || $_POST['status'] == 'Misc'){
-                                                    $message .= '<td>' . $row['customer_code'] . '</td>';
-                                                    $message .= '<td>' . $row['customer_name'] . '</td>';
-                                                }
-                                                else{
+                                                if($_POST['status'] == 'Purchase' || $_POST['status'] == 'Local'){
                                                     $message .= '<td>' . $row['supplier_code'] . '</td>';
                                                     $message .= '<td>' . $row['supplier_name'] . '</td>';
                                                 }
+                                                else{
+                                                    $message .= '<td>' . $row['customer_code'] . '</td>';
+                                                    $message .= '<td>' . $row['customer_name'] . '</td>';
+                                                }
                                                 
-                                                $message .= '<td>' . (($row['transaction_status'] == 'Sales' || $row['transaction_status'] == 'Misc') ? $row['product_code'] : $row['raw_mat_code']) . '</td>
-                                                <td>' . (($row['transaction_status'] == 'Sales' || $row['transaction_status'] == 'Misc') ? $row['product_name'] : $row['raw_mat_name']) . '</td>
+                                                $message .= '<td>' . (($row['transaction_status'] == 'Purchase' || $row['transaction_status'] == 'Local') ? $row['raw_mat_code'] : $row['product_code']) . '</td>
+                                                <td>' . (($row['transaction_status'] == 'Purchase' || $row['transaction_status'] == 'Local') ? $row['raw_mat_name'] : $row['product_name']) . '</td>
                                                 <td>' . $row['destination_code'] . '</td>
                                                 <td>' . $row['destination'] . '</td>
                                                 <td>' . $row['purchase_order'] . '</td>

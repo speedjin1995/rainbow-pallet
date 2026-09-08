@@ -22,18 +22,21 @@ $weighing2 = $db->query("SELECT * FROM Weight WHERE is_approved = 'N'");
 $salesList = array();
 $purchaseList = array();
 $localList = array();
+$portList = array();
 $miscList = array();
 $count = 0;
 # Container
 $salesContainerList = array();
 $purchaseContainerList = array();
 $localContainerList = array();
+$portContainerList = array();
 $miscContainerList = array();
 $containerCount = 0;
 
 $salesList2 = array();
 $purchaseList2 = array();
 $localList2 = array();
+$portList2 = array();
 $miscList2 = array();
 $count2 = 0;
 
@@ -69,6 +72,13 @@ while($row=mysqli_fetch_assoc($normalWeighing)){
     }
     else if($row['transaction_status'] == 'Local'){
         $localList[] = array(
+            "id" => $row['id'],
+            "transaction_id" => $row['transaction_id'],
+            "weight_type" => $weightType
+        );
+    }
+    else if($row['transaction_status'] == 'Port'){
+        $portList[] = array(
             "id" => $row['id'],
             "transaction_id" => $row['transaction_id'],
             "weight_type" => $weightType
@@ -121,6 +131,14 @@ while($row3=mysqli_fetch_assoc($containerWeighing)){
             "weight_type" => $weightType
         );
     }
+    else if($row3['transaction_status'] == 'Port'){
+        $portContainerList[] = array(
+            "id" => $row3['id'],
+            "transaction_id" => $row3['transaction_id'],
+            "container_no" => $row3['container_no'],
+            "weight_type" => $weightType
+        );
+    }
     else{
         $miscContainerList[] = array(
             "id" => $row3['id'],
@@ -148,6 +166,13 @@ while($row2=mysqli_fetch_assoc($weighing2)){
     }
     else if($row2['transaction_status'] == 'Local'){
         $localList2[] = array(
+            "id" => $row2['id'],
+            "transaction_id" => $row2['transaction_id'],
+            "weight_type" => $row2['weight_type']
+        );
+    }
+    else if($row2['transaction_status'] == 'Port'){
+        $portList2[] = array(
             "id" => $row2['id'],
             "transaction_id" => $row2['transaction_id'],
             "weight_type" => $row2['weight_type']
