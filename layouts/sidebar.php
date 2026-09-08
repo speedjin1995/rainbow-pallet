@@ -185,19 +185,26 @@
                     <div class="collapse menu-dropdown" id="userManagement">
                         <ul class="nav nav-sm flex-column">
                             <li class="nav-item">
+                                <?php if(hasModulePermission('User Management', 'User Setup', ['view', 'create', 'edit'])): ?>
                                 <li class="nav-item">
                                     <a href="user.php" class="nav-link"><?=$languageArray['staff_code'][$language]?></a>
                                 </li>
-
+                                <?php endif; ?>
+                                <?php if(hasModulePermission('User Management', 'Role', ['view', 'create', 'edit'])): ?>
+                                <li class="nav-item">
+                                    <a href="roles.php" class="nav-link"><?=$languageArray['roles_code'][$language]?></a>
+                                </li>
+                                <?php endif; ?>
                                 <?php if(hasModulePermission('User Management', 'Modules', ['view', 'create', 'edit'])): ?>
                                 <li class="nav-item">
                                     <a href="modules.php" class="nav-link"><?=$languageArray['module_code'][$language]?></a>
                                 </li>
                                 <?php endif; ?>
-
+                                <?php if(hasModulePermission('User Management', 'Permission', ['view', 'create', 'edit'])): ?>
                                 <li class="nav-item">
                                     <a href="permissions.php" class="nav-link"><?=$languageArray['permissions_code'][$language]?></a>
-                                </li>                    
+                                </li>
+                                <?php endif; ?>                 
                             </li>
                         </ul>
                     </div>
