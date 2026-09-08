@@ -152,7 +152,7 @@ while($m = $modules->fetch_assoc()){
                     <div class="col-lg-12">
                         <div class="hstack gap-2 justify-content-end">
                             <button type="button" class="btn btn-light" data-bs-dismiss="modal"><?=$languageArray['close_code'][$language]?></button>
-                            <button type="button" class="btn btn-danger" id="submitPermission"><?=$languageArray['submit_code'][$language]?></button>
+                            <button type="button" class="btn btn-success" id="submitPermission"><?=$languageArray['submit_code'][$language]?></button>
                         </div>
                     </div>
                 </form>

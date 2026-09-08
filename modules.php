@@ -100,7 +100,7 @@ $categories = $db->query("SELECT DISTINCT category FROM modules ORDER BY categor
                                                         <div class="col-lg-12">
                                                             <div class="hstack gap-2 justify-content-end">
                                                                 <button type="button" class="btn btn-light" data-bs-dismiss="modal"><?=$languageArray['close_code'][$language]?></button>
-                                                                <button type="button" class="btn btn-danger" id="submitModule"><?=$languageArray['submit_code'][$language]?></button>
+                                                                <button type="button" class="btn btn-success" id="submitModule"><?=$languageArray['submit_code'][$language]?></button>
                                                             </div>
                                                         </div>
                                                     </form>
