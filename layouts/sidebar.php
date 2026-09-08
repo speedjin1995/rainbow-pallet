@@ -160,9 +160,15 @@
                                 <li class="nav-item">
                                     <a href="purchaseReport.php" class="nav-link"><?=$languageArray['receiving_report_code'][$language]?></a>
                                 </li>
+                                <!-- <li class="nav-item">
+                                    <a href="localReport.php" class="nav-link"><?=$languageArray['internal_transfer_report_code'][$language]?></a>
+                                </li> -->
                                 <li class="nav-item">
-                                    <a href="purchaseReport.php" class="nav-link"><?=$lang['t-poReport']?></a>
-                                </li-->
+                                    <a href="portReport.php" class="nav-link"><?=$languageArray['trx_to_port_code'][$language]?></a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="miscReport.php" class="nav-link"><?=$languageArray['miscellaneous_report_code'][$language]?></a>
+                                </li>
                                 <?php
                                     if($_SESSION["roles"] == 'ADMIN' || $_SESSION["roles"] == 'SADMIN'){
                                         echo '<li class="nav-item">

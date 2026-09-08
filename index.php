@@ -1893,12 +1893,14 @@ else{
                                 </button>
                             </div>`;
 
-                            buttons += `
-                            <div class="col-auto">
-                                <button title="Fill in Customer Side Info" type="button" id="customerSideInfo${data}" onclick="openCustomerSideInfo(${data})" class="btn btn-secondary btn-sm">
-                                    <i class="fas fa-clipboard-list"></i>
-                                </button>
-                            </div>`;
+                            if (row.transaction_status != 'Purchase' && row.transaction_status != 'Local'){
+                                buttons += `
+                                <div class="col-auto">
+                                    <button title="Fill in Customer Side Info" type="button" id="customerSideInfo${data}" onclick="openCustomerSideInfo(${data})" class="btn btn-secondary btn-sm">
+                                        <i class="fas fa-clipboard-list"></i>
+                                    </button>
+                                </div>`;
+                            }
                         }
 
                         if(userRole == 'SADMIN' || userRole == 'ADMIN' || userRole == 'MANAGER'){
@@ -2567,12 +2569,14 @@ else{
                                     </button>
                                 </div>`;
 
-                                buttons += `
-                                <div class="col-auto">
-                                    <button title="Fill in Customer Side Info" type="button" id="customerSideInfo${data}" onclick="openCustomerSideInfo(${data})" class="btn btn-secondary btn-sm">
-                                        <i class="fas fa-clipboard-list"></i>
-                                    </button>
-                                </div>`;
+                                if (row.transaction_status != 'Purchase' && row.transaction_status != 'Local'){
+                                    buttons += `
+                                    <div class="col-auto">
+                                        <button title="Fill in Customer Side Info" type="button" id="customerSideInfo${data}" onclick="openCustomerSideInfo(${data})" class="btn btn-secondary btn-sm">
+                                            <i class="fas fa-clipboard-list"></i>
+                                        </button>
+                                    </div>`;
+                                }
                             }
 
                             if(userRole == 'SADMIN' || userRole == 'ADMIN' || userRole == 'MANAGER'){
