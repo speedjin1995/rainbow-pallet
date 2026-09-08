@@ -260,7 +260,7 @@ else{
                                                                 <h5 class="card-title text-white mb-0"><?=$languageArray['weighing_records_code'][$language]?></h5>
                                                             </div>
                                                             <div class="flex-shrink-0">
-                                                                <button type="button" id="exportPdf" class="btn btn-danger waves-effect waves-light" data-bs-toggle="modal" data-bs-target="#addModal">
+                                                                <button type="button" id="exportPdf" class="btn btn-danger waves-effect waves-light" data-bs-toggle="modal" data-bs-target="#exportPdfModal">
                                                                     <i class="ri-file-pdf-line align-middle me-1"></i>
                                                                     <?=$languageArray['export_pdf_code'][$language]?>
                                                                 </button>
@@ -539,75 +539,48 @@ else{
             renderTable();
         });
 
-        $.validator.setDefaults({
-            submitHandler: function () {
-                if($('#exportPdfModal').hasClass('show')){   
-                    var fromDateI = $('#fromDateSearch').val();
-                    var toDateI = $('#toDateSearch').val();
-                    var statusI = $('#statusSearch').val() ? $('#statusSearch').val() : '';
-                    var customerNoI = $('#customerNoSearch').val() ? $('#customerNoSearch').val() : '';
-                    var supplierNoI = $('#supplierSearch').val() ? $('#supplierSearch').val() : '';
-                    var vehicleNoI = $('#vehicleNo').val() ? $('#vehicleNo').val() : '';
-                    var customerTypeI = $('#customerTypeSearch').val() ? $('#customerTypeSearch').val() : '';
-                    var productI = $('#productSearch').val() ? $('#productSearch').val() : '';
-                    var rawMatI = $('#rawMatSearch').val() ? $('#rawMatSearch').val() : '';
-                    var destinationI = $('#destinationSearch').val() ? $('#destinationSearch').val() : '';
-                    var plantI = $('#plantSearch').val() ? $('#plantSearch').val() : '';
+        $('#exportPdfForm').on('submit', function(e) {
+            e.preventDefault();
+            $('#exportPdfModal').modal('hide');
 
-                    $('#exportPdfForm').find('#fromDate').val(fromDateI);
-                    $('#exportPdfForm').find('#toDate').val(toDateI);
-                    $('#exportPdfForm').find('#status').val(statusI);
-                    $('#exportPdfForm').find('#customer').val(customerNoI);
-                    $('#exportPdfForm').find('#supplier').val(supplierNoI);
-                    $('#exportPdfForm').find('#vehicle').val(vehicleNoI);
-                    $('#exportPdfForm').find('#customerType').val(customerTypeI);
-                    $('#exportPdfForm').find('#product').val(productI);
-                    $('#exportPdfForm').find('#rawMat').val(rawMatI);
-                    $('#exportPdfForm').find('#destination').val(destinationI);
-                    $('#exportPdfForm').find('#plant').val(plantI);
-                    $('#exportPdfForm').find('#file').val('weight');
-                    $('#exportPdfModal').modal('hide');
+            $.post('php/exportPdf.php', $(this).serialize(), function(response){
+                var obj = JSON.parse(response);
 
-                    $.post('php/exportPdf.php', $('#exportPdfForm').serialize(), function(response){
-                        var obj = JSON.parse(response);
-
-                        if(obj.status === 'success'){
-                            var printWindow = window.open('', '', 'height=' + screen.height + ',width=' + screen.width);
-                            printWindow.document.write(obj.message);
-                            printWindow.document.close();
-                            setTimeout(function(){
-                                printWindow.print();
-                                printWindow.close();
-                            }, 500);
-                        }
-                        else if(obj.status === 'failed'){
-                            toastr["error"](obj.message, "Failed:");
-                        }
-                        else{
-                            toastr["error"]("Something wrong when activate", "Failed:");
-                        }
-                    }).fail(function(error){
-                        console.error("Error exporting PDF:", error);
-                        alert("An error occurred while generating the PDF.");
-                    });
+                if(obj.status === 'success'){
+                    var printWindow = window.open('', '', 'height=' + screen.height + ',width=' + screen.width);
+                    printWindow.document.write(obj.message);
+                    printWindow.document.close();
+                    setTimeout(function(){
+                        printWindow.print();
+                        printWindow.close();
+                    }, 500);
                 }
-            }
+                else if(obj.status === 'failed'){
+                    toastr["error"](obj.message, "Failed:");
+                }
+                else{
+                    toastr["error"]("Something wrong when exporting", "Failed:");
+                }
+            }).fail(function(error){
+                console.error("Error exporting PDF:", error);
+                toastr["error"]("An error occurred while generating the PDF.", "Failed:");
+            });
         });
 
         $('#exportPdf').on('click', function(){
             var fromDateI = $('#fromDateSearch').val();
             var toDateI = $('#toDateSearch').val();
-            var transactionStatusI = $('#transactionStatusSearch').val() ? $('#transactionStatusSearch').val() : '';
-            var customerNoI = $('#customerNoSearch').val() ? $('#customerNoSearch').val() : '';
-            var supplierNoI = $('#supplierSearch').val() ? $('#supplierSearch').val() : '';
-            var vehicleNoI = $('#vehicleNo').val() ? $('#vehicleNo').val() : '';
-            var weightTypeI = $('#invoiceNoSearch').val() ? $('#invoiceNoSearch').val() : '';
-            var customerTypeI = $('#customerTypeSearch').val() ? $('#customerTypeSearch').val() : '';
-            var productI = $('#productSearch').val() ? $('#productSearch').val() : '';
-            var rawMatI = $('#rawMatSearch').val() ? $('#rawMatSearch').val() : '';
-            var destinationI = $('#destinationSearch').val() ? $('#destinationSearch').val() : '';
-            var plantI = $('#plantSearch').val() ? $('#plantSearch').val() : '';
-            var statusI = $('#statusSearch').val() ? $('#statusSearch').val() : '';
+            var transactionStatusI = $('#transactionStatusSearch').val() || '';
+            var customerNoI = $('#customerNoSearch').val() || '';
+            var supplierNoI = $('#supplierSearch').val() || '';
+            var vehicleNoI = $('#vehicleNo').val() || '';
+            var weightTypeI = $('#invoiceNoSearch').val() || '';
+            var customerTypeI = $('#customerTypeSearch').val() || '';
+            var productI = $('#productSearch').val() || '';
+            var rawMatI = $('#rawMatSearch').val() || '';
+            var destinationI = $('#destinationSearch').val() || '';
+            var plantI = $('#plantSearch').val() || '';
+            var statusI = $('#statusSearch').val() || '';
 
             $('#exportPdfForm').find('#fromDate').val(fromDateI);
             $('#exportPdfForm').find('#toDate').val(toDateI);
@@ -617,7 +590,6 @@ else{
             $('#exportPdfForm').find('#vehicle').val(vehicleNoI);
             $('#exportPdfForm').find('#weighingType').val(weightTypeI);
             $('#exportPdfForm').find('#customerType').val(customerTypeI);
-            $('#exportPdfForm').find('#weightType').val(customerTypeI);
             $('#exportPdfForm').find('#product').val(productI);
             $('#exportPdfForm').find('#rawMat').val(rawMatI);
             $('#exportPdfForm').find('#destination').val(destinationI);
@@ -625,8 +597,7 @@ else{
             $('#exportPdfForm').find('#status').val(statusI);
             $('#exportPdfForm').find('#file').val('weight');
 
-            var selectedIds = []; // An array to store the selected 'id' values
-
+            var selectedIds = [];
             $("#weightTable tbody input[type='checkbox']").each(function () {
                 if (this.checked) {
                     selectedIds.push($(this).val());
@@ -636,58 +607,9 @@ else{
             if (selectedIds.length > 0){
                 $('#exportPdfForm').find('#isMulti').val('Y');
                 $('#exportPdfForm').find('#ids').val(selectedIds);
-                $('#exportPdfModal').modal('hide');
-
-                $.post('php/exportPdf.php', $('#exportPdfForm').serialize(), function(response){
-                    var obj = JSON.parse(response);
-
-                    if(obj.status === 'success'){
-                        var printWindow = window.open('', '', 'height=' + screen.height + ',width=' + screen.width);
-                        printWindow.document.write(obj.message);
-                        printWindow.document.close();
-                        setTimeout(function(){
-                            printWindow.print();
-                            printWindow.close();
-                        }, 500);
-                    }
-                    else if(obj.status === 'failed'){
-                        toastr["error"](obj.message, "Failed:");
-                    }
-                    else{
-                        toastr["error"]("Something wrong when activate", "Failed:");
-                    }
-                }).fail(function(error){
-                    console.error("Error exporting PDF:", error);
-                    alert("An error occurred while generating the PDF.");
-                });
-            }else{
+            } else {
                 $('#exportPdfForm').find('#isMulti').val('N');
-                $('#exportPdfModal').modal('hide');
-
-                $.post('php/exportPdf.php', $('#exportPdfForm').serialize(), function(response){
-                    var obj = JSON.parse(response);
-
-                    if(obj.status === 'success'){
-                        var printWindow = window.open('', '', 'height=' + screen.height + ',width=' + screen.width);
-                        printWindow.document.write(obj.message);
-                        printWindow.document.close();
-                        setTimeout(function(){
-                            printWindow.print();
-                            printWindow.close();
-                        }, 500);
-                    }
-                    else if(obj.status === 'failed'){
-                        toastr["error"](obj.message, "Failed:");
-                    }
-                    else{
-                        toastr["error"]("Something wrong when activate", "Failed:");
-                    }
-                }).fail(function(error){
-                    console.error("Error exporting PDF:", error);
-                    alert("An error occurred while generating the PDF.");
-                });
             }
-            
         });
 
         $('#exportExcel').on('click', function(){
