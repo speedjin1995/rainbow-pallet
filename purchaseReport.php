@@ -581,7 +581,6 @@ else{
             var supplierNoI = $('#supplierSearch').val() || '';
             var vehicleNoI = $('#vehicleNo').val() || '';
             var weightTypeI = $('#invoiceNoSearch').val() || '';
-            var customerTypeI = $('#customerTypeSearch').val() || '';
             var rawMatI = $('#rawMatSearch').val() || '';
             var destinationI = $('#destinationSearch').val() || '';
             var plantI = $('#plantSearch').val() || '';
@@ -590,12 +589,9 @@ else{
             $('#exportPdfForm').find('#fromDate').val(fromDateI);
             $('#exportPdfForm').find('#toDate').val(toDateI);
             $('#exportPdfForm').find('#transactionStatus').val(transactionStatusI);
-            $('#exportPdfForm').find('#customer').val(customerNoI);
             $('#exportPdfForm').find('#supplier').val(supplierNoI);
             $('#exportPdfForm').find('#vehicle').val(vehicleNoI);
             $('#exportPdfForm').find('#weighingType').val(weightTypeI);
-            $('#exportPdfForm').find('#customerType').val(customerTypeI);
-            $('#exportPdfForm').find('#product').val(productI);
             $('#exportPdfForm').find('#rawMat').val(rawMatI);
             $('#exportPdfForm').find('#destination').val(destinationI);
             $('#exportPdfForm').find('#plant').val(plantI);

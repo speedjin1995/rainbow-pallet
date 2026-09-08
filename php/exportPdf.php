@@ -2,7 +2,7 @@
 session_start();
 require_once 'db_connect.php';
 
-// $languageArray = $_SESSION['languageArray'] ?? [];
+$languageArray = $_SESSION['languageArray'] ?? [];
 $searchQuery = "";
 if($_SESSION["roles"] != 'ADMIN' && $_SESSION["roles"] != 'SADMIN'){
     $username = implode("', '", $_SESSION["plant"]);

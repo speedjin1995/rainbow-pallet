@@ -4,10 +4,10 @@
 <?php
 $plantId = $_SESSION['plant'];
 
-$customer = $db->query("SELECT * FROM Customer WHERE status = '0' ORDER BY name ASC");
-$product = $db->query("SELECT * FROM Product WHERE status = '0'");
+$supplier = $db->query("SELECT * FROM Supplier WHERE status = '0' ORDER BY name ASC");
 $transporter = $db->query("SELECT * FROM Transporter WHERE status = '0'");
 $destination = $db->query("SELECT * FROM Destination WHERE status = '0'");
+$rawMaterial = $db->query("SELECT * FROM Raw_Mat WHERE status = '0'");
 
 $plantName = '-';
 
@@ -112,17 +112,17 @@ else{
                                                         <div class="mb-3">
                                                             <label for="transactionStatusSearch" class="form-label"><?=$languageArray['transaction_status_code'][$language]?></label>
                                                             <select id="transactionStatusSearch" class="form-select select2">
-                                                                <option value="Sales" selected><?=$languageArray['dispatch_code'][$language]?></option>
+                                                                <option value="Local"><?=$languageArray['internal_transfer_code'][$language]?></option>
                                                             </select>
                                                         </div>
                                                     </div><!--end col-->
-                                                    <div class="col-3" id="customerSearchDisplay">
+                                                    <div class="col-3" id="supplierSearchDisplay" style="display:none">
                                                         <div class="mb-3">
-                                                            <label for="customerNoSearch" class="form-label"><?=$languageArray['customer_name_code'][$language]?></label>
-                                                            <select id="customerNoSearch" class="form-select select2">
+                                                            <label for="supplierSearch" class="form-label"><?=$languageArray['supplier_name_code'][$language]?></label>
+                                                            <select id="supplierSearch" class="form-select select2">
                                                                 <option selected>-</option>
-                                                                <?php while($rowPF = mysqli_fetch_assoc($customer)){ ?>
-                                                                    <option value="<?=$rowPF['customer_code'] ?>"><?=$rowPF['name'] ?></option>
+                                                                <?php while($rowSF=mysqli_fetch_assoc($supplier)){ ?>
+                                                                    <option value="<?=$rowSF['supplier_code'] ?>"><?=$rowSF['name'] ?></option>
                                                                 <?php } ?>
                                                             </select>
                                                         </div>
@@ -153,13 +153,13 @@ else{
                                                             </select>
                                                         </div>
                                                     </div>--><!--end col-->
-                                                    <div class="col-3" id="productSearchDisplay">
+                                                    <div class="col-3" id="rawMatSearchDisplay" style="display:none">
                                                         <div class="mb-3">
-                                                            <label for="ForminputState" class="form-label"><?=$languageArray['product_code_code'][$language]?></label>
-                                                            <select id="productSearch" class="form-select select2">
+                                                            <label for="rawMatSearch" class="form-label"><?=$languageArray['raw_material_code_code'][$language]?></label>
+                                                            <select id="rawMatSearch" class="form-select select2">
                                                                 <option selected>-</option>
-                                                                <?php while($rowProductF=mysqli_fetch_assoc($product)){ ?>
-                                                                    <option value="<?=$rowProductF['product_code'] ?>"><?=$rowProductF['product_code'] .' - '. $rowProductF['name'] ?></option>
+                                                                <?php while($rowRawMatF=mysqli_fetch_assoc($rawMaterial)){ ?>
+                                                                    <option value="<?=$rowRawMatF['raw_mat_code'] ?>"><?=$rowRawMatF['name'] ?></option>
                                                                 <?php } ?>
                                                             </select>
                                                         </div>
@@ -522,11 +522,11 @@ else{
         $('#clearAllSearch').on('click', function(){
             fromDateSearchPicker.setDate(yesterday);
             toDateSearchPicker.setDate(today);
-            $('#transactionStatusSearch').val('Sales').trigger('change');
-            $('#customerNoSearch').val('-').trigger('change');
+            $('#transactionStatusSearch').val('Local').trigger('change');
+            $('#supplierSearch').val('-').trigger('change');
             $('#vehicleNo').val('');
             $('#invoiceNoSearch').val('-').trigger('change');
-            $('#productSearch').val('-').trigger('change');
+            $('#rawMatSearch').val('-').trigger('change');
             $('#destinationSearch').val('-').trigger('change');
             $('#plantSearch').val('-').trigger('change');
             $('#statusSearch').val('Complete').trigger('change');
@@ -578,11 +578,10 @@ else{
             var fromDateI = $('#fromDateSearch').val();
             var toDateI = $('#toDateSearch').val();
             var transactionStatusI = $('#transactionStatusSearch').val() || '';
-            var customerNoI = $('#customerNoSearch').val() || '';
+            var supplierNoI = $('#supplierSearch').val() || '';
             var vehicleNoI = $('#vehicleNo').val() || '';
             var weightTypeI = $('#invoiceNoSearch').val() || '';
-            var customerTypeI = $('#customerTypeSearch').val() || '';
-            var productI = $('#productSearch').val() || '';
+            var rawMatI = $('#rawMatSearch').val() || '';
             var destinationI = $('#destinationSearch').val() || '';
             var plantI = $('#plantSearch').val() || '';
             var statusI = $('#statusSearch').val() || '';
@@ -590,11 +589,10 @@ else{
             $('#exportPdfForm').find('#fromDate').val(fromDateI);
             $('#exportPdfForm').find('#toDate').val(toDateI);
             $('#exportPdfForm').find('#transactionStatus').val(transactionStatusI);
-            $('#exportPdfForm').find('#customer').val(customerNoI);
+            $('#exportPdfForm').find('#supplier').val(supplierNoI);
             $('#exportPdfForm').find('#vehicle').val(vehicleNoI);
             $('#exportPdfForm').find('#weighingType').val(weightTypeI);
-            $('#exportPdfForm').find('#customerType').val(customerTypeI);
-            $('#exportPdfForm').find('#product').val(productI);
+            $('#exportPdfForm').find('#rawMat').val(rawMatI);
             $('#exportPdfForm').find('#destination').val(destinationI);
             $('#exportPdfForm').find('#plant').val(plantI);
             $('#exportPdfForm').find('#status').val(statusI);

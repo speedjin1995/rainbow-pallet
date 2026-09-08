@@ -112,7 +112,7 @@ else{
                                                         <div class="mb-3">
                                                             <label for="transactionStatusSearch" class="form-label"><?=$languageArray['transaction_status_code'][$language]?></label>
                                                             <select id="transactionStatusSearch" class="form-select select2">
-                                                                <option value="Sales" selected><?=$languageArray['dispatch_code'][$language]?></option>
+                                                                <option value="Port" selected><?=$languageArray['trx_to_port_code'][$language]?></option>
                                                             </select>
                                                         </div>
                                                     </div><!--end col-->
@@ -522,7 +522,7 @@ else{
         $('#clearAllSearch').on('click', function(){
             fromDateSearchPicker.setDate(yesterday);
             toDateSearchPicker.setDate(today);
-            $('#transactionStatusSearch').val('Sales').trigger('change');
+            $('#transactionStatusSearch').val('Port').trigger('change');
             $('#customerNoSearch').val('-').trigger('change');
             $('#vehicleNo').val('');
             $('#invoiceNoSearch').val('-').trigger('change');
