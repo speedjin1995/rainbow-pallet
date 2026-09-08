@@ -73,11 +73,11 @@
                             </li>
 
                             <li class="nav-item">
-                                <a href="deliveryOrder.php" class="nav-link"><b><?=$languageArray['delivery_order_code'][$language]?></b></a>
+                                <a href="deliveryOrder.php" class="nav-link"><?=$languageArray['delivery_order_code'][$language]?></a>
                             </li>
 
                             <li class="nav-item">
-                                <a href="goodsReceived.php" class="nav-link"><b><?=$languageArray['goods_received_code'][$language]?></b></a>
+                                <a href="goodsReceived.php" class="nav-link"><?=$languageArray['goods_received_code'][$language]?></a>
                             </li>
 
                         </ul>
