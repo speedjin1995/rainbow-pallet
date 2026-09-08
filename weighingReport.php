@@ -93,26 +93,6 @@ else{
                 <div class="row">
                     <div class="col">
                         <div class="h-100">
-                            <div class="row mb-3 pb-1">
-                                <div class="col-12">
-                                    <div class="d-flex align-items-lg-center flex-lg-row flex-column">
-                                        <div class="flex-grow-1">
-                                            <!--h4 class="fs-16 mb-1">Good Morning, Anna!</h4>
-                                            <p class="text-muted mb-0">Here's what's happening with your store
-                                                today.</p-->
-                                        </div>
-                                        <div class="mt-3 mt-lg-0">
-                                            <form action="javascript:void(0);">
-                                                <div class="row g-3 mb-0 align-items-center">
-
-                                            </form>
-                                        </div>
-                                    </div><!-- end card header -->
-                                </div>
-                                <!--end col-->
-                            </div>
-                            <!--end row-->
-
                             <div class="col-xxl-12 col-lg-12">
                                 <div class="card">
                                     <div class="card-header fs-5 text-white" href="#collapseSearch" data-bs-toggle="collapse" role="button" aria-expanded="true" aria-controls="collapseSearch" style="background-color: #405189;">
@@ -266,113 +246,6 @@ else{
                                     </div>
                                 </div>
                             </div>
-                            
-                            <div class="row">
-                                <!-- <div class="col-xl-3 col-md-6">
-                                    <div class="card card-animate" style="background-color: #4CAF50;">
-                                        <div class="card-body">
-                                            <div class="d-flex align-items-center">
-                                                <div class="flex-grow-1 overflow-hidden">
-                                                    <p class="text-uppercase fw-medium text-white text-truncate mb-0">
-                                                        Sales
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div class="d-flex align-items-end justify-content-between mt-4">
-                                                <div>
-                                                    <h4 class="fs-22 fw-semibold ff-secondary mb-4">
-                                                        <span class="counter-value text-white" id="salesInfo">0</span>
-                                                    </h4>
-                                                </div>
-                                                <div class="avatar-sm flex-shrink-0" style="background-color:white;">
-                                                    <span class="avatar-title bg-soft-success rounded fs-3">
-                                                        <i class="bx bx-dollar-circle text-success"></i>
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="col-xl-3 col-md-6">
-                                    <div class="card card-animate" style="background-color: #FFC107;">
-                                        <div class="card-body">
-                                            <div class="d-flex align-items-center">
-                                                <div class="flex-grow-1 overflow-hidden">
-                                                    <p class="text-uppercase fw-medium text-white text-truncate mb-0">
-                                                        Purchase
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div class="d-flex align-items-end justify-content-between mt-4">
-                                                <div>
-                                                    <h4 class="fs-22 fw-semibold ff-secondary mb-4">
-                                                        <span class="counter-value text-white" id="purchaseInfo">0</span>
-                                                    </h4>
-                                                </div>
-                                                <div class="avatar-sm flex-shrink-0" style="background-color:white;">
-                                                    <span class="avatar-title bg-soft-info rounded fs-3">
-                                                        <i class="bx bx-shopping-bag text-info"></i>
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="col-xl-3 col-md-6">
-                                    <div class="card card-animate" style="background-color: #81D4FA;">
-                                        <div class="card-body">
-                                            <div class="d-flex align-items-center">
-                                                <div class="flex-grow-1 overflow-hidden">
-                                                    <p class="text-uppercase fw-medium text-white text-truncate mb-0">
-                                                        Transfer to Port
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div class="d-flex align-items-end justify-content-between mt-4">
-                                                <div>
-                                                    <h4 class="fs-22 fw-semibold ff-secondary mb-4">
-                                                        <span class="counter-value text-white" id="localInfo">0</span>
-                                                    </h4>
-                                                </div>
-                                                <div class="avatar-sm flex-shrink-0" style="background-color:white;">
-                                                    <span class="avatar-title bg-soft-warning rounded fs-3">
-                                                        <i class="bx bx-user-circle text-warning"></i>
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="col-xl-3 col-md-6">
-                                    <div class="card card-animate" style="background-color: #9C27B0;">
-                                        <div class="card-body">
-                                            <div class="d-flex align-items-center">
-                                                <div class="flex-grow-1 overflow-hidden">
-                                                    <p class="text-white text-uppercase fw-medium text-truncate mb-0">
-                                                        Miscellaneous
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div class="d-flex align-items-end justify-content-between mt-4">
-                                                <div>
-                                                    <h4 class="fs-22 fw-semibold ff-secondary mb-4">
-                                                        <span class="counter-value text-white" id="miscInfo">0</span>
-                                                    </h4>
-                                                </div>
-                                                <div class="avatar-sm flex-shrink-0" style="background-color:white;">
-                                                    <span class="avatar-title bg-soft-warning rounded fs-3">
-                                                        <i class="bx bx-user-circle text-warning"></i>
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div> -->
-                            </div> <!-- end row-->
-
 
                             <div class="row">
                                 <div class="col">
@@ -451,7 +324,7 @@ else{
         <div class="modal-dialog modal-dialog-scrollable custom-xxl">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalScrollableTitle">Export Weighing Records</h5>
+                    <h5 class="modal-title" id="exampleModalScrollableTitle"><?=$languageArray['export_weighing_records_code'][$language]?></h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
                     </button>
                 </div>
@@ -465,14 +338,14 @@ else{
                                             <input type="hidden" class="form-control" id="id" name="id"> 
                                             <div class="col-12">
                                                 <div class="row">
-                                                    <label for="reportType" class="col-sm-4 col-form-label">Report Type *</label>
+                                                    <label for="reportType" class="col-sm-4 col-form-label"><?=$languageArray['report_type_code'][$language]?> *</label>
                                                     <div class="col-sm-8">
                                                         <select id="reportType" name="reportType" class="form-select" required>
                                                             <!-- <option value="CUSTOMER">Customer Report</option> -->
-                                                            <option value="SUMMARY">Summary Report</option>
-                                                            <option value="PRODUCT">Product Report</option>
-                                                            <option value="S&P">Sales and Purchase Report - Product</option>
-                                                            <option value="S&PC">Sales and Purchase Report - Customer</option>
+                                                            <option value="SUMMARY"><?=$languageArray['summary_report_code'][$language]?></option>
+                                                            <option value="PRODUCT"><?=$languageArray['product_report_code'][$language]?></option>
+                                                            <option value="S&P"><?=$languageArray['sales_purchase_report_code'][$language]?> - <?=$languageArray['product_code'][$language]?></option>
+                                                            <option value="S&PC"><?=$languageArray['sales_purchase_report_code'][$language]?> - <?=$languageArray['customer_code'][$language]?></option>
                                                         </select>   
                                                     </div>
                                                 </div>
@@ -511,6 +384,57 @@ else{
         </div><!-- /.modal-dialog -->
     </div>
 
+    <div class="modal fade" id="prePrintModal">
+        <div class="modal-dialog modal-xl" style="max-width: 90%;">
+            <div class="modal-content">
+                <form role="form" id="prePrintForm">
+                    <div class="modal-header bg-gray-dark color-palette">
+                        <h4 class="modal-title"><?=$languageArray['language_code'][$language]?></h4>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row mb-3">
+                            <label for="prePrint" class="col-sm-4 col-form-label"><?=$languageArray['language_code'][$language]?></label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <div class="col-12">
+                                        <select class="form-select select2" id="prePrint" name="prePrint" >
+                                            <option value="en">English</option>
+                                            <option value="zh">Chinese</option>
+                                            <option value="my">Bahasa Malaysia</option>
+                                            <option value="ne">नेपाली</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mb-3" id="printTemplateDisplay">
+                            <label for="printTemplate" class="col-sm-4 col-form-label"><?=$languageArray['print_template_code'][$language]?></label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <div class="col-12">
+                                        <select class="form-select select2" id="printTemplate" name="printTemplate" >
+                                            <option value="with_weight" selected><?=$languageArray['with_weight_code'][$language]?></option>
+                                            <option value="without_weight"><?=$languageArray['without_weight_code'][$language]?></option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                            
+                        <input type="hidden" class="form-control" id="isEmptyContainer" name="isEmptyContainer">
+                        <input type="hidden" class="form-control" id="prePrintTransactionStatus" name="prePrintTransactionStatus">
+                        <input type="hidden" class="form-control" id="id" name="id">
+                    </div>
+                    <div class="modal-footer justify-content-between bg-gray-dark color-palette">
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal"><?=$languageArray['close_code'][$language]?></button>
+                        <button type="button" class="btn btn-success" id="submitPrePrint"><?=$languageArray['submit_code'][$language]?></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <?php include 'layouts/customizer.php'; ?>
     <?php include 'layouts/vendor-scripts.php'; ?>
     <!-- apexcharts -->
@@ -542,6 +466,7 @@ else{
     
     var fromDateSearchPicker;
     var toDateSearchPicker;
+    var table = null;
 
     $(function () {
         const today = new Date();
@@ -606,184 +531,12 @@ else{
             checkboxes.prop('checked', $(this).prop('checked')).trigger('change');
         });
 
-        var fromDateI = $('#fromDateSearch').val();
-        var toDateI = $('#toDateSearch').val();
-        var transactionStatusI = $('#transactionStatusSearch').val() ? $('#transactionStatusSearch').val() : '';
-        var customerNoI = $('#customerNoSearch').val() ? $('#customerNoSearch').val() : '';
-        var supplierNoI = $('#supplierSearch').val() ? $('#supplierSearch').val() : '';
-        var vehicleNoI = $('#vehicleNo').val() ? $('#vehicleNo').val() : '';
-        var weightTypeI = $('#invoiceNoSearch').val() ? $('#invoiceNoSearch').val() : '';
-        var customerTypeI = $('#customerTypeSearch').val() ? $('#customerTypeSearch').val() : '';
-        var productI = $('#productSearch').val() ? $('#productSearch').val() : '';
-        var rawMatI = $('#rawMatSearch').val() ? $('#rawMatSearch').val() : '';
-        var destinationI = $('#destinationSearch').val() ? $('#destinationSearch').val() : '';
-        var plantI = $('#plantSearch').val() ? $('#plantSearch').val() : '';
-        var statusI = $('#statusSearch').val() ? $('#statusSearch').val() : '';
-        var invDelPoI = $('#invDelPoSearch').val() ? $('#invDelPoSearch').val() : '';
+        // Initial load
+        renderTable();
 
-        var table = $("#weightTable").DataTable({
-            "responsive": true,
-            "autoWidth": false,
-            'processing': true,
-            'serverSide': true,
-            'searching': true,
-            'serverMethod': 'post',
-            'ajax': {
-                'url':'php/filterReports.php',
-                'data': {
-                    fromDate: fromDateI,
-                    toDate: toDateI,
-                    transactionStatus: transactionStatusI,
-                    customer: customerNoI,
-                    supplier: supplierNoI,
-                    vehicle: vehicleNoI,
-                    weightType: weightTypeI,
-                    customerType: customerTypeI,
-                    product: productI,
-                    rawMaterial: rawMatI,
-                    destination: destinationI,
-                    plant: plantI,
-                    status: statusI,
-                    invDelPo: invDelPoI
-                } 
-            },
-            'columns': [
-                {
-                    // Add a checkbox with a unique ID for each row
-                    data: 'id', // Assuming 'serialNo' is a unique identifier for each row
-                    className: 'select-checkbox',
-                    orderable: false,
-                    render: function (data, type, row) {
-                        return '<input type="checkbox" class="select-checkbox" id="checkbox_' + data + '" value="'+data+'"/>';
-                    }
-                },
-                { data: 'transaction_id' },
-                { data: 'weight_type' },
-                { data: 'transaction_status' },
-                { data: 'customer' },
-                { data: 'container_no' },
-                { data: 'seal_no' },
-                { data: 'lorry_plate_no1' },
-                { data: 'gross_weight1' },
-                { data: 'gross_weight1_date' },
-                { data: 'tare_weight1' },
-                { data: 'tare_weight1_date' },
-                { data: 'nett_weight1' },
-                { data: 'lorry_plate_no2' },
-                { data: 'gross_weight2' },
-                { data: 'gross_weight2_date' },
-                { data: 'tare_weight2' },
-                { data: 'tare_weight2_date' },
-                { data: 'nett_weight2' },
-                { 
-                    data: 'id',
-                    render: function ( data, type, row ) {
-                        // return '<div class="row"><div class="col-3"><button type="button" id="edit'+data+'" onclick="edit('+data+')" class="btn btn-success btn-sm"><i class="fas fa-pen"></i></button></div><div class="col-3"><button type="button" id="deactivate'+data+'" onclick="deactivate('+data+')" class="btn btn-success btn-sm"><i class="fas fa-trash"></i></button></div></div>';
-                        return '<div class="dropdown d-inline-block"><button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">' +
-                        '<i class="ri-more-fill align-middle"></i></button><ul class="dropdown-menu dropdown-menu-end">' +
-                        '<li><a class="dropdown-item print-item-btn" id="print'+data+'" onclick="print('+data+')"><i class="ri-printer-fill align-bottom me-2 text-muted"></i> Print</a></li></ul></div>';
-                    }
-                }
-            ],
-            "drawCallback": function(settings) {
-                $('#salesInfo').text(settings.json.salesTotal);
-                $('#purchaseInfo').text(settings.json.purchaseTotal);
-                $('#localInfo').text(settings.json.localTotal);
-                $('#miscInfo').text(settings.json.miscTotal);
-            }   
-        });
-
-        $('#filterSearch').on('click', function(){
-            var fromDateI = $('#fromDateSearch').val();
-            var toDateI = $('#toDateSearch').val();
-            var transactionStatusI = $('#transactionStatusSearch').val() ? $('#transactionStatusSearch').val() : '';
-            var customerNoI = $('#customerNoSearch').val() ? $('#customerNoSearch').val() : '';
-            var supplierNoI = $('#supplierSearch').val() ? $('#supplierSearch').val() : '';
-            var vehicleNoI = $('#vehicleNo').val() ? $('#vehicleNo').val() : '';
-            var weightTypeI = $('#invoiceNoSearch').val() ? $('#invoiceNoSearch').val() : '';
-            var customerTypeI = $('#customerTypeSearch').val() ? $('#customerTypeSearch').val() : '';
-            var productI = $('#productSearch').val() ? $('#productSearch').val() : '';
-            var rawMatI = $('#rawMatSearch').val() ? $('#rawMatSearch').val() : '';
-            var destinationI = $('#destinationSearch').val() ? $('#destinationSearch').val() : '';
-            var plantI = $('#plantSearch').val() ? $('#plantSearch').val() : '';
-            var statusI = $('#statusSearch').val() ? $('#statusSearch').val() : '';
-            var invDelPoI = $('#invDelPoSearch').val() ? $('#invDelPoSearch').val() : '';
-
-            //Destroy the old Datatable
-            $("#weightTable").DataTable().clear().destroy();
-
-            //Create new Datatable
-            table = $("#weightTable").DataTable({
-                "responsive": true,
-                "autoWidth": false,
-                'processing': true,
-                'serverSide': true,
-                'searching': true,
-                'serverMethod': 'post',
-                'ajax': {
-                    'url':'php/filterReports.php',
-                    'data': {
-                        fromDate: fromDateI,
-                        toDate: toDateI,
-                        transactionStatus: transactionStatusI,
-                        customer: customerNoI,
-                        supplier: supplierNoI,
-                        vehicle: vehicleNoI,
-                        weightType: weightTypeI,
-                        customerType: customerTypeI,
-                        product: productI,
-                        rawMaterial: rawMatI,
-                        destination: destinationI,
-                        plant: plantI,
-                        status: statusI,
-                        invDelPo: invDelPoI
-                    } 
-                },
-                'columns': [
-                    {
-                        // Add a checkbox with a unique ID for each row
-                        data: 'id', // Assuming 'serialNo' is a unique identifier for each row
-                        className: 'select-checkbox',
-                        orderable: false,
-                        render: function (data, type, row) {
-                            return '<input type="checkbox" class="select-checkbox" id="checkbox_' + data + '" value="'+data+'"/>';
-                        }
-                    },
-                    { data: 'transaction_id' },
-                    { data: 'weight_type' },
-                    { data: 'transaction_status' },
-                    { data: 'customer' },
-                    { data: 'container_no' },
-                    { data: 'seal_no' },
-                    { data: 'lorry_plate_no1' },
-                    { data: 'gross_weight1' },
-                    { data: 'gross_weight1_date' },
-                    { data: 'tare_weight1' },
-                    { data: 'tare_weight1_date' },
-                    { data: 'nett_weight1' },
-                    { data: 'lorry_plate_no2' },
-                    { data: 'gross_weight2' },
-                    { data: 'gross_weight2_date' },
-                    { data: 'tare_weight2' },
-                    { data: 'tare_weight2_date' },
-                    { data: 'nett_weight2' },
-                    { 
-                        data: 'id',
-                        render: function ( data, type, row ) {
-                            // return '<div class="row"><div class="col-3"><button type="button" id="edit'+data+'" onclick="edit('+data+')" class="btn btn-success btn-sm"><i class="fas fa-pen"></i></button></div><div class="col-3"><button type="button" id="deactivate'+data+'" onclick="deactivate('+data+')" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button></div></div>';
-                            return '<div class="dropdown d-inline-block"><button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">' +
-                            '<i class="ri-more-fill align-middle"></i></button><ul class="dropdown-menu dropdown-menu-end">' +
-                            '<li><a class="dropdown-item print-item-btn" id="print'+data+'" onclick="print('+data+')"><i class="ri-printer-fill align-bottom me-2 text-muted"></i> Print</a></li></ul></div>';
-                        }
-                    }
-                ],
-                "drawCallback": function(settings) {
-                    $('#salesInfo').text(settings.json.salesTotal);
-                    $('#purchaseInfo').text(settings.json.purchaseTotal);
-                    $('#localInfo').text(settings.json.localTotal);
-                    $('#miscInfo').text(settings.json.miscTotal);
-                }   
-            });
+        // Filter search
+        $('#filterSearch').on('click', function () {
+            renderTable();
         });
 
         $.validator.setDefaults({
@@ -988,148 +741,159 @@ else{
                 $('#supplierSearchDisplay').hide();
             }
         });
-    });
 
-    function edit(id){
-        $('#spinnerLoading').show();
-        $.post('php/getWeight.php', {userID: id}, function(data)
-        {
-            var obj = JSON.parse(data);
-            if(obj.status === 'success'){
-                $('#addModal').find('#id').val(obj.message.id);
-                $('#addModal').find('#transactionId').val(obj.message.transaction_id);
-                $('#addModal').find('#transactionStatus').val(obj.message.transaction_status);
-                $('#addModal').find('#weightType').val(obj.message.weight_type);
-                $('#addModal').find('#transactionDate').val(formatDate2(new Date(obj.message.transaction_date)));
-                $('#addModal').find('#vehiclePlateNo1').val(obj.message.lorry_plate_no1);
+        $('#submitPrePrint').on('click', function(){
+            if($('#prePrintForm').valid()){
+                $('#spinnerLoading').show();
+                var id = $('#prePrintModal').find('#id').val();
+                var prePrintStatus = $('#prePrintModal').find('#prePrint').val();
+                var isEmptyContainer = $('#prePrintModal').find('#isEmptyContainer').val();
+                var printTemplate = $('#prePrintModal').find('#printTemplate').val();
+                var transactionStatus = $('#prePrintModal').find('#prePrintTransactionStatus').val();
+                $.post('php/print.php', {userID: id, file: 'weight', prePrint: prePrintStatus, isEmptyContainer: isEmptyContainer, printTemplate: printTemplate, transactionStatus: transactionStatus}, function(data){
+                    var obj = JSON.parse(data);
 
-                if(obj.message.vehicleNoTxt != null)
-                {
-                    $('#addModal').find('#vehicleNoTxt').val(obj.message.vehicleNoTxt);
-                }
+                    if(obj.status === 'success'){
+                        var printWindow = window.open('', '', 'height=' + screen.height + ',width=' + screen.width);
+                        printWindow.document.write(obj.message);
+                        printWindow.document.close();
+                        setTimeout(function(){
+                            printWindow.print();
+                            printWindow.close();
+                        }, 500);
 
-                $('#addModal').find('#vehiclePlateNo2').val(obj.message.lorry_plate_no2);
-                $('#addModal').find('#supplierWeight').val(obj.message.supplier_weight);
-                $('#addModal').find('#customerCode').val(obj.message.customer_code);
-                $('#addModal').find('#customerName').val(obj.message.customer_name);
-                $('#addModal').find('#supplierCode').val(obj.message.supplier_code);
-                $('#addModal').find('#supplierName').val(obj.message.supplier_name);
-                $('#addModal').find('#productCode').val(obj.message.product_code);
-                $('#addModal').find('#containerNo').val(obj.message.container_no);
-                $('#addModal').find('#invoiceNo').val(obj.message.invoice_no);
-                $('#addModal').find('#purchaseOrder').val(obj.message.purchase_order);
-                $('#addModal').find('#deliveryNo').val(obj.message.delivery_no);
-                $('#addModal').find('#transporterCode').val(obj.message.transporter_code);
-                $('#addModal').find('#transporter').val(obj.message.transporter);
-                $('#addModal').find('#destinationCode').val(obj.message.destination_code);
-                $('#addModal').find('#destination').val(obj.message.destination);
-                $('#addModal').find('#otherRemarks').val(obj.message.remarks);
-                $('#addModal').find('#grossIncoming').val(obj.message.gross_weight1);
-                $('#addModal').find('#grossIncomingDate').val(formatDate2(new Date(obj.message.gross_weight1_date)));
-                $('#addModal').find('#tareOutgoing').val(obj.message.tare_weight1);
-                $('#addModal').find('#tareOutgoingDate').val(obj.message.tare_weight1_date != null ? formatDate2(new Date(obj.message.tare_weight1_date)) : '');
-                $('#addModal').find('#nettWeight').val(obj.message.nett_weight1);
-                $('#addModal').find('#grossIncoming2').val(obj.message.gross_weight2);
-                $('#addModal').find('#grossIncomingDate2').val(obj.message.gross_weight2_date != null ? formatDate2(new Date(obj.message.gross_weight2_date)) : '');
-                $('#addModal').find('#tareOutgoing2').val(obj.message.tare_weight2);
-                $('#addModal').find('#tareOutgoingDate2').val(obj.message.tare_weight2_date != null ? formatDate2(new Date(obj.message.tare_weight2_date)) : '');
-                $('#addModal').find('#nettWeight2').val(obj.message.nett_weight2);
-                $('#addModal').find('#reduceWeight').val(obj.message.reduce_weight);
-                // $('#addModal').find('#vehicleNo').val(obj.message.final_weight);
-                $('#addModal').find('#weightDifference').val(obj.message.weight_different);
-                // $('#addModal').find('#id').val(obj.message.is_complete);
-                // $('#addModal').find('#vehicleNo').val(obj.message.is_cancel);
-                //$('#addModal').find('#manualWeight').val(obj.message.manual_weight);
-                if(obj.message.manual_weight == 'true'){
-                    $("#manualWeightYes").prop("checked", true);
-                    $("#manualWeightNo").prop("checked", false);
-                }
-                else{
-                    $("#manualWeightYes").prop("checked", false);
-                    $("#manualWeightNo").prop("checked", true);
-                }
-
-                $('#addModal').find('#indicatorId').val(obj.message.indicator_id);
-                $('#addModal').find('#weighbridge').val(obj.message.weighbridge_id);
-                $('#addModal').find('#indicatorId2').val(obj.message.indicator_id_2);
-                $('#addModal').find('#productName').val(obj.message.product_name).trigger('change');
-                $('#addModal').find('#productDescription').val(obj.message.product_description);
-                $('#addModal').find('#subTotalPrice').val(obj.message.product_description);
-                $('#addModal').find('#sstPrice').val(obj.message.product_description);
-                $('#addModal').find('#totalPrice').val(obj.message.total_price);
-                $('#addModal').find('#finalWeight').val(obj.message.final_weight);
-                $('#addModal').modal('show');
-            
-                $('#weightForm').validate({
-                    errorElement: 'span',
-                    errorPlacement: function (error, element) {
-                        error.addClass('invalid-feedback');
-                        element.closest('.form-group').append(error);
-                    },
-                    highlight: function (element, errorClass, validClass) {
-                        $(element).addClass('is-invalid');
-                    },
-                    unhighlight: function (element, errorClass, validClass) {
-                        $(element).removeClass('is-invalid');
+                        $("#prePrintModal").modal("hide");
+                        $('#spinnerLoading').hide();
+                    }
+                    else if(obj.status === 'failed'){
+                        $("#failBtn").attr('data-toast-text', obj.message );
+                        $("#failBtn").click();
+                    }
+                    else{
+                        $("#failBtn").attr('data-toast-text', "Something wrong when print");
+                        $("#failBtn").click();
                     }
                 });
             }
-            else if(obj.status === 'failed'){
-                $('#spinnerLoading').hide();
-                $("#failBtn").attr('data-toast-text', obj.message );
-                $("#failBtn").click();
-            }
-            else{
-                $('#spinnerLoading').hide();
-                $("#failBtn").attr('data-toast-text', obj.message );
-                $("#failBtn").click();
-            }
-            $('#spinnerLoading').hide();
+        });
+    });
+
+    function renderTable() {
+        var fromDateI = $('#fromDateSearch').val();
+        var toDateI = $('#toDateSearch').val();
+        var transactionStatusI = $('#transactionStatusSearch').val() || '';
+        var customerNoI = $('#customerNoSearch').val() || '';
+        var supplierNoI = $('#supplierSearch').val() || '';
+        var vehicleNoI = $('#vehicleNo').val() || '';
+        var weightTypeI = $('#invoiceNoSearch').val() || '';
+        var customerTypeI = $('#customerTypeSearch').val() || '';
+        var productI = $('#productSearch').val() || '';
+        var rawMatI = $('#rawMatSearch').val() || '';
+        var destinationI = $('#destinationSearch').val() || '';
+        var plantI = $('#plantSearch').val() || '';
+        var statusI = $('#statusSearch').val() || '';
+        var invDelPoI = $('#invDelPoSearch').val() || '';
+
+        // Destroy the old Datatable if exists
+        if ($.fn.DataTable.isDataTable('#weightTable')) {
+            $("#weightTable").DataTable().clear().destroy();
+        }
+
+        // Create new Datatable
+        table = $("#weightTable").DataTable({
+            "responsive": true,
+            "autoWidth": false,
+            'processing': true,
+            'serverSide': true,
+            'searching': true,
+            'serverMethod': 'post',
+            'ajax': {
+                'url': 'php/filterReports.php',
+                'data': {
+                    fromDate: fromDateI,
+                    toDate: toDateI,
+                    transactionStatus: transactionStatusI,
+                    customer: customerNoI,
+                    supplier: supplierNoI,
+                    vehicle: vehicleNoI,
+                    weightType: weightTypeI,
+                    customerType: customerTypeI,
+                    product: productI,
+                    rawMaterial: rawMatI,
+                    destination: destinationI,
+                    plant: plantI,
+                    status: statusI,
+                    invDelPo: invDelPoI
+                }
+            },
+            'columns': [
+                {
+                    data: 'id',
+                    className: 'select-checkbox',
+                    orderable: false,
+                    render: function (data, type, row) {
+                        return '<input type="checkbox" class="select-checkbox" id="checkbox_' + data + '" value="' + data + '"/>';
+                    }
+                },
+                { data: 'transaction_id' },
+                { data: 'weight_type' },
+                { data: 'transaction_status' },
+                { data: 'customer' },
+                { data: 'container_no' },
+                { data: 'seal_no' },
+                { data: 'lorry_plate_no1' },
+                { data: 'gross_weight1' },
+                { data: 'gross_weight1_date' },
+                { data: 'tare_weight1' },
+                { data: 'tare_weight1_date' },
+                { data: 'nett_weight1' },
+                { data: 'lorry_plate_no2' },
+                { data: 'gross_weight2' },
+                { data: 'gross_weight2_date' },
+                { data: 'tare_weight2' },
+                { data: 'tare_weight2_date' },
+                { data: 'nett_weight2' },
+                {
+                    data: 'id',
+                    render: function (data, type, row) {
+                        return '<div class="dropdown d-inline-block"><button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">' +
+                            '<i class="ri-more-fill align-middle"></i></button><ul class="dropdown-menu dropdown-menu-end">' +
+                            '<li><a class="dropdown-item print-item-btn" id="print' + data + '" onclick="print(' + data + ')"><i class="ri-printer-fill align-bottom me-2 text-muted"></i> Print</a></li></ul></div>';
+                    }
+                }
+            ]
         });
     }
 
-    function deactivate(id){
-        $('#spinnerLoading').show();
-        $.post('php/deleteWeight.php', {userID: id}, function(data){
-            var obj = JSON.parse(data);
-            
-            if(obj.status === 'success'){
-                table.ajax.reload();
-                $('#spinnerLoading').hide();
-                $("#successBtn").attr('data-toast-text', obj.message);
-                $("#successBtn").click();
-            }
-            else if(obj.status === 'failed'){
-                $('#spinnerLoading').hide();
-                $("#failBtn").attr('data-toast-text', obj.message );
-                $("#failBtn").click();
-            }
-            else{
-                $('#spinnerLoading').hide();
-                $("#failBtn").attr('data-toast-text', obj.message );
-                $("#failBtn").click();
-            }
-        });
+    function preparePrePrintModal(id, transactionStatus, isEmptyContainer) {
+        $('#prePrintModal').find('#id').val(id);
+        $('#prePrintModal').find('#isEmptyContainer').val(isEmptyContainer);
+        $('#prePrintModal').find('#prePrintTransactionStatus').val(transactionStatus);
+        $('#prePrintModal').find('#prePrint').val("<?=$language ?>");
+        $('#prePrintModal').find('#printTemplate').val("with_weight");
+
+        if (transactionStatus == 'Purchase' || isEmptyContainer == 'Y') {
+            $('#prePrintModal').find('#printTemplateDisplay').hide();
+        } else {
+            $('#prePrintModal').find('#printTemplateDisplay').show();
+        }
     }
 
-    function print(id) {
-        $.post('php/print.php', {userID: id, file: 'weight'}, function(data){
-            var obj = JSON.parse(data);
+    function print(id, transactionStatus, isEmptyContainer = 'N') {
+        preparePrePrintModal(id, transactionStatus, isEmptyContainer);
+        $("#prePrintModal").modal("show");
 
-            if(obj.status === 'success'){
-                var printWindow = window.open('', '', 'height=' + screen.height + ',width=' + screen.width);
-                printWindow.document.write(obj.message);
-                printWindow.document.close();
-                setTimeout(function(){
-                    printWindow.print();
-                    printWindow.close();
-                }, 500);
-            }
-            else if(obj.status === 'failed'){
-                toastr["error"](obj.message, "Failed:");
-            }
-            else{
-                toastr["error"]("Something wrong when activate", "Failed:");
+        $('#prePrintForm').validate({
+            errorElement: 'span',
+            errorPlacement: function (error, element) {
+                error.addClass('invalid-feedback');
+                element.closest('.form-group').append(error);
+            },
+            highlight: function (element, errorClass, validClass) {
+                $(element).addClass('is-invalid');
+            },
+            unhighlight: function (element, errorClass, validClass) {
+                $(element).removeClass('is-invalid');
             }
         });
     }

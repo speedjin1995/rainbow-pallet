@@ -1198,13 +1198,13 @@ else{
                                                             </div>
                                                         </div>
                                                         <div class="row mb-3" id="printTemplateDisplay">
-                                                            <label for="printTemplate" class="col-sm-4 col-form-label"><?=$languageArray['>print_template_code'][$language]?></label>
+                                                            <label for="printTemplate" class="col-sm-4 col-form-label"><?=$languageArray['print_template_code'][$language]?></label>
                                                             <div class="col-sm-8">
                                                                 <div class="input-group">
                                                                     <div class="col-12">
                                                                         <select class="form-select select2" id="printTemplate" name="printTemplate" >
-                                                                            <option value="with_weight" selected><?=$languageArray['>with_weight_code'][$language]?></option>
-                                                                            <option value="without_weight"><?=$languageArray['>without_weight_code'][$language]?></option>
+                                                                            <option value="with_weight" selected><?=$languageArray['with_weight_code'][$language]?></option>
+                                                                            <option value="without_weight"><?=$languageArray['without_weight_code'][$language]?></option>
                                                                         </select>
                                                                     </div>
                                                                 </div>

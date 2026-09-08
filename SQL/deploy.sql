@@ -2059,3 +2059,10 @@ INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALU
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('total_received_amount_code', 'Total Received Amount', '收货总金额', 'Jumlah Diterima', 'மொத்த பெறப்பட்ட தொகை');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('goods_received_information_code', 'Goods Received Information', '收货信息', 'Maklumat Barang Diterima', 'பொருட்கள் பெறப்பட்ட தகவல்');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('raw_material_type_code', 'Raw Material Type', '原材料类型', 'Jenis Bahan Mentah', 'மூலப்பொருள் வகை');
+
+-- 08/09/2026 --
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('export_weighing_records_code', 'Export Weighing Records', '导出称重记录', 'Eksport Rekod Timbangan', 'எடை பதிவுகளை ஏற்றுமதி செய்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('report_type_code', 'Report Type', '报告类型', 'Jenis Laporan', 'அறிக்கை வகை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('summary_report_code', 'Summary Report', '汇总报告', 'Laporan Ringkasan', 'சுருக்க அறிக்கை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('product_report_code', 'Product Report', '产品报告', 'Laporan Produk', 'தயாரிப்பு அறிக்கை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('sales_purchase_report_code', 'Sales and Purchase Report', '销售与采购报告', 'Laporan Jualan dan Pembelian', 'விற்பனை மற்றும் கொள்முதல் அறிக்கை');
