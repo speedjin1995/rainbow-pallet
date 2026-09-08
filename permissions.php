@@ -180,7 +180,7 @@ while($m = $modules->fetch_assoc()){
 
 <script>
 var table;
-var permissions = <?= json_encode($_SESSION['permissions']) ?>;
+var permissions = <?= json_encode($_SESSION['permissions']) ?? [] ?>;
 var isSADMIN = <?= json_encode($_SESSION['roles'] == 'SADMIN') ?>;
 
 $(function () {
