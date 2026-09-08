@@ -10,7 +10,7 @@ if (!hasModulePermission('User Management', 'Modules', ['view', 'create', 'edit'
 $categories = $db->query("SELECT DISTINCT category FROM modules ORDER BY category ASC");
 ?>
 <head>
-    <title><?=$languageArray['module_code'][$language]?> | PWS - Weighing System</title>
+    <title><?=$languageArray['module_code'][$language]?> | Synctronix - Weighing System</title>
     <?php include 'layouts/title-meta.php'; ?>
 
     <link href="assets/libs/jsvectormap/css/jsvectormap.min.css" rel="stylesheet" type="text/css" />
@@ -190,7 +190,7 @@ $categories = $db->query("SELECT DISTINCT category FROM modules ORDER BY categor
 
 <script type="text/javascript">
 var table;
-var permissions = <?= json_encode($_SESSION['permissions']) ?>;
+var permissions = <?= json_encode($_SESSION['permissions'] ?? []) ?>;
 var isSADMIN = <?= json_encode($_SESSION['roles'] == 'SADMIN') ?>;
 
 $(function () {

@@ -2066,7 +2066,6 @@ INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALU
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('user_management_code', 'User Management', '用户管理', 'Pengurusan Pengguna', 'பயனர் மேலாண்மை');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('permissions_code', 'Permissions', '权限', 'Kebenaran', 'அனுமதிகள்');
 
--- 04/09/2026 --
 CREATE TABLE `modules` (
   `id` int(11) NOT NULL,
   `name` varchar(100) NOT NULL,
