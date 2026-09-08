@@ -2,6 +2,7 @@
 session_start();
 require_once '../../db_connect.php';
 
+$languageArray = $_SESSION['languageArray'] ?? [];
 $search  = $_POST['search']['value'] ?? '';
 $start   = (int)($_POST['start'] ?? 0);
 $length  = (int)($_POST['length'] ?? 10);
@@ -43,6 +44,19 @@ $stmt->bind_param($allTypes, ...$allParams);
 $stmt->execute();
 $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
+
+foreach ($rows as &$row) {
+    if ($row['name'] == 'Sales') {
+        $row['name'] = $languageArray['dispatch_code']['en'];
+    }elseif ($row['name'] == 'Purchase'){
+        $row['name'] = $languageArray['receiving_code']['en'];
+    }elseif ($row['name'] == 'Internal Transfer'){
+        $row['name'] = $languageArray['internal_transfer_code']['en'];
+    }elseif($row['name'] == 'Miscellaneous'){
+        $row['name'] = $languageArray['miscellaneous_code']['en'];
+    }
+}
+unset($row);
 
 echo json_encode([
     'draw'            => (int)($_POST['draw'] ?? 1),

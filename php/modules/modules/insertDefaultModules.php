@@ -11,7 +11,6 @@ $defaultModules = [
     ['name' => 'Raw Material', 'category' => 'Master Data'],
     ['name' => 'Supplier', 'category' => 'Master Data'],
     ['name' => 'Vehicles', 'category' => 'Master Data'],
-    ['name' => 'Transporter', 'category' => 'Master Data'],
     ['name' => 'Plant', 'category' => 'Master Data'],
     ['name' => 'Locations', 'category' => 'Master Data'],
     ['name' => 'Modules', 'category' => 'User Management'],
@@ -21,6 +20,13 @@ $defaultModules = [
     ['name' => 'Weighing', 'category' => 'Reports'],
     ['name' => 'Audit Log', 'category' => 'Reports'],
     ['name' => 'Api Log', 'category' => 'Reports'],
+    ['name' => 'Delivery Order', 'category' => 'Accounting'],
+    ['name' => 'Goods Received', 'category' => 'Accounting'],
+    ['name' => 'Payment Voucher', 'category' => 'Accounting'],
+    ['name' => 'Sales', 'category' => 'Weighing'],
+    ['name' => 'Purchase', 'category' => 'Weighing'],
+    ['name' => 'Internal Transfer', 'category' => 'Weighing'],
+    ['name' => 'Miscellaneous', 'category' => 'Weighing']
 ];
 
 $stmt = $db->prepare("INSERT INTO modules (name, category) SELECT ?, ? FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM modules WHERE name = ? AND category = ?)");

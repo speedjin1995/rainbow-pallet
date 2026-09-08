@@ -2104,5 +2104,4 @@ INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALU
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('permission_name_code', 'Permission Name', '权限名称', 'Nama Kebenaran', 'அனுமதி பெயர்');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('applicable_module_code', 'Applicable Modules', '适用模块', 'Modul Berkenaan', 'பொருந்தும் தொகுதிகள்');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('all_modules_code', 'All Modules', '所有模块', 'Semua Modul', 'அனைத்து தொகுதிகள்');
-
-INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('insert_defaults_code', 'Insert Defaults', '所有模块', 'Semua Modul', 'அனைத்து தொகுதிகள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('insert_defaults_code', 'Insert Defaults', '插入默认值', 'Masukkan Lalai', 'இயல்புநிலைகளை செருகு');
