@@ -2060,7 +2060,51 @@ INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALU
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('goods_received_information_code', 'Goods Received Information', '收货信息', 'Maklumat Barang Diterima', 'பொருட்கள் பெறப்பட்ட தகவல்');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('raw_material_type_code', 'Raw Material Type', '原材料类型', 'Jenis Bahan Mentah', 'மூலப்பொருள் வகை');
 
+-- 08/09/2026 --
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('export_weighing_records_code', 'Export Weighing Records', '导出称重记录', 'Eksport Rekod Timbangan', 'எடை பதிவுகளை ஏற்றுமதி செய்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('report_type_code', 'Report Type', '报告类型', 'Jenis Laporan', 'அறிக்கை வகை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('summary_report_code', 'Summary Report', '汇总报告', 'Laporan Ringkasan', 'சுருக்க அறிக்கை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('product_report_code', 'Product Report', '产品报告', 'Laporan Produk', 'தயாரிப்பு அறிக்கை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('sales_purchase_report_code', 'Sales and Purchase Report', '销售与采购报告', 'Laporan Jualan dan Pembelian', 'விற்பனை மற்றும் கொள்முதல் அறிக்கை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('dispatch_report_code', 'Sales Report', '销售报告', 'Laporan Jualan', 'விற்பனை அறிக்கை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('receiving_report_code', 'Purchase Report', '采购报告', 'Laporan Pembelian', 'கொள்முதல் அறிக்கை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('internal_transfer_report_code', 'Transfer to Port Report', '转运至港口报告', 'Laporan Pemindahan ke Pelabuhan', 'துறைமுகத்திற்கு மாற்றம் அறிக்கை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('miscellaneous_report_code', 'Miscellaneous Report', '杂项报告', 'Laporan Pelbagai', 'இதர அறிக்கை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('trx_to_port_code', 'Transfer To Port', '转运至港口', 'Pemindahan ke Pelabuhan', 'துறைமுகத்திற்கு மாற்றம்');
 
+ALTER TABLE `Plant` ADD `port` VARCHAR(5) NOT NULL DEFAULT '1' AFTER `misc`;
+ALTER TABLE `Plant_Log` ADD `port` VARCHAR(5) NOT NULL DEFAULT '1' AFTER `misc`;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_PLANT` AFTER INSERT ON `Plant` FOR EACH ROW INSERT INTO Plant_Log (
+    plant_id, plant_code, name, address_line_1, address_line_2, address_line_3, phone_no, fax_no, sales, purchase, locals, misc, port, do_no, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.plant_code, NEW.name, NEW.address_line_1, NEW.address_line_2, NEW.address_line_3, NEW.phone_no, NEW.fax_no, NEW.sales, NEW.purchase, NEW.locals, NEW.misc, NEW.port, NEW.do_no, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_PLANT` BEFORE UPDATE ON `Plant` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Check if status = 1, set action_id to 3, otherwise set to 2
+    IF NEW.status = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Plant_Log table
+    INSERT INTO Plant_Log (
+        plant_id, plant_code, name, address_line_1, address_line_2, address_line_3, phone_no, fax_no, sales, purchase, locals, misc, port, do_no, action_id, action_by, event_date
+    ) 
+    VALUES (
+        NEW.id, NEW.plant_code, NEW.name, NEW.address_line_1, NEW.address_line_2, NEW.address_line_3, NEW.phone_no, NEW.fax_no, NEW.sales, NEW.purchase, NEW.locals, NEW.misc, NEW.port, NEW.do_no, action_value, NEW.modified_by, NEW.modified_date
+    );
+END
+$$
+DELIMITER ;
 
 -- Role & Permissions
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('user_management_code', 'User Management', '用户管理', 'Pengurusan Pengguna', 'பயனர் மேலாண்மை');

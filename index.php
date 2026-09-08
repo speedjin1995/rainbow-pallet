@@ -191,7 +191,8 @@ else{
                                                                 <option selected>-</option>
                                                                 <option value="Sales"><?=$languageArray['dispatch_code'][$language]?></option>
                                                                 <option value="Purchase"><?=$languageArray['receiving_code'][$language]?></option>
-                                                                <option value="Local"><?=$languageArray['internal_transfer_code'][$language]?></option>
+                                                                <!-- <option value="Local"><?=$languageArray['internal_transfer_code'][$language]?></option> -->
+                                                                <option value="Port"><?=$languageArray['trx_to_port_code'][$language]?></option>
                                                                 <option value="Misc"><?=$languageArray['miscellaneous_code'][$language]?></option>
                                                             </select>
                                                         </div>
@@ -566,7 +567,8 @@ else{
                                                                                         <select id="transactionStatus" name="transactionStatus" class="form-select select2">
                                                                                             <option value="Sales" selected><?=$languageArray['dispatch_code'][$language]?></option>
                                                                                             <option value="Purchase"><?=$languageArray['receiving_code'][$language]?></option>
-                                                                                            <option value="Local"><?=$languageArray['internal_transfer_code'][$language]?></option>
+                                                                                            <!-- <option value="Local"><?=$languageArray['internal_transfer_code'][$language]?></option> -->
+                                                                                            <option value="Port"><?=$languageArray['trx_to_port_code'][$language]?></option>
                                                                                             <option value="Misc"><?=$languageArray['miscellaneous_code'][$language]?></option>
                                                                                         </select>  
                                                                                     </div>
@@ -1198,13 +1200,13 @@ else{
                                                             </div>
                                                         </div>
                                                         <div class="row mb-3" id="printTemplateDisplay">
-                                                            <label for="printTemplate" class="col-sm-4 col-form-label"><?=$languageArray['>print_template_code'][$language]?></label>
+                                                            <label for="printTemplate" class="col-sm-4 col-form-label"><?=$languageArray['print_template_code'][$language]?></label>
                                                             <div class="col-sm-8">
                                                                 <div class="input-group">
                                                                     <div class="col-12">
                                                                         <select class="form-select select2" id="printTemplate" name="printTemplate" >
-                                                                            <option value="with_weight" selected><?=$languageArray['>with_weight_code'][$language]?></option>
-                                                                            <option value="without_weight"><?=$languageArray['>without_weight_code'][$language]?></option>
+                                                                            <option value="with_weight" selected><?=$languageArray['with_weight_code'][$language]?></option>
+                                                                            <option value="without_weight"><?=$languageArray['without_weight_code'][$language]?></option>
                                                                         </select>
                                                                     </div>
                                                                 </div>
@@ -1891,12 +1893,14 @@ else{
                                 </button>
                             </div>`;
 
-                            buttons += `
-                            <div class="col-auto">
-                                <button title="Fill in Customer Side Info" type="button" id="customerSideInfo${data}" onclick="openCustomerSideInfo(${data})" class="btn btn-secondary btn-sm">
-                                    <i class="fas fa-clipboard-list"></i>
-                                </button>
-                            </div>`;
+                            if (row.transaction_status != 'Purchase' && row.transaction_status != 'Local'){
+                                buttons += `
+                                <div class="col-auto">
+                                    <button title="Fill in Customer Side Info" type="button" id="customerSideInfo${data}" onclick="openCustomerSideInfo(${data})" class="btn btn-secondary btn-sm">
+                                        <i class="fas fa-clipboard-list"></i>
+                                    </button>
+                                </div>`;
+                            }
                         }
 
                         if(userRole == 'SADMIN' || userRole == 'ADMIN' || userRole == 'MANAGER'){
@@ -2565,12 +2569,14 @@ else{
                                     </button>
                                 </div>`;
 
-                                buttons += `
-                                <div class="col-auto">
-                                    <button title="Fill in Customer Side Info" type="button" id="customerSideInfo${data}" onclick="openCustomerSideInfo(${data})" class="btn btn-secondary btn-sm">
-                                        <i class="fas fa-clipboard-list"></i>
-                                    </button>
-                                </div>`;
+                                if (row.transaction_status != 'Purchase' && row.transaction_status != 'Local'){
+                                    buttons += `
+                                    <div class="col-auto">
+                                        <button title="Fill in Customer Side Info" type="button" id="customerSideInfo${data}" onclick="openCustomerSideInfo(${data})" class="btn btn-secondary btn-sm">
+                                            <i class="fas fa-clipboard-list"></i>
+                                        </button>
+                                    </div>`;
+                                }
                             }
 
                             if(userRole == 'SADMIN' || userRole == 'ADMIN' || userRole == 'MANAGER'){
@@ -3226,21 +3232,21 @@ else{
                         var supplierName = obj.message.supplier_name;
                         var supplierCode = obj.message.supplier_code;
 
-                        if (transactionStatus == 'Sales' || transactionStatus == 'Misc') {
-                            var existingCustomerName = $('#addModal').find('#customerName').val();
-                            var existingCustomerCode = $('#addModal').find('#customerCode').val();
-                            
-                            if ((!existingCustomerName && !existingCustomerCode) || (customerName && customerCode)) {
-                                $('#addModal').find('#customerName').val(customerName).trigger('change');
-                                $('#addModal').find('#customerCode').val(customerCode);
-                            }
-                        } else {
+                        if (transactionStatus == 'Purchase' || transactionStatus == 'Local') {
                             var existingSupplierName = $('#addModal').find('#supplierName').val();
                             var existingSupplierCode = $('#addModal').find('#supplierCode').val();
                             
                             if ((!existingSupplierName && !existingSupplierCode) || (supplierName && supplierCode)) {
                                 $('#addModal').find('#supplierName').val(supplierName).trigger('change');
                                 $('#addModal').find('#supplierCode').val(supplierCode);
+                            }
+                        } else {
+                            var existingCustomerName = $('#addModal').find('#customerName').val();
+                            var existingCustomerCode = $('#addModal').find('#customerCode').val();
+                            
+                            if ((!existingCustomerName && !existingCustomerCode) || (customerName && customerCode)) {
+                                $('#addModal').find('#customerName').val(customerName).trigger('change');
+                                $('#addModal').find('#customerCode').val(customerCode);
                             }
                         }
                     }
@@ -3275,21 +3281,21 @@ else{
                         var supplierName = obj.message.supplier_name;
                         var supplierCode = obj.message.supplier_code;
 
-                        if (transactionStatus == 'Sales' || transactionStatus == 'Misc') {
-                            var existingCustomerName = $('#addModal').find('#customerName').val();
-                            var existingCustomerCode = $('#addModal').find('#customerCode').val();
-                            
-                            if ((!existingCustomerName && !existingCustomerCode) || (customerName && customerCode)) {
-                                $('#addModal').find('#customerName').val(customerName).trigger('change');
-                                $('#addModal').find('#customerCode').val(customerCode);
-                            }
-                        } else {
+                        if (transactionStatus == 'Purchase' || transactionStatus == 'Local') {
                             var existingSupplierName = $('#addModal').find('#supplierName').val();
                             var existingSupplierCode = $('#addModal').find('#supplierCode').val();
                             
                             if ((!existingSupplierName && !existingSupplierCode) || (supplierName && supplierCode)) {
                                 $('#addModal').find('#supplierName').val(supplierName).trigger('change');
                                 $('#addModal').find('#supplierCode').val(supplierCode);
+                            }
+                        } else {
+                            var existingCustomerName = $('#addModal').find('#customerName').val();
+                            var existingCustomerCode = $('#addModal').find('#customerCode').val();
+                            
+                            if ((!existingCustomerName && !existingCustomerCode) || (customerName && customerCode)) {
+                                $('#addModal').find('#customerName').val(customerName).trigger('change');
+                                $('#addModal').find('#customerCode').val(customerCode);
                             }
                         }
                     }
@@ -3801,12 +3807,12 @@ else{
                             $('#addModal').find('#sealNo2').val(obj.message.seal_no2);
                         }
 
-                        if (obj.message.transaction_status == 'Sales' || obj.message.transaction_status == 'Misc'){
-                            $('#addModal').find('#customerName').val(obj.message.customer_name).trigger('change');
-                            $('#addModal').find('#productName').val(obj.message.product_name).trigger('change');
-                        }else{
+                        if (obj.message.transaction_status == 'Purchase' || obj.message.transaction_status == 'Local'){
                             $('#addModal').find('#supplierName').val(obj.message.supplier_name).trigger('change');
                             $('#addModal').find('#rawMaterialName').val(obj.message.raw_mat_name).trigger('change');
+                        }else{
+                            $('#addModal').find('#customerName').val(obj.message.customer_name).trigger('change');
+                            $('#addModal').find('#productName').val(obj.message.product_name).trigger('change');
                         }
                         $('#addModal').find('#plant').val(obj.message.plant_name).trigger('change');
                         $('#addModal').find('#transporter').val(obj.message.transporter).trigger('change');

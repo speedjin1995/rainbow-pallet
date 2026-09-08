@@ -67,6 +67,7 @@ $data = array();
 $salesCount = 0;
 $purchaseCount = 0;
 $localCount = 0;
+$portCount = 0;
 $miscCount = 0;
 
 $language = $_SESSION['language'];
@@ -84,6 +85,10 @@ while($row = mysqli_fetch_assoc($empRecords)) {
   else if($row['transaction_status'] == 'Misc'){
     $miscCount++;
     $transactionStatus = $languageArray['miscellaneous_code'][$language];
+  }
+  else if($row['transaction_status'] == 'Port'){
+    $portCount++;
+    $transactionStatus = $languageArray['trx_to_port_code'][$language];
   }
   else{
     $localCount++;

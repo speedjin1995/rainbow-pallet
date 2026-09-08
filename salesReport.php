@@ -4,17 +4,10 @@
 <?php
 $plantId = $_SESSION['plant'];
 
-$vehicles = $db->query("SELECT * FROM Vehicle WHERE status = '0'");
-$vehicles2 = $db->query("SELECT * FROM Vehicle WHERE status = '0'");
 $customer = $db->query("SELECT * FROM Customer WHERE status = '0' ORDER BY name ASC");
-$customer2 = $db->query("SELECT * FROM Customer WHERE status = '0' ORDER BY name ASC");
-$supplier = $db->query("SELECT * FROM Supplier WHERE status = '0' ORDER BY name ASC");
-$supplier2 = $db->query("SELECT * FROM Supplier WHERE status = '0' ORDER BY name ASC");
 $product = $db->query("SELECT * FROM Product WHERE status = '0'");
-$product2 = $db->query("SELECT * FROM Product WHERE status = '0'");
 $transporter = $db->query("SELECT * FROM Transporter WHERE status = '0'");
 $destination = $db->query("SELECT * FROM Destination WHERE status = '0'");
-$rawMaterial2 = $db->query("SELECT * FROM Raw_Mat WHERE status = '0'");
 
 $plantName = '-';
 
@@ -40,7 +33,7 @@ else{
 
 <head>
 
-    <title>Reports | Synctronix - Weighing System</title>
+    <title><?=$languageArray['report_code'][$language]?> | Synctronix - Weighing System</title>
     <?php include 'layouts/title-meta.php'; ?>
 
     <!-- jsvectormap css -->
@@ -119,11 +112,7 @@ else{
                                                         <div class="mb-3">
                                                             <label for="transactionStatusSearch" class="form-label"><?=$languageArray['transaction_status_code'][$language]?></label>
                                                             <select id="transactionStatusSearch" class="form-select select2">
-                                                                <option selected>-</option>
                                                                 <option value="Sales" selected><?=$languageArray['dispatch_code'][$language]?></option>
-                                                                <option value="Purchase"><?=$languageArray['receiving_code'][$language]?></option>
-                                                                <option value="Local"><?=$languageArray['internal_transfer_code'][$language]?></option>
-                                                                <option value="Misc"><?=$languageArray['miscellaneous_code'][$language]?></option>
                                                             </select>
                                                         </div>
                                                     </div><!--end col-->
@@ -132,19 +121,8 @@ else{
                                                             <label for="customerNoSearch" class="form-label"><?=$languageArray['customer_name_code'][$language]?></label>
                                                             <select id="customerNoSearch" class="form-select select2">
                                                                 <option selected>-</option>
-                                                                <?php while($rowPF = mysqli_fetch_assoc($customer2)){ ?>
+                                                                <?php while($rowPF = mysqli_fetch_assoc($customer)){ ?>
                                                                     <option value="<?=$rowPF['customer_code'] ?>"><?=$rowPF['name'] ?></option>
-                                                                <?php } ?>
-                                                            </select>
-                                                        </div>
-                                                    </div><!--end col-->
-                                                    <div class="col-3" id="supplierSearchDisplay" style="display:none">
-                                                        <div class="mb-3">
-                                                            <label for="supplierSearch" class="form-label"><?=$languageArray['supplier_name_code'][$language]?></label>
-                                                            <select id="supplierSearch" class="form-select select2">
-                                                                <option selected>-</option>
-                                                                <?php while($rowSF=mysqli_fetch_assoc($supplier2)){ ?>
-                                                                    <option value="<?=$rowSF['supplier_code'] ?>"><?=$rowSF['name'] ?></option>
                                                                 <?php } ?>
                                                             </select>
                                                         </div>
@@ -180,19 +158,8 @@ else{
                                                             <label for="ForminputState" class="form-label"><?=$languageArray['product_code_code'][$language]?></label>
                                                             <select id="productSearch" class="form-select select2">
                                                                 <option selected>-</option>
-                                                                <?php while($rowProductF=mysqli_fetch_assoc($product2)){ ?>
+                                                                <?php while($rowProductF=mysqli_fetch_assoc($product)){ ?>
                                                                     <option value="<?=$rowProductF['product_code'] ?>"><?=$rowProductF['product_code'] .' - '. $rowProductF['name'] ?></option>
-                                                                <?php } ?>
-                                                            </select>
-                                                        </div>
-                                                    </div><!--end col-->
-                                                    <div class="col-3" id="rawMatSearchDisplay" style="display:none">
-                                                        <div class="mb-3">
-                                                            <label for="ForminputState" class="form-label"><?=$languageArray['raw_material_code_code'][$language]?></label>
-                                                            <select id="rawMatSearch" class="form-select select2">
-                                                                <option selected>-</option>
-                                                                <?php while($rowRawMatF=mysqli_fetch_assoc($rawMaterial2)){ ?>
-                                                                    <option value="<?=$rowRawMatF['raw_mat_code'] ?>"><?=$rowRawMatF['name'] ?></option>
                                                                 <?php } ?>
                                                             </select>
                                                         </div>
@@ -264,7 +231,7 @@ else{
                                                                     <i class="ri-file-pdf-line align-middle me-1"></i>
                                                                     <?=$languageArray['export_pdf_code'][$language]?>
                                                                 </button>
-                                                                <button type="button" id="exportExcel" class="btn btn-success waves-effect waves-light" data-bs-toggle="modal" data-bs-target="#addModal">
+                                                                <button type="button" id="exportExcel" class="btn btn-success waves-effect waves-light" data-bs-toggle="modal" data-bs-target="#exportExcelModal">
                                                                     <i class="ri-file-excel-line align-middle me-1"></i>
                                                                     <?=$languageArray['export_excel_code'][$language]?>
                                                                 </button>
@@ -320,6 +287,48 @@ else{
     </div>
     <!-- END layout-wrapper -->
     
+    <div class="modal fade" id="exportExcelModal" tabindex="-1" role="dialog" aria-labelledby="exportExcelModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable custom-xxl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exportExcelModalTitle"><?=$languageArray['export_weighing_records_code'][$language]?></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="exportExcelForm" class="needs-validation" novalidate autocomplete="off">
+                        <div class="row col-12">
+                            <div class="col-12">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-12">
+                                                <div class="row">
+                                                    <label for="excelReportType" class="col-sm-4 col-form-label"><?=$languageArray['report_type_code'][$language]?> *</label>
+                                                    <div class="col-sm-8">
+                                                        <select id="excelReportType" name="reportType" class="form-select" required>
+                                                            <option value="SUMMARY"><?=$languageArray['summary_report_code'][$language]?></option>
+                                                        </select>   
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-12">
+                            <div class="hstack gap-2 justify-content-end">
+                                <button type="button" class="btn btn-light" data-bs-dismiss="modal"><?=$languageArray['close_code'][$language]?></button>
+                                <button type="submit" class="btn btn-success" id="submitExcel"><?=$languageArray['submit_code'][$language]?></button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="exportPdfModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalScrollableTitle" aria-hidden="true">
         <div class="modal-dialog modal-dialog-scrollable custom-xxl">
             <div class="modal-content">
@@ -515,11 +524,9 @@ else{
             toDateSearchPicker.setDate(today);
             $('#transactionStatusSearch').val('Sales').trigger('change');
             $('#customerNoSearch').val('-').trigger('change');
-            $('#supplierSearch').val('-').trigger('change');
             $('#vehicleNo').val('');
             $('#invoiceNoSearch').val('-').trigger('change');
             $('#productSearch').val('-').trigger('change');
-            $('#rawMatSearch').val('-').trigger('change');
             $('#destinationSearch').val('-').trigger('change');
             $('#plantSearch').val('-').trigger('change');
             $('#statusSearch').val('Complete').trigger('change');
@@ -572,12 +579,10 @@ else{
             var toDateI = $('#toDateSearch').val();
             var transactionStatusI = $('#transactionStatusSearch').val() || '';
             var customerNoI = $('#customerNoSearch').val() || '';
-            var supplierNoI = $('#supplierSearch').val() || '';
             var vehicleNoI = $('#vehicleNo').val() || '';
             var weightTypeI = $('#invoiceNoSearch').val() || '';
             var customerTypeI = $('#customerTypeSearch').val() || '';
             var productI = $('#productSearch').val() || '';
-            var rawMatI = $('#rawMatSearch').val() || '';
             var destinationI = $('#destinationSearch').val() || '';
             var plantI = $('#plantSearch').val() || '';
             var statusI = $('#statusSearch').val() || '';
@@ -586,12 +591,10 @@ else{
             $('#exportPdfForm').find('#toDate').val(toDateI);
             $('#exportPdfForm').find('#transactionStatus').val(transactionStatusI);
             $('#exportPdfForm').find('#customer').val(customerNoI);
-            $('#exportPdfForm').find('#supplier').val(supplierNoI);
             $('#exportPdfForm').find('#vehicle').val(vehicleNoI);
             $('#exportPdfForm').find('#weighingType').val(weightTypeI);
             $('#exportPdfForm').find('#customerType').val(customerTypeI);
             $('#exportPdfForm').find('#product').val(productI);
-            $('#exportPdfForm').find('#rawMat').val(rawMatI);
             $('#exportPdfForm').find('#destination').val(destinationI);
             $('#exportPdfForm').find('#plant').val(plantI);
             $('#exportPdfForm').find('#status').val(statusI);
@@ -612,56 +615,42 @@ else{
             }
         });
 
-        $('#exportExcel').on('click', function(){
+        $('#exportExcelForm').on('submit', function(e) {
+            e.preventDefault();
             var fromDateI = $('#fromDateSearch').val();
             var toDateI = $('#toDateSearch').val();
-            var transactionStatusI = $('#transactionStatusSearch').val() ? $('#transactionStatusSearch').val() : '';
-            var customerNoI = $('#customerNoSearch').val() ? $('#customerNoSearch').val() : '';
-            var supplierNoI = $('#supplierSearch').val() ? $('#supplierSearch').val() : '';
-            var vehicleNoI = $('#vehicleNo').val() ? $('#vehicleNo').val() : '';
-            var weightTypeI = $('#invoiceNoSearch').val() ? $('#invoiceNoSearch').val() : '';
-            var customerTypeI = $('#customerTypeSearch').val() ? $('#customerTypeSearch').val() : '';
-            var productI = $('#productSearch').val() ? $('#productSearch').val() : '';
-            var rawMatI = $('#rawMatSearch').val() ? $('#rawMatSearch').val() : '';
-            var destinationI = $('#destinationSearch').val() ? $('#destinationSearch').val() : '';
-            var plantI = $('#plantSearch').val() ? $('#plantSearch').val() : '';
-            var statusI = $('#statusSearch').val() ? $('#statusSearch').val() : '';
+            var transactionStatusI = $('#transactionStatusSearch').val() || '';
+            var customerNoI = $('#customerNoSearch').val() || '';
+            var supplierNoI = $('#supplierSearch').val() || '';
+            var vehicleNoI = $('#vehicleNo').val() || '';
+            var weightTypeI = $('#invoiceNoSearch').val() || '';
+            var productI = $('#productSearch').val() || '';
+            var rawMatI = $('#rawMatSearch').val() || '';
+            var destinationI = $('#destinationSearch').val() || '';
+            var plantI = $('#plantSearch').val() || '';
+            var statusI = $('#statusSearch').val() || '';
+            var reportTypeI = $('#excelReportType').val() || '';
             
-            var selectedIds = []; // An array to store the selected 'id' values
-
+            var selectedIds = [];
             $("#weightTable tbody input[type='checkbox']").each(function () {
                 if (this.checked) {
                     selectedIds.push($(this).val());
                 }
             });
 
+            var isMulti = selectedIds.length > 0 ? 'Y' : 'N';
+            var url = "php/export.php?file=weight&fromDate="+encodeURIComponent(fromDateI)+"&toDate="+encodeURIComponent(toDateI)+
+                "&transactionStatus="+encodeURIComponent(transactionStatusI)+"&customer="+encodeURIComponent(customerNoI)+"&supplier="+encodeURIComponent(supplierNoI)+"&vehicle="+encodeURIComponent(vehicleNoI)+
+                "&weighingType="+encodeURIComponent(weightTypeI)+"&product="+encodeURIComponent(productI)+"&rawMat="+encodeURIComponent(rawMatI)+
+                "&destination="+encodeURIComponent(destinationI)+"&plant="+encodeURIComponent(plantI)+"&status="+encodeURIComponent(statusI)+
+                "&reportType="+encodeURIComponent(reportTypeI)+"&isMulti="+isMulti;
+
             if (selectedIds.length > 0) {
-                window.open("php/export.php?file=weight&fromDate="+encodeURIComponent(fromDateI)+"&toDate="+encodeURIComponent(toDateI)+
-                "&transactionStatus="+encodeURIComponent(transactionStatusI)+"&customer="+encodeURIComponent(customerNoI)+"&supplier="+encodeURIComponent(supplierNoI)+"&vehicle="+encodeURIComponent(vehicleNoI)+
-                "&weighingType="+encodeURIComponent(weightTypeI)+"&product="+encodeURIComponent(productI)+"&rawMat="+encodeURIComponent(rawMatI)+
-                "&destination="+encodeURIComponent(destinationI)+"&plant="+encodeURIComponent(plantI)+"&status="+encodeURIComponent(statusI)+"&isMulti=Y&ids="+encodeURIComponent(selectedIds));
-            } else {
-                window.open("php/export.php?file=weight&fromDate="+encodeURIComponent(fromDateI)+"&toDate="+encodeURIComponent(toDateI)+
-                "&transactionStatus="+encodeURIComponent(transactionStatusI)+"&customer="+encodeURIComponent(customerNoI)+"&supplier="+encodeURIComponent(supplierNoI)+"&vehicle="+encodeURIComponent(vehicleNoI)+
-                "&weighingType="+encodeURIComponent(weightTypeI)+"&product="+encodeURIComponent(productI)+"&rawMat="+encodeURIComponent(rawMatI)+
-                "&destination="+encodeURIComponent(destinationI)+"&plant="+encodeURIComponent(plantI)+"&status="+encodeURIComponent(statusI)+"&isMulti=N");
+                url += "&ids="+encodeURIComponent(selectedIds);
             }
-        });
 
-        $('#transactionStatusSearch').on('change', function(){
-            var status = $(this).val();
-
-            if (status == 'Purchase' || status == 'Local'){
-                $('#productSearchDisplay').hide();
-                $('#rawMatSearchDisplay').show();
-                $('#customerSearchDisplay').hide();
-                $('#supplierSearchDisplay').show();
-            }else{
-                $('#productSearchDisplay').show();
-                $('#rawMatSearchDisplay').hide();
-                $('#customerSearchDisplay').show();
-                $('#supplierSearchDisplay').hide();
-            }
+            window.open(url);
+            $('#exportExcelModal').modal('hide');
         });
 
         $('#submitPrePrint').on('click', function(){
