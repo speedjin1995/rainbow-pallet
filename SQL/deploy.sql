@@ -2283,3 +2283,68 @@ INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALU
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('total_pcs_code', 'Total Pcs', '总件数', 'Jumlah Keping', 'மொத்த துண்டுகள்');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('total_tons_code', 'Total Tons', '总吨数', 'Jumlah Tan', 'மொத்த டன்');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('add_species_code', 'Add Species', '添加物种', 'Tambah Spesies', 'வகையைச் சேர்');
+
+-- 09/09/2026 --
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('pv_items_code', 'PV Items', '付款凭证项目', 'Item PV', 'PV பொருட்கள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('item_code_code', 'Item Code', '项目代码', 'Kod Item', 'பொருள் குறியீடு');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('item_name_code', 'Item Name', '项目名称', 'Nama Item', 'பொருள் பெயர்');
+
+CREATE TABLE `Pv_Items` (
+  `id` int(11) NOT NULL,
+  `item_code` varchar(50) NOT NULL,
+  `item_name` varchar(100) NOT NULL,
+  `status` int(1) NOT NULL DEFAULT 0,
+  `created_by` varchar(50) DEFAULT NULL,
+  `created_datetime` datetime DEFAULT current_timestamp(),
+  `modified_by` varchar(50) DEFAULT NULL,
+  `modified_datetime` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+ALTER TABLE `Pv_Items` ADD PRIMARY KEY (`id`);
+
+ALTER TABLE `Pv_Items` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+CREATE TABLE `Pv_Items_Log` (
+  `id` int(11) NOT NULL,
+  `pv_item_id` int(11) NOT NULL,
+  `item_code` varchar(50) NOT NULL,
+  `item_name` varchar(100) NOT NULL,
+  `action_id` int(11) NOT NULL,
+  `action_by` varchar(50) NOT NULL,
+  `event_date` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+ALTER TABLE `Pv_Items_Log` ADD PRIMARY KEY (`id`);
+  
+ALTER TABLE `Pv_Items_Log` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_PV_ITEM` AFTER INSERT ON `Pv_Items` FOR EACH ROW INSERT INTO Pv_Items_Log (
+    pv_item_id, item_code, item_name, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.item_code, NEW.item_name, 1, NEW.created_by, NEW.created_datetime
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_PV_ITEM` BEFORE UPDATE ON `Pv_Items` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Check if status = 1, set action_id to 3, otherwise set to 2
+    IF NEW.status = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Pv_Items_Log table
+    INSERT INTO Pv_Items_Log (
+        pv_item_id, item_code, item_name, action_id, action_by, event_date
+    ) 
+    VALUES (
+        NEW.id, NEW.item_code, NEW.item_name, action_value, NEW.modified_by, NEW.modified_datetime
+    );
+END
+$$
+DELIMITER ;
