@@ -49,6 +49,9 @@
                 </li>
                 <?php endif; ?>
 
+                <li class="nav-item">
+                    <a href="sawnTimber.php" class="nav-link"><i class="mdi mdi-warehouse"></i><span><?=isset($languageArray['sawn_timber_code'][$language]) ? $languageArray['sawn_timber_code'][$language] : 'Sawn Timber'?></span></a>
+                </li>
                 <!--li class="nav-item">
                     <a href="bitumen.php" class="nav-link"><i class="mdi mdi-domain"></i></i><?=$lang['t-bitumen']?></a>
                 </li-->         
@@ -173,6 +176,12 @@
                             <li class="nav-item">
                                 <a href="locations.php" class="nav-link"><?=$languageArray['locations_code'][$language]?></a>
                             </li>  
+                            <?php endif; ?>
+
+                            <?php if(hasModulePermission('Master Data', 'Locations', ['view', 'create', 'edit'])): ?>                
+                            <li class="nav-item">
+                                <a href="sawnTimberSpecies.php" class="nav-link">'.(isset($languageArray['species_code'][$language]) ? $languageArray['species_code'][$language] : 'Species').'</a>
+                            </li>
                             <?php endif; ?>
                         </ul>
                     </div>

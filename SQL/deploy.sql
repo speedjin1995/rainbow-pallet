@@ -2106,6 +2106,184 @@ END
 $$
 DELIMITER ;
 
+-- 08/09/2026 Sawn Timber Tables --
+CREATE TABLE IF NOT EXISTS `Sawn_Timber_Species` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `created_date` datetime NOT NULL DEFAULT current_timestamp(),
+  `created_by` varchar(50) NOT NULL,
+  `modified_date` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `modified_by` varchar(50) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_sawn_timber_species_name` (`name`)
+);
+
+CREATE TABLE IF NOT EXISTS `Sawn_Timber_Species_Log` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `species_id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `action_id` int(11) NOT NULL,
+  `action_by` varchar(50) NOT NULL,
+  `event_date` datetime NOT NULL,
+  PRIMARY KEY (`id`)
+);
+
+CREATE TABLE IF NOT EXISTS `Sawn_Timber_Header` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `transaction_id` varchar(100) NOT NULL,
+  `transaction_date` datetime NOT NULL,
+  `supplier` varchar(255) NOT NULL,
+  `lot` varchar(100) NOT NULL,
+  `bundle` varchar(100) NOT NULL,
+  `remarks` text DEFAULT NULL,
+  `status` varchar(10) NOT NULL DEFAULT '0',
+  `created_by` varchar(50) NOT NULL,
+  `created_date` datetime NOT NULL DEFAULT current_timestamp(),
+  `modified_by` varchar(50) NOT NULL,
+  `modified_date` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_sawn_timber_transaction_id` (`transaction_id`)
+);
+
+CREATE TABLE IF NOT EXISTS `Sawn_Timber_Detail` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `header_id` int(11) NOT NULL,
+  `species` varchar(255) NOT NULL,
+  `thick` decimal(12,4) NOT NULL DEFAULT 0,
+  `width` decimal(12,4) NOT NULL DEFAULT 0,
+  `length` decimal(12,4) NOT NULL DEFAULT 0,
+  `pieces` int(11) NOT NULL DEFAULT 0,
+  `tons` decimal(12,4) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  KEY `idx_sawn_timber_detail_header` (`header_id`),
+  CONSTRAINT `fk_sawn_timber_detail_header` FOREIGN KEY (`header_id`) REFERENCES `Sawn_Timber_Header` (`id`) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS `Sawn_Timber_Header_Log` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `header_id` int(11) NOT NULL,
+  `transaction_id` varchar(100) NOT NULL,
+  `transaction_date` datetime NOT NULL,
+  `supplier` varchar(255) NOT NULL,
+  `lot` varchar(100) NOT NULL,
+  `bundle` varchar(100) NOT NULL,
+  `remarks` text DEFAULT NULL,
+  `status` varchar(10) NOT NULL,
+  `action_id` int(11) NOT NULL,
+  `action_by` varchar(50) NOT NULL,
+  `event_date` datetime NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_sawn_timber_header_log_header` (`header_id`)
+);
+
+CREATE TABLE IF NOT EXISTS `Sawn_Timber_Detail_Log` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `detail_id` int(11) NOT NULL,
+  `header_id` int(11) NOT NULL,
+  `species` varchar(255) NOT NULL,
+  `thick` decimal(12,4) NOT NULL DEFAULT 0,
+  `width` decimal(12,4) NOT NULL DEFAULT 0,
+  `length` decimal(12,4) NOT NULL DEFAULT 0,
+  `pieces` int(11) NOT NULL DEFAULT 0,
+  `tons` decimal(12,4) NOT NULL DEFAULT 0,
+  `action_id` int(11) NOT NULL,
+  `action_by` varchar(50) NOT NULL,
+  `event_date` datetime NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_sawn_timber_detail_log_header` (`header_id`),
+  KEY `idx_sawn_timber_detail_log_detail` (`detail_id`)
+);
+
+INSERT IGNORE INTO `Sawn_Timber_Species` (`name`, `created_by`, `modified_by`) VALUES ('Others', 'system', 'system');
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_SAWN_TIMBER_HEADER` AFTER INSERT ON `Sawn_Timber_Header` FOR EACH ROW
+INSERT INTO Sawn_Timber_Header_Log (
+    header_id, transaction_id, transaction_date, supplier, lot, bundle, remarks, status, action_id, action_by, event_date
+) VALUES (
+    NEW.id, NEW.transaction_id, NEW.transaction_date, NEW.supplier, NEW.lot, NEW.bundle, NEW.remarks, NEW.status, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_SAWN_TIMBER_HEADER` BEFORE UPDATE ON `Sawn_Timber_Header` FOR EACH ROW
+BEGIN
+    DECLARE action_value INT;
+
+    IF NEW.status = '1' AND OLD.status <> '1' THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    INSERT INTO Sawn_Timber_Header_Log (
+        header_id, transaction_id, transaction_date, supplier, lot, bundle, remarks, status, action_id, action_by, event_date
+    ) VALUES (
+        NEW.id, NEW.transaction_id, NEW.transaction_date, NEW.supplier, NEW.lot, NEW.bundle, NEW.remarks, NEW.status, action_value, NEW.modified_by, NEW.modified_date
+    );
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_SAWN_TIMBER_DETAIL` AFTER INSERT ON `Sawn_Timber_Detail` FOR EACH ROW
+INSERT INTO Sawn_Timber_Detail_Log (
+    detail_id, header_id, species, thick, width, length, pieces, tons, action_id, action_by, event_date
+) VALUES (
+    NEW.id, NEW.header_id, NEW.species, NEW.thick, NEW.width, NEW.length, NEW.pieces, NEW.tons, 1, COALESCE(@sawn_timber_action_by, 'system'), NOW()
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_DEL_SAWN_TIMBER_DETAIL` BEFORE DELETE ON `Sawn_Timber_Detail` FOR EACH ROW
+INSERT INTO Sawn_Timber_Detail_Log (
+    detail_id, header_id, species, thick, width, length, pieces, tons, action_id, action_by, event_date
+) VALUES (
+    OLD.id, OLD.header_id, OLD.species, OLD.thick, OLD.width, OLD.length, OLD.pieces, OLD.tons, 3, COALESCE(@sawn_timber_action_by, 'system'), NOW()
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_SAWN_TIMBER_SPECIES` AFTER INSERT ON `Sawn_Timber_Species` FOR EACH ROW
+INSERT INTO Sawn_Timber_Species_Log (
+    species_id, name, action_id, action_by, event_date
+) VALUES (
+    NEW.id, NEW.name, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_SAWN_TIMBER_SPECIES` BEFORE UPDATE ON `Sawn_Timber_Species` FOR EACH ROW
+INSERT INTO Sawn_Timber_Species_Log (
+    species_id, name, action_id, action_by, event_date
+) VALUES (
+    NEW.id, NEW.name, 2, NEW.modified_by, NEW.modified_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_DEL_SAWN_TIMBER_SPECIES` BEFORE DELETE ON `Sawn_Timber_Species` FOR EACH ROW
+INSERT INTO Sawn_Timber_Species_Log (
+    species_id, name, action_id, action_by, event_date
+) VALUES (
+    OLD.id, OLD.name, 3, COALESCE(@sawn_timber_species_action_by, OLD.modified_by), NOW()
+)
+$$
+DELIMITER ;
+
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('sawn_timber_code', 'Sawn Timber', '方木', 'Kayu gergaji', 'அறுக்கப்பட்ட மரம்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('add_new_entry_code', 'Add New Entry', '新增记录', 'Tambah Entri Baharu', 'புதிய பதிவைச் சேர்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('lot_code', 'Lot', '批次', 'Lot', 'தொகுதி');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('bundle_code', 'Bundle', '捆', 'Bundle', 'பிணை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('species_code', 'Species', '物种', 'Spesies', 'வகை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('thick_code', 'Thick', '厚', 'Tebal', 'தடிமன்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('width_code', 'Width', '宽', 'Lebar', 'அகலம்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('length_code', 'Length', '长', 'Panjang', 'நீளம்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('pieces_code', 'Pieces', '件数', 'Keping', 'துண்டுகள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('tons_code', 'Tons', '吨', 'Tan', 'டன்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('total_pcs_code', 'Total Pcs', '总件数', 'Jumlah Keping', 'மொத்த துண்டுகள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('total_tons_code', 'Total Tons', '总吨数', 'Jumlah Tan', 'மொத்த டன்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('add_species_code', 'Add Species', '添加物种', 'Tambah Spesies', 'வகையைச் சேர்');
+
 -- Role & Permissions
 CREATE TABLE `modules` (
   `id` int(11) NOT NULL,
