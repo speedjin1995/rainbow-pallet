@@ -2,7 +2,7 @@
     $hasWeighingView = hasPermission('Weighing', ['view', 'create', 'edit']);
     $hasAccountingView = hasPermission('Accounting', ['view', 'create', 'edit']);
     $hasMasterDataView = hasPermission('Master Data', ['view', 'create', 'edit']);
-    $hasReportView = hasPermission('Report', ['view', 'create', 'edit']);
+    $hasReportView = hasPermission('Reports', ['view', 'create', 'edit']);
     $hasUserManagementView = hasPermission('User Management', ['view', 'create', 'edit']);
 ?>
 <!-- ========== App Menu ========== -->
@@ -108,14 +108,14 @@
                         <i class="ri-database-2-line"></i> <span><?=$languageArray['master_data_code'][$language]?></span>
                     </a>
                     <div class="collapse menu-dropdown" id="sidebarMasterdata">
-                        <ul class="nav nav-sm flex-column">';
+                        <ul class="nav nav-sm flex-column">
                             <?php if(hasModulePermission('Master Data', 'Translation', ['view', 'create', 'edit'])): ?>
                             <li class="nav-item">
                                 <a href="message.php" class="nav-link"><?=$languageArray['message_resource_code'][$language]?></a>
                             </li>
                             <?php endif; ?>
 
-                            <?php if(hasModulePermission('Master Data', 'Translation', ['view', 'create', 'edit'])): ?>
+                            <?php if(hasModulePermission('Master Data', 'Companies', ['view', 'create', 'edit'])): ?>
                             <li class="nav-item">
                                 <a href="companies.php" class="nav-link"><?=$languageArray['companies_code'][$language]?></a>
                             </li>
@@ -133,7 +133,7 @@
                             </li>
                             <?php endif; ?>
                             
-                            <?php if(hasModulePermission('Master Data', 'Product', ['view', 'create', 'edit'])): ?>
+                            <?php if(hasModulePermission('Master Data', 'Products', ['view', 'create', 'edit'])): ?>
                             <li class="nav-item">
                                 <a href="product.php" class="nav-link"><?=$languageArray['product_code'][$language]?></a>
                             </li>
@@ -151,7 +151,7 @@
                             </li>
                             <?php endif; ?>
                             
-                            <?php if(hasModulePermission('Master Data', 'Vehicle', ['view', 'create', 'edit'])): ?>
+                            <?php if(hasModulePermission('Master Data', 'Vehicles', ['view', 'create', 'edit'])): ?>
                             <li class="nav-item">
                                 <a href="vehicle.php" class="nav-link"><?=$languageArray['vehicle_code'][$language]?></a>
                             </li>
@@ -190,37 +190,37 @@
                                 <!-- <li class="nav-item">
                                     <a href="weighingReport.php" class="nav-link"><?=$languageArray['weighing_report_code'][$language]?></a>
                                 </li> -->
-                                <?php if(hasModulePermission('Report', 'Sales', ['view', 'create', 'edit'])): ?>
+                                <?php if(hasModulePermission('Reports', 'Sales', ['view', 'create', 'edit'])): ?>
                                 <li class="nav-item">
                                     <a href="salesReport.php" class="nav-link"><?=$languageArray['dispatch_report_code'][$language]?></a>
                                 </li>
                                 <?php endif; ?>
                                 
-                                <?php if(hasModulePermission('Report', 'Purchase', ['view', 'create', 'edit'])): ?>
+                                <?php if(hasModulePermission('Reports', 'Purchase', ['view', 'create', 'edit'])): ?>
                                 <li class="nav-item">
                                     <a href="purchaseReport.php" class="nav-link"><?=$languageArray['receiving_report_code'][$language]?></a>
                                 </li>
                                 <?php endif; ?>
                                 
-                                <?php if(hasModulePermission('Report', 'Local', ['view', 'create', 'edit'])): ?>
+                                <?php if(hasModulePermission('Reports', 'Local', ['view', 'create', 'edit'])): ?>
                                 <li class="nav-item">
                                     <a href="localReport.php" class="nav-link"><?=$languageArray['internal_transfer_report_code'][$language]?></a>
                                 </li>
                                 <?php endif; ?>
 
-                                <?php if(hasModulePermission('Report', 'Port', ['view', 'create', 'edit'])): ?>
+                                <?php if(hasModulePermission('Reports', 'Port', ['view', 'create', 'edit'])): ?>
                                 <li class="nav-item">
                                     <a href="portReport.php" class="nav-link"><?=$languageArray['trx_to_port_code'][$language]?></a>
                                 </li>
                                 <?php endif; ?>
 
-                                <?php if(hasModulePermission('Report', 'Miscellaneous', ['view', 'create', 'edit'])): ?>
+                                <?php if(hasModulePermission('Reports', 'Miscellaneous', ['view', 'create', 'edit'])): ?>
                                 <li class="nav-item">
                                     <a href="miscReport.php" class="nav-link"><?=$languageArray['miscellaneous_report_code'][$language]?></a>
                                 </li>
                                 <?php endif; ?>
 
-                                <?php if(hasModulePermission('Report', 'Audit Log', ['view', 'create', 'edit'])): ?>
+                                <?php if(hasModulePermission('Reports', 'Audit Log', ['view', 'create', 'edit'])): ?>
                                 <li class="nav-item">
                                     <a href="auditLog.php" class="nav-link"><?=$languageArray['audit_log_code'][$language]?></a>
                                 </li>
