@@ -130,9 +130,9 @@
                                             <li class="nav-item">
                                                 <a href="user.php" class="nav-link">'.$languageArray['staff_code'][$language].'</a>
                                             </li>
-                                            <li class="nav-item">
+                                            <!--li class="nav-item">
                                                 <a href="plant.php" class="nav-link">'.$languageArray['plant_code'][$language].'</a>
-                                            </li>
+                                            </li-->
                                             <li class="nav-item">
                                                 <a href="locations.php" class="nav-link">'.$languageArray['locations_code'][$language].'</a>
                                             </li>

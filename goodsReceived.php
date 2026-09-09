@@ -3,7 +3,10 @@
 
 <?php
 require_once "php/db_connect.php";
+require_once "php/requires/lookup.php";
+
 $plantId = $_SESSION['plant'];
+$selectedPlantId = $_SESSION['selected_plant_id'];
 
 $company = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
 $vehicles = $db->query("SELECT DISTINCT veh_number FROM Vehicle WHERE status = '0' ORDER BY veh_number ASC");
@@ -14,26 +17,22 @@ $rawMaterial = $db->query("SELECT * FROM Raw_Mat WHERE status = '0' ORDER BY nam
 $rawMaterial2 = $db->query("SELECT * FROM Raw_Mat WHERE status = '0' ORDER BY name ASC");
 
 $plantName = '-';
-if($plantId != null && count($plantId) > 0){
-    $stmt2 = $db->prepare("SELECT * from Plant WHERE plant_code = ?");
-    $stmt2->bind_param('s', $plantId[0]);
+$plantCode = '-';
+if($_SESSION["roles"] != 'ADMIN' && $_SESSION["roles"] != 'SADMIN'){
+    $plant = searchPlantById($selectedPlantId, $db);
+
+    $stmt2 = $db->prepare("SELECT * from Plant WHERE id = ?");
+    $stmt2->bind_param('s', $selectedPlantId);
     $stmt2->execute();
     $result2 = $stmt2->get_result();
         
     if(($row2 = $result2->fetch_assoc()) !== null){
         $plantName = $row2['name'];
+        $plantCode = $row2['plant_code'];
     }
 }
-
-// if(hasModulePermission('Accounting', 'Goods Received (GR)', ['view_all_plants'])){
-if($_SESSION['roles'] == 'SADMIN' || $_SESSION['roles'] == 'ADMIN'){
-    $plant = $db->query("SELECT * FROM Plant WHERE status = '0'");
-    $plant2 = $db->query("SELECT * FROM Plant WHERE status = '0'");
-}
 else{
-    $username = implode("', '", $_SESSION["plant"]);
-    $plant = $db->query("SELECT * FROM Plant WHERE status = '0' and plant_code IN ('$username')");
-    $plant2 = $db->query("SELECT * FROM Plant WHERE status = '0' and plant_code IN ('$username')");
+    $plant = $db->query("SELECT * FROM Plant WHERE status = '0'");
 }
 ?>
 
@@ -95,7 +94,7 @@ else{
                             
                             <div class="col-xxl-12 col-lg-12">
                                 <div class="card">
-                                    <div class="card-header fs-5" href="#collapseSearch" data-bs-toggle="collapse" role="button" aria-expanded="true" aria-controls="collapseSearch">
+                                    <div class="card-header fs-5 text-white" href="#collapseSearch" data-bs-toggle="collapse" role="button" aria-expanded="true" aria-controls="collapseSearch" style="background-color: #405189;">
                                         <i class="mdi mdi-chevron-down pull-right"></i>
                                         <?=$languageArray['search_records_code'][$language]?>
                                     </div>
@@ -154,7 +153,7 @@ else{
                                                             <select id="plantSearch" class="form-select select2">
                                                                 <option selected>-</option>
                                                                 <?php while($rowPlantF=mysqli_fetch_assoc($plant)){ ?>
-                                                                    <option value="<?=$rowPlantF['plant_code'] ?>"><?=$rowPlantF['name'] ?></option>
+                                                                    <option value="<?=$rowPlantF['plant_code'] ?>" <?= ($rowPlantF['plant_code'] == $plantCode) ? 'selected' : '' ?>><?=$rowPlantF['name'] ?></option>
                                                                 <?php } ?>
                                                             </select>
                                                         </div>
@@ -190,10 +189,10 @@ else{
                                         <div class="row">
                                             <div class="col-lg-12">
                                                 <div class="card">
-                                                    <div class="card-header">
+                                                    <div class="card-header" style="background-color: #405189;">
                                                         <div class="d-flex justify-content-between">
                                                             <div>
-                                                                <h5 class="card-title mb-0"><?=$languageArray['goods_received_records_code'][$language]?></h5>
+                                                                <h5 class="card-title mb-0 text-white"><?=$languageArray['goods_received_records_code'][$language]?></h5>
                                                             </div>
                                                             <div class="flex-shrink-0">
                                                                 <button type="button" id="exportExcel" class="btn btn-success waves-effect waves-light">

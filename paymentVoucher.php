@@ -3,12 +3,23 @@
 
 <?php
 $plantId = $_SESSION['plant'];
+$selectedPlantId = $_SESSION['selected_plant_id'];
 
 $supplier = $db->query("SELECT * FROM Supplier WHERE status = '0' AND payment_term = 'Term' ORDER BY name ASC");
 $supplier2 = $db->query("SELECT * FROM Supplier WHERE status = '0' AND payment_term = 'Term' ORDER BY name ASC");
 $supplierCash2 = $db->query("SELECT * FROM Supplier WHERE status = '0' AND payment_term = 'Cash' ORDER BY name ASC");
 $company = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC");
 $company2 = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC");
+
+if($_SESSION["roles"] != 'ADMIN' && $_SESSION["roles"] != 'SADMIN'){
+    $stmtPlant = $db->prepare("SELECT * FROM Plant WHERE status = '0' AND id = ?");
+    $stmtPlant->bind_param('i', $selectedPlantId);
+    $stmtPlant->execute();
+    $plant = $stmtPlant->get_result();
+}
+else{
+    $plant = $db->query("SELECT * FROM Plant WHERE status = '0'");
+}
 ?>
 
 <head>
@@ -75,7 +86,7 @@ $company2 = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC
                             <div id="termContent">
                                 <div class="col-xxl-12 col-lg-12">
                                     <div class="card">
-                                        <div class="card-header fs-5" href="#collapseSearch" data-bs-toggle="collapse" role="button" aria-expanded="true" aria-controls="collapseSearch" >
+                                        <div class="card-header fs-5 text-white" href="#collapseSearch" data-bs-toggle="collapse" role="button" aria-expanded="true" aria-controls="collapseSearch" style="background-color: #405189;">
                                             <i class="mdi mdi-chevron-down pull-right"></i>
                                             <?=$languageArray['search_records_code'][$language]?>
                                         </div>
@@ -159,7 +170,7 @@ $company2 = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC
                                             <div class="row">
                                                 <div class="col-lg-12">
                                                     <div class="card">
-                                                        <div class="card-header" >
+                                                        <div class="card-header" style="background-color: #405189;">
                                                             <div class="d-flex justify-content-between">
                                                                 <div>
                                                                     <h5 class="card-title text-white mb-0"><?=$languageArray['payment_voucher_code'][$language]?></h5>
