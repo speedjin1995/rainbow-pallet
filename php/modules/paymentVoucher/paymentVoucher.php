@@ -162,9 +162,9 @@ if (isset($_POST['companyId'], $_POST['voucherDate'], $_POST['pvType']) && !empt
     }
 
     // Deduction and Addition Calculation
-    $deductionDesc = isset($_POST['deduction_desc']) ? $_POST['deduction_desc'] : [];
+    $deductionItemId = isset($_POST['deduction_item_id']) ? $_POST['deduction_item_id'] : [];
     $deductionAmount = isset($_POST['deduction_amount']) ? $_POST['deduction_amount'] : [];
-    $additionDesc = isset($_POST['addition_desc']) ? $_POST['addition_desc'] : [];
+    $additionItemId = isset($_POST['addition_item_id']) ? $_POST['addition_item_id'] : [];
     $additionAmount = isset($_POST['addition_amount']) ? $_POST['addition_amount'] : [];
     $success = true;
     
@@ -216,11 +216,11 @@ if (isset($_POST['companyId'], $_POST['voucherDate'], $_POST['pvType']) && !empt
     if ($success) {
         // Build JSON objects for each deduction record
         $deductionRecords = [];
-        if (!empty($deductionDesc)){
-            foreach ($deductionDesc as $key => $desc) {
-                if (!empty($desc) && isset($deductionAmount[$key])) {
+        if (!empty($deductionItemId)){
+            foreach ($deductionItemId as $key => $itemId) {
+                if (!empty($itemId) && isset($deductionAmount[$key])) {
                     $deductionRecords[] = [
-                        "deduction_desc" => $desc,
+                        "deduction_item_id" => $itemId,
                         'deduction_reference' => '',
                         "deduction_amount" => $deductionAmount[$key]
                     ];
@@ -229,11 +229,11 @@ if (isset($_POST['companyId'], $_POST['voucherDate'], $_POST['pvType']) && !empt
         }
 
         $additionRecords = [];
-        if (!empty($additionDesc)){
-            foreach ($additionDesc as $key => $desc) {
-                if (!empty($desc) && isset($additionAmount[$key])) {
+        if (!empty($additionItemId)){
+            foreach ($additionItemId as $key => $itemId) {
+                if (!empty($itemId) && isset($additionAmount[$key])) {
                     $additionRecords[] = [
-                        "addition_desc" => $desc,
+                        "addition_item_id" => $itemId,
                         "addition_amount" => $additionAmount[$key]
                     ];
                 }

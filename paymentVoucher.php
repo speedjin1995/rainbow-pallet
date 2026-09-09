@@ -9,6 +9,8 @@ $supplier2 = $db->query("SELECT * FROM Supplier WHERE status = '0' AND payment_t
 $supplierCash2 = $db->query("SELECT * FROM Supplier WHERE status = '0' AND payment_term = 'Cash' ORDER BY name ASC");
 $company = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC");
 $company2 = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC");
+$pvItem = $db->query("SELECT * FROM Pv_Items WHERE status = 0 ORDER BY item_name ASC");
+$pvItem2 = $db->query("SELECT * FROM Pv_Items WHERE status = 0 ORDER BY item_name ASC");
 ?>
 
 <head>
@@ -716,6 +718,21 @@ $company2 = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC
 
     <script type="text/javascript">
     
+    var pvItemsDeduction = [
+        <?php 
+        while($row = mysqli_fetch_assoc($pvItem)){ 
+            echo '{id: "'.$row['id'].'", name: "'.addslashes($row['item_name']).'"},';
+        } 
+        ?>
+    ];
+    var pvItemsAddition = [
+        <?php 
+        while($row = mysqli_fetch_assoc($pvItem2)){ 
+            echo '{id: "'.$row['id'].'", name: "'.addslashes($row['item_name']).'"},';
+        } 
+        ?>
+    ];
+
     var deductionRowCount = 0;
     var additionRowCount = 0;
     var table;
@@ -1165,16 +1182,25 @@ $company2 = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC
             });
         });
 
-        $('#addDeductionRow').on('click', function(event, desc = '', amount = 0, descReadonly = false, amtReadonly = false) {
-            var descReadonlyAttr = descReadonly ? 'readonly' : '';
+        $('#addDeductionRow').on('click', function(event, itemId = '', amount = 0, amtReadonly = false) {
             var amtReadonlyAttr = amtReadonly ? 'readonly' : '';
-            var newRow = `<tr>
+            var options = '<option value="">Please Select</option>';
+            pvItemsDeduction.forEach(function(item) {
+                var selected = (item.id == itemId) ? 'selected' : '';
+                options += '<option value="' + item.id + '" ' + selected + '>' + item.name + '</option>';
+            });
+            var newRow = $(`<tr>
                 <td>${++deductionRowCount}</td>
-                <td><input type="text" class="form-control form-control-sm" name="deduction_desc[]" value="${desc}" ${descReadonlyAttr}></td>
+                <td><select class="form-select form-select-sm deduction-select2" name="deduction_item_id[]">${options}</select></td>
                 <td><input type="number" class="form-control form-control-sm deduction-amount" name="deduction_amount[]" step="0.01" value="${amount}" ${amtReadonlyAttr}></td>
                 <td><button type="button" class="btn btn-sm btn-danger removeDeductionRow"><i class="bx bx-trash"></i></button></td>
-            </tr>`;
+            </tr>`);
             $('#deductionsTable').append(newRow);
+            newRow.find('.deduction-select2').select2({
+                placeholder: "Please Select",
+                allowClear: true,
+                dropdownParent: $('#pricingModal')
+            });
         });
 
         $(document).on('click', '.removeDeductionRow', function() {
@@ -1186,14 +1212,25 @@ $company2 = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC
             calculateTotals();
         });
 
-        $('#addAdditionRow').on('click', function() {
-            var newRow = `<tr>
+        $('#addAdditionRow').on('click', function(event, itemId = '', amount = 0, amtReadonly = false) {
+            var amtReadonlyAttr = amtReadonly ? 'readonly' : '';
+            var options = '<option value="">Please Select</option>';
+            pvItemsAddition.forEach(function(item) {
+                var selected = (item.id == itemId) ? 'selected' : '';
+                options += '<option value="' + item.id + '" ' + selected + '>' + item.name + '</option>';
+            });
+            var newRow = $(`<tr>
                 <td>${++additionRowCount}</td>
-                <td><input type="text" class="form-control form-control-sm" name="addition_desc[]"></td>
-                <td><input type="number" class="form-control form-control-sm addition-amount" name="addition_amount[]" step="0.01" value="0"></td>
+                <td><select class="form-select form-select-sm addition-select2" name="addition_item_id[]">${options}</select></td>
+                <td><input type="number" class="form-control form-control-sm addition-amount" name="addition_amount[]" step="0.01" value="${amount}" ${amtReadonlyAttr}></td>
                 <td><button type="button" class="btn btn-sm btn-danger removeAdditionRow"><i class="bx bx-trash"></i></button></td>
-            </tr>`;
+            </tr>`);
             $('#additionsTable').append(newRow);
+            newRow.find('.addition-select2').select2({
+                placeholder: "Please Select",
+                allowClear: true,
+                dropdownParent: $('#pricingModal')
+            });
         });
 
         $(document).on('click', '.removeAdditionRow', function() {
@@ -1548,13 +1585,7 @@ $company2 = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC
                 if (data.deduction_details) {
                     var deductions = JSON.parse(data.deduction_details);
                     deductions.forEach(function(item) {
-                        var newRow = `<tr>
-                            <td>${++deductionRowCount}</td>
-                            <td><input type="text" class="form-control form-control-sm" name="deduction_desc[]" value="${item.deduction_desc || ''}"></td>
-                            <td><input type="number" class="form-control form-control-sm deduction-amount" name="deduction_amount[]" step="0.01" value="${item.deduction_amount || 0}"></td>
-                            <td><button type="button" class="btn btn-sm btn-danger removeDeductionRow"><i class="bx bx-trash"></i></button></td>
-                        </tr>`;
-                        $('#deductionsTable').append(newRow);
+                        $('#addDeductionRow').trigger('click', [item.deduction_item_id || '', item.deduction_amount || 0, false]);
                     });
                 }
 
@@ -1564,13 +1595,7 @@ $company2 = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC
                 if (data.addition_details) {
                     var additions = JSON.parse(data.addition_details);
                     additions.forEach(function(item) {
-                        var newRow = `<tr>
-                            <td>${++additionRowCount}</td>
-                            <td><input type="text" class="form-control form-control-sm" name="addition_desc[]" value="${item.addition_desc || ''}"></td>
-                            <td><input type="number" class="form-control form-control-sm addition-amount" name="addition_amount[]" step="0.01" value="${item.addition_amount || 0}"></td>
-                            <td><button type="button" class="btn btn-sm btn-danger removeAdditionRow"><i class="bx bx-trash"></i></button></td>
-                        </tr>`;
-                        $('#additionsTable').append(newRow);
+                        $('#addAdditionRow').trigger('click', [item.addition_item_id || '', item.addition_amount || 0, false]);
                     });
                 }
 
