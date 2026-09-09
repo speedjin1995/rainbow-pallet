@@ -25,6 +25,7 @@ $defaultPermissions = [
         ['Plant', 'Master Data'], 
         ['Locations', 'Master Data'],
         ['Translation', 'Master Data'],
+        ['PV Items', 'Master Data'],
         ['Modules', 'User Management'], 
         ['Permission', 'User Management'], 
         ['Role', 'User Management'], 
@@ -36,7 +37,8 @@ $defaultPermissions = [
         ['Normal Type', 'Weighing'], 
         ['Container Type', 'Weighing'], 
         ['Empty Container Type', 'Weighing'], 
-        ['Different Container Type', 'Weighing']
+        ['Different Container Type', 'Weighing'],
+        ['Sawn Timber', 'Sawn Timber'],
     ]],
     ['name' => 'edit', 'modules' => [
         ['Payment Voucher', 'Accounting'],
@@ -50,6 +52,7 @@ $defaultPermissions = [
         ['Plant', 'Master Data'], 
         ['Locations', 'Master Data'],
         ['Translation', 'Master Data'],
+        ['PV Items', 'Master Data'],
         ['Modules', 'User Management'], 
         ['Permission', 'User Management'], 
         ['Role', 'User Management'], 
@@ -61,7 +64,8 @@ $defaultPermissions = [
         ['Normal Type', 'Weighing'], 
         ['Container Type', 'Weighing'], 
         ['Empty Container Type', 'Weighing'], 
-        ['Different Container Type', 'Weighing']
+        ['Different Container Type', 'Weighing'],
+        ['Sawn Timber', 'Sawn Timber'],
     ]],
     ['name' => 'cancelled', 'modules' => [
         ['Companies', 'Master Data'], 
@@ -74,6 +78,7 @@ $defaultPermissions = [
         ['Plant', 'Master Data'], 
         ['Locations', 'Master Data'],
         ['Translation', 'Master Data'],
+        ['PV Items', 'Master Data'],
         ['Modules', 'User Management'], 
         ['Permission', 'User Management'], 
         ['Role', 'User Management'], 
@@ -85,7 +90,8 @@ $defaultPermissions = [
         ['Normal Type', 'Weighing'], 
         ['Container Type', 'Weighing'], 
         ['Empty Container Type', 'Weighing'], 
-        ['Different Container Type', 'Weighing']
+        ['Different Container Type', 'Weighing'],
+        ['Sawn Timber', 'Sawn Timber'],
     ]],
     ['name' => 'weight_out', 'modules' => [
         ['Sales', 'Weighing'], 
@@ -126,7 +132,8 @@ $defaultPermissions = [
         ['Sales', 'Weighing'], 
         ['Purchase', 'Weighing'], 
         ['Port', 'Weighing'], 
-        ['Miscellaneous', 'Weighing']
+        ['Miscellaneous', 'Weighing'],
+        ['Sawn Timber', 'Sawn Timber'],
     ]],
     ['name' => 'download_template', 'modules' => [
         ['Companies', 'Master Data'], 
@@ -138,7 +145,9 @@ $defaultPermissions = [
         ['Vehicles', 'Master Data'], 
         ['Plant', 'Master Data'], 
         ['Locations', 'Master Data'],
-        ['User Setup', 'User Management']
+        ['PV Items', 'Master Data'],
+        ['User Setup', 'User Management'],
+        ['Sawn Timber', 'Sawn Timber'],
     ]],
     ['name' => 'upload_excel', 'modules' => [
         ['Companies', 'Master Data'], 
@@ -150,7 +159,9 @@ $defaultPermissions = [
         ['Vehicles', 'Master Data'], 
         ['Plant', 'Master Data'], 
         ['Locations', 'Master Data'],
-        ['User Setup', 'User Management']
+        ['PV Items', 'Master Data'],
+        ['User Setup', 'User Management'],
+        ['Sawn Timber', 'Sawn Timber'],
     ]],
     ['name' => 'export', 'modules' => [
         ['Delivery Order', 'Accounting'], 
@@ -160,7 +171,8 @@ $defaultPermissions = [
         ['Sales', 'Reports'], 
         ['Purchase', 'Reports'], 
         ['Port', 'Reports'], 
-        ['Miscellaneous', 'Reports']
+        ['Miscellaneous', 'Reports'],
+        ['Sawn Timber', 'Sawn Timber'],
     ]],
     ['name' => 'approval', 'modules' => [
         ['Payment Voucher', 'Accounting']

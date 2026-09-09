@@ -1,5 +1,6 @@
 <?php
     $hasWeighingView = hasPermission('Weighing', ['view', 'create', 'edit']);
+    $hasSawnTimberView = hasPermission('Sawn Timber', ['view', 'create', 'edit']);
     $hasAccountingView = hasPermission('Accounting', ['view', 'create', 'edit']);
     $hasMasterDataView = hasPermission('Master Data', ['view', 'create', 'edit']);
     $hasReportView = hasPermission('Reports', ['view', 'create', 'edit']);
@@ -49,9 +50,11 @@
                 </li>
                 <?php endif; ?>
 
+                <?php if($hasSawnTimberView): ?>
                 <li class="nav-item">
                     <a href="sawnTimber.php" class="nav-link"><i class="mdi mdi-warehouse"></i><span><?=isset($languageArray['sawn_timber_code'][$language]) ? $languageArray['sawn_timber_code'][$language] : 'Sawn Timber'?></span></a>
                 </li>
+                <?php endif; ?>
                 <!--li class="nav-item">
                     <a href="bitumen.php" class="nav-link"><i class="mdi mdi-domain"></i></i><?=$lang['t-bitumen']?></a>
                 </li-->         
@@ -178,13 +181,13 @@
                             </li>  
                             <?php endif; ?>
 
-                            <?php if(hasModulePermission('Master Data', 'Locations', ['view', 'create', 'edit'])): ?>                
+                            <?php if(hasModulePermission('Master Data', 'Sawn Timber', ['view', 'create', 'edit'])): ?>                
                             <li class="nav-item">
                                 <a href="sawnTimberSpecies.php" class="nav-link"><?=$languageArray['species_code'][$language]?></a>
                             </li>
                             <?php endif; ?>
 
-                            <?php if(hasModulePermission('Master Data', 'Locations', ['view', 'create', 'edit'])): ?>                
+                            <?php if(hasModulePermission('Master Data', 'PV Items', ['view', 'create', 'edit'])): ?>                
                             <li class="nav-item">
                                 <a href="pvItems.php" class="nav-link"><?=$languageArray['pv_items_code'][$language]?></a>
                             </li>

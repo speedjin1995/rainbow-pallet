@@ -13,6 +13,7 @@ $defaultModules = [
     ['name' => 'Vehicles', 'category' => 'Master Data'],
     ['name' => 'Plant', 'category' => 'Master Data'],
     ['name' => 'Locations', 'category' => 'Master Data'],
+    ['name' => 'PV Items', 'category' => 'Master Data'],
     ['name' => 'Modules', 'category' => 'User Management'],
     ['name' => 'User Setup', 'category' => 'User Management'],
     ['name' => 'Permission', 'category' => 'User Management'],
@@ -36,6 +37,7 @@ $defaultModules = [
     ['name' => 'Container Type', 'category' => 'Weighing'],
     ['name' => 'Empty Container Type', 'category' => 'Weighing'],
     ['name' => 'Different Container Type', 'category' => 'Weighing'],
+    ['name' => 'Sawn Timber', 'category' => 'Sawn Timber'],
 ];
 
 $stmt = $db->prepare("INSERT INTO modules (name, category) SELECT ?, ? FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM modules WHERE name = ? AND category = ?)");
