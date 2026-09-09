@@ -68,6 +68,10 @@ while($m = $modules->fetch_assoc()){
                                                     <?php endif; ?>
 
                                                     <?php if(hasModulePermission('User Management', 'Permission', ['create'])): ?>
+                                                    <button type="button" id="insertDefaultPermissions" class="btn btn-info waves-effect waves-light">
+                                                        <i class="ri-refresh-line align-middle me-1"></i>
+                                                        <?=$languageArray['insert_default_permissions_code'][$language]?>
+                                                    </button>
                                                     <button type="button" id="addPermission" class="btn btn-success waves-effect waves-light">
                                                         <i class="ri-add-circle-line align-middle me-1"></i>
                                                         <?=$languageArray['add_permission_code'][$language]?>
@@ -315,6 +319,24 @@ $(function () {
         }
     });
 
+    $('#insertDefaultPermissions').on('click', function() {
+        if (confirm('<?=$languageArray['insert_default_permissions_warning_code'][$language]?>')) {
+            $('#spinnerLoading').show();
+            $.post('php/modules/permissions/insertDefaultPermissions.php', function(data) {
+                var obj = JSON.parse(data);
+                if (obj.status === 'success') {
+                    table.ajax.reload();
+                    $("#successBtn").attr('data-toast-text', obj.message);
+                    $("#successBtn").click();
+                } else {
+                    $("#failBtn").attr('data-toast-text', obj.message);
+                    $("#failBtn").click();
+                }
+                $('#spinnerLoading').hide();
+            });
+        }
+    });
+
     $('#multiDelete').on('click', function() {
         $('#spinnerLoading').show();
         var selectedIds = [];
@@ -323,7 +345,7 @@ $(function () {
         });
 
         if (selectedIds.length > 0) {
-            if (confirm('Are you sure you want to delete these permissions?')) {
+            if (confirm('<?=$languageArray['multi_delete_permissions_message_code'][$language]?>')) {
                 $.post('php/modules/permissions/deletePermission.php', { permissionID: selectedIds, type: 'MULTI' }, function(data) {
                     var obj = JSON.parse(data);
                     if (obj.status === 'success') {
@@ -379,7 +401,7 @@ function edit(id) {
 }
 
 function deactivate(id) {
-    if (confirm('Are you sure you want to delete this permission?')) {
+    if (confirm('<?=$languageArray['delete_permissions_message_code'][$language]?>')) {
         $('#spinnerLoading').show();
         $.post('php/modules/permissions/deletePermission.php', { permissionID: id }, function(data) {
             var obj = JSON.parse(data);
