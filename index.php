@@ -2,9 +2,12 @@
 <?php include 'layouts/head-main.php'; ?>
 
 <?php
+require_once "php/requires/lookup.php";
+
 $user = $_SESSION['id'];
 $username = $_SESSION["username"];
 $plantId = $_SESSION['plant'];
+$selectedPlantId = $_SESSION['selected_plant_id'] ?? null;
 $stmt = $db->prepare("SELECT * from Port WHERE weighind_id = ?");
 $stmt->bind_param('s', $user);
 $stmt->execute();
@@ -25,19 +28,6 @@ if(($row = $result->fetch_assoc()) !== null){
     $parity = $row['parity'];
     $stopbits = $row['stop_bits'];
     $indicator = $row['indicator'];
-}
-
-$plantName = '-';
-
-if($plantId != null && count($plantId) > 0){
-    $stmt2 = $db->prepare("SELECT * from Plant WHERE plant_code = ?");
-    $stmt2->bind_param('s', $plantId[0]);
-    $stmt2->execute();
-    $result2 = $stmt2->get_result();
-        
-    if(($row2 = $result2->fetch_assoc()) !== null){
-        $plantName = $row2['name'];
-    }
 }
 
 $role = 'NORMAL';
@@ -70,19 +60,24 @@ $rawMaterial = $db->query("SELECT * FROM Raw_Mat WHERE status = '0' ORDER BY nam
 $rawMaterial2 = $db->query("SELECT * FROM Raw_Mat WHERE status = '0' ORDER BY name ASC");
 $container = $db->query("SELECT * FROM Weight_Container WHERE status = '0' AND is_complete = 'Y' AND is_cancel = 'N'");
 
+$plantName = '-';
+$plantCode = '-';
 if($_SESSION["roles"] != 'ADMIN' && $_SESSION["roles"] != 'SADMIN'){
-    $username = implode("', '", $_SESSION["plant"]);
-    $plant = $db->query("SELECT * FROM Plant WHERE status = '0' and plant_code IN ('$username')");
+    $plant = searchPlantById($selectedPlantId, $db);
+    $plant2 = searchPlantById($selectedPlantId, $db);
+    
+    $stmt2 = $db->prepare("SELECT * from Plant WHERE id = ?");
+    $stmt2->bind_param('s', $selectedPlantId);
+    $stmt2->execute();
+    $result2 = $stmt2->get_result();
+        
+    if(($row2 = $result2->fetch_assoc()) !== null){
+        $plantName = $row2['name'];
+        $plantCode = $row2['plant_code'];
+    }
 }
 else{
     $plant = $db->query("SELECT * FROM Plant WHERE status = '0'");
-}
-
-if($_SESSION["roles"] != 'ADMIN' && $_SESSION["roles"] != 'SADMIN'){
-    $username = implode("', '", $_SESSION["plant"]);
-    $plant2 = $db->query("SELECT * FROM Plant WHERE status = '0' and plant_code IN ('$username')");
-}
-else{
     $plant2 = $db->query("SELECT * FROM Plant WHERE status = '0'");
 }
 ?>
@@ -191,7 +186,8 @@ else{
                                                                 <option selected>-</option>
                                                                 <option value="Sales"><?=$languageArray['dispatch_code'][$language]?></option>
                                                                 <option value="Purchase"><?=$languageArray['receiving_code'][$language]?></option>
-                                                                <option value="Local"><?=$languageArray['internal_transfer_code'][$language]?></option>
+                                                                <!-- <option value="Local"><?=$languageArray['internal_transfer_code'][$language]?></option> -->
+                                                                <option value="Port"><?=$languageArray['trx_to_port_code'][$language]?></option>
                                                                 <option value="Misc"><?=$languageArray['miscellaneous_code'][$language]?></option>
                                                             </select>
                                                         </div>
@@ -271,9 +267,9 @@ else{
                                                         <div class="mb-3">
                                                             <label for="plantSearch" class="form-label"><?=$languageArray['plant_code'][$language]?></label>
                                                             <select id="plantSearch" class="form-select select2" >
-                                                                <option selected>-</option>
+                                                                <option value="">-</option>
                                                                 <?php while($rowPlantF=mysqli_fetch_assoc($plant2)){ ?>
-                                                                    <option value="<?=$rowPlantF['plant_code'] ?>"><?=$rowPlantF['name'] ?></option>
+                                                                    <option value="<?=$rowPlantF['plant_code'] ?>" <?= ($rowPlantF['plant_code'] == $plantCode) ? 'selected' : '' ?>><?=$rowPlantF['name'] ?></option>
                                                                 <?php } ?>
                                                             </select>
                                                         </div>
@@ -490,26 +486,15 @@ else{
                                                                 <div class="card bg-light">
                                                                     <div class="card-body">
                                                                         <div class="row">
-                                                                            <div class="col-xxl-4 col-lg-4 mb-3"  <?php 
-                                                                                if($_SESSION["roles"] != 'SADMIN' && $_SESSION["roles"] != 'ADMIN'){
-                                                                                    echo 'style="display:none;"';
-                                                                                }?>>
+                                                                            <div class="col-xxl-4 col-lg-4 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="manualWeight" class="col-sm-4 col-form-label"><?=$languageArray['manual_weight_code'][$language]?></label>
+                                                                                    <label for="companyId" class="col-sm-4 col-form-label"><?=$languageArray['company_code'][$language]?></label>
                                                                                     <div class="col-sm-8">
-                                                                                        <div class="form-check align-radio mr-2">
-                                                                                            <input class="form-check-input radio-manual-weight" type="radio" name="manualWeight" id="manualWeightYes" value="true">
-                                                                                            <label class="form-check-label" for="manualWeightYes">
-                                                                                               <?=$languageArray['yes_code'][$language]?>
-                                                                                            </label>
-                                                                                        </div>
-
-                                                                                        <div class="form-check align-radio">
-                                                                                            <input class="form-check-input radio-manual-weight" type="radio" name="manualWeight" id="manualWeightNo" value="false" checked>
-                                                                                            <label class="form-check-label" for="manualWeightNo">
-                                                                                               <?=$languageArray['no_code'][$language]?>
-                                                                                            </label>
-                                                                                        </div>
+                                                                                        <select class="form-select select2" id="companyId" name="companyId" required>
+                                                                                            <?php while($rowCompany=mysqli_fetch_assoc($company)){ ?>
+                                                                                                <option value="<?=$rowCompany['id'] ?>"><?=$rowCompany['name'] ?></option>
+                                                                                            <?php } ?>
+                                                                                        </select>           
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
@@ -566,7 +551,8 @@ else{
                                                                                         <select id="transactionStatus" name="transactionStatus" class="form-select select2">
                                                                                             <option value="Sales" selected><?=$languageArray['dispatch_code'][$language]?></option>
                                                                                             <option value="Purchase"><?=$languageArray['receiving_code'][$language]?></option>
-                                                                                            <option value="Local"><?=$languageArray['internal_transfer_code'][$language]?></option>
+                                                                                            <!-- <option value="Local"><?=$languageArray['internal_transfer_code'][$language]?></option> -->
+                                                                                            <option value="Port"><?=$languageArray['trx_to_port_code'][$language]?></option>
                                                                                             <option value="Misc"><?=$languageArray['miscellaneous_code'][$language]?></option>
                                                                                         </select>  
                                                                                     </div>
@@ -798,20 +784,6 @@ else{
                                                                             </div>
                                                                         </div>
                                                                         <div class="row">
-                                                                            <div class="col-xxl-4 col-lg-4 mb-3">
-                                                                                <div class="row">
-                                                                                    <label for="companyId" class="col-sm-4 col-form-label"><?=$languageArray['company_code'][$language]?></label>
-                                                                                    <div class="col-sm-8">
-                                                                                        <select class="form-select select2" id="companyId" name="companyId" required>
-                                                                                            <?php while($rowCompany=mysqli_fetch_assoc($company)){ ?>
-                                                                                                <option value="<?=$rowCompany['id'] ?>"><?=$rowCompany['name'] ?></option>
-                                                                                            <?php } ?>
-                                                                                        </select>           
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="row">
                                                                             <div class="col-xxl-12 col-lg-12">
                                                                                 <div class="row">
                                                                                     <label for="otherRemarks" class="col-sm-1 col-form-label" style="width: 11%;"><?=$languageArray['other_remarks_code'][$language]?></label>
@@ -820,6 +792,22 @@ else{
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row col-12 mb-2">
+                                                            <div class="col-12">
+                                                                <div class="d-flex align-items-center justify-content-between border-bottom pb-2">
+                                                                    <div class="d-flex align-items-center">
+                                                                        <i class="ri-scales-3-line fs-5 text-primary me-2"></i>
+                                                                        <span class="fw-semibold"><?=$languageArray['weighing_code'][$language]?></span>
+                                                                    </div>
+                                                                    <div class="d-flex align-items-center <?php if($_SESSION["roles"] != 'SADMIN' && $_SESSION["roles"] != 'ADMIN'){ echo 'd-none'; }?>">
+                                                                        <span class="text-dark me-2"><?=$languageArray['manual_weight_code'][$language]?></span>
+                                                                        <div class="form-check form-switch mb-0">
+                                                                            <input class="form-check-input" type="checkbox" role="switch" id="manualWeightToggle" name="manualWeight" value="false" style="width: 4em; height: 1.5em; cursor: pointer;">
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -1198,13 +1186,13 @@ else{
                                                             </div>
                                                         </div>
                                                         <div class="row mb-3" id="printTemplateDisplay">
-                                                            <label for="printTemplate" class="col-sm-4 col-form-label"><?=$languageArray['>print_template_code'][$language]?></label>
+                                                            <label for="printTemplate" class="col-sm-4 col-form-label"><?=$languageArray['print_template_code'][$language]?></label>
                                                             <div class="col-sm-8">
                                                                 <div class="input-group">
                                                                     <div class="col-12">
                                                                         <select class="form-select select2" id="printTemplate" name="printTemplate" >
-                                                                            <option value="with_weight" selected><?=$languageArray['>with_weight_code'][$language]?></option>
-                                                                            <option value="without_weight"><?=$languageArray['>without_weight_code'][$language]?></option>
+                                                                            <option value="with_weight" selected><?=$languageArray['with_weight_code'][$language]?></option>
+                                                                            <option value="without_weight"><?=$languageArray['without_weight_code'][$language]?></option>
                                                                         </select>
                                                                     </div>
                                                                 </div>
@@ -1325,14 +1313,14 @@ else{
                                                                 <h5 class="card-title mb-0 text-white"><?=$languageArray['previous_records_code'][$language]?> (Lorry)</h5>
                                                             </div>
                                                             <div class="flex-shrink-0">
-                                                                <button type="button" id="exportPdf" class="btn btn-danger waves-effect waves-light">
+                                                                <!-- <button type="button" id="exportPdf" class="btn btn-danger waves-effect waves-light">
                                                                     <i class="ri-file-pdf-line align-middle me-1"></i>
                                                                     <?=$languageArray['export_pdf_code'][$language]?>
                                                                 </button>
                                                                 <button type="button" id="exportExcel" class="btn btn-info waves-effect waves-light" >
                                                                     <i class="ri-file-excel-line align-middle me-1"></i>
                                                                     <?=$languageArray['export_excel_code'][$language]?>
-                                                                </button>
+                                                                </button> -->
                                                                 <?php if ($role == 'SADMIN' || $role == 'ADMIN' || $role == 'MANAGER') { ?>
                                                                 <button type="button" id="multiDeleteLorry" class="btn btn-warning waves-effect waves-light" >
                                                                     <i class="ri-delete-bin-fill align-middle me-1"></i>
@@ -1891,12 +1879,14 @@ else{
                                 </button>
                             </div>`;
 
-                            buttons += `
-                            <div class="col-auto">
-                                <button title="Fill in Customer Side Info" type="button" id="customerSideInfo${data}" onclick="openCustomerSideInfo(${data})" class="btn btn-secondary btn-sm">
-                                    <i class="fas fa-clipboard-list"></i>
-                                </button>
-                            </div>`;
+                            if (row.transaction_status != 'Purchase' && row.transaction_status != 'Local'){
+                                buttons += `
+                                <div class="col-auto">
+                                    <button title="Fill in Customer Side Info" type="button" id="customerSideInfo${data}" onclick="openCustomerSideInfo(${data})" class="btn btn-secondary btn-sm">
+                                        <i class="fas fa-clipboard-list"></i>
+                                    </button>
+                                </div>`;
+                            }
                         }
 
                         if(userRole == 'SADMIN' || userRole == 'ADMIN' || userRole == 'MANAGER'){
@@ -2565,12 +2555,14 @@ else{
                                     </button>
                                 </div>`;
 
-                                buttons += `
-                                <div class="col-auto">
-                                    <button title="Fill in Customer Side Info" type="button" id="customerSideInfo${data}" onclick="openCustomerSideInfo(${data})" class="btn btn-secondary btn-sm">
-                                        <i class="fas fa-clipboard-list"></i>
-                                    </button>
-                                </div>`;
+                                if (row.transaction_status != 'Purchase' && row.transaction_status != 'Local'){
+                                    buttons += `
+                                    <div class="col-auto">
+                                        <button title="Fill in Customer Side Info" type="button" id="customerSideInfo${data}" onclick="openCustomerSideInfo(${data})" class="btn btn-secondary btn-sm">
+                                            <i class="fas fa-clipboard-list"></i>
+                                        </button>
+                                    </div>`;
+                                }
                             }
 
                             if(userRole == 'SADMIN' || userRole == 'ADMIN' || userRole == 'MANAGER'){
@@ -2753,7 +2745,7 @@ else{
             customerSideTimeOutPicker.clear();
             $('#addModal').find('#weightDifference').val("");
             $('#addModal').find('#weightDifferencePerc').val("");
-            $('#addModal').find('#manualWeightNo').trigger('click');
+            $('#addModal').find('#manualWeightToggle').prop('checked', false).val('false').trigger('change');
             $('#addModal').find('#weighbridge').val("");
             $('#addModal').find('#productDescription').val("");
             $('#addModal').find('#productHigh').val("");
@@ -3226,21 +3218,21 @@ else{
                         var supplierName = obj.message.supplier_name;
                         var supplierCode = obj.message.supplier_code;
 
-                        if (transactionStatus == 'Sales' || transactionStatus == 'Misc') {
-                            var existingCustomerName = $('#addModal').find('#customerName').val();
-                            var existingCustomerCode = $('#addModal').find('#customerCode').val();
-                            
-                            if ((!existingCustomerName && !existingCustomerCode) || (customerName && customerCode)) {
-                                $('#addModal').find('#customerName').val(customerName).trigger('change');
-                                $('#addModal').find('#customerCode').val(customerCode);
-                            }
-                        } else {
+                        if (transactionStatus == 'Purchase' || transactionStatus == 'Local') {
                             var existingSupplierName = $('#addModal').find('#supplierName').val();
                             var existingSupplierCode = $('#addModal').find('#supplierCode').val();
                             
                             if ((!existingSupplierName && !existingSupplierCode) || (supplierName && supplierCode)) {
                                 $('#addModal').find('#supplierName').val(supplierName).trigger('change');
                                 $('#addModal').find('#supplierCode').val(supplierCode);
+                            }
+                        } else {
+                            var existingCustomerName = $('#addModal').find('#customerName').val();
+                            var existingCustomerCode = $('#addModal').find('#customerCode').val();
+                            
+                            if ((!existingCustomerName && !existingCustomerCode) || (customerName && customerCode)) {
+                                $('#addModal').find('#customerName').val(customerName).trigger('change');
+                                $('#addModal').find('#customerCode').val(customerCode);
                             }
                         }
                     }
@@ -3275,21 +3267,21 @@ else{
                         var supplierName = obj.message.supplier_name;
                         var supplierCode = obj.message.supplier_code;
 
-                        if (transactionStatus == 'Sales' || transactionStatus == 'Misc') {
-                            var existingCustomerName = $('#addModal').find('#customerName').val();
-                            var existingCustomerCode = $('#addModal').find('#customerCode').val();
-                            
-                            if ((!existingCustomerName && !existingCustomerCode) || (customerName && customerCode)) {
-                                $('#addModal').find('#customerName').val(customerName).trigger('change');
-                                $('#addModal').find('#customerCode').val(customerCode);
-                            }
-                        } else {
+                        if (transactionStatus == 'Purchase' || transactionStatus == 'Local') {
                             var existingSupplierName = $('#addModal').find('#supplierName').val();
                             var existingSupplierCode = $('#addModal').find('#supplierCode').val();
                             
                             if ((!existingSupplierName && !existingSupplierCode) || (supplierName && supplierCode)) {
                                 $('#addModal').find('#supplierName').val(supplierName).trigger('change');
                                 $('#addModal').find('#supplierCode').val(supplierCode);
+                            }
+                        } else {
+                            var existingCustomerName = $('#addModal').find('#customerName').val();
+                            var existingCustomerCode = $('#addModal').find('#customerCode').val();
+                            
+                            if ((!existingCustomerName && !existingCustomerCode) || (customerName && customerCode)) {
+                                $('#addModal').find('#customerName').val(customerName).trigger('change');
+                                $('#addModal').find('#customerCode').val(customerCode);
                             }
                         }
                     }
@@ -3387,14 +3379,16 @@ else{
             }
         });
 
-        $('.radio-manual-weight').on('click', function(){
-            if($('input[name="manualWeight"]:checked').val() == "true"){
+        $('#manualWeightToggle').on('change', function(){
+            if($(this).is(':checked')){
+                $(this).val('true');
                 $('#tareOutgoing').removeAttr('readonly');
                 $('#grossIncoming').removeAttr('readonly');
                 $('#tareOutgoing2').removeAttr('readonly');
                 $('#grossIncoming2').removeAttr('readonly');
             }
             else{
+                $(this).val('false');
                 $('#grossIncoming').attr('readonly', 'readonly');
                 $('#tareOutgoing').attr('readonly', 'readonly');
                 $('#grossIncoming2').attr('readonly', 'readonly');
@@ -3801,12 +3795,12 @@ else{
                             $('#addModal').find('#sealNo2').val(obj.message.seal_no2);
                         }
 
-                        if (obj.message.transaction_status == 'Sales' || obj.message.transaction_status == 'Misc'){
-                            $('#addModal').find('#customerName').val(obj.message.customer_name).trigger('change');
-                            $('#addModal').find('#productName').val(obj.message.product_name).trigger('change');
-                        }else{
+                        if (obj.message.transaction_status == 'Purchase' || obj.message.transaction_status == 'Local'){
                             $('#addModal').find('#supplierName').val(obj.message.supplier_name).trigger('change');
                             $('#addModal').find('#rawMaterialName').val(obj.message.raw_mat_name).trigger('change');
+                        }else{
+                            $('#addModal').find('#customerName').val(obj.message.customer_name).trigger('change');
+                            $('#addModal').find('#productName').val(obj.message.product_name).trigger('change');
                         }
                         $('#addModal').find('#plant').val(obj.message.plant_name).trigger('change');
                         $('#addModal').find('#transporter').val(obj.message.transporter).trigger('change');
@@ -4299,14 +4293,12 @@ else{
                 $('#addModal').find('#currentWeight').text(obj.message.final_weight);
 
                 if(obj.message.manual_weight == 'true'){
-                    $("#manualWeightYes").prop("checked", true);
-                    $("#manualWeightNo").prop("checked", false);
-                    $('#manualWeightYes').trigger('click');
+                    $("#manualWeightToggle").prop("checked", true).val('true');
+                    $('#manualWeightToggle').trigger('change');
                 }
                 else{
-                    $("#manualWeightYes").prop("checked", false);
-                    $("#manualWeightNo").prop("checked", true);
-                    $('#manualWeightNo').trigger('click');
+                    $("#manualWeightToggle").prop("checked", false).val('false');
+                    $('#manualWeightToggle').trigger('change');
                 }
 
                 $('#addModal').find('#indicatorId').val(obj.message.indicator_id);

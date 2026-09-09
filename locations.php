@@ -6,7 +6,7 @@
     $plant = $db->query("SELECT * FROM Plant WHERE status = '0'");
 ?>
 <head>
-    <title>Weighing | Synctronix - Weighing System</title>
+    <title><?=$languageArray['locations_code'][$language]?> | Synctronix - Weighing System</title>
     <?php include 'layouts/title-meta.php'; ?>
 
     <!-- jsvectormap css -->
@@ -90,7 +90,7 @@
                                                                                     <div class="col-sm-8">
                                                                                         <input type="text" class="form-control" id="locationCode" name="locationCode" placeholder="Location Code" required>
                                                                                         <div class="invalid-feedback">
-                                                                                            Please fill in the field.
+                                                                                            <?=$languageArray['please_fill_in_the_field_code'][$language]?>
                                                                                         </div>
                                                                                     </div>
                                                                                 </div>
@@ -101,7 +101,7 @@
                                                                                     <div class="col-sm-8">
                                                                                         <input type="text" class="form-control" id="locationName" name="locationName" placeholder="Location Name" required>
                                                                                         <div class="invalid-feedback">
-                                                                                            Please fill in the field.
+                                                                                            <?=$languageArray['please_fill_in_the_field_code'][$language]?>
                                                                                         </div>
                                                                                     </div>
                                                                                 </div>

@@ -5,6 +5,20 @@ function convertDatetimeToDate($datetime){
     return $date->format('d/m/Y'); 
 }
 
+function searchPlantById($value, $db) {
+    $result = null;
+
+    if(isset($value)){
+        if ($select_stmt = $db->prepare("SELECT * FROM Plant WHERE id=? AND status = '0'")) {
+            $select_stmt->bind_param('s', $value);
+            $select_stmt->execute();
+            $result = $select_stmt->get_result();
+        }
+    }
+
+    return $result;
+}
+
 function searchPlantCodeById($value, $db) {
     $id = '0';
 
