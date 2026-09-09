@@ -44,6 +44,7 @@ if ($user != null && $user != ''){
 
 //$lots = $db->query("SELECT * FROM lots WHERE deleted = '0'");
 $company = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
+$company2 = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
 $vehicles = $db->query("SELECT * FROM Vehicle WHERE status = '0' ORDER BY veh_number ASC");
 $vehicles2 = $db->query("SELECT * FROM Vehicle WHERE status = '0' ORDER BY veh_number ASC");
 $customer = $db->query("SELECT * FROM Customer WHERE status = '0' ORDER BY name ASC");
@@ -189,6 +190,17 @@ else{
                                                                 <!-- <option value="Local"><?=$languageArray['internal_transfer_code'][$language]?></option> -->
                                                                 <option value="Port"><?=$languageArray['trx_to_port_code'][$language]?></option>
                                                                 <option value="Misc"><?=$languageArray['miscellaneous_code'][$language]?></option>
+                                                            </select>
+                                                        </div>
+                                                    </div><!--end col-->
+                                                    <div class="col-3">
+                                                        <div class="mb-3">
+                                                            <label for="companySearch" class="form-label"><?=$languageArray['company_code'][$language]?></label>
+                                                            <select id="companySearch" class="form-select select2" >
+                                                                <option selected>-</option>
+                                                                <?php while($rowCompany = mysqli_fetch_assoc($company2)){ ?>
+                                                                    <option value="<?=$rowCompany['id'] ?>"><?=$rowCompany['name'] ?></option>
+                                                                <?php } ?>
                                                             </select>
                                                         </div>
                                                     </div><!--end col-->
@@ -488,124 +500,12 @@ else{
                                                                         <div class="row">
                                                                             <div class="col-xxl-4 col-lg-4 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="companyId" class="col-sm-4 col-form-label"><?=$languageArray['company_code'][$language]?></label>
-                                                                                    <div class="col-sm-8">
-                                                                                        <select class="form-select select2" id="companyId" name="companyId" required>
-                                                                                            <?php while($rowCompany=mysqli_fetch_assoc($company)){ ?>
-                                                                                                <option value="<?=$rowCompany['id'] ?>"><?=$rowCompany['name'] ?></option>
-                                                                                            <?php } ?>
-                                                                                        </select>           
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-xxl-4 col-lg-4 mb-3">
-                                                                                <div class="row">
                                                                                     <label for="transactionId" class="col-sm-4 col-form-label"><?=$languageArray['transaction_id_code'][$language]?></label>
                                                                                     <div class="col-sm-8">
                                                                                         <input type="text" class="form-control input-readonly" id="transactionId" name="transactionId" placeholder="<?=$languageArray['transaction_id_code'][$language]?>" readonly>                                                                                  
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
-                                                                            <div class="col-xxl-4 col-lg-4 mb-3">
-                                                                                <div class="row">
-                                                                                    <label for="transactionDate" class="col-sm-4 col-form-label"><?=$languageArray['transaction_date_code'][$language]?></label>
-                                                                                    <div class="col-sm-8">
-                                                                                        <input type="date" class="form-control input-readonly" data-provider="flatpickr" id="transactionDate" name="transactionDate" required>
-                                                                                        <div class="invalid-feedback">
-                                                                                            Please fill in the field.
-                                                                                        </div>    
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="row">
-                                                                            <div class="col-xxl-4 col-lg-4 mb-3">
-                                                                                <div class="row">
-                                                                                    <label for="plant" class="col-sm-4 col-form-label"><?=$languageArray['plant_code'][$language]?></label>
-                                                                                    <div class="col-sm-8">
-                                                                                        <select class="form-select select2" id="plant" name="plant" required>
-                                                                                            <?php while($rowPlant=mysqli_fetch_assoc($plant)){ ?>
-                                                                                                <option value="<?=$rowPlant['name'] ?>" data-code="<?=$rowPlant['plant_code'] ?>"><?=$rowPlant['name'] ?></option>
-                                                                                            <?php } ?>
-                                                                                        </select>        
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-xxl-4 col-lg-4 mb-3">
-                                                                                <div class="row">
-                                                                                    <label for="weightType" class="col-sm-4 col-form-label"><?=$languageArray['weight_type_code'][$language]?></label>
-                                                                                    <div class="col-sm-8">
-                                                                                        <select id="weightType" name="weightType" class="form-select select2">
-                                                                                            <option value="Normal" selected><?=$languageArray['normal_weighing_code'][$language]?></option>
-                                                                                            <option value="Container"><?=$languageArray['primer_mover_code'][$language]?></option>
-                                                                                            <option value="Empty Container"><?=$languageArray['primer_mover_container_code'][$language]?></option>
-                                                                                            <option value="Different Container"><?=$languageArray['primer_mover_different_bins_code'][$language]?></option>
-                                                                                        </select>   
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-xxl-4 col-lg-4 mb-3">
-                                                                                <div class="row">
-                                                                                    <label for="transactionStatus" class="col-sm-4 col-form-label"><?=$languageArray['transaction_status_code'][$language]?></label>
-                                                                                    <div class="col-sm-8">
-                                                                                        <select id="transactionStatus" name="transactionStatus" class="form-select select2">
-                                                                                            <option value="Sales" selected><?=$languageArray['dispatch_code'][$language]?></option>
-                                                                                            <option value="Purchase"><?=$languageArray['receiving_code'][$language]?></option>
-                                                                                            <!-- <option value="Local"><?=$languageArray['internal_transfer_code'][$language]?></option> -->
-                                                                                            <option value="Port"><?=$languageArray['trx_to_port_code'][$language]?></option>
-                                                                                            <option value="Misc"><?=$languageArray['miscellaneous_code'][$language]?></option>
-                                                                                        </select>  
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="row">
-                                                                            <div class="col-xxl-4 col-lg-4 mb-3" id="divOrderWeight">
-                                                                                <div class="row">
-                                                                                    <label for="orderWeight" class="col-sm-4 col-form-label"><?=$languageArray['order_weight_code'][$language]?></label>
-                                                                                    <div class="col-sm-8">
-                                                                                        <div class="input-group">
-                                                                                            <input type="number" class="form-control" id="orderWeight" name="orderWeight"  placeholder="<?=$languageArray['order_weight_code'][$language]?>">
-                                                                                            <div class="input-group-text">Kg</div>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-xxl-4 col-lg-4 mb-3" id="divSupplierWeight" style="display:none;">
-                                                                                <div class="row">
-                                                                                    <label for="supplierWeight" class="col-sm-4 col-form-label"><?=$languageArray['supplier_weight_code'][$language]?></label>
-                                                                                    <div class="col-sm-8">
-                                                                                        <div class="input-group">
-                                                                                            <input type="number" class="form-control" id="supplierWeight" name="supplierWeight"  placeholder="<?=$languageArray['supplier_weight_code'][$language]?>">
-                                                                                            <div class="input-group-text">Kg</div>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div> 
-                                                                            <div class="col-xxl-4 col-lg-4 mb-3" id="divWeightDifference">
-                                                                                <div class="row">
-                                                                                    <label for="weightDifference" class="col-sm-4 col-form-label"><?=$languageArray['weight_difference_code'][$language]?></label>
-                                                                                    <div class="col-sm-8">
-                                                                                        <div class="input-group">
-                                                                                            <input type="number" class="form-control input-readonly" id="weightDifference" name="weightDifference" placeholder="Weight Difference" readonly>
-                                                                                            <div class="input-group-text">Kg</div>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div> 
-                                                                            <div class="col-xxl-4 col-lg-4 mb-3" id="divWeightDifferencePerc">
-                                                                                <div class="row">
-                                                                                    <label for="weightDifferencePerc" class="col-sm-4 col-form-label">% <?=$languageArray['variance_code'][$language]?></label>
-                                                                                    <div class="col-sm-8">
-                                                                                        <div class="input-group">
-                                                                                            <input type="number" class="form-control input-readonly" id="weightDifferencePerc" name="weightDifferencePerc" placeholder="Variance %" readonly>
-                                                                                            <div class="input-group-text">%</div>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div> 
-                                                                        </div>
-                                                                        <div class="row">
                                                                             <div class="col-xxl-4 col-lg-4 mb-3" id="divCustomerName">
                                                                                 <div class="row">
                                                                                     <label for="customerName" class="col-sm-4 col-form-label"><?=$languageArray['customer_name_code'][$language]?></label>
@@ -633,14 +533,6 @@ else{
                                                                                 </div>
                                                                             </div>
                                                                             <div class="col-xxl-4 col-lg-4 mb-3">
-                                                                                <div class="row">
-                                                                                    <label for="purchaseOrder" class="col-sm-4 col-form-label"><?=$languageArray['po_no_code'][$language]?></label>
-                                                                                    <div class="col-sm-8">
-                                                                                        <input type="text" class="form-control" id="purchaseOrder" name="purchaseOrder">
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-xxl-4 col-lg-4 mb-3">
                                                                                 <div class="row" id="containerDisplay">
                                                                                     <label for="containerNoInput" class="col-sm-4 col-form-label"><?=$languageArray['container_no1_code'][$language]?></label>
                                                                                     <div class="col-sm-8">
@@ -662,6 +554,17 @@ else{
                                                                             </div>
                                                                         </div>
                                                                         <div class="row">
+                                                                            <div class="col-xxl-4 col-lg-4 mb-3">
+                                                                                <div class="row">
+                                                                                    <label for="transactionDate" class="col-sm-4 col-form-label"><?=$languageArray['transaction_date_code'][$language]?></label>
+                                                                                    <div class="col-sm-8">
+                                                                                        <input type="date" class="form-control input-readonly" data-provider="flatpickr" id="transactionDate" name="transactionDate" required>
+                                                                                        <div class="invalid-feedback">
+                                                                                            Please fill in the field.
+                                                                                        </div>    
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
                                                                             <div class="col-xxl-4 col-lg-4 mb-3">
                                                                                 <div class="row" id="productNameDisplay">
                                                                                     <label for="productName" class="col-sm-4 col-form-label"><?=$languageArray['product_code_code'][$language]?></label>
@@ -694,14 +597,6 @@ else{
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
-                                                                            <div class="col-xxl-4 col-lg-4 mb-3" id="doDisplay">
-                                                                                <div class="row">
-                                                                                    <label for="deliveryNo" class="col-sm-4 col-form-label"><?=$languageArray['delivery_no_code'][$language]?></label>
-                                                                                    <div class="col-sm-8">
-                                                                                        <input type="text" class="form-control" id="deliveryNo" name="deliveryNo" placeholder="<?=$languageArray['delivery_no_code'][$language]?>">
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
                                                                             <div class="col-xxl-4 col-lg-4 mb-3" id="sealNoDisplay">
                                                                                 <div class="row">
                                                                                     <label for="sealNo" class="col-sm-4 col-form-label"><?=$languageArray['seal_no_code'][$language]?></label>
@@ -714,21 +609,23 @@ else{
                                                                         <div class="row">
                                                                             <div class="col-xxl-4 col-lg-4 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="transporter" class="col-sm-4 col-form-label"><?=$languageArray['transporter_code'][$language]?></label>
+                                                                                    <label for="transactionStatus" class="col-sm-4 col-form-label"><?=$languageArray['transaction_status_code'][$language]?></label>
                                                                                     <div class="col-sm-8">
-                                                                                        <select class="form-select select2" id="transporter" name="transporter" required>
-                                                                                            <option selected="-">-</option>
-                                                                                            <option value="Own Transport" data-code="Own Transport"><?=$languageArray['own_transport_code'][$language]?></option>
-                                                                                            <option value="Third Party" data-code="Third Party"><?=$languageArray['third_party_code'][$language]?></option>
-                                                                                        </select>
+                                                                                        <select id="transactionStatus" name="transactionStatus" class="form-select select2">
+                                                                                            <option value="Sales" selected><?=$languageArray['dispatch_code'][$language]?></option>
+                                                                                            <option value="Purchase"><?=$languageArray['receiving_code'][$language]?></option>
+                                                                                            <!-- <option value="Local"><?=$languageArray['internal_transfer_code'][$language]?></option> -->
+                                                                                            <option value="Port"><?=$languageArray['trx_to_port_code'][$language]?></option>
+                                                                                            <option value="Misc"><?=$languageArray['miscellaneous_code'][$language]?></option>
+                                                                                        </select>  
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
                                                                             <div class="col-xxl-4 col-lg-4 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="invoiceNo" class="col-sm-4 col-form-label"><?=$languageArray['invoice_no_code'][$language]?></label>
+                                                                                    <label for="purchaseOrder" class="col-sm-4 col-form-label"><?=$languageArray['po_no_code'][$language]?></label>
                                                                                     <div class="col-sm-8">
-                                                                                        <input type="text" class="form-control" id="invoiceNo" name="invoiceNo" placeholder="<?=$languageArray['invoice_no_code'][$language]?>">
+                                                                                        <input type="text" class="form-control" id="purchaseOrder" name="purchaseOrder">
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
@@ -744,25 +641,22 @@ else{
                                                                         <div class="row">
                                                                             <div class="col-xxl-4 col-lg-4 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="destination" class="col-sm-4 col-form-label"><?=$languageArray['destination_code'][$language]?></label>
+                                                                                    <label for="weightType" class="col-sm-4 col-form-label"><?=$languageArray['weight_type_code'][$language]?></label>
                                                                                     <div class="col-sm-8">
-                                                                                        <select class="form-select select2" id="destination" name="destination" required>
-                                                                                            <option selected="-">-</option>
-                                                                                            <?php while($rowDestination=mysqli_fetch_assoc($destination)){ ?>
-                                                                                                <option value="<?=$rowDestination['name'] ?>" data-code="<?=$rowDestination['destination_code'] ?>"><?=$rowDestination['name'] ?></option>
-                                                                                            <?php } ?>
-                                                                                        </select>            
+                                                                                        <select id="weightType" name="weightType" class="form-select select2">
+                                                                                            <option value="Normal" selected><?=$languageArray['normal_weighing_code'][$language]?></option>
+                                                                                            <option value="Container"><?=$languageArray['primer_mover_code'][$language]?></option>
+                                                                                            <option value="Empty Container"><?=$languageArray['primer_mover_container_code'][$language]?></option>
+                                                                                            <option value="Different Container"><?=$languageArray['primer_mover_different_bins_code'][$language]?></option>
+                                                                                        </select>   
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
-                                                                            <div class="col-xxl-4 col-lg-4 mb-3">
+                                                                            <div class="col-xxl-4 col-lg-4 mb-3" id="doDisplay">
                                                                                 <div class="row">
-                                                                                    <label for="reduceWeight" class="col-sm-4 col-form-label"><?=$languageArray['reduce_weight_code'][$language]?></label>
+                                                                                    <label for="deliveryNo" class="col-sm-4 col-form-label"><?=$languageArray['delivery_no_code'][$language]?></label>
                                                                                     <div class="col-sm-8">
-                                                                                        <div class="input-group">
-                                                                                            <input type="number" class="form-control" id="reduceWeight" name="reduceWeight" placeholder="0">
-                                                                                            <div class="input-group-text">Kg</div>
-                                                                                        </div>
+                                                                                        <input type="text" class="form-control" id="deliveryNo" name="deliveryNo" placeholder="<?=$languageArray['delivery_no_code'][$language]?>">
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
@@ -779,6 +673,67 @@ else{
                                                                                     <label for="replacementContainer" class="col-sm-4 col-form-label"><?=$languageArray['new_empty_bin_code'][$language]?></label>
                                                                                     <div class="col-sm-8">
                                                                                         <input type="text" class="form-control" id="replacementContainer" name="replacementContainer" placeholder="Replacement Container" required>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="row">
+                                                                            <div class="col-xxl-4 col-lg-4 mb-3">
+                                                                                <div class="row">
+                                                                                    <label for="companyId" class="col-sm-4 col-form-label"><?=$languageArray['company_code'][$language]?></label>
+                                                                                    <div class="col-sm-8">
+                                                                                        <select class="form-select select2" id="companyId" name="companyId" required>
+                                                                                            <?php while($rowCompany=mysqli_fetch_assoc($company)){ ?>
+                                                                                                <option value="<?=$rowCompany['id'] ?>"><?=$rowCompany['name'] ?></option>
+                                                                                            <?php } ?>
+                                                                                        </select>           
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="col-xxl-4 col-lg-4 mb-3">
+                                                                                <div class="row">
+                                                                                    <label for="invoiceNo" class="col-sm-4 col-form-label"><?=$languageArray['invoice_no_code'][$language]?></label>
+                                                                                    <div class="col-sm-8">
+                                                                                        <input type="text" class="form-control" id="invoiceNo" name="invoiceNo" placeholder="<?=$languageArray['invoice_no_code'][$language]?>">
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="row">
+                                                                            <div class="col-xxl-4 col-lg-4 mb-3">
+                                                                                <div class="row">
+                                                                                    <label for="plant" class="col-sm-4 col-form-label"><?=$languageArray['plant_code'][$language]?></label>
+                                                                                    <div class="col-sm-8">
+                                                                                        <select class="form-select select2" id="plant" name="plant" required>
+                                                                                            <?php while($rowPlant=mysqli_fetch_assoc($plant)){ ?>
+                                                                                                <option value="<?=$rowPlant['name'] ?>" data-code="<?=$rowPlant['plant_code'] ?>"><?=$rowPlant['name'] ?></option>
+                                                                                            <?php } ?>
+                                                                                        </select>        
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="col-xxl-4 col-lg-4 mb-3">
+                                                                                <div class="row">
+                                                                                    <label for="transporter" class="col-sm-4 col-form-label"><?=$languageArray['transporter_code'][$language]?></label>
+                                                                                    <div class="col-sm-8">
+                                                                                        <select class="form-select select2" id="transporter" name="transporter" required>
+                                                                                            <option selected="-">-</option>
+                                                                                            <option value="Own Transport" data-code="Own Transport"><?=$languageArray['own_transport_code'][$language]?></option>
+                                                                                            <option value="Third Party" data-code="Third Party"><?=$languageArray['third_party_code'][$language]?></option>
+                                                                                        </select>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="col-xxl-4 col-lg-4 mb-3">
+                                                                                <div class="row">
+                                                                                    <label for="destination" class="col-sm-4 col-form-label"><?=$languageArray['destination_code'][$language]?></label>
+                                                                                    <div class="col-sm-8">
+                                                                                        <select class="form-select select2" id="destination" name="destination" required>
+                                                                                            <option selected="-">-</option>
+                                                                                            <?php while($rowDestination=mysqli_fetch_assoc($destination)){ ?>
+                                                                                                <option value="<?=$rowDestination['name'] ?>" data-code="<?=$rowDestination['destination_code'] ?>"><?=$rowDestination['name'] ?></option>
+                                                                                            <?php } ?>
+                                                                                        </select>            
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
@@ -981,55 +936,134 @@ else{
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                            <div class="col-xxl-4 col-lg-4" id="customerSideCard" style="display:none;">
+                                                            <div class="col-xxl-4 col-lg-4" id="extraWeightCard">
                                                                 <div class="card bg-light">
                                                                     <div class="card-body">
-                                                                        <div class="row mb-3">
-                                                                            <label for="customerSideCompany" class="col-sm-4 col-form-label"><?=$languageArray['customer_side_company_code'][$language]?></label>
+                                                                        <div class="row mb-3" id="divOrderWeight">
+                                                                            <label for="orderWeight" class="col-sm-4 col-form-label"><?=$languageArray['order_weight_code'][$language]?></label>
                                                                             <div class="col-sm-8">
-                                                                                <input type="text" class="form-control" id="customerSideCompany" name="customerSideCompany" placeholder="<?=$languageArray['customer_side_company_code'][$language]?>">
+                                                                                <div class="input-group">
+                                                                                    <input type="number" class="form-control" id="orderWeight" name="orderWeight"  placeholder="<?=$languageArray['order_weight_code'][$language]?>">
+                                                                                    <div class="input-group-text">Kg</div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="row mb-3" id="divSupplierWeight" style="display:none;">
+                                                                            <label for="supplierWeight" class="col-sm-4 col-form-label"><?=$languageArray['supplier_weight_code'][$language]?></label>
+                                                                            <div class="col-sm-8">
+                                                                                <div class="input-group">
+                                                                                    <input type="number" class="form-control" id="supplierWeight" name="supplierWeight"  placeholder="<?=$languageArray['supplier_weight_code'][$language]?>">
+                                                                                    <div class="input-group-text">Kg</div>
+                                                                                </div>
                                                                             </div>
                                                                         </div>
                                                                         <div class="row mb-3">
-                                                                            <label for="customerSideRemovalPassNo" class="col-sm-4 col-form-label"><?=$languageArray['customer_side_removal_pass_no_code'][$language]?></label>
+                                                                            <label for="reduceWeight" class="col-sm-4 col-form-label"><?=$languageArray['reduce_weight_code'][$language]?></label>
                                                                             <div class="col-sm-8">
-                                                                                <input type="text" class="form-control" id="customerSideRemovalPassNo" name="customerSideRemovalPassNo" placeholder="<?=$languageArray['customer_side_removal_pass_no_code'][$language]?>">
+                                                                                <div class="input-group">
+                                                                                    <input type="number" class="form-control" id="reduceWeight" name="reduceWeight" placeholder="0">
+                                                                                    <div class="input-group-text">Kg</div>
+                                                                                </div>
                                                                             </div>
                                                                         </div>
                                                                         <div class="row mb-3">
-                                                                            <label for="customerSideLicenseNo" class="col-sm-4 col-form-label"><?=$languageArray['customer_side_license_no_code'][$language]?></label>
+                                                                            <label for="weightDifference" class="col-sm-4 col-form-label"><?=$languageArray['weight_difference_code'][$language]?></label>
                                                                             <div class="col-sm-8">
-                                                                                <input type="text" class="form-control" id="customerSideLicenseNo" name="customerSideLicenseNo" placeholder="<?=$languageArray['customer_side_license_no_code'][$language]?>">
+                                                                                <div class="input-group">
+                                                                                    <input type="number" class="form-control input-readonly" id="weightDifference" name="weightDifference" placeholder="Weight Difference" readonly>
+                                                                                    <div class="input-group-text">Kg</div>
+                                                                                </div>
                                                                             </div>
                                                                         </div>
                                                                         <div class="row mb-3">
-                                                                            <label for="customerSideMoistureContent" class="col-sm-4 col-form-label"><?=$languageArray['customer_side_moisture_content_code'][$language]?></label>
+                                                                            <label for="weightDifferencePerc" class="col-sm-4 col-form-label">% <?=$languageArray['variance_code'][$language]?></label>
                                                                             <div class="col-sm-8">
-                                                                                <input type="text" class="form-control" id="customerSideMoistureContent" name="customerSideMoistureContent" placeholder="<?=$languageArray['customer_side_moisture_content_code'][$language]?>">
+                                                                                <div class="input-group">
+                                                                                    <input type="number" class="form-control input-readonly" id="weightDifferencePerc" name="weightDifferencePerc" placeholder="Variance %" readonly>
+                                                                                    <div class="input-group-text">%</div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>                                                                   
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-xxl-12 col-lg-12 mb-2" id="customerSideLabel" style="display:none;">
+                                                                <div class="d-flex align-items-center border-bottom pb-2">
+                                                                    <i class="ri-user-location-line fs-5 text-primary me-2"></i>
+                                                                    <span class="fw-semibold"><?=$languageArray['customer_side_info_code'][$language]?></span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-xxl-12 col-lg-12" id="customerSideCard" style="display:none;">
+                                                                <div class="card bg-light">
+                                                                    <div class="card-body">
+                                                                        <div class="row">
+                                                                            <div class="col-xxl-4 col-lg-4 mb-3">
+                                                                                <div class="row">
+                                                                                    <label for="customerSideCompany" class="col-sm-4 col-form-label"><?=$languageArray['customer_side_company_code'][$language]?></label>
+                                                                                    <div class="col-sm-8">
+                                                                                        <input type="text" class="form-control" id="customerSideCompany" name="customerSideCompany" placeholder="<?=$languageArray['customer_side_company_code'][$language]?>">
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="col-xxl-4 col-lg-4 mb-3">
+                                                                                <div class="row">
+                                                                                    <label for="customerSideRemovalPassNo" class="col-sm-4 col-form-label"><?=$languageArray['customer_side_removal_pass_no_code'][$language]?></label>
+                                                                                    <div class="col-sm-8">
+                                                                                        <input type="text" class="form-control" id="customerSideRemovalPassNo" name="customerSideRemovalPassNo" placeholder="<?=$languageArray['customer_side_removal_pass_no_code'][$language]?>">
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="col-xxl-4 col-lg-4 mb-3">
+                                                                                <div class="row">
+                                                                                    <label for="customerSideLicenseNo" class="col-sm-4 col-form-label"><?=$languageArray['customer_side_license_no_code'][$language]?></label>
+                                                                                    <div class="col-sm-8">
+                                                                                        <input type="text" class="form-control" id="customerSideLicenseNo" name="customerSideLicenseNo" placeholder="<?=$languageArray['customer_side_license_no_code'][$language]?>">
+                                                                                    </div>
+                                                                                </div>
                                                                             </div>
                                                                         </div>
-                                                                        <div class="row mb-3">
-                                                                            <label for="customerSideOfficerName" class="col-sm-4 col-form-label"><?=$languageArray['customer_side_officer_name_code'][$language]?></label>
-                                                                            <div class="col-sm-8">
-                                                                                <input type="text" class="form-control" id="customerSideOfficerName" name="customerSideOfficerName" placeholder="<?=$languageArray['customer_side_officer_name_code'][$language]?>">
+                                                                        <div class="row">
+                                                                            <div class="col-xxl-4 col-lg-4 mb-3">
+                                                                                <div class="row">
+                                                                                    <label for="customerSideMoistureContent" class="col-sm-4 col-form-label"><?=$languageArray['customer_side_moisture_content_code'][$language]?></label>
+                                                                                    <div class="col-sm-8">
+                                                                                        <input type="text" class="form-control" id="customerSideMoistureContent" name="customerSideMoistureContent" placeholder="<?=$languageArray['customer_side_moisture_content_code'][$language]?>">
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="col-xxl-4 col-lg-4 mb-3">
+                                                                                <div class="row">
+                                                                                    <label for="customerSideOfficerName" class="col-sm-4 col-form-label"><?=$languageArray['customer_side_officer_name_code'][$language]?></label>
+                                                                                    <div class="col-sm-8">
+                                                                                        <input type="text" class="form-control" id="customerSideOfficerName" name="customerSideOfficerName" placeholder="<?=$languageArray['customer_side_officer_name_code'][$language]?>">
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="col-xxl-4 col-lg-4 mb-3">
+                                                                                <div class="row">
+                                                                                    <label for="customerSideRainbowDriver" class="col-sm-4 col-form-label"><?=$languageArray['customer_side_rainbow_driver_code'][$language]?></label>
+                                                                                    <div class="col-sm-8">
+                                                                                        <input type="text" class="form-control" id="customerSideRainbowDriver" name="customerSideRainbowDriver" placeholder="<?=$languageArray['customer_side_rainbow_driver_code'][$language]?>">
+                                                                                    </div>
+                                                                                </div>
                                                                             </div>
                                                                         </div>
-                                                                        <div class="row mb-3">
-                                                                            <label for="customerSideRainbowDriver" class="col-sm-4 col-form-label"><?=$languageArray['customer_side_rainbow_driver_code'][$language]?></label>
-                                                                            <div class="col-sm-8">
-                                                                                <input type="text" class="form-control" id="customerSideRainbowDriver" name="customerSideRainbowDriver" placeholder="<?=$languageArray['customer_side_rainbow_driver_code'][$language]?>">
+                                                                        <div class="row">
+                                                                            <div class="col-xxl-4 col-lg-4 mb-3">
+                                                                                <div class="row">
+                                                                                    <label for="customerSideTimeIn" class="col-sm-4 col-form-label"><?=$languageArray['customer_side_time_in_code'][$language]?></label>
+                                                                                    <div class="col-sm-8">
+                                                                                        <input type="text" class="form-control" id="customerSideTimeIn" name="customerSideTimeIn">
+                                                                                    </div>
+                                                                                </div>
                                                                             </div>
-                                                                        </div>
-                                                                        <div class="row mb-3">
-                                                                            <label for="customerSideTimeIn" class="col-sm-4 col-form-label"><?=$languageArray['customer_side_time_in_code'][$language]?></label>
-                                                                            <div class="col-sm-8">
-                                                                                <input type="text" class="form-control" id="customerSideTimeIn" name="customerSideTimeIn">
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="row mb-3">
-                                                                            <label for="customerSideTimeOut" class="col-sm-4 col-form-label"><?=$languageArray['customer_side_time_out_code'][$language]?></label>
-                                                                            <div class="col-sm-8">
-                                                                                <input type="text" class="form-control" id="customerSideTimeOut" name="customerSideTimeOut">
+                                                                            <div class="col-xxl-4 col-lg-4 mb-3">
+                                                                                <div class="row">
+                                                                                    <label for="customerSideTimeOut" class="col-sm-4 col-form-label"><?=$languageArray['customer_side_time_out_code'][$language]?></label>
+                                                                                    <div class="col-sm-8">
+                                                                                        <input type="text" class="form-control" id="customerSideTimeOut" name="customerSideTimeOut">
+                                                                                    </div>
+                                                                                </div>
                                                                             </div>
                                                                         </div>
                                                                     </div>
@@ -1752,6 +1786,7 @@ else{
         var fromDateI = $('#fromDateSearch').val();
         var toDateI = $('#toDateSearch').val();
         var statusI = $('#statusSearch').val() ? $('#statusSearch').val() : '';
+        var companyI = $('#companySearch').val() ? $('#companySearch').val() : '';
         var customerNoI = $('#customerNoSearch').val() ? $('#customerNoSearch').val() : '';
         var supplierI = $('#supplierSearch').val() ? $('#supplierSearch').val() : '';
         var vehicleNoI = $('#vehicleNo').val() ? $('#vehicleNo').val() : '';
@@ -1778,6 +1813,7 @@ else{
                     fromDate: fromDateI,
                     toDate: toDateI,
                     status: statusI,
+                    company: companyI,
                     customer: customerNoI,
                     supplier: supplierI,
                     vehicle: vehicleNoI,
@@ -2423,6 +2459,7 @@ else{
             var fromDateI = $('#fromDateSearch').val();
             var toDateI = $('#toDateSearch').val();
             var statusI = $('#statusSearch').val() ? $('#statusSearch').val() : '';
+            var companyI = $('#companySearch').val() ? $('#companySearch').val() : '';
             var customerNoI = $('#customerNoSearch').val() ? $('#customerNoSearch').val() : '';
             var supplierI = $('#supplierSearch').val() ? $('#supplierSearch').val() : '';
             var vehicleNoI = $('#vehicleNo').val() ? $('#vehicleNo').val() : '';
@@ -2454,6 +2491,7 @@ else{
                         fromDate: fromDateI,
                         toDate: toDateI,
                         status: statusI,
+                        company: companyI,
                         customer: customerNoI,
                         supplier: supplierI,
                         vehicle: vehicleNoI,
@@ -3690,9 +3728,11 @@ else{
                 if ($(this).val() == "Purchase"){
                     $('#divPurchaseOrder').find('label[for="purchaseOrder"]').text('Purchase Order');
                     $('#customerSideCard').show();
+                    $('#customerSideLabel').show();
                 }else{
                     $('#divPurchaseOrder').find('label[for="purchaseOrder"]').text('Sale Order');
                     $('#customerSideCard').hide();
+                    $('#customerSideLabel').hide();
                 }
             }
             else{
@@ -4187,6 +4227,7 @@ else{
                 }
 
                 $('#addModal').find('#id').val(obj.message.id);
+                $('#addModal').find('#companyId').val(obj.message.company_id).trigger('change');
                 $('#addModal').find('#transactionId').val(obj.message.transaction_id);
                 $('#addModal').find('#transactionStatus').val(obj.message.transaction_status).trigger('change');
                 $('#addModal').find('#weightType').val(obj.message.weight_type).trigger('change');

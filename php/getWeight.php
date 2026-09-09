@@ -496,6 +496,7 @@ if(isset($_POST['userID'])){
                         }else{
                             $message['id'] = $row['id'];
                             $message['transaction_id'] = $row['transaction_id'];
+                            $message['company_id'] = $row['company_id'];
                             $message['transaction_status'] = $row['transaction_status'];
                             $message['weight_type'] = $row['weight_type'];
                             $message['customer_type'] = $row['customer_type'];
