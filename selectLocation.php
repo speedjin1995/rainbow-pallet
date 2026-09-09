@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once 'layouts/config.php';
+require_once 'php/db_connect.php';
 
 if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
     header("location: login.php");
@@ -8,17 +8,18 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 }
 
 $plant_ids = implode(',', array_map('intval', $_SESSION['plant_id']));
-$sql = "SELECT id, location_code, location_name FROM Location WHERE status = 0 AND plant_id IN ($plant_ids)";
-$result = mysqli_query($link, $sql);
+$plants = $db->query("SELECT * FROM Plant WHERE status = '0' AND id IN ($plant_ids)");
 
-$locations = [];
-while ($row = mysqli_fetch_assoc($result)) {
-    $locations[] = $row;
+// Build locations array grouped by plant_id for JavaScript
+$locationsResult = $db->query("SELECT id, plant_id, location_code, location_name FROM Location WHERE status = 0 AND plant_id IN ($plant_ids)");
+$locationsByPlant = [];
+while ($loc = $locationsResult->fetch_assoc()) {
+    $locationsByPlant[$loc['plant_id']][] = $loc;
 }
 ?>
 <?php include 'layouts/head-main.php'; ?>
 <head>
-    <title>Select Location | Synctronix Weighing System</title>
+    <title>Select Location | Synctronix - Weighing System</title>
     <?php include 'layouts/title-meta.php'; ?>
     <?php include 'layouts/head-css.php'; ?>
 </head>
@@ -40,9 +41,9 @@ while ($row = mysqli_fetch_assoc($result)) {
                 <div class="col-lg-12">
                     <div class="text-center mt-sm-5 mb-4 text-white-50">
                         <a href="index.php" class="d-inline-block auth-logo">
-                            <img src="assets/images/logo-lg.png" alt="" height="40%">
+                            <img src="assets/images/logo-lg.png" alt="" width="50%">
                         </a>
-                        <p class="mt-3 fs-15 fw-medium">SP Weighing System</p>
+                        <p class="mt-3 fs-15 fw-medium">Synctronix - Weighing System</p>
                     </div>
                 </div>
             </div>
@@ -55,17 +56,32 @@ while ($row = mysqli_fetch_assoc($result)) {
                                 <h5 class="text-primary">Select Location</h5>
                                 <p class="text-muted">Choose your location to continue.</p>
                             </div>
+                            <?php if(isset($_GET['error'])): ?>
+                            <div class="alert alert-danger" role="alert">
+                                <?php 
+                                    if($_GET['error'] == 'choose_plant') echo 'Please select a plant.';
+                                    elseif($_GET['error'] == 'choose_location') echo 'Please select a location.';
+                                    else echo 'An error occurred. Please try again.';
+                                ?>
+                            </div>
+                            <?php endif; ?>
                             <div class="p-2 mt-4">
                                 <form method="POST" action="php/modules/locations/select_location_process.php">
                                     <div class="mb-3">
-                                        <label class="form-label">Location</label>
-                                        <select name="location_id" class="form-select" required>
-                                            <option value="">-- Choose Location --</option>
-                                            <?php foreach($locations as $loc): ?>
-                                                <option value="<?= $loc['id']; ?>">
-                                                    <?= $loc['location_name']; ?> (<?= $loc['location_code']; ?>)
+                                        <label class="form-label">Plant</label>
+                                        <select name="plant" id="plantSelect" class="form-select" required>
+                                            <option value="">-- Choose Plant --</option>
+                                            <?php foreach($plants as $plant): ?>
+                                                <option value="<?= $plant['id']; ?>">
+                                                    <?= $plant['name']; ?> (<?= $plant['plant_code']; ?>)
                                                 </option>
                                             <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Location</label>
+                                        <select name="location_id" id="locationSelect" class="form-select" required disabled>
+                                            <option value="">-- Choose Plant First --</option>
                                         </select>
                                     </div>
                                     <div class="mt-4">
@@ -97,7 +113,31 @@ while ($row = mysqli_fetch_assoc($result)) {
 </div>
 
 <?php include 'layouts/vendor-scripts.php'; ?>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="assets/libs/particles.js/particles.js"></script>
 <script src="assets/js/pages/particles.app.js"></script>
+<script>
+var locationsByPlant = <?= json_encode($locationsByPlant) ?>;
+
+$(document).ready(function() {
+    $('#plantSelect').on('change', function() {
+        var plantId = $(this).val();
+        var $locationSelect = $('#locationSelect');
+        
+        $locationSelect.empty();
+        
+        if (plantId && locationsByPlant[plantId]) {
+            $locationSelect.append('<option value="">-- Choose Location --</option>');
+            locationsByPlant[plantId].forEach(function(loc) {
+                $locationSelect.append('<option value="' + loc.id + '">' + loc.location_name + ' (' + loc.location_code + ')</option>');
+            });
+            $locationSelect.prop('disabled', false);
+        } else {
+            $locationSelect.append('<option value="">-- Choose Plant First --</option>');
+            $locationSelect.prop('disabled', true);
+        }
+    });
+});
+</script>
 </body>
 </html>
