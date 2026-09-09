@@ -57,9 +57,6 @@ while($p = $permissionsResult->fetch_assoc()){
                     <div class="col">
                         <div class="h-100">
 
-                            <button type="button" hidden id="successBtn" data-toast data-toast-text="" data-toast-gravity="top" data-toast-position="center" data-toast-duration="3000" data-toast-close="close" class="btn btn-light w-xs">Top Center</button>
-                            <button type="button" hidden id="failBtn" data-toast data-toast-text="" data-toast-gravity="top" data-toast-position="center" data-toast-duration="3000" data-toast-close="close" class="btn btn-light w-xs">Top Center</button>
-
                             <!-- Roles DataTable -->
                             <div class="row">
                                 <div class="col-lg-12">
@@ -338,12 +335,10 @@ $(function () {
                     table.ajax.reload();
                     $('#spinnerLoading').hide();
                     $('#addModal').modal('hide');
-                    $("#successBtn").attr('data-toast-text', obj.message);
-                    $("#successBtn").click();
+                    toastr["success"](obj.message, "Success:");
                 } else {
                     $('#spinnerLoading').hide();
-                    $("#failBtn").attr('data-toast-text', obj.message);
-                    $("#failBtn").click();
+                    toastr["error"](obj.message, "Failed:");
                 }
             });
         }
@@ -358,12 +353,10 @@ $(function () {
                 window.location.reload();
                 $('#spinnerLoading').hide();
                 $('#permModal').modal('hide');
-                $("#successBtn").attr('data-toast-text', obj.message);
-                $("#successBtn").click();
+                toastr["success"](obj.message, "Success:");
             } else {
                 $('#spinnerLoading').hide();
-                $("#failBtn").attr('data-toast-text', obj.message);
-                $("#failBtn").click();
+                toastr["error"](obj.message, "Failed:");
             }
         });
     });
@@ -444,15 +437,9 @@ function edit(id){
 
             $('#addModal').modal('show');
         }
-        else if(obj.status === 'failed'){
+        else {
             $('#spinnerLoading').hide();
-            $("#failBtn").attr('data-toast-text', obj.message );
-            $("#failBtn").click();
-        }
-        else{
-            $('#spinnerLoading').hide();
-            $("#failBtn").attr('data-toast-text', obj.message );
-            $("#failBtn").click();
+            toastr["error"](obj.message, "Failed:");
         }
         $('#spinnerLoading').hide();
     });
@@ -500,11 +487,9 @@ function deactivate(id){
             var obj = JSON.parse(data);
             if(obj.status === 'success'){
                 table.ajax.reload();
-                $("#successBtn").attr('data-toast-text', obj.message);
-                $("#successBtn").click();
+                toastr["success"](obj.message, "Success:");
             } else {
-                $("#failBtn").attr('data-toast-text', obj.message);
-                $("#failBtn").click();
+                toastr["error"](obj.message, "Failed:");
             }
             $('#spinnerLoading').hide();
         });
