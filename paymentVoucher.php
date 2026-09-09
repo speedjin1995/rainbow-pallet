@@ -3,7 +3,7 @@
 
 <?php
 $plantId = $_SESSION['plant'];
-$selectedPlantId = $_SESSION['selected_plant_id'];
+$selectedPlantId = $_SESSION['selected_plant_id'] ?? null;
 
 $supplier = $db->query("SELECT * FROM Supplier WHERE status = '0' AND payment_term = 'Term' ORDER BY name ASC");
 $supplier2 = $db->query("SELECT * FROM Supplier WHERE status = '0' AND payment_term = 'Term' ORDER BY name ASC");

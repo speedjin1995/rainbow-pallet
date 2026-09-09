@@ -6,7 +6,7 @@ require_once "php/db_connect.php";
 require_once "php/requires/lookup.php";
 
 $plantId = $_SESSION['plant'];
-$selectedPlantId = $_SESSION['selected_plant_id'];
+$selectedPlantId = $_SESSION['selected_plant_id'] ?? null;
 
 $company = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
 $vehicles = $db->query("SELECT DISTINCT veh_number FROM Vehicle WHERE status = '0' ORDER BY veh_number ASC");

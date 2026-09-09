@@ -5,7 +5,7 @@
 require_once "php/requires/lookup.php";
 
 $plantId = $_SESSION['plant'];
-$selectedPlantId = $_SESSION['selected_plant_id'];
+$selectedPlantId = $_SESSION['selected_plant_id'] ?? null;
 
 $customer = $db->query("SELECT * FROM Customer WHERE status = '0' ORDER BY name ASC");
 $product = $db->query("SELECT * FROM Product WHERE status = '0'");

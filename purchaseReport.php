@@ -5,7 +5,7 @@
 require_once "php/requires/lookup.php";
 
 $plantId = $_SESSION['plant'];
-$selectedPlantId = $_SESSION['selected_plant_id'];
+$selectedPlantId = $_SESSION['selected_plant_id'] ?? null;
 
 $supplier = $db->query("SELECT * FROM Supplier WHERE status = '0' ORDER BY name ASC");
 $transporter = $db->query("SELECT * FROM Transporter WHERE status = '0'");
