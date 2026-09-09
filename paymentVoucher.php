@@ -62,7 +62,7 @@ $company2 = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC
                     <div class="col">
                         <div class="h-100">
                             <!-- Page Tabs -->
-                            <ul class="nav nav-tabs mb-3" id="pvPageTabs">
+                            <ul class="nav nav-tabs mb-3" id="pvPageTabs" style="display:none">
                                 <li class="nav-item">
                                     <a class="nav-link active" href="#" id="btnTermTab"><?=$languageArray['term_supplier_code'][$language]?></a>
                                 </li>
