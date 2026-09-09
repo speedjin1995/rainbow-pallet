@@ -18,26 +18,6 @@ function generateSawnTimberTransactionId($db) {
     return $prefix.str_pad((string)$count, 4, '0', STR_PAD_LEFT);
 }
 
-function ensureOption($db, $table, $column, $value) {
-    if (!$value) {
-        return;
-    }
-
-    if ($table === 'Sawn_Timber_Species') {
-        $stmt = $db->prepare("INSERT IGNORE INTO Sawn_Timber_Species (name) VALUES (?)");
-        $stmt->bind_param('s', $value);
-    } elseif ($table === 'Sawn_Timber_Lot') {
-        $stmt = $db->prepare("INSERT IGNORE INTO Sawn_Timber_Lot (lot) VALUES (?)");
-        $stmt->bind_param('s', $value);
-    } else {
-        $stmt = $db->prepare("INSERT IGNORE INTO Sawn_Timber_Supplier (name) VALUES (?)");
-        $stmt->bind_param('s', $value);
-    }
-
-    $stmt->execute();
-    $stmt->close();
-}
-
 function transactionIdExists($db, $transactionId) {
     $stmt = $db->prepare("SELECT id FROM Sawn_Timber_Header WHERE transaction_id=? AND status='0'");
     $stmt->bind_param('s', $transactionId);
@@ -93,9 +73,6 @@ $db->begin_transaction();
 
 try {
     foreach ($groups as $group) {
-        ensureOption($db, 'Sawn_Timber_Supplier', 'name', $group['supplier']);
-        ensureOption($db, 'Sawn_Timber_Lot', 'lot', $group['lot']);
-
         $transactionId = $group['transaction_id'] ?: generateSawnTimberTransactionId($db);
         if (transactionIdExists($db, $transactionId)) {
             throw new Exception("Transaction ID already exists: ".$transactionId);
@@ -113,7 +90,6 @@ try {
                 continue;
             }
 
-            ensureOption($db, 'Sawn_Timber_Species', 'name', $detail['species']);
             $tons = calculateSawnTimberTons($detail['thick'], $detail['width'], $detail['length'], $detail['pieces']);
             $detailStmt->bind_param('sssssss', $headerId, $detail['species'], $detail['thick'], $detail['width'], $detail['length'], $detail['pieces'], $tons);
             $detailStmt->execute();

@@ -123,7 +123,10 @@
                                             </li>
                                             <li class="nav-item">
                                                 <a href="supplier.php" class="nav-link">'.$languageArray['supplier_code'][$language].'</a>
-                                            </li>       
+                                            </li>
+                                            <li class="nav-item">
+                                                <a href="sawnTimberSpecies.php" class="nav-link">'.(isset($languageArray['species_code'][$language]) ? $languageArray['species_code'][$language] : 'Species').'</a>
+                                            </li>
                                             <li class="nav-item">
                                                 <a href="vehicle.php" class="nav-link">'.$languageArray['vehicle_code'][$language].'</a>
                                             </li>

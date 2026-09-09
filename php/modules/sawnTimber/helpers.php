@@ -15,7 +15,9 @@ function getSawnTimberOptions($db, $table, $valueColumn, $codeColumn = null) {
     $items = array();
     $columns = $codeColumn ? "$valueColumn, $codeColumn" : $valueColumn;
 
-    if ($stmt = $db->prepare("SELECT $columns FROM $table WHERE status='0' ORDER BY $valueColumn ASC")) {
+    $where = $table === 'Sawn_Timber_Species' ? '' : " WHERE status='0'";
+
+    if ($stmt = $db->prepare("SELECT $columns FROM $table".$where." ORDER BY $valueColumn ASC")) {
         $stmt->execute();
         $result = $stmt->get_result();
 

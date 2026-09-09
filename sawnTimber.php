@@ -100,7 +100,7 @@ function msg($code, $fallback) {
                                     </div>
                                     <div class="col-md-2">
                                         <label class="form-label"><?=msg('lot_code', 'Lot')?></label>
-                                        <select class="form-control option-lot" id="filterLot"><option value=""><?=msg('all_code', 'All')?></option></select>
+                                        <input type="text" class="form-control" id="filterLot">
                                     </div>
                                     <div class="col-md-2">
                                         <label class="form-label"><?=msg('species_code', 'Species')?></label>
@@ -161,17 +161,11 @@ function msg($code, $fallback) {
                         </div>
                         <div class="col-md-3">
                             <label class="form-label"><?=msg('supplier_code', 'Supplier')?></label>
-                            <div class="input-group">
-                                <select class="form-control option-supplier" id="supplier" name="supplier" required></select>
-                                <button class="btn btn-outline-secondary" type="button" onclick="addOption('supplier')">+</button>
-                            </div>
+                            <select class="form-control option-supplier" id="supplier" name="supplier" required></select>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label"><?=msg('lot_code', 'Lot')?></label>
-                            <div class="input-group">
-                                <select class="form-control option-lot" id="lot" name="lot" required></select>
-                                <button class="btn btn-outline-secondary" type="button" onclick="addOption('lot')">+</button>
-                            </div>
+                            <input type="text" class="form-control" id="lot" name="lot" required>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label"><?=msg('bundle_code', 'Bundle')?></label>
@@ -209,30 +203,6 @@ function msg($code, $fallback) {
     </div>
 </div>
 
-<div class="modal fade" id="optionModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="optionModalTitle"></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="optionForm" autocomplete="off">
-                    <input type="hidden" id="optionType">
-                    <div class="mb-3">
-                        <label class="form-label" id="optionNameLabel"></label>
-                        <input type="text" class="form-control" id="optionName" required>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal"><?=msg('close_code', 'Close')?></button>
-                <button type="button" class="btn btn-success" id="saveOption"><?=msg('submit_code', 'Submit')?></button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <div class="modal fade" id="uploadModal" tabindex="-1">
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
         <div class="modal-content">
@@ -264,7 +234,7 @@ function msg($code, $fallback) {
 
 <script>
 var table;
-var optionData = {suppliers: [], lots: [], species: []};
+var optionData = {suppliers: [], species: []};
 
 function htmlEscape(value) {
     return $('<div>').text(value == null ? '' : value).html();
@@ -305,12 +275,10 @@ function fillSelect(selector, items, valueKey, codeKey, selected, includeAll) {
 
 function loadOptions(callback) {
     $.getJSON('php/modules/sawnTimber/options.php', function(data) {
-        optionData = data.message || {suppliers: [], lots: [], species: []};
+        optionData = data.message || {suppliers: [], species: []};
         fillSelect('#filterSupplier', optionData.suppliers, 'value', null, $('#filterSupplier').val(), true);
-        fillSelect('#filterLot', optionData.lots, 'value', null, $('#filterLot').val(), true);
         fillSelect('#filterSpecies', optionData.species, 'value', 'code', $('#filterSpecies').val(), true);
         fillSelect('#supplier', optionData.suppliers, 'value', null, $('#supplier').val(), false);
-        fillSelect('#lot', optionData.lots, 'value', null, $('#lot').val(), false);
         $('.species-select').each(function() {
             var selected = $(this).val();
             fillSelect(this, optionData.species, 'value', 'code', selected, false);
@@ -319,43 +287,10 @@ function loadOptions(callback) {
     });
 }
 
-function addOption(type) {
-    var label = type === 'supplier' ? '<?=msg('supplier_code', 'Supplier')?>' : (type === 'lot' ? '<?=msg('lot_code', 'Lot')?>' : '<?=msg('species_code', 'Species')?>');
-    var title = type === 'supplier' ? '<?=msg('add_supplier_code', 'Add Supplier')?>' : (type === 'lot' ? '<?=msg('add_lot_code', 'Add Lot')?>' : '<?=msg('add_species_code', 'Add Species')?>');
-
-    $('#optionType').val(type);
-    $('#optionName').val('');
-    $('#optionModalTitle').text(title);
-    $('#optionNameLabel').text(label);
-    $('#optionModal').modal('show');
-    setTimeout(function() { $('#optionName').trigger('focus'); }, 300);
-}
-
-function saveOption() {
-    var type = $('#optionType').val();
-    var name = $('#optionName').val().trim();
-
-    if (!name) {
-        $('#optionName').addClass('is-invalid');
-        return;
-    }
-
-    $.post('php/modules/sawnTimber/options.php', {type: 'add', optionType: type, name: name}, function(response) {
-        var obj = JSON.parse(response);
-        if (obj.status === 'success') {
-            $('#optionModal').modal('hide');
-            toastr.success(obj.message);
-            loadOptions();
-        } else {
-            toastr.error(obj.message);
-        }
-    });
-}
-
 function addDetailRow(detail) {
     detail = detail || {};
     var row = $('<tr>' +
-        '<td class="species-column"><div class="input-group flex-nowrap"><select class="form-control species-select" required></select><button class="btn btn-outline-secondary" type="button" onclick="addOption(\'species\')">+</button></div></td>' +
+        '<td class="species-column"><select class="form-control species-select" required></select></td>' +
         '<td><input type="number" step="0.0001" class="form-control thick" value="' + htmlEscape(detail.thick || '') + '"></td>' +
         '<td><input type="number" step="0.0001" class="form-control width" value="' + htmlEscape(detail.width || '') + '"></td>' +
         '<td><input type="number" step="0.0001" class="form-control length" value="' + htmlEscape(detail.length || '') + '"></td>' +
@@ -516,18 +451,12 @@ $(document).ready(function() {
     $('#filterBtn').on('click', function() { table.ajax.reload(); });
     $('#clearBtn').on('click', function() {
         $('#fromDate,#toDate,#filterTransactionId,#filterRemarks').val('');
-        $('#filterSupplier,#filterLot,#filterSpecies').val('');
+        $('#filterSupplier,#filterSpecies').val('');
         table.ajax.reload();
     });
     $('#exportBtn').on('click', exportExcel);
     $('#addEntry').on('click', function() { openEntry(null); });
     $('#addDetailRow').on('click', function() { addDetailRow(); });
-    $('#saveOption').on('click', saveOption);
-    $('#optionName').on('input', function() { $(this).removeClass('is-invalid'); });
-    $('#optionForm').on('submit', function(e) {
-        e.preventDefault();
-        saveOption();
-    });
     $('#detailTable').on('click', '.remove-detail', function() { $(this).closest('tr').remove(); });
     $('#detailTable').on('input', '.thick,.width,.length,.pieces', function() { calculateTons($(this).closest('tr')); });
 

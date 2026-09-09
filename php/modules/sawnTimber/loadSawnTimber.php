@@ -24,7 +24,7 @@ if (!empty($_POST['supplier']) && $_POST['supplier'] != '-') {
     $searchQuery .= " AND h.supplier = '".mysqli_real_escape_string($db, $_POST['supplier'])."'";
 }
 if (!empty($_POST['lot']) && $_POST['lot'] != '-') {
-    $searchQuery .= " AND h.lot = '".mysqli_real_escape_string($db, $_POST['lot'])."'";
+    $searchQuery .= " AND h.lot LIKE '%".mysqli_real_escape_string($db, $_POST['lot'])."%'";
 }
 if (!empty($_POST['species']) && $_POST['species'] != '-') {
     $searchQuery .= " AND EXISTS (SELECT 1 FROM Sawn_Timber_Detail d2 WHERE d2.header_id=h.id AND d2.species='".mysqli_real_escape_string($db, $_POST['species'])."')";

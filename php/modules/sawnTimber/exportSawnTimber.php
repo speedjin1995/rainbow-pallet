@@ -83,8 +83,8 @@ if (!$template) {
     }
 
     if (!empty($_GET['lot'])) {
-        $where .= " AND h.lot = ?";
-        $params[] = $_GET['lot'];
+        $where .= " AND h.lot LIKE ?";
+        $params[] = '%'.$_GET['lot'].'%';
         $types .= 's';
     }
 
@@ -129,28 +129,21 @@ if (!$template) {
     $listSheet->setTitle('Dropdown Lists');
     $listSheet->setSheetState(\PhpOffice\PhpSpreadsheet\Worksheet\Worksheet::SHEETSTATE_HIDDEN);
 
-    $suppliers = getOptionList($db, "SELECT name FROM Sawn_Timber_Supplier WHERE status='0' ORDER BY name ASC", array('name'));
-    $lots = getOptionList($db, "SELECT lot FROM Sawn_Timber_Lot WHERE status='0' ORDER BY lot ASC", array('lot'));
-    $species = getOptionList($db, "SELECT name FROM Sawn_Timber_Species WHERE status='0' ORDER BY name ASC", array('name'));
+    $suppliers = getOptionList($db, "SELECT name FROM Supplier WHERE status='0' ORDER BY name ASC", array('name'));
+    $species = getOptionList($db, "SELECT name FROM Sawn_Timber_Species ORDER BY name ASC", array('name'));
 
     foreach ($suppliers as $index => $value) {
         $listSheet->setCellValue('A'.($index + 1), $value);
     }
-    foreach ($lots as $index => $value) {
-        $listSheet->setCellValue('B'.($index + 1), $value);
-    }
     foreach ($species as $index => $value) {
-        $listSheet->setCellValue('C'.($index + 1), $value);
+        $listSheet->setCellValue('B'.($index + 1), $value);
     }
 
     if (!empty($suppliers)) {
         addDropdownList($sheet, 'C2:C500', "'Dropdown Lists'!\$A\$1:\$A\$".count($suppliers));
     }
-    if (!empty($lots)) {
-        addDropdownList($sheet, 'D2:D500', "'Dropdown Lists'!\$B\$1:\$B\$".count($lots));
-    }
     if (!empty($species)) {
-        addDropdownList($sheet, 'F2:F500', "'Dropdown Lists'!\$C\$1:\$C\$".count($species));
+        addDropdownList($sheet, 'F2:F500', "'Dropdown Lists'!\$B\$1:\$B\$".count($species));
     }
 }
 
