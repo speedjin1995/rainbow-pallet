@@ -797,15 +797,17 @@ else{
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div class="row col-12" <?php if($_SESSION["roles"] != 'SADMIN' && $_SESSION["roles"] != 'ADMIN'){ echo 'style="display:none;"'; }?>>
-                                                            <div class="col-xxl-4 col-lg-4 mb-3">
-                                                                <div class="card bg-light">
-                                                                    <div class="card-body py-2">
-                                                                        <div class="d-flex align-items-center justify-content-between">
-                                                                            <label for="manualWeightToggle" class="form-label mb-0"><?=$languageArray['manual_weight_code'][$language]?></label>
-                                                                            <div class="form-check form-switch">
-                                                                                <input class="form-check-input" type="checkbox" role="switch" id="manualWeightToggle" name="manualWeight" value="false">
-                                                                            </div>
+                                                        <div class="row col-12 mb-2">
+                                                            <div class="col-12">
+                                                                <div class="d-flex align-items-center justify-content-between border-bottom pb-2">
+                                                                    <div class="d-flex align-items-center">
+                                                                        <i class="ri-scales-3-line fs-5 text-primary me-2"></i>
+                                                                        <span class="fw-semibold"><?=$languageArray['weighing_code'][$language]?></span>
+                                                                    </div>
+                                                                    <div class="d-flex align-items-center <?php if($_SESSION["roles"] != 'SADMIN' && $_SESSION["roles"] != 'ADMIN'){ echo 'd-none'; }?>">
+                                                                        <span class="text-dark me-2"><?=$languageArray['manual_weight_code'][$language]?></span>
+                                                                        <div class="form-check form-switch mb-0">
+                                                                            <input class="form-check-input" type="checkbox" role="switch" id="manualWeightToggle" name="manualWeight" value="false" style="width: 4em; height: 1.5em; cursor: pointer;">
                                                                         </div>
                                                                     </div>
                                                                 </div>
