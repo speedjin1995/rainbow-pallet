@@ -2,8 +2,11 @@
 <?php include 'layouts/head-main.php'; ?>
 
 <?php
-require_once "php/db_connect.php";
 require_once "php/requires/lookup.php";
+if (!hasModulePermission('Accounting', 'Goods Received', ['view'])){
+    header('Location: no-permission.php');
+    exit;
+}
 
 $plantId = $_SESSION['plant'];
 $selectedPlantId = $_SESSION['selected_plant_id'] ?? null;
@@ -18,7 +21,7 @@ $rawMaterial2 = $db->query("SELECT * FROM Raw_Mat WHERE status = '0' ORDER BY na
 
 $plantName = '-';
 $plantCode = '-';
-if($_SESSION["roles"] != 'ADMIN' && $_SESSION["roles"] != 'SADMIN'){
+if (!hasModulePermission('Accounting', 'Goods Received', ['view_all_plants'])){
     $plant = searchPlantById($selectedPlantId, $db);
 
     $stmt2 = $db->prepare("SELECT * from Plant WHERE id = ?");
@@ -195,14 +198,18 @@ else{
                                                                 <h5 class="card-title mb-0 text-white"><?=$languageArray['goods_received_records_code'][$language]?></h5>
                                                             </div>
                                                             <div class="flex-shrink-0">
+                                                                <?php if(hasModulePermission('Accounting', 'Goods Received', ['export'])): ?>
                                                                 <button type="button" id="exportExcel" class="btn btn-success waves-effect waves-light">
                                                                     <i class="ri-file-excel-line align-middle me-1"></i>
                                                                     <?=$languageArray['export_excel_code'][$language]?>
                                                                 </button>
+                                                                <?php endif; ?>
+                                                                <?php if(hasModulePermission('Accounting', 'Goods Received', ['post_to_sql'])): ?>
                                                                 <button type="button" id="postSQL" class="btn btn-warning waves-effect waves-light">
                                                                     <i class="ri-send-plane-line align-middle me-1"></i>
                                                                     <?=$languageArray['post_to_sql_code'][$language]?>
                                                                 </button>
+                                                                <?php endif; ?>
                                                             </div> 
                                                         </div> 
                                                     </div>
@@ -272,6 +279,7 @@ else{
     <script type="text/javascript">
     var userRole = '<?=$_SESSION["roles"] ?>';
     var table = null;
+    var permissions = <?= json_encode($_SESSION['permissions']) ?>;
     var isSADMIN = <?= json_encode($_SESSION['roles'] == 'SADMIN') ?>;
 
     $(function () {
