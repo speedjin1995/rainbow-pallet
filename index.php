@@ -2,6 +2,7 @@
 <?php include 'layouts/head-main.php'; ?>
 
 <?php
+require_once "php/requires/lookup.php";
 $user = $_SESSION['id'];
 $username = $_SESSION["username"];
 $plantId = $_SESSION['plant'];
@@ -27,14 +28,6 @@ if(($row = $result->fetch_assoc()) !== null){
     $indicator = $row['indicator'];
 }
 
-$plantName = '-';
-
-if($plantId != null && count($plantId) > 0){
-    $stmt2 = $db->prepare("SELECT * from Plant WHERE plant_code = ?");
-    $stmt2->bind_param('s', $plantId[0]);
-    $stmt2->execute();
-    $result2 = $stmt2->get_result();
-        
     if(($row2 = $result2->fetch_assoc()) !== null){
         $plantName = $row2['name'];
     }
@@ -70,14 +63,21 @@ $rawMaterial = $db->query("SELECT * FROM Raw_Mat WHERE status = '0' ORDER BY nam
 $rawMaterial2 = $db->query("SELECT * FROM Raw_Mat WHERE status = '0' ORDER BY name ASC");
 $container = $db->query("SELECT * FROM Weight_Container WHERE status = '0' AND is_complete = 'Y' AND is_cancel = 'N'");
 
+$plantName = '-';
+$plantCode = '-';
 if($_SESSION["roles"] != 'ADMIN' && $_SESSION["roles"] != 'SADMIN'){
-    $username = implode("', '", $_SESSION["plant"]);
-    $plant = $db->query("SELECT * FROM Plant WHERE status = '0' and plant_code IN ('$username')");
+    $plant = searchPlantById($selectedPlantId, $db);
+    $plant2 = searchPlantById($selectedPlantId, $db);
+    
+    $stmt2 = $db->prepare("SELECT * from Plant WHERE id = ?");
+    $stmt2->bind_param('s', $selectedPlantId);
+    $stmt2->execute();
+    $result2 = $stmt2->get_result();
+        $plantCode = $row2['plant_code'];
+    }
 }
 else{
     $plant = $db->query("SELECT * FROM Plant WHERE status = '0'");
-}
-
 if($_SESSION["roles"] != 'ADMIN' && $_SESSION["roles"] != 'SADMIN'){
     $username = implode("', '", $_SESSION["plant"]);
     $plant2 = $db->query("SELECT * FROM Plant WHERE status = '0' and plant_code IN ('$username')");
