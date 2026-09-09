@@ -44,6 +44,7 @@ if ($user != null && $user != ''){
 
 //$lots = $db->query("SELECT * FROM lots WHERE deleted = '0'");
 $company = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
+$company2 = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
 $vehicles = $db->query("SELECT * FROM Vehicle WHERE status = '0' ORDER BY veh_number ASC");
 $vehicles2 = $db->query("SELECT * FROM Vehicle WHERE status = '0' ORDER BY veh_number ASC");
 $customer = $db->query("SELECT * FROM Customer WHERE status = '0' ORDER BY name ASC");
@@ -189,6 +190,17 @@ else{
                                                                 <!-- <option value="Local"><?=$languageArray['internal_transfer_code'][$language]?></option> -->
                                                                 <option value="Port"><?=$languageArray['trx_to_port_code'][$language]?></option>
                                                                 <option value="Misc"><?=$languageArray['miscellaneous_code'][$language]?></option>
+                                                            </select>
+                                                        </div>
+                                                    </div><!--end col-->
+                                                    <div class="col-3">
+                                                        <div class="mb-3">
+                                                            <label for="companySearch" class="form-label"><?=$languageArray['company_code'][$language]?></label>
+                                                            <select id="companySearch" class="form-select select2" >
+                                                                <option selected>-</option>
+                                                                <?php while($rowCompany = mysqli_fetch_assoc($company2)){ ?>
+                                                                    <option value="<?=$rowCompany['id'] ?>"><?=$rowCompany['name'] ?></option>
+                                                                <?php } ?>
                                                             </select>
                                                         </div>
                                                     </div><!--end col-->
@@ -973,6 +985,12 @@ else{
                                                                             </div>
                                                                         </div>                                                                   
                                                                     </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-xxl-12 col-lg-12 mb-2" id="customerSideLabel" style="display:none;">
+                                                                <div class="d-flex align-items-center border-bottom pb-2">
+                                                                    <i class="ri-user-location-line fs-5 text-primary me-2"></i>
+                                                                    <span class="fw-semibold"><?=$languageArray['customer_side_info_code'][$language]?></span>
                                                                 </div>
                                                             </div>
                                                             <div class="col-xxl-12 col-lg-12" id="customerSideCard" style="display:none;">
@@ -1768,6 +1786,7 @@ else{
         var fromDateI = $('#fromDateSearch').val();
         var toDateI = $('#toDateSearch').val();
         var statusI = $('#statusSearch').val() ? $('#statusSearch').val() : '';
+        var companyI = $('#companySearch').val() ? $('#companySearch').val() : '';
         var customerNoI = $('#customerNoSearch').val() ? $('#customerNoSearch').val() : '';
         var supplierI = $('#supplierSearch').val() ? $('#supplierSearch').val() : '';
         var vehicleNoI = $('#vehicleNo').val() ? $('#vehicleNo').val() : '';
@@ -1794,6 +1813,7 @@ else{
                     fromDate: fromDateI,
                     toDate: toDateI,
                     status: statusI,
+                    company: companyI,
                     customer: customerNoI,
                     supplier: supplierI,
                     vehicle: vehicleNoI,
@@ -2439,6 +2459,7 @@ else{
             var fromDateI = $('#fromDateSearch').val();
             var toDateI = $('#toDateSearch').val();
             var statusI = $('#statusSearch').val() ? $('#statusSearch').val() : '';
+            var companyI = $('#companySearch').val() ? $('#companySearch').val() : '';
             var customerNoI = $('#customerNoSearch').val() ? $('#customerNoSearch').val() : '';
             var supplierI = $('#supplierSearch').val() ? $('#supplierSearch').val() : '';
             var vehicleNoI = $('#vehicleNo').val() ? $('#vehicleNo').val() : '';
@@ -2470,6 +2491,7 @@ else{
                         fromDate: fromDateI,
                         toDate: toDateI,
                         status: statusI,
+                        company: companyI,
                         customer: customerNoI,
                         supplier: supplierI,
                         vehicle: vehicleNoI,
@@ -3706,9 +3728,11 @@ else{
                 if ($(this).val() == "Purchase"){
                     $('#divPurchaseOrder').find('label[for="purchaseOrder"]').text('Purchase Order');
                     $('#customerSideCard').show();
+                    $('#customerSideLabel').show();
                 }else{
                     $('#divPurchaseOrder').find('label[for="purchaseOrder"]').text('Sale Order');
                     $('#customerSideCard').hide();
+                    $('#customerSideLabel').hide();
                 }
             }
             else{
@@ -4203,6 +4227,7 @@ else{
                 }
 
                 $('#addModal').find('#id').val(obj.message.id);
+                $('#addModal').find('#companyId').val(obj.message.company_id).trigger('change');
                 $('#addModal').find('#transactionId').val(obj.message.transaction_id);
                 $('#addModal').find('#transactionStatus').val(obj.message.transaction_status).trigger('change');
                 $('#addModal').find('#weightType').val(obj.message.weight_type).trigger('change');

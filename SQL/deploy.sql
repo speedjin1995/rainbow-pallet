@@ -2350,3 +2350,6 @@ CREATE OR REPLACE TRIGGER `TRG_UPD_PV_ITEM` BEFORE UPDATE ON `Pv_Items` FOR EACH
 END
 $$
 DELIMITER ;
+
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('customer_side_info_code', 'Customer Side Info', '客户端信息', 'Maklumat Pihak Pelanggan', 'ग्राहक पक्ष जानकारी');
+
