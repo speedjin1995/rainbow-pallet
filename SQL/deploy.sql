@@ -1851,3 +1851,82 @@ DELIMITER ;
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('account_no_code', 'Account No', '选择导出方式', 'Pilih Kaedah Eksport', 'ஏற்றுமதி முறையை தேர்ந்தெடுக்கவும்');
 
 ALTER TABLE raw_mat ADD raw_mat_type varchar(50);
+
+-- 08/09/2026 Sawn Timber Supplier and Lot Tables --
+CREATE TABLE IF NOT EXISTS `Sawn_Timber_Supplier` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `status` varchar(10) NOT NULL DEFAULT '0',
+  `created_date` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_sawn_timber_supplier_name` (`name`)
+);
+
+CREATE TABLE IF NOT EXISTS `Sawn_Timber_Lot` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `lot` varchar(100) NOT NULL,
+  `status` varchar(10) NOT NULL DEFAULT '0',
+  `created_date` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_sawn_timber_lot` (`lot`)
+);
+
+CREATE TABLE IF NOT EXISTS `Sawn_Timber_Species` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `status` varchar(10) NOT NULL DEFAULT '0',
+  `created_date` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_sawn_timber_species_name` (`name`)
+);
+
+CREATE TABLE IF NOT EXISTS `Sawn_Timber_Header` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `transaction_id` varchar(100) NOT NULL,
+  `transaction_date` datetime NOT NULL,
+  `supplier` varchar(255) NOT NULL,
+  `lot` varchar(100) NOT NULL,
+  `bundle` varchar(100) NOT NULL,
+  `remarks` text DEFAULT NULL,
+  `status` varchar(10) NOT NULL DEFAULT '0',
+  `created_by` varchar(50) NOT NULL,
+  `created_date` datetime NOT NULL DEFAULT current_timestamp(),
+  `modified_by` varchar(50) NOT NULL,
+  `modified_date` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_sawn_timber_transaction_id` (`transaction_id`)
+);
+
+CREATE TABLE IF NOT EXISTS `Sawn_Timber_Detail` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `header_id` int(11) NOT NULL,
+  `species` varchar(255) NOT NULL,
+  `thick` decimal(12,4) NOT NULL DEFAULT 0,
+  `width` decimal(12,4) NOT NULL DEFAULT 0,
+  `length` decimal(12,4) NOT NULL DEFAULT 0,
+  `pieces` int(11) NOT NULL DEFAULT 0,
+  `tons` decimal(12,4) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  KEY `idx_sawn_timber_detail_header` (`header_id`),
+  CONSTRAINT `fk_sawn_timber_detail_header` FOREIGN KEY (`header_id`) REFERENCES `Sawn_Timber_Header` (`id`) ON DELETE CASCADE
+);
+
+INSERT IGNORE INTO `Sawn_Timber_Supplier` (`name`) VALUES ('Abb Sdn. Bhd.');
+INSERT IGNORE INTO `Sawn_Timber_Lot` (`lot`) VALUES ('BD'), ('BG');
+INSERT IGNORE INTO `Sawn_Timber_Species` (`name`) VALUES ('Others');
+
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('sawn_timber_code', 'Sawn Timber', '方木', 'Kayu gergaji', 'அறுக்கப்பட்ட மரம்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('add_new_entry_code', 'Add New Entry', '新增记录', 'Tambah Entri Baharu', 'புதிய பதிவைச் சேர்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('lot_code', 'Lot', '批次', 'Lot', 'தொகுதி');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('bundle_code', 'Bundle', '捆', 'Bundle', 'தொகுப்பு');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('species_code', 'Species', '物种', 'Spesies', 'வகை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('thick_code', 'Thick', '厚度', 'Tebal', 'தடிமம்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('width_code', 'Width', '宽度', 'Lebar', 'அகலம்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('length_code', 'Length', '长度', 'Panjang', 'நீளம்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('pieces_code', 'Pieces', '件数', 'Keping', 'துண்டுகள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('tons_code', 'Tons', '吨', 'Tan', 'டன்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('total_pcs_code', 'Total Pcs', '总件数', 'Jumlah Keping', 'மொத்த துண்டுகள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('total_tons_code', 'Total Tons', '总吨数', 'Jumlah Tan', 'மொத்த டன்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('add_supplier_code', 'Add Supplier', '添加供应商', 'Tambah Pembekal', 'சப்ளையரைச் சேர்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('add_lot_code', 'Add Lot', '添加批次', 'Tambah Lot', 'தொகுதியைச் சேர்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('add_species_code', 'Add Species', '添加物种', 'Tambah Spesies', 'வகையைச் சேர்');
