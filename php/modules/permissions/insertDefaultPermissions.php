@@ -84,6 +84,12 @@ $defaultPermissions = [
         ['Empty Container Type', 'Weighing'], 
         ['Different Container Type', 'Weighing']
     ]],
+    ['name' => 'weight_out', 'modules' => [
+        ['Sales', 'Weighing'], 
+        ['Purchase', 'Weighing'], 
+        ['Port', 'Weighing'], 
+        ['Miscellaneous', 'Weighing']
+    ]],
     ['name' => 'manual_weighing', 'modules' => [
         ['Sales', 'Weighing'], 
         ['Purchase', 'Weighing'], 
