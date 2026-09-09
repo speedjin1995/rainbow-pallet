@@ -3,9 +3,11 @@
 
 <?php
 require_once "php/requires/lookup.php";
+
 $user = $_SESSION['id'];
 $username = $_SESSION["username"];
 $plantId = $_SESSION['plant'];
+$selectedPlantId = $_SESSION['selected_plant_id'] ?? null;
 $stmt = $db->prepare("SELECT * from Port WHERE weighind_id = ?");
 $stmt->bind_param('s', $user);
 $stmt->execute();
@@ -26,11 +28,6 @@ if(($row = $result->fetch_assoc()) !== null){
     $parity = $row['parity'];
     $stopbits = $row['stop_bits'];
     $indicator = $row['indicator'];
-}
-
-    if(($row2 = $result2->fetch_assoc()) !== null){
-        $plantName = $row2['name'];
-    }
 }
 
 $role = 'NORMAL';
@@ -73,16 +70,14 @@ if($_SESSION["roles"] != 'ADMIN' && $_SESSION["roles"] != 'SADMIN'){
     $stmt2->bind_param('s', $selectedPlantId);
     $stmt2->execute();
     $result2 = $stmt2->get_result();
+        
+    if(($row2 = $result2->fetch_assoc()) !== null){
+        $plantName = $row2['name'];
         $plantCode = $row2['plant_code'];
     }
 }
 else{
     $plant = $db->query("SELECT * FROM Plant WHERE status = '0'");
-if($_SESSION["roles"] != 'ADMIN' && $_SESSION["roles"] != 'SADMIN'){
-    $username = implode("', '", $_SESSION["plant"]);
-    $plant2 = $db->query("SELECT * FROM Plant WHERE status = '0' and plant_code IN ('$username')");
-}
-else{
     $plant2 = $db->query("SELECT * FROM Plant WHERE status = '0'");
 }
 ?>
@@ -272,9 +267,9 @@ else{
                                                         <div class="mb-3">
                                                             <label for="plantSearch" class="form-label"><?=$languageArray['plant_code'][$language]?></label>
                                                             <select id="plantSearch" class="form-select select2" >
-                                                                <option selected>-</option>
+                                                                <option value="">-</option>
                                                                 <?php while($rowPlantF=mysqli_fetch_assoc($plant2)){ ?>
-                                                                    <option value="<?=$rowPlantF['plant_code'] ?>"><?=$rowPlantF['name'] ?></option>
+                                                                    <option value="<?=$rowPlantF['plant_code'] ?>" <?= ($rowPlantF['plant_code'] == $plantCode) ? 'selected' : '' ?>><?=$rowPlantF['name'] ?></option>
                                                                 <?php } ?>
                                                             </select>
                                                         </div>
@@ -491,26 +486,15 @@ else{
                                                                 <div class="card bg-light">
                                                                     <div class="card-body">
                                                                         <div class="row">
-                                                                            <div class="col-xxl-4 col-lg-4 mb-3"  <?php 
-                                                                                if($_SESSION["roles"] != 'SADMIN' && $_SESSION["roles"] != 'ADMIN'){
-                                                                                    echo 'style="display:none;"';
-                                                                                }?>>
+                                                                            <div class="col-xxl-4 col-lg-4 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="manualWeight" class="col-sm-4 col-form-label"><?=$languageArray['manual_weight_code'][$language]?></label>
+                                                                                    <label for="companyId" class="col-sm-4 col-form-label"><?=$languageArray['company_code'][$language]?></label>
                                                                                     <div class="col-sm-8">
-                                                                                        <div class="form-check align-radio mr-2">
-                                                                                            <input class="form-check-input radio-manual-weight" type="radio" name="manualWeight" id="manualWeightYes" value="true">
-                                                                                            <label class="form-check-label" for="manualWeightYes">
-                                                                                               <?=$languageArray['yes_code'][$language]?>
-                                                                                            </label>
-                                                                                        </div>
-
-                                                                                        <div class="form-check align-radio">
-                                                                                            <input class="form-check-input radio-manual-weight" type="radio" name="manualWeight" id="manualWeightNo" value="false" checked>
-                                                                                            <label class="form-check-label" for="manualWeightNo">
-                                                                                               <?=$languageArray['no_code'][$language]?>
-                                                                                            </label>
-                                                                                        </div>
+                                                                                        <select class="form-select select2" id="companyId" name="companyId" required>
+                                                                                            <?php while($rowCompany=mysqli_fetch_assoc($company)){ ?>
+                                                                                                <option value="<?=$rowCompany['id'] ?>"><?=$rowCompany['name'] ?></option>
+                                                                                            <?php } ?>
+                                                                                        </select>           
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
@@ -800,20 +784,6 @@ else{
                                                                             </div>
                                                                         </div>
                                                                         <div class="row">
-                                                                            <div class="col-xxl-4 col-lg-4 mb-3">
-                                                                                <div class="row">
-                                                                                    <label for="companyId" class="col-sm-4 col-form-label"><?=$languageArray['company_code'][$language]?></label>
-                                                                                    <div class="col-sm-8">
-                                                                                        <select class="form-select select2" id="companyId" name="companyId" required>
-                                                                                            <?php while($rowCompany=mysqli_fetch_assoc($company)){ ?>
-                                                                                                <option value="<?=$rowCompany['id'] ?>"><?=$rowCompany['name'] ?></option>
-                                                                                            <?php } ?>
-                                                                                        </select>           
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="row">
                                                                             <div class="col-xxl-12 col-lg-12">
                                                                                 <div class="row">
                                                                                     <label for="otherRemarks" class="col-sm-1 col-form-label" style="width: 11%;"><?=$languageArray['other_remarks_code'][$language]?></label>
@@ -822,6 +792,31 @@ else{
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row col-12">
+                                                            <div class="col-xxl-4 col-lg-4 mb-3"  <?php 
+                                                                if($_SESSION["roles"] != 'SADMIN' && $_SESSION["roles"] != 'ADMIN'){
+                                                                    echo 'style="display:none;"';
+                                                                }?>>
+                                                                <div class="row">
+                                                                    <label for="manualWeight" class="col-sm-4 col-form-label"><?=$languageArray['manual_weight_code'][$language]?></label>
+                                                                    <div class="col-sm-8">
+                                                                        <div class="form-check align-radio mr-2">
+                                                                            <input class="form-check-input radio-manual-weight" type="radio" name="manualWeight" id="manualWeightYes" value="true">
+                                                                            <label class="form-check-label" for="manualWeightYes">
+                                                                                <?=$languageArray['yes_code'][$language]?>
+                                                                            </label>
+                                                                        </div>
+
+                                                                        <div class="form-check align-radio">
+                                                                            <input class="form-check-input radio-manual-weight" type="radio" name="manualWeight" id="manualWeightNo" value="false" checked>
+                                                                            <label class="form-check-label" for="manualWeightNo">
+                                                                                <?=$languageArray['no_code'][$language]?>
+                                                                            </label>
                                                                         </div>
                                                                     </div>
                                                                 </div>
