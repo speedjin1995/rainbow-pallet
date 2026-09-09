@@ -15,7 +15,7 @@ $searchValue = mysqli_real_escape_string($db, $_POST['search']['value']);
 $modResult = mysqli_query($db, "SELECT id, name, category FROM modules");
 $moduleLookup = array();
 while($mr = mysqli_fetch_assoc($modResult)) {
-    if ($mr['category'] == 'Weighing'){
+    if ($mr['category'] == 'Weighing' || $mr['category'] == 'Reports'){
         if ($mr['name'] == 'Sales') {
             $name = $languageArray['dispatch_code']['en'];
         } else if ($mr['name'] == 'Purchase') {

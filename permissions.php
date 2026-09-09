@@ -135,12 +135,29 @@ while($m = $modules->fetch_assoc()){
                                             <?php foreach($grouped as $category => $mods): ?>
                                             <div class="mb-3">
                                                 <h6 class="text-muted mb-2"><?=htmlspecialchars($category)?></h6>
-                                                <?php foreach($mods as $mod): ?>
+                                                <?php foreach($mods as $mod): 
+                                                    $modName = $mod['name'];
+                                                    if ($category == 'Weighing' || $category == 'Reports'){
+                                                        if ($modName == 'Sales') {
+                                                            $modName = $languageArray['dispatch_code']['en'];
+                                                        } else if ($modName == 'Purchase') {
+                                                            $modName = $languageArray['receiving_code']['en'];
+                                                        } else if ($modName == 'Local') {
+                                                            $modName = $languageArray['internal_transfer_code']['en'];
+                                                        } else if ($modName == 'Port') {
+                                                            $modName = $languageArray['trx_to_port_code']['en'];
+                                                        } else if ($modName == 'Misc') {
+                                                            $modName = $languageArray['miscellaneous_code']['en'];
+                                                        }
+                                                    }
+                                                    
+                                                ?>
                                                 <div class="form-check mb-1 ms-3">
                                                     <input class="form-check-input module-check" type="checkbox" name="modules[]" value="<?=$mod['id']?>" id="mod_<?=$mod['id']?>">
-                                                    <label class="form-check-label" for="mod_<?=$mod['id']?>"><?=htmlspecialchars($mod['name'])?></label>
+                                                    <label class="form-check-label" for="mod_<?=$mod['id']?>"><?=htmlspecialchars($modName)?></label>
                                                 </div>
                                                 <?php endforeach; ?>
+
                                             </div>
                                             <?php endforeach; ?>
                                         </div>
