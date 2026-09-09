@@ -2228,6 +2228,7 @@ else{
             $('#addModal').find('#id').val("");
             $('#addModal').find('#currentWeight').text("0");
             $('#addModal').find('#transactionId').val("");
+            $('#addModal').find('#companyId').val(1).trigger('change');
             $('#addModal').find('#transactionStatus').val("Sales").trigger('change');
             $('#addModal').find('#emptyContainerNo').val("").trigger('change');
             $('#addModal').find('#weightType').val("Normal").trigger('change');
