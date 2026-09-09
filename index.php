@@ -797,26 +797,15 @@ else{
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div class="row col-12">
-                                                            <div class="col-xxl-4 col-lg-4 mb-3"  <?php 
-                                                                if($_SESSION["roles"] != 'SADMIN' && $_SESSION["roles"] != 'ADMIN'){
-                                                                    echo 'style="display:none;"';
-                                                                }?>>
-                                                                <div class="row">
-                                                                    <label for="manualWeight" class="col-sm-4 col-form-label"><?=$languageArray['manual_weight_code'][$language]?></label>
-                                                                    <div class="col-sm-8">
-                                                                        <div class="form-check align-radio mr-2">
-                                                                            <input class="form-check-input radio-manual-weight" type="radio" name="manualWeight" id="manualWeightYes" value="true">
-                                                                            <label class="form-check-label" for="manualWeightYes">
-                                                                                <?=$languageArray['yes_code'][$language]?>
-                                                                            </label>
-                                                                        </div>
-
-                                                                        <div class="form-check align-radio">
-                                                                            <input class="form-check-input radio-manual-weight" type="radio" name="manualWeight" id="manualWeightNo" value="false" checked>
-                                                                            <label class="form-check-label" for="manualWeightNo">
-                                                                                <?=$languageArray['no_code'][$language]?>
-                                                                            </label>
+                                                        <div class="row col-12" <?php if($_SESSION["roles"] != 'SADMIN' && $_SESSION["roles"] != 'ADMIN'){ echo 'style="display:none;"'; }?>>
+                                                            <div class="col-xxl-4 col-lg-4 mb-3">
+                                                                <div class="card bg-light">
+                                                                    <div class="card-body py-2">
+                                                                        <div class="d-flex align-items-center justify-content-between">
+                                                                            <label for="manualWeightToggle" class="form-label mb-0"><?=$languageArray['manual_weight_code'][$language]?></label>
+                                                                            <div class="form-check form-switch">
+                                                                                <input class="form-check-input" type="checkbox" role="switch" id="manualWeightToggle" name="manualWeight" value="false">
+                                                                            </div>
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -2754,7 +2743,7 @@ else{
             customerSideTimeOutPicker.clear();
             $('#addModal').find('#weightDifference').val("");
             $('#addModal').find('#weightDifferencePerc').val("");
-            $('#addModal').find('#manualWeightNo').trigger('click');
+            $('#addModal').find('#manualWeightToggle').prop('checked', false).val('false').trigger('change');
             $('#addModal').find('#weighbridge').val("");
             $('#addModal').find('#productDescription').val("");
             $('#addModal').find('#productHigh').val("");
@@ -3388,14 +3377,16 @@ else{
             }
         });
 
-        $('.radio-manual-weight').on('click', function(){
-            if($('input[name="manualWeight"]:checked').val() == "true"){
+        $('#manualWeightToggle').on('change', function(){
+            if($(this).is(':checked')){
+                $(this).val('true');
                 $('#tareOutgoing').removeAttr('readonly');
                 $('#grossIncoming').removeAttr('readonly');
                 $('#tareOutgoing2').removeAttr('readonly');
                 $('#grossIncoming2').removeAttr('readonly');
             }
             else{
+                $(this).val('false');
                 $('#grossIncoming').attr('readonly', 'readonly');
                 $('#tareOutgoing').attr('readonly', 'readonly');
                 $('#grossIncoming2').attr('readonly', 'readonly');
@@ -4300,14 +4291,12 @@ else{
                 $('#addModal').find('#currentWeight').text(obj.message.final_weight);
 
                 if(obj.message.manual_weight == 'true'){
-                    $("#manualWeightYes").prop("checked", true);
-                    $("#manualWeightNo").prop("checked", false);
-                    $('#manualWeightYes').trigger('click');
+                    $("#manualWeightToggle").prop("checked", true).val('true');
+                    $('#manualWeightToggle').trigger('change');
                 }
                 else{
-                    $("#manualWeightYes").prop("checked", false);
-                    $("#manualWeightNo").prop("checked", true);
-                    $('#manualWeightNo').trigger('click');
+                    $("#manualWeightToggle").prop("checked", false).val('false');
+                    $('#manualWeightToggle').trigger('change');
                 }
 
                 $('#addModal').find('#indicatorId').val(obj.message.indicator_id);
