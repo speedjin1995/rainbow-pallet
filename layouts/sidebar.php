@@ -38,7 +38,10 @@
                 </li-->
                 <li class="nav-item">
                     <a href="index.php" class="nav-link"><i class="mdi mdi-weight"></i><span><?=$languageArray['daily_weighing_code'][$language]?></span></a>
-                </li>                
+                </li>
+                <li class="nav-item">
+                    <a href="sawnTimber.php" class="nav-link"><i class="mdi mdi-warehouse"></i><span><?=isset($languageArray['sawn_timber_code'][$language]) ? $languageArray['sawn_timber_code'][$language] : 'Sawn Timber'?></span></a>
+                </li>
                 <!--li class="nav-item">
                     <a href="bitumen.php" class="nav-link"><i class="mdi mdi-domain"></i></i><?=$lang['t-bitumen']?></a>
                 </li-->         
@@ -120,7 +123,10 @@
                                             </li>
                                             <li class="nav-item">
                                                 <a href="supplier.php" class="nav-link">'.$languageArray['supplier_code'][$language].'</a>
-                                            </li>       
+                                            </li>
+                                            <li class="nav-item">
+                                                <a href="sawnTimberSpecies.php" class="nav-link">'.(isset($languageArray['species_code'][$language]) ? $languageArray['species_code'][$language] : 'Species').'</a>
+                                            </li>
                                             <li class="nav-item">
                                                 <a href="vehicle.php" class="nav-link">'.$languageArray['vehicle_code'][$language].'</a>
                                             </li>
