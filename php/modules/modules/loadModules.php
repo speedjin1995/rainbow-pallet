@@ -46,16 +46,18 @@ $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
 foreach ($rows as &$row) {
-    if ($row['name'] == 'Sales') {
-        $row['name'] = $languageArray['dispatch_code']['en'];
-    }elseif ($row['name'] == 'Purchase'){
-        $row['name'] = $languageArray['receiving_code']['en'];
-    }elseif ($row['name'] == 'Internal Transfer'){
-        $row['name'] = $languageArray['internal_transfer_code']['en'];
-    }elseif($row['name'] == 'Miscellaneous'){
-        $row['name'] = $languageArray['miscellaneous_code']['en'];
-    }elseif($row['name'] == 'Port'){
-        $row['name'] = $languageArray['trx_to_port_code']['en'];
+    if ($row['category'] == 'Weighing' || $row['category'] == 'Reports'){
+        if ($row['name'] == 'Sales') {
+            $row['name'] = $languageArray['dispatch_code']['en'];
+        }elseif ($row['name'] == 'Purchase'){
+            $row['name'] = $languageArray['receiving_code']['en'];
+        }elseif ($row['name'] == 'Internal Transfer'){
+            $row['name'] = $languageArray['internal_transfer_code']['en'];
+        }elseif($row['name'] == 'Miscellaneous'){
+            $row['name'] = $languageArray['miscellaneous_code']['en'];
+        }elseif($row['name'] == 'Port'){
+            $row['name'] = $languageArray['trx_to_port_code']['en'];
+        }
     }
 }
 unset($row);
