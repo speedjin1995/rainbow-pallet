@@ -180,7 +180,13 @@
 
                             <?php if(hasModulePermission('Master Data', 'Locations', ['view', 'create', 'edit'])): ?>                
                             <li class="nav-item">
-                                <a href="sawnTimberSpecies.php" class="nav-link">'.(isset($languageArray['species_code'][$language]) ? $languageArray['species_code'][$language] : 'Species').'</a>
+                                <a href="sawnTimberSpecies.php" class="nav-link"><?=$languageArray['species_code'][$language]?></a>
+                            </li>
+                            <?php endif; ?>
+
+                            <?php if(hasModulePermission('Master Data', 'Locations', ['view', 'create', 'edit'])): ?>                
+                            <li class="nav-item">
+                                <a href="pvItems.php" class="nav-link"><?=$languageArray['pv_items_code'][$language]?></a>
                             </li>
                             <?php endif; ?>
                         </ul>

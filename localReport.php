@@ -228,11 +228,11 @@ else{
                                                                 <h5 class="card-title text-white mb-0"><?=$languageArray['weighing_records_code'][$language]?></h5>
                                                             </div>
                                                             <div class="flex-shrink-0">
-                                                                <button type="button" id="exportPdf" class="btn btn-danger waves-effect waves-light" data-bs-toggle="modal" data-bs-target="#exportPdfModal">
+                                                                <button type="button" id="exportPdf" class="btn btn-danger waves-effect waves-light">
                                                                     <i class="ri-file-pdf-line align-middle me-1"></i>
                                                                     <?=$languageArray['export_pdf_code'][$language]?>
                                                                 </button>
-                                                                <button type="button" id="exportExcel" class="btn btn-success waves-effect waves-light" data-bs-toggle="modal" data-bs-target="#exportExcelModal">
+                                                                <button type="button" id="exportExcel" class="btn btn-success waves-effect waves-light">
                                                                     <i class="ri-file-excel-line align-middle me-1"></i>
                                                                     <?=$languageArray['export_excel_code'][$language]?>
                                                                 </button>
@@ -288,6 +288,7 @@ else{
     </div>
     <!-- END layout-wrapper -->
     
+    <!-- Export Excel Modal - Commented out for direct export
     <div class="modal fade" id="exportExcelModal" tabindex="-1" role="dialog" aria-labelledby="exportExcelModalTitle" aria-hidden="true">
         <div class="modal-dialog modal-dialog-scrollable custom-xxl">
             <div class="modal-content">
@@ -329,7 +330,9 @@ else{
             </div>
         </div>
     </div>
+    -->
 
+    <!-- Export PDF Modal - Commented out for direct export
     <div class="modal fade" id="exportPdfModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalScrollableTitle" aria-hidden="true">
         <div class="modal-dialog modal-dialog-scrollable custom-xxl">
             <div class="modal-content">
@@ -393,6 +396,7 @@ else{
             </div><!-- /.modal-content -->
         </div><!-- /.modal-dialog -->
     </div>
+    -->
 
     <div class="modal fade" id="prePrintModal">
         <div class="modal-dialog modal-xl" style="max-width: 90%;">
@@ -547,6 +551,7 @@ else{
             renderTable();
         });
 
+        /* Modal form submit - Commented out for direct export
         $('#exportPdfForm').on('submit', function(e) {
             e.preventDefault();
             $('#exportPdfModal').modal('hide');
@@ -650,6 +655,77 @@ else{
 
             window.open(url);
             $('#exportExcelModal').modal('hide');
+        });
+        */
+
+        // Direct PDF Export
+        $('#exportPdf').on('click', function(){
+            var selectedIds = [];
+            $("#weightTable tbody input[type='checkbox']").each(function () {
+                if (this.checked) selectedIds.push($(this).val());
+            });
+
+            var params = {
+                fromDate: $('#fromDateSearch').val(),
+                toDate: $('#toDateSearch').val(),
+                transactionStatus: $('#transactionStatusSearch').val() || '',
+                supplier: $('#supplierSearch').val() || '',
+                vehicle: $('#vehicleNo').val() || '',
+                weighingType: $('#invoiceNoSearch').val() || '',
+                rawMat: $('#rawMatSearch').val() || '',
+                destination: $('#destinationSearch').val() || '',
+                plant: $('#plantSearch').val() || '',
+                status: $('#statusSearch').val() || '',
+                file: 'weight',
+                reportType: 'SUMMARY',
+                isMulti: selectedIds.length > 0 ? 'Y' : 'N',
+                ids: selectedIds.join(',')
+            };
+
+            $.post('php/exportPdf.php', params, function(response){
+                var obj = JSON.parse(response);
+                if(obj.status === 'success'){
+                    var printWindow = window.open('', '', 'height=' + screen.height + ',width=' + screen.width);
+                    printWindow.document.write(obj.message);
+                    printWindow.document.close();
+                    setTimeout(function(){
+                        printWindow.print();
+                        printWindow.close();
+                    }, 500);
+                } else {
+                    toastr["error"](obj.message || "Something wrong when exporting", "Failed:");
+                }
+            }).fail(function(){
+                toastr["error"]("An error occurred while generating the PDF.", "Failed:");
+            });
+        });
+
+        // Direct Excel Export
+        $('#exportExcel').on('click', function(){
+            var selectedIds = [];
+            $("#weightTable tbody input[type='checkbox']").each(function () {
+                if (this.checked) selectedIds.push($(this).val());
+            });
+
+            var url = "php/export.php?file=weight" +
+                "&fromDate=" + encodeURIComponent($('#fromDateSearch').val()) +
+                "&toDate=" + encodeURIComponent($('#toDateSearch').val()) +
+                "&transactionStatus=" + encodeURIComponent($('#transactionStatusSearch').val() || '') +
+                "&supplier=" + encodeURIComponent($('#supplierSearch').val() || '') +
+                "&vehicle=" + encodeURIComponent($('#vehicleNo').val() || '') +
+                "&weighingType=" + encodeURIComponent($('#invoiceNoSearch').val() || '') +
+                "&rawMat=" + encodeURIComponent($('#rawMatSearch').val() || '') +
+                "&destination=" + encodeURIComponent($('#destinationSearch').val() || '') +
+                "&plant=" + encodeURIComponent($('#plantSearch').val() || '') +
+                "&status=" + encodeURIComponent($('#statusSearch').val() || '') +
+                "&reportType=SUMMARY" +
+                "&isMulti=" + (selectedIds.length > 0 ? 'Y' : 'N');
+
+            if (selectedIds.length > 0) {
+                url += "&ids=" + encodeURIComponent(selectedIds.join(','));
+            }
+
+            window.open(url);
         });
 
         $('#submitPrePrint').on('click', function(){

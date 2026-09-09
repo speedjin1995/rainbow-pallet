@@ -6,6 +6,9 @@ require_once '../../requires/lookup.php';
 if (isset($_POST['supplierId']) && isset($_POST['fromDate']) && isset($_POST['toDate'])) {
     $supplierId = filter_input(INPUT_POST, 'supplierId', FILTER_SANITIZE_STRING);
     $supplier = searchSupplierById($supplierId, $db);
+    
+    // Get current PV ID if editing
+    $currentPvId = isset($_POST['pvId']) && !empty($_POST['pvId']) ? trim($_POST['pvId']) : null;
 
     if(!empty($_POST['fromDate'])){
         $fromDate = DateTime::createFromFormat('d-m-Y', $_POST['fromDate']);
@@ -18,8 +21,15 @@ if (isset($_POST['supplierId']) && isset($_POST['fromDate']) && isset($_POST['to
     }
 
     if (!empty($supplier)) {
-        if ($stmt = $db->prepare("SELECT w.id as weight_id, w.*, pv.voucher_no FROM Weight w LEFT JOIN Payment_Voucher pv ON w.pv_id = pv.id WHERE w.is_complete = 'Y' AND w.is_cancel <> 'Y' AND w.weight_type = 'Normal' AND w.transaction_status = 'Purchase' AND w.status = 0 AND DATE(w.transaction_date) BETWEEN ? AND ? AND w.supplier_code=?")) {
-            $stmt->bind_param('sss', $fromDateFormatted, $toDateFormatted, $supplier['supplier_code']);
+        // Modified query: get transactions in date range OR tied to current PV
+        $sql = "SELECT w.id as weight_id, w.*, pv.voucher_no FROM Weight w LEFT JOIN Payment_Voucher pv ON w.pv_id = pv.id WHERE w.is_complete = 'Y' AND w.is_cancel <> 'Y' AND w.weight_type = 'Normal' AND w.transaction_status = 'Purchase' AND w.status = 0 AND w.supplier_code=? AND (DATE(w.transaction_date) BETWEEN ? AND ?" . ($currentPvId ? " OR w.pv_id = ?" : "") . ")";
+        
+        if ($stmt = $db->prepare($sql)) {
+            if ($currentPvId) {
+                $stmt->bind_param('ssss', $supplier['supplier_code'], $fromDateFormatted, $toDateFormatted, $currentPvId);
+            } else {
+                $stmt->bind_param('sss', $supplier['supplier_code'], $fromDateFormatted, $toDateFormatted);
+            }
 
             if (!$stmt->execute()) {
                 echo json_encode(array("status" => "failed", "message" => "Something went wrong"));

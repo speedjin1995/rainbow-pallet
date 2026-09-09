@@ -13,6 +13,8 @@ $supplier2 = $db->query("SELECT * FROM Supplier WHERE status = '0' AND payment_t
 $supplierCash2 = $db->query("SELECT * FROM Supplier WHERE status = '0' AND payment_term = 'Cash' ORDER BY name ASC");
 $company = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC");
 $company2 = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC");
+$pvItem = $db->query("SELECT * FROM Pv_Items WHERE status = 0 ORDER BY item_name ASC");
+$pvItem2 = $db->query("SELECT * FROM Pv_Items WHERE status = 0 ORDER BY item_name ASC");
 ?>
 
 <head>
@@ -66,7 +68,7 @@ $company2 = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC
                     <div class="col">
                         <div class="h-100">
                             <!-- Page Tabs -->
-                            <ul class="nav nav-tabs mb-3" id="pvPageTabs">
+                            <ul class="nav nav-tabs mb-3" id="pvPageTabs" style="display:none">
                                 <li class="nav-item">
                                     <a class="nav-link active" href="#" id="btnTermTab"><?=$languageArray['term_supplier_code'][$language]?></a>
                                 </li>
@@ -724,6 +726,21 @@ $company2 = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC
 
     <script type="text/javascript">
     
+    var pvItemsDeduction = [
+        <?php 
+        while($row = mysqli_fetch_assoc($pvItem)){ 
+            echo '{id: "'.$row['id'].'", name: "'.addslashes($row['item_name']).'"},';
+        } 
+        ?>
+    ];
+    var pvItemsAddition = [
+        <?php 
+        while($row = mysqli_fetch_assoc($pvItem2)){ 
+            echo '{id: "'.$row['id'].'", name: "'.addslashes($row['item_name']).'"},';
+        } 
+        ?>
+    ];
+
     var deductionRowCount = 0;
     var additionRowCount = 0;
     var table;
@@ -970,6 +987,7 @@ $company2 = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC
         });
 
         $('#addPv').on('click', function(){
+            $('#pricingModal').find('#pvId').val('');  // Clear pvId for new PV
             voucherDatePicker.setDate(new Date(), false);  // Use current date directly
             $('#pricingModal').find('#voucherNo').val('');
             $('#pricingModal').find('#invoiceNo').val('');
@@ -983,6 +1001,7 @@ $company2 = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC
             $('#pricingModal').find('#paymentDetailsTable').empty();
             $('#pricingModal').find('#transactionDetailsSection').hide();
             $('#pricingModal').find('#priceDetailSection').hide();
+            $('#selectedCount').text('0');
             resetDeductionAdditionSection();
             $('#pricingModal').modal('show');
         })
@@ -1031,11 +1050,13 @@ $company2 = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC
             var supplier = $(this).val();
             var fromDate = $('#pricingModal').find('#transactionFromDate').val();
             var toDate = $('#pricingModal').find('#transactionToDate').val();
+            var currentPvId = $('#pricingModal').find('#pvId').val();
             if(supplier && fromDate && toDate){
                 $.post('php/modules/paymentVoucher/getSupplierWeighing.php', { 
                     supplierId: $(this).val(), 
                     fromDate: fromDate, 
-                    toDate: toDate 
+                    toDate: toDate,
+                    pvId: currentPvId
                 }, function(data) {
                     var obj = JSON.parse(data);
                     if(obj.status === 'success'){
@@ -1048,6 +1069,9 @@ $company2 = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC
                         
                         obj.message.forEach(function(weight) {
                             var hasPvId = weight.pv_id && weight.pv_id !== '' && weight.pv_id !== null;
+                            var isTiedToCurrentPv = hasPvId && currentPvId && weight.pv_id == currentPvId;
+                            var isTiedToOtherPv = hasPvId && (!currentPvId || weight.pv_id != currentPvId);
+                            
                             var checkboxCell = hasPvId 
                                 ? '<td class="text-center"></td>' 
                                 : '<td class="text-center"><input type="checkbox" class="form-check-input row-checkbox" name="selected[]" value="' + weight.id + '"></td>';
@@ -1069,11 +1093,16 @@ $company2 = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC
                                 '<td class="text-end"><input type="text" class="form-control form-control-sm row-total-price text-end" name="total_price[]" value="' + parseFloat(weight.total_price).toFixed(2) + '" readonly></td>' +
                                 '<input type="hidden" name="id[]" value="' + weight.id + '">' +
                                 '<input type="hidden" name="nett_weight[]" value="' + (parseFloat(weight.nett_weight1)/1000).toFixed(2) + '">' +
-                                (hasPvId ? '<input type="hidden" name="tied[]" value="' + weight.id + '">' : '') +
+                                (isTiedToCurrentPv ? '<input type="hidden" name="tied[]" value="' + weight.id + '">' : '') +
                                 '</tr>');
                             
-                            if (hasPvId) {
+                            // Only mark as tied if it belongs to the current PV being edited
+                            if (isTiedToCurrentPv) {
                                 row.data('tied', true);
+                            }
+                            // Mark rows tied to other PVs (for display only, not included in summary)
+                            if (isTiedToOtherPv) {
+                                row.data('otherPv', true);
                             }
                             tableBody.append(row);
                         });
@@ -1176,16 +1205,25 @@ $company2 = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC
             });
         });
 
-        $('#addDeductionRow').on('click', function(event, desc = '', amount = 0, descReadonly = false, amtReadonly = false) {
-            var descReadonlyAttr = descReadonly ? 'readonly' : '';
+        $('#addDeductionRow').on('click', function(event, itemId = '', amount = 0, amtReadonly = false) {
             var amtReadonlyAttr = amtReadonly ? 'readonly' : '';
-            var newRow = `<tr>
+            var options = '<option value="">Please Select</option>';
+            pvItemsDeduction.forEach(function(item) {
+                var selected = (item.id == itemId) ? 'selected' : '';
+                options += '<option value="' + item.id + '" ' + selected + '>' + item.name + '</option>';
+            });
+            var newRow = $(`<tr>
                 <td>${++deductionRowCount}</td>
-                <td><input type="text" class="form-control form-control-sm" name="deduction_desc[]" value="${desc}" ${descReadonlyAttr}></td>
+                <td><select class="form-select form-select-sm deduction-select2" name="deduction_item_id[]">${options}</select></td>
                 <td><input type="number" class="form-control form-control-sm deduction-amount" name="deduction_amount[]" step="0.01" value="${amount}" ${amtReadonlyAttr}></td>
                 <td><button type="button" class="btn btn-sm btn-danger removeDeductionRow"><i class="bx bx-trash"></i></button></td>
-            </tr>`;
+            </tr>`);
             $('#deductionsTable').append(newRow);
+            newRow.find('.deduction-select2').select2({
+                placeholder: "Please Select",
+                allowClear: true,
+                dropdownParent: $('#pricingModal')
+            });
         });
 
         $(document).on('click', '.removeDeductionRow', function() {
@@ -1197,14 +1235,25 @@ $company2 = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC
             calculateTotals();
         });
 
-        $('#addAdditionRow').on('click', function() {
-            var newRow = `<tr>
+        $('#addAdditionRow').on('click', function(event, itemId = '', amount = 0, amtReadonly = false) {
+            var amtReadonlyAttr = amtReadonly ? 'readonly' : '';
+            var options = '<option value="">Please Select</option>';
+            pvItemsAddition.forEach(function(item) {
+                var selected = (item.id == itemId) ? 'selected' : '';
+                options += '<option value="' + item.id + '" ' + selected + '>' + item.name + '</option>';
+            });
+            var newRow = $(`<tr>
                 <td>${++additionRowCount}</td>
-                <td><input type="text" class="form-control form-control-sm" name="addition_desc[]"></td>
-                <td><input type="number" class="form-control form-control-sm addition-amount" name="addition_amount[]" step="0.01" value="0"></td>
+                <td><select class="form-select form-select-sm addition-select2" name="addition_item_id[]">${options}</select></td>
+                <td><input type="number" class="form-control form-control-sm addition-amount" name="addition_amount[]" step="0.01" value="${amount}" ${amtReadonlyAttr}></td>
                 <td><button type="button" class="btn btn-sm btn-danger removeAdditionRow"><i class="bx bx-trash"></i></button></td>
-            </tr>`;
+            </tr>`);
             $('#additionsTable').append(newRow);
+            newRow.find('.addition-select2').select2({
+                placeholder: "Please Select",
+                allowClear: true,
+                dropdownParent: $('#pricingModal')
+            });
         });
 
         $(document).on('click', '.removeAdditionRow', function() {
@@ -1574,13 +1623,7 @@ $company2 = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC
                 if (data.deduction_details) {
                     var deductions = JSON.parse(data.deduction_details);
                     deductions.forEach(function(item) {
-                        var newRow = `<tr>
-                            <td>${++deductionRowCount}</td>
-                            <td><input type="text" class="form-control form-control-sm" name="deduction_desc[]" value="${item.deduction_desc || ''}"></td>
-                            <td><input type="number" class="form-control form-control-sm deduction-amount" name="deduction_amount[]" step="0.01" value="${item.deduction_amount || 0}"></td>
-                            <td><button type="button" class="btn btn-sm btn-danger removeDeductionRow"><i class="bx bx-trash"></i></button></td>
-                        </tr>`;
-                        $('#deductionsTable').append(newRow);
+                        $('#addDeductionRow').trigger('click', [item.deduction_item_id || '', item.deduction_amount || 0, false]);
                     });
                 }
 
@@ -1590,13 +1633,7 @@ $company2 = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC
                 if (data.addition_details) {
                     var additions = JSON.parse(data.addition_details);
                     additions.forEach(function(item) {
-                        var newRow = `<tr>
-                            <td>${++additionRowCount}</td>
-                            <td><input type="text" class="form-control form-control-sm" name="addition_desc[]" value="${item.addition_desc || ''}"></td>
-                            <td><input type="number" class="form-control form-control-sm addition-amount" name="addition_amount[]" step="0.01" value="${item.addition_amount || 0}"></td>
-                            <td><button type="button" class="btn btn-sm btn-danger removeAdditionRow"><i class="bx bx-trash"></i></button></td>
-                        </tr>`;
-                        $('#additionsTable').append(newRow);
+                        $('#addAdditionRow').trigger('click', [item.addition_item_id || '', item.addition_amount || 0, false]);
                     });
                 }
 
