@@ -10,7 +10,7 @@ $columnName = $_POST['columns'][$columnIndex]['data'];
 $columnSortOrder = $_POST['order'][0]['dir'];
 $searchValue = mysqli_real_escape_string($db, $_POST['search']['value']);
 
-$allowedColumns = array('id', 'name', 'created_date');
+$allowedColumns = array('id', 'name', 'created_date', 'modified_date');
 if (!in_array($columnName, $allowedColumns)) {
     $columnName = 'name';
 }
@@ -34,7 +34,8 @@ while ($record = mysqli_fetch_assoc($records)) {
     $data[] = array(
         "id" => $record['id'],
         "name" => $record['name'],
-        "created_date" => $record['created_date']
+        "created_date" => $record['created_date'],
+        "modified_date" => isset($record['modified_date']) ? $record['modified_date'] : ''
     );
 }
 

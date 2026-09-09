@@ -43,6 +43,11 @@ if ($duplicateStmt = $db->prepare($duplicateSql)) {
 $db->begin_transaction();
 
 try {
+    $actionByStmt = $db->prepare("SET @sawn_timber_action_by=?");
+    $actionByStmt->bind_param('s', $username);
+    $actionByStmt->execute();
+    $actionByStmt->close();
+
     if ($id) {
         $stmt = $db->prepare("UPDATE Sawn_Timber_Header SET transaction_id=?, transaction_date=?, supplier=?, lot=?, bundle=?, remarks=?, modified_by=? WHERE id=?");
         $stmt->bind_param('ssssssss', $transactionId, $transactionDate, $supplier, $lot, $bundle, $remarks, $username, $id);

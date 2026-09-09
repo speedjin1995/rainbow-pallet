@@ -72,6 +72,11 @@ if (empty($groups)) {
 $db->begin_transaction();
 
 try {
+    $actionByStmt = $db->prepare("SET @sawn_timber_action_by=?");
+    $actionByStmt->bind_param('s', $username);
+    $actionByStmt->execute();
+    $actionByStmt->close();
+
     foreach ($groups as $group) {
         $transactionId = $group['transaction_id'] ?: generateSawnTimberTransactionId($db);
         if (transactionIdExists($db, $transactionId)) {

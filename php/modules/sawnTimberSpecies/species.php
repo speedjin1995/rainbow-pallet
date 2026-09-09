@@ -2,6 +2,7 @@
 session_start();
 require_once '../../db_connect.php';
 
+$username = $_SESSION['username'];
 $id = isset($_POST['id']) ? trim($_POST['id']) : '';
 $name = isset($_POST['name']) ? trim($_POST['name']) : '';
 
@@ -31,11 +32,11 @@ if ($duplicateStmt->get_result()->num_rows > 0) {
 $duplicateStmt->close();
 
 if ($id !== '') {
-    $stmt = $db->prepare("UPDATE Sawn_Timber_Species SET name=? WHERE id=?");
-    $stmt->bind_param('ss', $name, $id);
+    $stmt = $db->prepare("UPDATE Sawn_Timber_Species SET name=?, modified_by=? WHERE id=?");
+    $stmt->bind_param('sss', $name, $username, $id);
 } else {
-    $stmt = $db->prepare("INSERT INTO Sawn_Timber_Species (name) VALUES (?)");
-    $stmt->bind_param('s', $name);
+    $stmt = $db->prepare("INSERT INTO Sawn_Timber_Species (name, created_by, modified_by) VALUES (?, ?, ?)");
+    $stmt->bind_param('sss', $name, $username, $username);
 }
 
 if ($stmt->execute()) {

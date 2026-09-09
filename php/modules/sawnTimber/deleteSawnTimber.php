@@ -8,8 +8,15 @@ if (!isset($_POST['id'])) {
 }
 
 $id = $_POST['id'];
+$username = $_SESSION['username'];
+
+$actionByStmt = $db->prepare("SET @sawn_timber_action_by=?");
+$actionByStmt->bind_param('s', $username);
+$actionByStmt->execute();
+$actionByStmt->close();
+
 $stmt = $db->prepare("UPDATE Sawn_Timber_Header SET status='1', modified_by=? WHERE id=?");
-$stmt->bind_param('ss', $_SESSION['username'], $id);
+$stmt->bind_param('ss', $username, $id);
 
 if (!$stmt->execute()) {
     echo json_encode(array("status" => "failed", "message" => $stmt->error));

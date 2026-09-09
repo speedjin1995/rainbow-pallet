@@ -35,6 +35,7 @@ function speciesMsg($code, $fallback) {
                                     <th>ID</th>
                                     <th><?=speciesMsg('species_code', 'Species')?></th>
                                     <th><?=speciesMsg('created_date_code', 'Created Date')?></th>
+                                    <th><?=speciesMsg('modified_date_code', 'Modified Date')?></th>
                                     <th><?=speciesMsg('action_code', 'Action')?></th>
                                 </tr>
                             </thead>
@@ -131,6 +132,7 @@ $(document).ready(function() {
             { data: 'id' },
             { data: 'name' },
             { data: 'created_date' },
+            { data: 'modified_date' },
             { data: 'id', orderable: false, render: function(data) {
                 return '<button class="btn btn-sm btn-warning me-1" onclick="editSpecies(\'' + data + '\')"><i class="ri-edit-line"></i></button>' +
                     '<button class="btn btn-sm btn-danger" onclick="deleteSpecies(\'' + data + '\')"><i class="ri-delete-bin-line"></i></button>';
