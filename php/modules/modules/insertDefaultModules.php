@@ -31,7 +31,11 @@ $defaultModules = [
     ['name' => 'Purchase', 'category' => 'Weighing'],
     // ['name' => 'Internal Transfer', 'category' => 'Weighing'],
     ['name' => 'Port', 'category' => 'Weighing'],
-    ['name' => 'Miscellaneous', 'category' => 'Weighing']
+    ['name' => 'Miscellaneous', 'category' => 'Weighing'],
+    ['name' => 'Normal Type', 'category' => 'Weighing'],
+    ['name' => 'Container Type', 'category' => 'Weighing'],
+    ['name' => 'Empty Container Type', 'category' => 'Weighing'],
+    ['name' => 'Different Container Type', 'category' => 'Weighing'],
 ];
 
 $stmt = $db->prepare("INSERT INTO modules (name, category) SELECT ?, ? FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM modules WHERE name = ? AND category = ?)");

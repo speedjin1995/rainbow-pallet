@@ -31,7 +31,11 @@ $defaultPermissions = [
         ['Sales', 'Weighing'], 
         ['Purchase', 'Weighing'], 
         ['Port', 'Weighing'], 
-        ['Miscellaneous', 'Weighing']
+        ['Miscellaneous', 'Weighing'],
+        ['Normal Type', 'Weighing'], 
+        ['Container Type', 'Weighing'], 
+        ['Empty Container Type', 'Weighing'], 
+        ['Different Container Type', 'Weighing']
     ]],
     ['name' => 'edit', 'modules' => [
         ['Delivery Order', 'Accounting'],
@@ -51,7 +55,11 @@ $defaultPermissions = [
         ['Sales', 'Weighing'], 
         ['Purchase', 'Weighing'], 
         ['Port', 'Weighing'], 
-        ['Miscellaneous', 'Weighing']
+        ['Miscellaneous', 'Weighing'],
+        ['Normal Type', 'Weighing'], 
+        ['Container Type', 'Weighing'], 
+        ['Empty Container Type', 'Weighing'], 
+        ['Different Container Type', 'Weighing']
     ]],
     ['name' => 'cancelled', 'modules' => [
         ['Companies', 'Master Data'], 
@@ -70,7 +78,11 @@ $defaultPermissions = [
         ['Sales', 'Weighing'], 
         ['Purchase', 'Weighing'], 
         ['Port', 'Weighing'], 
-        ['Miscellaneous', 'Weighing']
+        ['Miscellaneous', 'Weighing'],
+        ['Normal Type', 'Weighing'], 
+        ['Container Type', 'Weighing'], 
+        ['Empty Container Type', 'Weighing'], 
+        ['Different Container Type', 'Weighing']
     ]],
     ['name' => 'manual_weighing', 'modules' => [
         ['Sales', 'Weighing'], 
@@ -166,9 +178,9 @@ $defaultPermissions = [
 ];
 
 // Helper function to convert module names to IDs
-function mapModulesToIds($modules, $moduleMap) {
+function mapModulesToIds($modules, $moduleMap, $returnArray = false) {
     if (count($modules) === 1 && $modules[0] === 'All') {
-        return json_encode(['All']);
+        return $returnArray ? ['All'] : json_encode(['All']);
     }
     $ids = [];
     foreach ($modules as $mod) {
@@ -177,34 +189,60 @@ function mapModulesToIds($modules, $moduleMap) {
             $ids[] = (string)$moduleMap[$key];
         }
     }
-    return json_encode($ids);
-}
-
-$stmt = $db->prepare("INSERT INTO permissions (name, modules) SELECT ?, ? FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM permissions WHERE name = ?)");
-
-if (!$stmt) {
-    echo json_encode(['status' => 'failed', 'message' => $db->error]);
-    exit;
+    return $returnArray ? $ids : json_encode($ids);
 }
 
 $inserted = 0;
+$updated = 0;
 $skipped = 0;
 
 foreach ($defaultPermissions as $permission) {
-    $modulesJson = mapModulesToIds($permission['modules'], $moduleMap);
-    $stmt->bind_param('sss', $permission['name'], $modulesJson, $permission['name']);
-    $stmt->execute();
-    if ($stmt->affected_rows > 0) {
-        $inserted++;
+    $newModuleIds = mapModulesToIds($permission['modules'], $moduleMap, true);
+    
+    // Check if permission exists
+    $checkStmt = $db->prepare("SELECT id, modules FROM permissions WHERE name = ?");
+    $checkStmt->bind_param('s', $permission['name']);
+    $checkStmt->execute();
+    $result = $checkStmt->get_result();
+    
+    if ($row = $result->fetch_assoc()) {
+        // Permission exists - merge missing module IDs
+        $existingModules = json_decode($row['modules'], true) ?: [];
+        
+        // Skip if "All"
+        if ($existingModules === ['All'] || $newModuleIds === ['All']) {
+            $skipped++;
+        } else {
+            // Add missing IDs
+            $merged = array_unique(array_merge($existingModules, $newModuleIds));
+            sort($merged);
+            
+            if (count($merged) > count($existingModules)) {
+                $mergedJson = json_encode(array_values($merged));
+                $updateStmt = $db->prepare("UPDATE permissions SET modules = ? WHERE id = ?");
+                $updateStmt->bind_param('si', $mergedJson, $row['id']);
+                $updateStmt->execute();
+                $updateStmt->close();
+                $updated++;
+            } else {
+                $skipped++;
+            }
+        }
     } else {
-        $skipped++;
+        // Permission doesn't exist - insert new
+        $modulesJson = json_encode($newModuleIds);
+        $insertStmt = $db->prepare("INSERT INTO permissions (name, modules) VALUES (?, ?)");
+        $insertStmt->bind_param('ss', $permission['name'], $modulesJson);
+        $insertStmt->execute();
+        $insertStmt->close();
+        $inserted++;
     }
+    
+    $checkStmt->close();
 }
-
-$stmt->close();
 $db->close();
 
 echo json_encode([
     'status' => 'success', 
-    'message' => "Inserted: $inserted, Skipped: $skipped"
+    'message' => "Inserted: $inserted, Updated: $updated, Skipped: $skipped"
 ]);
