@@ -142,6 +142,9 @@
                                             <li class="nav-item">
                                                 <a href="locations.php" class="nav-link">'.$languageArray['locations_code'][$language].'</a>
                                             </li>
+                                            <li class="nav-item">
+                                                <a href="pvItems.php" class="nav-link">'.$languageArray['pv_items_code'][$language].'</a>
+                                            </li>
                                         ';
                                     }
                             echo '</ul>

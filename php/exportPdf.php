@@ -159,9 +159,13 @@ if($_POST['isMulti'] != null && $_POST['isMulti'] != '' && $_POST['isMulti'] != 
     }
 }
 
+if(isset($_POST['reportType']) && $_POST['reportType'] != null && $_POST['reportType'] != '' && $_POST['reportType'] != '-'){
+    $reportType = $_POST['reportType'];
+}
+
 if(isset($_POST["file"])){
     if($_POST["file"] == 'weight'){
-        if ($select_stmt = $db->prepare("select * from Weight WHERE status = '0'".$searchQuery.' ORDER BY tare_weight1_date')) {
+        if ($select_stmt = $db->prepare("select * from Weight WHERE status = '0'".$searchQuery.' ORDER BY transaction_date')) {
             // Execute the prepared query.
             if (! $select_stmt->execute()) {
                 echo json_encode(
@@ -173,242 +177,371 @@ if(isset($_POST["file"])){
             else{
                 $result = $select_stmt->get_result();
 
-                $message = '<html>
-                            <head>
-                                <style>
-                                    @media print {
-                                        @page {
-                                            margin-left: 0.5in;
-                                            margin-right: 0.5in;
-                                            margin-top: 0.1in;
-                                            margin-bottom: 0.1in;
-                                        }
-                                        
-                                    } 
-                                            
-                                    table {
-                                        width: 100%;
-                                        border-collapse: collapse;
-                                        
-                                    } 
-                                    
-                                    .table th, .table td {
-                                        padding: 0.70rem;
-                                        vertical-align: top;
-                                        border-top: 1px solid #dee2e6;
-                                        
-                                    } 
-                                    
-                                    .table-bordered {
-                                        border: 1px solid #000000;
-                                        
-                                    } 
-                                    
-                                    .table-bordered th, .table-bordered td {
-                                        border: 1px solid #000000;
-                                        font-family: sans-serif;
-                                        font-size: 12px;
-                                        
-                                    } 
-                                    
-                                    .row {
-                                        display: flex;
-                                        flex-wrap: wrap;
-                                        margin-top: 20px;
-                                        margin-right: -15px;
-                                        margin-left: -15px;
-                                        
-                                    } 
-                                    
-                                    .col-md-4{
-                                        position: relative;
-                                        width: 33.333333%;
+                if ($reportType == 'SUMMARY'){
+                    // Determine if Purchase/Local or Sales
+                    $isPurchase = (isset($_POST['transactionStatus']) && ($_POST['transactionStatus'] == 'Purchase' || $_POST['transactionStatus'] == 'Local'));
+                    
+                    $message = '
+                    <html>
+                        <head>
+                            <style>
+                                @media print {
+                                    @page {
+                                        size: landscape;
+                                        margin-left: 0.3in;
+                                        margin-right: 0.3in;
+                                        margin-top: 0.1in;
+                                        margin-bottom: 0.1in;
                                     }
-                                </style>
-                            </head>
-                            <body>
-                                <table style="width:100%;">
-                                    <thead>
-                                        <tr style="font-size: 9px; text-align: center;">
-                                            <th>TRANSACTION <br>ID</th>
-                                            <th>TRANSACTION <br>DATE</th>
-                                            <th>TRANSACTION <br>STATUS</th>
-                                            <th>LORRY <br>NO.</th>';
+                                }
+                                table {
+                                    width: 100%;
+                                    border-collapse: collapse;
+                                }
+                                .table th, .table td {
+                                    padding: 0.50rem;
+                                    vertical-align: top;
+                                    border-top: 1px solid #dee2e6;
+                                }
+                                .table-bordered {
+                                    border: 1px solid #000000;
+                                }
+                                .table-bordered th, .table-bordered td {
+                                    border: 1px solid #000000;
+                                    font-family: sans-serif;
+                                    font-size: 10px;
+                                }
+                            </style>
+                        </head>
+                        <body>
+                            <table class="table-bordered" style="width:100%;">
+                                <thead>
+                                    <tr style="font-size: 9px; text-align: center; background-color: #f0f0f0;">
+                                        <th>BIL</th>
+                                        <th>'.($isPurchase ? 'SUPPLIER' : 'CUSTOMER').'</th>
+                                        <th>DATE</th>
+                                        <th>NO DO</th>
+                                        <th>NO TICKET</th>
+                                        <th>NO LORRY</th>
+                                        <th>EDT</th>
+                                        <th>FIRST'.($isPurchase ? '' : ' (RP)').'</th>
+                                        <th>SECOND'.($isPurchase ? '' : ' (RP)').'</th>
+                                        <th>MC</th>
+                                        <th>NET'.($isPurchase ? '' : ' (RP)').'</th>';
+                    
+                    if ($isPurchase) {
+                        $message .= '
+                                        <th>DATE DN</th>
+                                        <th>COMPANY</th>
+                                        <th>REMOVAL PASS NO.</th>
+                                        <th>NO. LESEN</th>
+                                        <th>MOISTURE CONTENT</th>
+                                        <th>NAMA PEGAWAI</th>
+                                        <th>DRIVER RAINBOW</th>
+                                        <th>TIME IN/OUT</th>';
+                    } else {
+                        $message .= '
+                                        <th>NO DO</th>
+                                        <th>FIRST (MECO)</th>
+                                        <th>SECOND (MECO)</th>
+                                        <th>MC</th>
+                                        <th>NET (MECO)</th>
+                                        <th>WEIGHT DIFF</th>';
+                    }
+                    
+                    $message .= '
+                                    </tr>
+                                </thead>
+                                <tbody>';
+                    
+                    $no = 1;
+                    while ($row = $result->fetch_assoc()) {
+                        $transactionDate = new DateTime($row['transaction_date']);
+                        $formattedDate = $transactionDate->format('d/m/Y');
+                        
+                        $message .= '<tr style="font-size: 9px; text-align: center;">
+                            <td>'.$no.'</td>
+                            <td>'.($isPurchase ? $row['supplier_name'] : $row['customer_name']).'</td>
+                            <td>'.$formattedDate.'</td>
+                            <td>'.$row['delivery_no'].'</td>
+                            <td>'.$row['transaction_id'].'</td>
+                            <td>'.$row['lorry_plate_no1'].'</td>
+                            <td></td>
+                            <td>'.$row['gross_weight1'].'</td>
+                            <td>'.$row['tare_weight1'].'</td>
+                            <td></td>
+                            <td>'.$row['nett_weight1'].'</td>';
+                        
+                        if ($isPurchase) {
+                            $message .= '
+                            <td></td>
+                            <td>'.$row['customer_side_company'].'</td>
+                            <td>'.$row['customer_side_removal_pass_no'].'</td>
+                            <td>'.$row['customer_side_license_no'].'</td>
+                            <td>'.$row['customer_side_moisture_content'].'</td>
+                            <td>'.$row['customer_side_officer_name'].'</td>
+                            <td>'.$row['customer_side_rainbow_driver'].'</td>
+                            <td>'.$row['customer_side_time_in'].'/'.$row['customer_side_time_out'].'</td>';
+                        } else {
+                            $message .= '
+                            <td>'.$row['cust_side_do_no'].'</td>
+                            <td>'.$row['cust_side_first_weight'].'</td>
+                            <td>'.$row['cust_side_second_weight'].'</td>
+                            <td>'.$row['cust_side_mc'].'</td>
+                            <td>'.$row['cust_side_nett_weight'].'</td>
+                            <td>'.$row['weight_difference'].'</td>';
+                        }
+                        
+                        $message .= '</tr>';
+                        $no++;
+                    }
+                    
+                    $message .= '
+                                </tbody>
+                            </table>
+                        </body>
+                    </html>';
+                }else{
+                    $message = '
+                    <html>
+                        <head>
+                            <style>
+                                @media print {
+                                    @page {
+                                        margin-left: 0.5in;
+                                        margin-right: 0.5in;
+                                        margin-top: 0.1in;
+                                        margin-bottom: 0.1in;
+                                    }
+                                    
+                                } 
+                                        
+                                table {
+                                    width: 100%;
+                                    border-collapse: collapse;
+                                    
+                                } 
+                                
+                                .table th, .table td {
+                                    padding: 0.70rem;
+                                    vertical-align: top;
+                                    border-top: 1px solid #dee2e6;
+                                    
+                                } 
+                                
+                                .table-bordered {
+                                    border: 1px solid #000000;
+                                    
+                                } 
+                                
+                                .table-bordered th, .table-bordered td {
+                                    border: 1px solid #000000;
+                                    font-family: sans-serif;
+                                    font-size: 12px;
+                                    
+                                } 
+                                
+                                .row {
+                                    display: flex;
+                                    flex-wrap: wrap;
+                                    margin-top: 20px;
+                                    margin-right: -15px;
+                                    margin-left: -15px;
+                                    
+                                } 
+                                
+                                .col-md-4{
+                                    position: relative;
+                                    width: 33.333333%;
+                                }
+                            </style>
+                        </head>
+                        <body>
+                            <table style="width:100%;">
+                                <thead>
+                                    <tr style="font-size: 9px; text-align: center;">
+                                        <th>TRANSACTION <br>ID</th>
+                                        <th>TRANSACTION <br>DATE</th>
+                                        <th>TRANSACTION <br>STATUS</th>
+                                        <th>LORRY <br>NO.</th>';
+                                        
+                                    if($_POST['status'] == 'Purchase' || $_POST['status'] == 'Local'){
+                                        $message .= '<th>SUPPLIER <br>CODE</th>';
+                                        $message .= '<th>SUPPLIER</th>';
+                                    }
+                                    else{
+                                        $message .= '<th>CUSTOMER <br>CODE</th>';
+                                        $message .= '<th>CUSTOMER</th>';
+                                    }
+                                        
+                                        $message .= '<th>'.(($_POST['status'] == 'Purchase' || $_POST['status'] == 'Local') ? 'RAW MAT <br>CODE' : 'PRODUCT <br>CODE').'</th>
+                                        <th>'.(($_POST['status'] == 'Purchase' || $_POST['status'] == 'Local') ? 'RAW MAT' : 'PRODUCT').'</th>
+                                        <th>DESTINATION <br>CODE</th>
+                                        <th>DESTINATION</th>
+                                        <th>PO NO.</th>
+                                        <th>DO NO.</th>
+                                        <th>CONTAINER <br>NO.</th>
+                                        <th>SEAL NO.</th>
+                                        <th>CONTAINER <br>NO. 2</th>
+                                        <th>SEAL NO. 2</th>
+                                        <th>ORDER WEIGHT</th>
+                                        <th>SUPPLIER WEIGHT</th>
+                                        <th>INCOMING <br>(MT)</th>
+                                        <th>OUTGOING <br>(MT)</th>
+                                        <th>NET <br>(MT)</th>
+                                        <th>IN TIME</th>
+                                        <th>OUT TIME</th>
+                                        <th>INCOMING 2 <br>(MT)</th>
+                                        <th>OUTGOING 2 <br>(MT)</th>
+                                        <th>NET 2 <br>(MT)</th>
+                                        <th>IN TIME 2</th>
+                                        <th>OUT TIME 2</th>
+                                        <th>VARIANCE</th>
+                                        <th>SUB TOTAL WEIGHT</th>
+                                        <th>USER</th>
+                                    </tr>
+                                </thead>
+                                <tbody>';
+
+                                // Initialize the grouped data array
+                                $groupedData = [];
+                                
+                                // Fetch data and group by product_name
+                                while ($row = $result->fetch_assoc()) {
+                                    $productName = ($row['transaction_status'] == 'Purchase' || $row['transaction_status'] == 'Local' ? $row['raw_mat_name'] : $row['product_name']);
+                                
+                                    if (!isset($groupedData[$productName])) {
+                                        $groupedData[$productName] = [];
+                                    }
+
+                                    if($row['transaction_status'] == 'Sales'){
+                                        $transactionStatus = $languageArray['dispatch_code']['en'];
+                                    }
+                                    else if($row['transaction_status'] == 'Purchase'){
+                                        $transactionStatus = $languageArray['receiving_code']['en'];
+                                    }
+                                    else if($row['transaction_status'] == 'Port'){
+                                        $transactionStatus = $languageArray['trx_to_port_code']['en'];
+                                    }
+                                    else if($row['transaction_status'] == 'Misc'){
+                                        $transactionStatus = $languageArray['miscellaneous_code']['en'];
+                                    }
+                                    else{
+                                        $transactionStatus = $languageArray['local_code']['en'];
+                                    }
+
+                                    $row['transactionStatus'] = $transactionStatus;
+
+                                    $groupedData[$productName][] = $row;
+                                } 
+                                
+                                // Initialize total values
+                                $grandTotalGross = 0;
+                                $grandTotalTare = 0;
+                                $grandTotalNet = 0;
+
+                                // Generate table grouped by product
+                                foreach ($groupedData as $product => $rows) {
+                                    $message .= '<tr>
+                                        <td colspan="14" style="font-size: 9px;">. </td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="14" style="font-size: 9px;">. </td>
+                                    </tr>';
+                                
+                                    $totalGross = 0;
+                                    $totalTare = 0;
+                                    $totalNet = 0;
+                                
+                                    foreach ($rows as $row) {
+                                        $grossWeightDate = new DateTime($row['gross_weight1_date']);
+                                        $formattedGrossWeightDate = $grossWeightDate->format('H:i');
+                                        $tareWeightDate =  new DateTime($row['tare_weight1_date']);
+                                        $formattedTareWeightDate = $tareWeightDate->format('H:i');
+                                        $grossWeightDate2 = new DateTime($row['gross_weight2_date']);
+                                        $formattedGrossWeightDate2 = $grossWeightDate2->format('H:i');
+                                        $tareWeightDate2 =  new DateTime($row['tare_weight2_date']);
+                                        $formattedTareWeightDate2 = $tareWeightDate2->format('H:i');
+                                        $transactionDate =  new DateTime($row['transaction_date']);
+                                        $formattedtransactionDate = $transactionDate->format('d/m/Y');
+                                        
+                                        $message .= '<tr style="font-size: 9px; text-align: center;">
+                                            <td>' . $row['transaction_id'] . '</td>
+                                            <td>' . $formattedtransactionDate . '</td>
+                                            <td>' . $row['transactionStatus'] . '</td>
+                                            <td>' . $row['lorry_plate_no1'] . '</td>';
                                             
-                                        if($_POST['status'] == 'Purchase' || $_POST['status'] == 'Local'){
-                                            $message .= '<th>SUPPLIER <br>CODE</th>';
-                                            $message .= '<th>SUPPLIER</th>';
-                                        }
-                                        else{
-                                            $message .= '<th>CUSTOMER <br>CODE</th>';
-                                            $message .= '<th>CUSTOMER</th>';
-                                        }
+                                            if($_POST['status'] == 'Purchase' || $_POST['status'] == 'Local'){
+                                                $message .= '<td>' . $row['supplier_code'] . '</td>';
+                                                $message .= '<td>' . $row['supplier_name'] . '</td>';
+                                            }
+                                            else{
+                                                $message .= '<td>' . $row['customer_code'] . '</td>';
+                                                $message .= '<td>' . $row['customer_name'] . '</td>';
+                                            }
                                             
-                                            $message .= '<th>'.(($_POST['status'] == 'Purchase' || $_POST['status'] == 'Local') ? 'RAW MAT <br>CODE' : 'PRODUCT <br>CODE').'</th>
-                                            <th>'.(($_POST['status'] == 'Purchase' || $_POST['status'] == 'Local') ? 'RAW MAT' : 'PRODUCT').'</th>
-                                            <th>DESTINATION <br>CODE</th>
-                                            <th>DESTINATION</th>
-                                            <th>PO NO.</th>
-                                            <th>DO NO.</th>
-                                            <th>CONTAINER <br>NO.</th>
-                                            <th>SEAL NO.</th>
-                                            <th>CONTAINER <br>NO. 2</th>
-                                            <th>SEAL NO. 2</th>
-                                            <th>ORDER WEIGHT</th>
-                                            <th>SUPPLIER WEIGHT</th>
-                                            <th>INCOMING <br>(MT)</th>
-                                            <th>OUTGOING <br>(MT)</th>
-                                            <th>NET <br>(MT)</th>
-                                            <th>IN TIME</th>
-                                            <th>OUT TIME</th>
-                                            <th>INCOMING 2 <br>(MT)</th>
-                                            <th>OUTGOING 2 <br>(MT)</th>
-                                            <th>NET 2 <br>(MT)</th>
-                                            <th>IN TIME 2</th>
-                                            <th>OUT TIME 2</th>
-                                            <th>VARIANCE</th>
-                                            <th>SUB TOTAL WEIGHT</th>
-                                            <th>USER</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>';
-
-                                    // Initialize the grouped data array
-                                    $groupedData = [];
-                                    
-                                    // Fetch data and group by product_name
-                                    while ($row = $result->fetch_assoc()) {
-                                        $productName = ($row['transaction_status'] == 'Purchase' || $row['transaction_status'] == 'Local' ? $row['raw_mat_name'] : $row['product_name']);
-                                    
-                                        if (!isset($groupedData[$productName])) {
-                                            $groupedData[$productName] = [];
-                                        }
-
-                                        if($row['transaction_status'] == 'Sales'){
-                                            $transactionStatus = $languageArray['dispatch_code']['en'];
-                                        }
-                                        else if($row['transaction_status'] == 'Purchase'){
-                                            $transactionStatus = $languageArray['receiving_code']['en'];
-                                        }
-                                        else if($row['transaction_status'] == 'Port'){
-                                            $transactionStatus = $languageArray['trx_to_port_code']['en'];
-                                        }
-                                        else if($row['transaction_status'] == 'Misc'){
-                                            $transactionStatus = $languageArray['miscellaneous_code']['en'];
-                                        }
-                                        else{
-                                            $transactionStatus = $languageArray['local_code']['en'];
-                                        }
-
-                                        $row['transactionStatus'] = $transactionStatus;
-
-                                        $groupedData[$productName][] = $row;
-                                    } 
-                                    
-                                    // Initialize total values
-                                    $grandTotalGross = 0;
-                                    $grandTotalTare = 0;
-                                    $grandTotalNet = 0;
-
-                                    // Generate table grouped by product
-                                    foreach ($groupedData as $product => $rows) {
-                                        $message .= '<tr>
-                                            <td colspan="14" style="font-size: 9px;">. </td>
-                                        </tr>
+                                            $message .= '<td>' . (($row['transaction_status'] == 'Purchase' || $row['transaction_status'] == 'Local') ? $row['raw_mat_code'] : $row['product_code']) . '</td>
+                                            <td>' . (($row['transaction_status'] == 'Purchase' || $row['transaction_status'] == 'Local') ? $row['raw_mat_name'] : $row['product_name']) . '</td>
+                                            <td>' . $row['destination_code'] . '</td>
+                                            <td>' . $row['destination'] . '</td>
+                                            <td>' . $row['purchase_order'] . '</td>
+                                            <td>' . $row['delivery_no'] . '</td>
+                                            <td>' . $row['container_no'] . '</td>
+                                            <td>' . $row['seal_no'] . '</td>
+                                            <td>' . (!empty($row['order_weight']) ? number_format($row['order_weight'] / 1000, 2) : '') . '</td>
+                                            <td>' . (!empty($row['supplier_weight']) ? number_format($row['supplier_weight'] / 1000, 2) : '') . '</td>
+                                            <td>' . number_format($row['gross_weight1']/1000, 2) . '</td>
+                                            <td>' . number_format($row['tare_weight1']/1000, 2) . '</td>
+                                            <td>' . number_format($row['nett_weight1']/1000, 2) . '</td>
+                                            <td>' . $formattedGrossWeightDate . '</td>
+                                            <td>' . $formattedTareWeightDate . '</td>
+                                            <td>' . (!empty($row['gross_weight2']) ? number_format($row['gross_weight2'] / 1000, 2) : '') . '</td>
+                                            <td>' . (!empty($row['tare_weight2']) ? number_format($row['tare_weight2'] / 1000, 2) : '') . '</td>
+                                            <td>' . (!empty($row['nett_weight2']) ? number_format($row['nett_weight2'] / 1000, 2) : '') . '</td>
+                                            <td>' . $formattedGrossWeightDate2 . '</td>
+                                            <td>' . $formattedTareWeightDate2 . '</td>
+                                            <td>' . (!empty($row['weight_different']) ? number_format($row['weight_different'] / 1000, 2) : '') . '</td>
+                                            <td>' . number_format($row['final_weight']/1000, 2) . '</td>
+                                            <td>' . $row['created_by'] . '</td>
+                                        </tr>';
+                                
+                                        // Calculate subtotals
+                                        $totalGross += (float)$row['gross_weight1'];
+                                        $totalTare += (float)$row['tare_weight1'];
+                                        $totalNet += (float)$row['nett_weight1'];
+                                    }
+                                
+                                    // Add product-wise subtotal
+                                    $message .= '<tr>
+                                        <th style="font-size: 10px;" colspan="18">Subtotal (' . $product . ')</th>
+                                        <th style="border:1px solid black;font-size: 9px;">' . number_format($totalGross /1000, 2). '</th>
+                                        <th style="border:1px solid black;font-size: 9px;">' . number_format($totalTare/1000, 2) . '</th>
+                                        <th style="border:1px solid black;font-size: 9px;">' . number_format($totalNet/1000, 2) . '</th>
+                                    </tr>';
+                                
+                                    // Add to grand total
+                                    $grandTotalGross += $totalGross;
+                                    $grandTotalTare += $totalTare;
+                                    $grandTotalNet += $totalNet;
+                                }
+                                
+                                $message .= '</tbody>
+                                    <tfoot>
                                         <tr>
-                                            <td colspan="14" style="font-size: 9px;">. </td>
-                                        </tr>';
-                                    
-                                        $totalGross = 0;
-                                        $totalTare = 0;
-                                        $totalNet = 0;
-                                    
-                                        foreach ($rows as $row) {
-                                            $grossWeightDate = new DateTime($row['gross_weight1_date']);
-                                            $formattedGrossWeightDate = $grossWeightDate->format('H:i');
-                                            $tareWeightDate =  new DateTime($row['tare_weight1_date']);
-                                            $formattedTareWeightDate = $tareWeightDate->format('H:i');
-                                            $grossWeightDate2 = new DateTime($row['gross_weight2_date']);
-                                            $formattedGrossWeightDate2 = $grossWeightDate2->format('H:i');
-                                            $tareWeightDate2 =  new DateTime($row['tare_weight2_date']);
-                                            $formattedTareWeightDate2 = $tareWeightDate2->format('H:i');
-                                            $transactionDate =  new DateTime($row['transaction_date']);
-                                            $formattedtransactionDate = $transactionDate->format('d/m/Y');
-                                            
-                                            $message .= '<tr style="font-size: 9px; text-align: center;">
-                                                <td>' . $row['transaction_id'] . '</td>
-                                                <td>' . $formattedtransactionDate . '</td>
-                                                <td>' . $row['transactionStatus'] . '</td>
-                                                <td>' . $row['lorry_plate_no1'] . '</td>';
-                                                
-                                                if($_POST['status'] == 'Purchase' || $_POST['status'] == 'Local'){
-                                                    $message .= '<td>' . $row['supplier_code'] . '</td>';
-                                                    $message .= '<td>' . $row['supplier_name'] . '</td>';
-                                                }
-                                                else{
-                                                    $message .= '<td>' . $row['customer_code'] . '</td>';
-                                                    $message .= '<td>' . $row['customer_name'] . '</td>';
-                                                }
-                                                
-                                                $message .= '<td>' . (($row['transaction_status'] == 'Purchase' || $row['transaction_status'] == 'Local') ? $row['raw_mat_code'] : $row['product_code']) . '</td>
-                                                <td>' . (($row['transaction_status'] == 'Purchase' || $row['transaction_status'] == 'Local') ? $row['raw_mat_name'] : $row['product_name']) . '</td>
-                                                <td>' . $row['destination_code'] . '</td>
-                                                <td>' . $row['destination'] . '</td>
-                                                <td>' . $row['purchase_order'] . '</td>
-                                                <td>' . $row['delivery_no'] . '</td>
-                                                <td>' . $row['container_no'] . '</td>
-                                                <td>' . $row['seal_no'] . '</td>
-                                                <td>' . (!empty($row['order_weight']) ? number_format($row['order_weight'] / 1000, 2) : '') . '</td>
-                                                <td>' . (!empty($row['supplier_weight']) ? number_format($row['supplier_weight'] / 1000, 2) : '') . '</td>
-                                                <td>' . number_format($row['gross_weight1']/1000, 2) . '</td>
-                                                <td>' . number_format($row['tare_weight1']/1000, 2) . '</td>
-                                                <td>' . number_format($row['nett_weight1']/1000, 2) . '</td>
-                                                <td>' . $formattedGrossWeightDate . '</td>
-                                                <td>' . $formattedTareWeightDate . '</td>
-                                                <td>' . (!empty($row['gross_weight2']) ? number_format($row['gross_weight2'] / 1000, 2) : '') . '</td>
-                                                <td>' . (!empty($row['tare_weight2']) ? number_format($row['tare_weight2'] / 1000, 2) : '') . '</td>
-                                                <td>' . (!empty($row['nett_weight2']) ? number_format($row['nett_weight2'] / 1000, 2) : '') . '</td>
-                                                <td>' . $formattedGrossWeightDate2 . '</td>
-                                                <td>' . $formattedTareWeightDate2 . '</td>
-                                                <td>' . (!empty($row['weight_different']) ? number_format($row['weight_different'] / 1000, 2) : '') . '</td>
-                                                <td>' . number_format($row['final_weight']/1000, 2) . '</td>
-                                                <td>' . $row['created_by'] . '</td>
-                                            </tr>';
-                                    
-                                            // Calculate subtotals
-                                            $totalGross += (float)$row['gross_weight1'];
-                                            $totalTare += (float)$row['tare_weight1'];
-                                            $totalNet += (float)$row['nett_weight1'];
-                                        }
-                                    
-                                        // Add product-wise subtotal
-                                        $message .= '<tr>
-                                            <th style="font-size: 10px;" colspan="18">Subtotal (' . $product . ')</th>
-                                            <th style="border:1px solid black;font-size: 9px;">' . number_format($totalGross /1000, 2). '</th>
-                                            <th style="border:1px solid black;font-size: 9px;">' . number_format($totalTare/1000, 2) . '</th>
-                                            <th style="border:1px solid black;font-size: 9px;">' . number_format($totalNet/1000, 2) . '</th>
-                                        </tr>';
-                                    
-                                        // Add to grand total
-                                        $grandTotalGross += $totalGross;
-                                        $grandTotalTare += $totalTare;
-                                        $grandTotalNet += $totalNet;
-                                    }
-                                    
-                                    $message .= '</tbody>
-                                        <tfoot>
-                                            <tr>
-                                                <th style="font-size: 10px;" colspan="18">Grand Total</th>
-                                                <th style="border:1px solid black;font-size: 9px;border:1px solid black;">'.number_format($grandTotalGross/1000, 2).'</th>
-                                                <th style="border:1px solid black;font-size: 9px;border:1px solid black;">'.number_format($grandTotalTare/1000, 2).'</th>
-                                                <th style="border:1px solid black;font-size: 9px;border:1px solid black;">'.number_format($grandTotalNet/1000, 2).'</th>
-                                            </tr>
-                                        </tfoot>';
-                                    $message .= '</tbody>';
-                                    
-                                $message .= '</table>
-                            </body>
-                        </html>';
+                                            <th style="font-size: 10px;" colspan="18">Grand Total</th>
+                                            <th style="border:1px solid black;font-size: 9px;border:1px solid black;">'.number_format($grandTotalGross/1000, 2).'</th>
+                                            <th style="border:1px solid black;font-size: 9px;border:1px solid black;">'.number_format($grandTotalTare/1000, 2).'</th>
+                                            <th style="border:1px solid black;font-size: 9px;border:1px solid black;">'.number_format($grandTotalNet/1000, 2).'</th>
+                                        </tr>
+                                    </tfoot>';
+                                $message .= '</tbody>';
+                                
+                            $message .= '</table>
+                        </body>
+                    </html>';
+                }
+
+                
 
                 echo json_encode(
                     array(
