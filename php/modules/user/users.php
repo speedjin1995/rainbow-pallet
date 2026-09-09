@@ -52,13 +52,8 @@ try {
         $params[] = $param_username;
         $types .= 's';
     }
-    if ($param_useremail !== null && $param_useremail !== '') {
-        $conditions[] = "useremail = ?";
-        $params[] = $param_useremail;
-        $types .= 's';
-    }
     if (!empty($conditions)) {
-        $sql = "SELECT id, employee_code, username, useremail FROM Users WHERE status = 0 AND (" . implode(" OR ", $conditions) . ")";
+        $sql = "SELECT id, employee_code, username FROM Users WHERE status = 0 AND (" . implode(" OR ", $conditions) . ")";
         if ($id !== null) {
             $sql .= " AND id != ?";
             $params[] = $id;
@@ -69,8 +64,7 @@ try {
         $duplicateCheck->execute();
         $result = $duplicateCheck->get_result();
         if ($row = $result->fetch_assoc()) {
-            $field = ($param_code !== null && $row['employee_code'] === $param_code) ? 'Employee Code' :
-                     (($param_username !== null && $row['username'] === $param_username) ? 'Username' : 'Email');
+            $field = ($param_code !== null && $row['employee_code'] === $param_code) ? 'Employee Code' : 'Username';
             throw new Exception($field . " already exists");
         }
         $duplicateCheck->close();

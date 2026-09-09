@@ -20,52 +20,51 @@ if($_SESSION["roles"] != 'ADMIN' && $_SESSION["roles"] != 'SADMIN'){
     $username = implode("', '", $_SESSION["plant"]);
     $searchQuery = "and plant_code IN ('$username')";
 }
-
-if($_GET['fromDate'] != null && $_GET['fromDate'] != ''){
+if(!empty($_GET['fromDate']) && $_GET['fromDate'] != null && $_GET['fromDate'] != ''){
     $date = DateTime::createFromFormat('d-m-Y', $_GET['fromDate']);
     $formatted_date = $date->format('Y-m-d 00:00:00');
     $searchQuery .= " and Weight.transaction_date >= '".$formatted_date."'";
 }
 
-if($_GET['toDate'] != null && $_GET['toDate'] != ''){
+if(!empty($_GET['toDate']) && $_GET['toDate'] != null && $_GET['toDate'] != ''){
     $date = DateTime::createFromFormat('d-m-Y', $_GET['toDate']);
     $formatted_date = $date->format('Y-m-d 23:59:59');
     $searchQuery .= " and Weight.transaction_date <= '".$formatted_date."'";
 }
 
-if($_GET['transactionStatus'] != null && $_GET['transactionStatus'] != '' && $_GET['transactionStatus'] != '-'){
+if(!empty($_GET['transactionStatus']) && $_GET['transactionStatus'] != null && $_GET['transactionStatus'] != '' && $_GET['transactionStatus'] != '-'){
     $searchQuery .= " and Weight.transaction_status = '".$_GET['transactionStatus']."'";
 }
 
-if($_GET['customer'] != null && $_GET['customer'] != '' && $_GET['customer'] != '-'){
+if(!empty($_GET['customer']) && $_GET['customer'] != null && $_GET['customer'] != '' && $_GET['customer'] != '-'){
     $searchQuery .= " and Weight.customer_code = '".$_GET['customer']."'";
 }
 
-if(isset($_GET['supplier']) && $_GET['supplier'] != null && $_GET['supplier'] != '' && $_GET['supplier'] != '-'){
+if(!empty($_GET['supplier']) && isset($_GET['supplier']) && $_GET['supplier'] != null && $_GET['supplier'] != '' && $_GET['supplier'] != '-'){
     $searchQuery .= " and Weight.supplier_code = '".$_GET['supplier']."'";
 }
 
-if($_GET['vehicle'] != null && $_GET['vehicle'] != '' && $_GET['vehicle'] != '-'){
+if(!empty($_GET['vehicle']) && $_GET['vehicle'] != null && $_GET['vehicle'] != '' && $_GET['vehicle'] != '-'){
     $searchQuery .= " and Weight.lorry_plate_no1 = '".$_GET['vehicle']."'";
 }
 
-if($_GET['weighingType'] != null && $_GET['weighingType'] != '' && $_GET['weighingType'] != '-'){
+if(!empty($_GET['weighingType']) && $_GET['weighingType'] != null && $_GET['weighingType'] != '' && $_GET['weighingType'] != '-'){
     $searchQuery .= " and Weight.weight_type like '%".$_GET['weighingType']."%'";
 }
 
-if($_GET['product'] != null && $_GET['product'] != '' && $_GET['product'] != '-'){
+if(!empty($_GET['product']) && $_GET['product'] != null && $_GET['product'] != '' && $_GET['product'] != '-'){
     $searchQuery .= " and Weight.product_code = '".$_GET['product']."'";
 }
 
-if(isset($_GET['rawMat']) && $_GET['rawMat'] != null && $_GET['rawMat'] != '' && $_GET['rawMat'] != '-'){
+if(!empty($_GET['rawMat']) && isset($_GET['rawMat']) && $_GET['rawMat'] != null && $_GET['rawMat'] != '' && $_GET['rawMat'] != '-'){
     $searchQuery .= " and Weight.raw_mat_code = '".$_GET['rawMat']."'";
 }
 
-if(isset($_GET['plant']) && $_GET['plant'] != null && $_GET['plant'] != '' && $_GET['plant'] != '-'){
+if(!empty($_GET['plant']) && isset($_GET['plant']) && $_GET['plant'] != null && $_GET['plant'] != '' && $_GET['plant'] != '-'){
     $searchQuery .= " and Weight.plant_code = '".$_GET['plant']."'";
 }
 
-if(isset($_GET['status']) && $_GET['status'] != null && $_GET['status'] != '' && $_GET['status'] != '-'){
+if(!empty($_GET['plant']) && isset($_GET['status']) && $_GET['status'] != null && $_GET['status'] != '' && $_GET['status'] != '-'){
     if ($_GET['status'] == 'Complete'){
         $searchQuery .= " and Weight.is_complete = 'Y'";
     }elseif ($_GET['status'] == 'Cancelled'){
