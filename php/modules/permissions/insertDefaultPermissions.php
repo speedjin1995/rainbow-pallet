@@ -14,7 +14,7 @@ while ($row = $result->fetch_assoc()) {
 $defaultPermissions = [
     ['name' => 'view', 'modules' => ['All']],
     ['name' => 'create', 'modules' => [
-        ['Delivery Order', 'Accounting'],
+        ['Payment Voucher', 'Accounting'],
         ['Companies', 'Master Data'], 
         ['Customer', 'Master Data'], 
         ['Destination', 'Master Data'],
@@ -24,6 +24,7 @@ $defaultPermissions = [
         ['Vehicles', 'Master Data'], 
         ['Plant', 'Master Data'], 
         ['Locations', 'Master Data'],
+        ['Translation', 'Master Data'],
         ['Modules', 'User Management'], 
         ['Permission', 'User Management'], 
         ['Role', 'User Management'], 
@@ -38,7 +39,7 @@ $defaultPermissions = [
         ['Different Container Type', 'Weighing']
     ]],
     ['name' => 'edit', 'modules' => [
-        ['Delivery Order', 'Accounting'],
+        ['Payment Voucher', 'Accounting'],
         ['Companies', 'Master Data'], 
         ['Customer', 'Master Data'], 
         ['Destination', 'Master Data'],
@@ -48,6 +49,7 @@ $defaultPermissions = [
         ['Vehicles', 'Master Data'], 
         ['Plant', 'Master Data'], 
         ['Locations', 'Master Data'],
+        ['Translation', 'Master Data'],
         ['Modules', 'User Management'], 
         ['Permission', 'User Management'], 
         ['Role', 'User Management'], 
@@ -71,6 +73,7 @@ $defaultPermissions = [
         ['Vehicles', 'Master Data'], 
         ['Plant', 'Master Data'], 
         ['Locations', 'Master Data'],
+        ['Translation', 'Master Data'],
         ['Modules', 'User Management'], 
         ['Permission', 'User Management'], 
         ['Role', 'User Management'], 
@@ -103,7 +106,7 @@ $defaultPermissions = [
         ['Miscellaneous', 'Weighing']
     ]],
     ['name' => 'print', 'modules' => [
-        ['Delivery Order', 'Accounting'],
+        ['Payment Voucher', 'Accounting'],
         ['Sales', 'Reports'], 
         ['Purchase', 'Reports'], 
         ['Port', 'Reports'], 
@@ -114,14 +117,12 @@ $defaultPermissions = [
         ['Miscellaneous', 'Weighing']
     ]],
     ['name' => 'view_all_plants', 'modules' => [
-        ['Audit Log', 'Reports'], 
-        ['Api Log', 'Reports'], 
         ['Delivery Order', 'Accounting'],
+        ['Goods Received', 'Accounting'],
         ['Sales', 'Reports'], 
         ['Purchase', 'Reports'], 
         ['Port', 'Reports'], 
         ['Miscellaneous', 'Reports'],
-        ['User Setup', 'User Management'],
         ['Sales', 'Weighing'], 
         ['Purchase', 'Weighing'], 
         ['Port', 'Weighing'], 
@@ -152,6 +153,8 @@ $defaultPermissions = [
         ['User Setup', 'User Management']
     ]],
     ['name' => 'export', 'modules' => [
+        ['Delivery Order', 'Accounting'], 
+        ['Goods Received', 'Accounting'], 
         ['Audit Log', 'Reports'], 
         ['Api Log', 'Reports'],
         ['Sales', 'Reports'], 
@@ -160,15 +163,15 @@ $defaultPermissions = [
         ['Miscellaneous', 'Reports']
     ]],
     ['name' => 'approval', 'modules' => [
-        ['Delivery Order', 'Accounting']
+        ['Payment Voucher', 'Accounting']
     ]],
     ['name' => 'post_to_sql', 'modules' => [
-        ['Audit Log', 'Reports'], 
-        ['Api Log', 'Reports']
+        ['Payment Voucher', 'Accounting'], 
+        ['Delivery Order', 'Accounting'], 
+        ['Goods Received', 'Accounting'], 
     ]],
     ['name' => 'include_price', 'modules' => [
         ['Audit Log', 'Reports'], 
-        ['Api Log', 'Reports'], 
         ['Goods Received', 'Accounting'],
         ['Sales', 'Reports'], 
         ['Purchase', 'Reports'], 
