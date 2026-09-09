@@ -2,7 +2,10 @@
 <?php include 'layouts/head-main.php'; ?>
 
 <?php
+require_once "php/requires/lookup.php";
+
 $plantId = $_SESSION['plant'];
+$selectedPlantId = $_SESSION['selected_plant_id'] ?? null;
 
 $supplier = $db->query("SELECT * FROM Supplier WHERE status = '0' ORDER BY name ASC");
 $transporter = $db->query("SELECT * FROM Transporter WHERE status = '0'");
@@ -10,21 +13,19 @@ $destination = $db->query("SELECT * FROM Destination WHERE status = '0'");
 $rawMaterial = $db->query("SELECT * FROM Raw_Mat WHERE status = '0'");
 
 $plantName = '-';
+$plantCode = '-';
+if($_SESSION["roles"] != 'ADMIN' && $_SESSION["roles"] != 'SADMIN'){
+    $plant = searchPlantById($selectedPlantId, $db);
 
-if($plantId != null && count($plantId) > 0){
-    $stmt2 = $db->prepare("SELECT * from Plant WHERE plant_code = ?");
-    $stmt2->bind_param('s', $plantId[0]);
+    $stmt2 = $db->prepare("SELECT * from Plant WHERE id = ?");
+    $stmt2->bind_param('s', $selectedPlantId);
     $stmt2->execute();
     $result2 = $stmt2->get_result();
         
     if(($row2 = $result2->fetch_assoc()) !== null){
         $plantName = $row2['name'];
+        $plantCode = $row2['plant_code'];
     }
-}
-
-if($_SESSION["roles"] != 'ADMIN' && $_SESSION["roles"] != 'SADMIN'){
-    $username = implode("', '", $_SESSION["plant"]);
-    $plant = $db->query("SELECT * FROM Plant WHERE status = '0' and plant_code IN ('$username')");
 }
 else{
     $plant = $db->query("SELECT * FROM Plant WHERE status = '0'");
@@ -116,7 +117,7 @@ else{
                                                             </select>
                                                         </div>
                                                     </div><!--end col-->
-                                                    <div class="col-3" id="supplierSearchDisplay" style="display:none">
+                                                    <div class="col-3">
                                                         <div class="mb-3">
                                                             <label for="supplierSearch" class="form-label"><?=$languageArray['supplier_name_code'][$language]?></label>
                                                             <select id="supplierSearch" class="form-select select2">
@@ -153,7 +154,7 @@ else{
                                                             </select>
                                                         </div>
                                                     </div>--><!--end col-->
-                                                    <div class="col-3" id="rawMatSearchDisplay" style="display:none">
+                                                    <div class="col-3">
                                                         <div class="mb-3">
                                                             <label for="rawMatSearch" class="form-label"><?=$languageArray['raw_material_code_code'][$language]?></label>
                                                             <select id="rawMatSearch" class="form-select select2">
@@ -181,7 +182,7 @@ else{
                                                             <select id="plantSearch" class="form-select select2">
                                                                 <option selected>-</option>
                                                                 <?php while($rowPlantF=mysqli_fetch_assoc($plant)){ ?>
-                                                                    <option value="<?=$rowPlantF['plant_code'] ?>"><?=$rowPlantF['name'] ?></option>
+                                                                    <option value="<?=$rowPlantF['plant_code'] ?>" <?= ($rowPlantF['plant_code'] == $plantCode) ? 'selected' : '' ?>><?=$rowPlantF['name'] ?></option>
                                                                 <?php } ?>
                                                             </select>
                                                         </div>
