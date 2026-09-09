@@ -3,23 +3,12 @@
 
 <?php
 $plantId = $_SESSION['plant'];
-$selectedPlantId = $_SESSION['selected_plant_id'] ?? null;
 
 $supplier = $db->query("SELECT * FROM Supplier WHERE status = '0' AND payment_term = 'Term' ORDER BY name ASC");
 $supplier2 = $db->query("SELECT * FROM Supplier WHERE status = '0' AND payment_term = 'Term' ORDER BY name ASC");
 $supplierCash2 = $db->query("SELECT * FROM Supplier WHERE status = '0' AND payment_term = 'Cash' ORDER BY name ASC");
 $company = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC");
 $company2 = $db->query("SELECT * FROM Company WHERE status = 0 ORDER BY name ASC");
-
-if($_SESSION["roles"] != 'ADMIN' && $_SESSION["roles"] != 'SADMIN'){
-    $stmtPlant = $db->prepare("SELECT * FROM Plant WHERE status = '0' AND id = ?");
-    $stmtPlant->bind_param('i', $selectedPlantId);
-    $stmtPlant->execute();
-    $plant = $stmtPlant->get_result();
-}
-else{
-    $plant = $db->query("SELECT * FROM Plant WHERE status = '0'");
-}
 ?>
 
 <head>
