@@ -152,35 +152,44 @@ $empRecords = mysqli_query($db, $empQuery);
 $data = array();
 $salesCount = 0;
 $purchaseCount = 0;
+$portCount = 0;
 $localCount = 0;
 $miscCount = 0;
 
+$language = $_SESSION['language'];
+$languageArray = $_SESSION['languageArray'];
 while($row = mysqli_fetch_assoc($empRecords)) {
   $transactionStatus = '';
   if($row['transaction_status'] == 'Sales'){
     $salesCount++;
-    $transactionStatus = 'Sales';
+    $transactionStatus = $languageArray['dispatch_code'][$language];
   }
   else if($row['transaction_status'] == 'Purchase'){
     $purchaseCount++;
-    $transactionStatus = 'Purchase';
+    $transactionStatus = $languageArray['receiving_code'][$language];
   }
   else if($row['transaction_status'] == 'Misc'){
     $miscCount++;
-    $transactionStatus = 'Miscellaneous';
+    $transactionStatus = $languageArray['miscellaneous_code'][$language];
+  }
+  else if($row['transaction_status'] == 'Port'){
+    $portCount++;
+    $transactionStatus = $languageArray['trx_to_port_code'][$language];
   }
   else{
     $localCount++;
-    $transactionStatus = 'Transfer to Port';
+    $transactionStatus = $languageArray['internal_transfer_code'][$language];
   }
 
   if($row['weight_type'] == 'Container'){
-    $weightType = 'Primer Mover';
+    $weightType = $languageArray['primer_mover_code'][$language];
   }elseif($row['weight_type'] == 'Empty Container'){
-    $weightType = 'Primer Mover + Container';
+    $weightType = $languageArray['primer_mover_container_code'][$language];
   }else if($row['weight_type'] == 'Different Container'){
-    $weightType = 'Primer Mover + Different Bins';
-  } else{
+    $weightType = $languageArray['primer_mover_different_bins_code'][$language];
+  }elseif($row['weight_type'] == 'Normal'){
+    $weightType = $languageArray['normal_weighing_code'][$language];
+  }else{
     $weightType = $row['weight_type'];
   }
 

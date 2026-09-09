@@ -22,30 +22,37 @@ $weighing2 = $db->query("SELECT * FROM Weight WHERE is_approved = 'N'");
 $salesList = array();
 $purchaseList = array();
 $localList = array();
+$portList = array();
 $miscList = array();
 $count = 0;
 # Container
 $salesContainerList = array();
 $purchaseContainerList = array();
 $localContainerList = array();
+$portContainerList = array();
 $miscContainerList = array();
 $containerCount = 0;
 
 $salesList2 = array();
 $purchaseList2 = array();
 $localList2 = array();
+$portList2 = array();
 $miscList2 = array();
 $count2 = 0;
 
+$language = $_SESSION['language'];
+$languageArray = $_SESSION['languageArray'];
 while($row=mysqli_fetch_assoc($normalWeighing)){
     $weightType = '';
-    if ($row['weight_type'] == 'Empty Container') {
-        $weightType = 'Primer Mover + Container';
-    } elseif ($row['weight_type'] == 'Container') {
-        $weightType = 'Primer Mover';
-    } else if($row['weight_type'] == 'Different Container'){
-        $weightType = 'Primer Mover + Different Bins';
-    } else {
+    if($row['weight_type'] == 'Container'){
+        $weightType = $languageArray['primer_mover_code'][$language];
+    }elseif($row['weight_type'] == 'Empty Container'){
+        $weightType = $languageArray['primer_mover_container_code'][$language];
+    }else if($row['weight_type'] == 'Different Container'){
+        $weightType = $languageArray['primer_mover_different_bins_code'][$language];
+    }elseif($row['weight_type'] == 'Normal'){
+        $weightType = $languageArray['normal_weighing_code'][$language];
+    }else{
         $weightType = $row['weight_type'];
     }
 
@@ -70,6 +77,13 @@ while($row=mysqli_fetch_assoc($normalWeighing)){
             "weight_type" => $weightType
         );
     }
+    else if($row['transaction_status'] == 'Port'){
+        $portList[] = array(
+            "id" => $row['id'],
+            "transaction_id" => $row['transaction_id'],
+            "weight_type" => $weightType
+        );
+    }
     else{
         $miscList[] = array(
             "id" => $row['id'],
@@ -80,14 +94,16 @@ while($row=mysqli_fetch_assoc($normalWeighing)){
 }
 
 while($row3=mysqli_fetch_assoc($containerWeighing)){
-    $weightType = ''; 
-    if ($row3['weight_type'] == 'Empty Container') {
-        $weightType = 'Primer Mover + Container';
-    } else if($row3['weight_type'] == 'Different Container'){
-        $weightType = 'Primer Mover + Different Bins';
-    } elseif ($row3['weight_type'] == 'Container') {
-        $weightType = 'Primer Mover';
-    } else {
+    $weightType = '';
+    if($row3['weight_type'] == 'Container'){
+        $weightType = $languageArray['primer_mover_code'][$language];
+    }elseif($row3['weight_type'] == 'Empty Container'){
+        $weightType = $languageArray['primer_mover_container_code'][$language];
+    }else if($row3['weight_type'] == 'Different Container'){
+        $weightType = $languageArray['primer_mover_different_bins_code'][$language];
+    }elseif($row3['weight_type'] == 'Normal'){
+        $weightType = $languageArray['normal_weighing_code'][$language];
+    }else{
         $weightType = $row3['weight_type'];
     }
 
@@ -109,6 +125,14 @@ while($row3=mysqli_fetch_assoc($containerWeighing)){
     }
     else if($row3['transaction_status'] == 'Local'){
         $localContainerList[] = array(
+            "id" => $row3['id'],
+            "transaction_id" => $row3['transaction_id'],
+            "container_no" => $row3['container_no'],
+            "weight_type" => $weightType
+        );
+    }
+    else if($row3['transaction_status'] == 'Port'){
+        $portContainerList[] = array(
             "id" => $row3['id'],
             "transaction_id" => $row3['transaction_id'],
             "container_no" => $row3['container_no'],
@@ -142,6 +166,13 @@ while($row2=mysqli_fetch_assoc($weighing2)){
     }
     else if($row2['transaction_status'] == 'Local'){
         $localList2[] = array(
+            "id" => $row2['id'],
+            "transaction_id" => $row2['transaction_id'],
+            "weight_type" => $row2['weight_type']
+        );
+    }
+    else if($row2['transaction_status'] == 'Port'){
+        $portList2[] = array(
             "id" => $row2['id'],
             "transaction_id" => $row2['transaction_id'],
             "weight_type" => $row2['weight_type']

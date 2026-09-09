@@ -128,6 +128,9 @@ if (isset($_POST['transactionId'], $_POST['transactionStatus'], $_POST['weightTy
                 else if($status == 'Local'){
                     $queryPlant = "SELECT locals as curcount FROM Plant WHERE plant_code='$plantCode'";
                 }
+                else if($status == 'Port'){
+                    $queryPlant = "SELECT port as curcount FROM Plant WHERE plant_code='$plantCode'";
+                }
                 else if($status == 'Misc'){
                     $queryPlant = "SELECT misc as curcount FROM Plant WHERE plant_code='$plantCode'";
                 }
@@ -700,6 +703,9 @@ if (isset($_POST['transactionId'], $_POST['transactionStatus'], $_POST['weightTy
                         else if($transactionStatus == 'Local'){
                             $queryPlantU = "UPDATE Plant SET locals=? WHERE plant_code='$plantCode'";
                         }
+                        else if($transactionStatus == 'Port'){
+                            $queryPlantU = "UPDATE Plant SET port=? WHERE plant_code='$plantCode'";
+                        }
                         else if($transactionStatus == 'Misc'){
                             $queryPlantU = "UPDATE Plant SET misc=? WHERE plant_code='$plantCode'";
                         }
@@ -876,6 +882,9 @@ if (isset($_POST['transactionId'], $_POST['transactionStatus'], $_POST['weightTy
                                                     else if($transactionStatus == 'Local'){
                                                         $queryPlant = "SELECT locals as curcount FROM Plant WHERE plant_code='$plantCode'";
                                                     }
+                                                    else if($transactionStatus == 'Port'){
+                                                        $queryPlant = "SELECT port as curcount FROM Plant WHERE plant_code='$plantCode'";
+                                                    }
                                                     else if($transactionStatus == 'Misc'){
                                                         $queryPlant = "SELECT misc as curcount FROM Plant WHERE plant_code='$plantCode'";
                                                     }
@@ -936,6 +945,9 @@ if (isset($_POST['transactionId'], $_POST['transactionStatus'], $_POST['weightTy
                                                     }
                                                     else if($transactionStatus == 'Local'){
                                                         $queryPlantU = "UPDATE Plant SET locals=? WHERE plant_code='$plantCode'";
+                                                    }
+                                                    else if($transactionStatus == 'Port'){
+                                                        $queryPlantU = "UPDATE Plant SET port=? WHERE plant_code='$plantCode'";
                                                     }
                                                     else if($transactionStatus == 'Misc'){
                                                         $queryPlantU = "UPDATE Plant SET misc=? WHERE plant_code='$plantCode'";
@@ -1050,6 +1062,9 @@ if (isset($_POST['transactionId'], $_POST['transactionStatus'], $_POST['weightTy
                     else if($transactionStatus == 'Local'){
                         $queryPlantU = "UPDATE Plant SET locals=? WHERE plant_code='$plantCode'";
                     }
+                    else if($transactionStatus == 'Port'){
+                        $queryPlantU = "UPDATE Plant SET port=? WHERE plant_code='$plantCode'";
+                    }
                     else if($transactionStatus == 'Misc'){
                         $queryPlantU = "UPDATE Plant SET misc=? WHERE plant_code='$plantCode'";
                     }
@@ -1111,6 +1126,9 @@ if (isset($_POST['transactionId'], $_POST['transactionStatus'], $_POST['weightTy
                                         }
                                         else if($transactionStatus == 'Local'){
                                             $queryPlantU = "UPDATE Plant SET locals=? WHERE plant_code='$plantCode'";
+                                        }
+                                        else if($transactionStatus == 'Port'){
+                                            $queryPlantU = "UPDATE Plant SET port=? WHERE plant_code='$plantCode'";
                                         }
                                         else if($transactionStatus == 'Misc'){
                                             $queryPlantU = "UPDATE Plant SET misc=? WHERE plant_code='$plantCode'";
@@ -1298,6 +1316,9 @@ if (isset($_POST['transactionId'], $_POST['transactionStatus'], $_POST['weightTy
                     }
                     else if($transactionStatus == 'Local'){
                         $queryPlantU = "UPDATE Plant SET locals=? WHERE plant_code='$plantCode'";
+                    }
+                    else if($transactionStatus == 'Port'){
+                        $queryPlantU = "UPDATE Plant SET port=? WHERE plant_code='$plantCode'";
                     }
                     else if($transactionStatus == 'Misc'){
                         $queryPlantU = "UPDATE Plant SET misc=? WHERE plant_code='$plantCode'";

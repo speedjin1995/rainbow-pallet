@@ -14,35 +14,29 @@ try {
         throw new Exception("Please fill in all the fields");
     }
 
-    if (empty($_POST['id'])) {
-        $id = null;
-    } else {
-        $id = trim($_POST['id']);
-    }
+    $id = empty($_POST['id']) ? null : trim($_POST['id']);
+    $locationCode = empty($_POST['locationCode']) ? null : trim($_POST['locationCode']);
+    $locationName = empty($_POST['locationName']) ? null : trim($_POST['locationName']);
+    $plant = empty($_POST['plant']) ? null : trim($_POST['plant']);
+    $weighingCount = empty($_POST['weighingCount']) ? '2' : trim($_POST['weighingCount']);
 
-    if (empty($_POST['locationCode'])) {
-        $locationCode = null;
+    // Check for duplicate location_code (exclude current record when updating)
+    $duplicateCheck = $db->prepare("SELECT id FROM Location WHERE location_code = ? AND status = 0" . (!empty($id) ? " AND id != ?" : ""));
+    if (!empty($id)) {
+        $duplicateCheck->bind_param('si', $locationCode, $id);
     } else {
-        $locationCode = trim($_POST['locationCode']);
+        $duplicateCheck->bind_param('s', $locationCode);
     }
+    $duplicateCheck->execute();
+    $duplicateCheck->store_result();
 
-    if (empty($_POST['locationName'])) {
-        $locationName = null;
-    } else {
-        $locationName = trim($_POST['locationName']);
+    if ($duplicateCheck->num_rows > 0) {
+        echo json_encode(array("status" => "failed", "message" => "Location code already exists"));
+        $duplicateCheck->close();
+        $db->close();
+        exit;
     }
-
-    if (empty($_POST['plant'])) {
-        $plant = null;
-    } else {
-        $plant = trim($_POST['plant']);
-    }
-
-    if (empty($_POST['weighingCount'])) {
-        $weighingCount = '2';
-    } else {
-        $weighingCount = trim($_POST['weighingCount']);
-    }
+    $duplicateCheck->close();
 
     $db->begin_transaction();
 

@@ -74,6 +74,15 @@
                             <li class="nav-item">
                                 <a href="paymentVoucher.php" class="nav-link"><?=$languageArray['payment_voucher_code'][$language]?></a>
                             </li>
+
+                            <li class="nav-item">
+                                <a href="deliveryOrder.php" class="nav-link"><?=$languageArray['delivery_order_code'][$language]?></a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a href="goodsReceived.php" class="nav-link"><?=$languageArray['goods_received_code'][$language]?></a>
+                            </li>
+
                         </ul>
                     </div>
                 </li>
@@ -124,9 +133,9 @@
                                             <li class="nav-item">
                                                 <a href="user.php" class="nav-link">'.$languageArray['staff_code'][$language].'</a>
                                             </li>
-                                            <li class="nav-item">
+                                            <!--li class="nav-item">
                                                 <a href="plant.php" class="nav-link">'.$languageArray['plant_code'][$language].'</a>
-                                            </li>
+                                            </li-->
                                             <li class="nav-item">
                                                 <a href="locations.php" class="nav-link">'.$languageArray['locations_code'][$language].'</a>
                                             </li>
@@ -145,15 +154,24 @@
                     <div class="collapse menu-dropdown" id="sidebarReport">
                         <ul class="nav nav-sm flex-column">
                             <li class="nav-item">
-                                <li class="nav-item">
+                                <!-- <li class="nav-item">
                                     <a href="weighingReport.php" class="nav-link"><?=$languageArray['weighing_report_code'][$language]?></a>
-                                </li>
-                                <!--li class="nav-item">
-                                    <a href="salesReport.php" class="nav-link"><?=$lang['t-soReport']?></a>
+                                </li> -->
+                                <li class="nav-item">
+                                    <a href="salesReport.php" class="nav-link"><?=$languageArray['dispatch_report_code'][$language]?></a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="purchaseReport.php" class="nav-link"><?=$lang['t-poReport']?></a>
-                                </li-->
+                                    <a href="purchaseReport.php" class="nav-link"><?=$languageArray['receiving_report_code'][$language]?></a>
+                                </li>
+                                <!-- <li class="nav-item">
+                                    <a href="localReport.php" class="nav-link"><?=$languageArray['internal_transfer_report_code'][$language]?></a>
+                                </li> -->
+                                <li class="nav-item">
+                                    <a href="portReport.php" class="nav-link"><?=$languageArray['trx_to_port_code'][$language]?></a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="miscReport.php" class="nav-link"><?=$languageArray['miscellaneous_report_code'][$language]?></a>
+                                </li>
                                 <?php
                                     if($_SESSION["roles"] == 'ADMIN' || $_SESSION["roles"] == 'SADMIN'){
                                         echo '<li class="nav-item">
@@ -182,9 +200,9 @@
                                     }
                                 ?> -->
                                 
-                                <li class="nav-item">
+                                <!-- <li class="nav-item">
                                     <a href="portSetup.php" class="nav-link"><?=$languageArray['port_setup_code'][$language]?></a>
-                                </li> 
+                                </li>  -->
                                 <li class="nav-item">
                                     <a href="myProfile.php" class="nav-link"><?=$languageArray['profile_code'][$language]?></a>
                                 </li> 

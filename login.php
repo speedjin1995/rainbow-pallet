@@ -154,11 +154,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             <div class="text-center mt-sm-5 mb-4 text-white-50">
                                 <div>
                                     <a href="index.php" class="d-inline-block auth-logo">
-                                        <img src="assets/images/logo-lg.png" alt="" height="40%">
+                                        <img src="assets/images/logo-lg.png" alt="" height="150">
                                     </a>
                                 </div>
                                 <p class="mt-3 fs-15 fw-medium"> </p>
-                                <p class="mt-3 fs-15 fw-medium">SP Weighing System</p>
                             </div>
                         </div>
                     </div>
@@ -167,7 +166,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <div class="row justify-content-center">
                         <div class="col-md-8 col-lg-6 col-xl-5">
                             <div class="card mt-4">
-                            
                                 <div class="card-body p-4"> 
                                     <div class="text-center mt-2">
                                         <h5 class="text-primary">Welcome Back !</h5>

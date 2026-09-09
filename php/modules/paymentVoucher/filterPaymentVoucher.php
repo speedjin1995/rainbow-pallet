@@ -75,6 +75,7 @@ while($row = mysqli_fetch_assoc($empRecords)) {
     "voucher_date"=>($row['voucher_date'] != null ? date('d-m-Y', strtotime($row['voucher_date'])) : ''),
     "voucher_no"=>$row['voucher_no'] ?? '',
     "outstanding_amount"=>(!empty($row['outstanding_amount']) ? number_format(floatval($row['outstanding_amount']), 2) : ''),
+    "approval_status"=>$row['approval_status'],
   );
 }
 

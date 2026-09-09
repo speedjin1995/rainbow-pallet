@@ -15,6 +15,10 @@ if(isset($_POST['userID'])){
         $type = $_POST['type'];
     }
 
+    if (isset($_POST['acctType']) && $_POST['acctType'] != ''){
+        $acctType = $_POST['acctType'];
+    }
+
     if ($format == 'EXPANDABLE' && $type == 'Log'){
         if ($update_stmt = $db->prepare("SELECT * FROM Weight_Log WHERE id=?")) {
             $update_stmt->bind_param('s', $id);
@@ -368,6 +372,127 @@ if(isset($_POST['userID'])){
                             $message['cust_side_second_weight'] = $row['cust_side_second_weight'] ?? '';
                             $message['cust_side_nett_weight'] = $row['cust_side_nett_weight'] ?? '';
                             $message['weight_difference'] = $row['weight_difference'] ?? '';
+
+                            if ($acctType == 'DO'){
+                                $product = $row['product_code'];
+                                $customer = $row['customer_code'];
+                                $plant = $row['plant_code'];
+                                $company = $row['company_id'];
+                                $fromDate = DateTime::createFromFormat('d-m-Y H:i:s', $_POST['fromDate']);
+                                $fromDateTime = $fromDate->format('Y-m-d H:i:s');
+                                $toDate = DateTime::createFromFormat('d-m-Y H:i:s', $_POST['toDate']);
+                                $toDateTime = $toDate->format('Y-m-d H:i:s');
+                                $weighingData = array();
+                                $totalDeliverAmt = 0;
+
+                                if ($stmt = $db->prepare("
+                                    SELECT * 
+                                    FROM Weight 
+                                    WHERE plant_code = ? 
+                                    AND product_code = ?
+                                    AND customer_code = ?
+                                    AND company_id = ?
+                                    AND transaction_date >= ? 
+                                    AND transaction_date <= ? 
+                                    AND is_complete = 'Y' 
+                                    AND is_cancel <> 'Y' 
+                                    AND status = '0' 
+                                    AND transaction_status = 'Sales'
+                                ")) {
+                                    // Bind parameters: all strings here ("sss")
+                                    $stmt->bind_param("ssssss", $plant, $product, $customer, $company, $fromDateTime, $toDateTime);
+                                
+                                    // Execute safely
+                                    $stmt->execute();
+                                    $result = $stmt->get_result();
+                                
+                                    while ($row = $result->fetch_assoc()) {
+                                        $weighingData[] = array(
+                                            "id" => $row['id'],
+                                            "transaction_id" => $row['transaction_id'],
+                                            "transaction_status"=> $row['transaction_status'],
+                                            "customer_name" => $row['customer_name'],
+                                            "lorry_plate_no1" => $row['lorry_plate_no1'],
+                                            "product_name" => $row['product_name'],
+                                            "delivery_no" => $row['delivery_no'] ?? '',
+                                            "gross_weight1" => $row['gross_weight1'],
+                                            "gross_weight1_date" => $row['gross_weight1_date'],
+                                            "tare_weight1" => $row['tare_weight1'],
+                                            "tare_weight1_date" => $row['tare_weight1_date'],
+                                            "nett_weight1" => $row['nett_weight1'],
+                                            'transporter_code' => $row['transporter_code'],
+                                            'transporter' => $row['transporter'],
+                                            'destination_code' => $row['destination_code'],
+                                            'destination' => $row['destination'],
+                                            'unit_price' => $row['unit_price'] ?? '0.00'
+                                        );
+                                
+                                        $totalDeliverAmt += $row['nett_weight1'];
+                                    }
+                                
+                                    $stmt->close();
+                                }
+                                
+                                $message['totalDeliverAmt'] = $totalDeliverAmt;
+                                $message['weights'] = $weighingData;
+                            }elseif ($acctType == 'GR') {
+                                $plant = $row['plant_code'];
+                                $company = $row['company_id'];
+                                $rawMatCode = $row['raw_mat_code'];
+                                $supplierCode = $row['supplier_code'];
+                                $fromDate = DateTime::createFromFormat('d-m-Y H:i:s', $_POST['fromDate']);
+                                $fromDateTime = $fromDate->format('Y-m-d H:i:s');
+                                $toDate = DateTime::createFromFormat('d-m-Y H:i:s', $_POST['toDate']);
+                                $toDateTime = $toDate->format('Y-m-d H:i:s');
+
+                                $gr_stmt = $db->prepare("
+                                    SELECT * 
+                                    FROM Weight 
+                                    WHERE plant_code = ? 
+                                    AND raw_mat_code = ?
+                                    AND supplier_code = ?
+                                    AND company_id = ?
+                                    AND transaction_date >= ? 
+                                    AND transaction_date <= ? 
+                                    AND is_complete = 'Y' 
+                                    AND is_cancel <> 'Y' 
+                                    AND status = '0' 
+                                    AND transaction_status = 'Purchase'
+                                ");
+                                $gr_stmt->bind_param('ssssss', $plant, $rawMatCode, $supplierCode, $company, $fromDateTime, $toDateTime);
+                                $gr_stmt->execute();
+                                $grRecords = $gr_stmt->get_result();
+                                $weighingData = array();
+
+                                $totalFinalWeight = 0;
+                                while($row = $grRecords->fetch_assoc()) {
+                                    $weighingData[] = array( 
+                                        "id"=>$row['id'],
+                                        "transaction_id"=>$row['transaction_id'],
+                                        "transaction_status"=>$row['transaction_status'],
+                                        "supplier_name"=>$row['supplier_name'],
+                                        "lorry_plate_no1"=>$row['lorry_plate_no1'],
+                                        "raw_mat_name"=>$row['raw_mat_name'],
+                                        "delivery_no"=>$row['delivery_no'] ?? '',
+                                        "gross_weight1"=>$row['gross_weight1'],
+                                        "gross_weight1_date"=>$row['gross_weight1_date'],
+                                        "tare_weight1"=>$row['tare_weight1'],
+                                        "tare_weight1_date"=>$row['tare_weight1_date'],
+                                        "nett_weight1"=>$row['nett_weight1'],
+                                        'transporter_code' => $row['transporter_code'],
+                                        'transporter' => $row['transporter'],
+                                        'destination_code' => $row['destination_code'],
+                                        'destination' => $row['destination'],
+                                        'unit_price' => $row['unit_price'] ?? '0.00'     
+                                    );
+
+                                    $totalFinalWeight += floatval($row['final_weight']);
+                                }
+                                $gr_stmt->close();
+
+                                $message['weights'] = $weighingData;
+                                $message['total_final_weight'] = $totalFinalWeight;
+                            }
                         }else{
                             $message['id'] = $row['id'];
                             $message['transaction_id'] = $row['transaction_id'];
