@@ -2288,6 +2288,8 @@ INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALU
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('pv_items_code', 'PV Items', '付款凭证项目', 'Item PV', 'PV பொருட்கள்');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('item_code_code', 'Item Code', '项目代码', 'Kod Item', 'பொருள் குறியீடு');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('item_name_code', 'Item Name', '项目名称', 'Nama Item', 'பொருள் பெயர்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('rows_code', 'Rows', '行', 'Baris', 'வரிசைகள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('selected_total_code', 'Selected Total', '已选总计', 'Jumlah Dipilih', 'தேர்ந்தெடுக்கப்பட்ட மொத்தம்');
 
 CREATE TABLE `Pv_Items` (
   `id` int(11) NOT NULL,

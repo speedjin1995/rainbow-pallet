@@ -976,6 +976,7 @@ $pvItem2 = $db->query("SELECT * FROM Pv_Items WHERE status = 0 ORDER BY item_nam
         });
 
         $('#addPv').on('click', function(){
+            $('#pricingModal').find('#pvId').val('');  // Clear pvId for new PV
             voucherDatePicker.setDate(new Date(), false);  // Use current date directly
             $('#pricingModal').find('#voucherNo').val('');
             $('#pricingModal').find('#invoiceNo').val('');
@@ -989,6 +990,7 @@ $pvItem2 = $db->query("SELECT * FROM Pv_Items WHERE status = 0 ORDER BY item_nam
             $('#pricingModal').find('#paymentDetailsTable').empty();
             $('#pricingModal').find('#transactionDetailsSection').hide();
             $('#pricingModal').find('#priceDetailSection').hide();
+            $('#selectedCount').text('0');
             resetDeductionAdditionSection();
             $('#pricingModal').modal('show');
         })
@@ -1037,11 +1039,13 @@ $pvItem2 = $db->query("SELECT * FROM Pv_Items WHERE status = 0 ORDER BY item_nam
             var supplier = $(this).val();
             var fromDate = $('#pricingModal').find('#transactionFromDate').val();
             var toDate = $('#pricingModal').find('#transactionToDate').val();
+            var currentPvId = $('#pricingModal').find('#pvId').val();
             if(supplier && fromDate && toDate){
                 $.post('php/modules/paymentVoucher/getSupplierWeighing.php', { 
                     supplierId: $(this).val(), 
                     fromDate: fromDate, 
-                    toDate: toDate 
+                    toDate: toDate,
+                    pvId: currentPvId
                 }, function(data) {
                     var obj = JSON.parse(data);
                     if(obj.status === 'success'){
@@ -1054,6 +1058,9 @@ $pvItem2 = $db->query("SELECT * FROM Pv_Items WHERE status = 0 ORDER BY item_nam
                         
                         obj.message.forEach(function(weight) {
                             var hasPvId = weight.pv_id && weight.pv_id !== '' && weight.pv_id !== null;
+                            var isTiedToCurrentPv = hasPvId && currentPvId && weight.pv_id == currentPvId;
+                            var isTiedToOtherPv = hasPvId && (!currentPvId || weight.pv_id != currentPvId);
+                            
                             var checkboxCell = hasPvId 
                                 ? '<td class="text-center"></td>' 
                                 : '<td class="text-center"><input type="checkbox" class="form-check-input row-checkbox" name="selected[]" value="' + weight.id + '"></td>';
@@ -1075,11 +1082,16 @@ $pvItem2 = $db->query("SELECT * FROM Pv_Items WHERE status = 0 ORDER BY item_nam
                                 '<td class="text-end"><input type="text" class="form-control form-control-sm row-total-price text-end" name="total_price[]" value="' + parseFloat(weight.total_price).toFixed(2) + '" readonly></td>' +
                                 '<input type="hidden" name="id[]" value="' + weight.id + '">' +
                                 '<input type="hidden" name="nett_weight[]" value="' + (parseFloat(weight.nett_weight1)/1000).toFixed(2) + '">' +
-                                (hasPvId ? '<input type="hidden" name="tied[]" value="' + weight.id + '">' : '') +
+                                (isTiedToCurrentPv ? '<input type="hidden" name="tied[]" value="' + weight.id + '">' : '') +
                                 '</tr>');
                             
-                            if (hasPvId) {
+                            // Only mark as tied if it belongs to the current PV being edited
+                            if (isTiedToCurrentPv) {
                                 row.data('tied', true);
+                            }
+                            // Mark rows tied to other PVs (for display only, not included in summary)
+                            if (isTiedToOtherPv) {
+                                row.data('otherPv', true);
                             }
                             tableBody.append(row);
                         });
