@@ -199,10 +199,12 @@ else{
                                                                     <?=$languageArray['export_excel_code'][$language]?>
                                                                 </button>
 
+                                                                <?php if($_SESSION['roles'] == 'SADMIN' || $_SESSION['roles'] == 'ADMIN' || $_SESSION['roles'] == 'MANAGER'){ ?>
                                                                 <button type="button" id="postSQL" class="btn btn-warning waves-effect waves-light">
                                                                     <i class="ri-send-plane-line align-middle me-1"></i>
                                                                     <?=$languageArray['post_to_sql_code'][$language]?>
                                                                 </button>
+                                                                <?php } ?>
                                                             </div> 
                                                         </div> 
                                                     </div>
@@ -549,7 +551,7 @@ else{
                     class: 'action-button',
                     orderable: false,
                     render: function (data, type, row) {
-                        if (isSADMIN) {
+                        if (userRole == 'SADMIN' || userRole == 'ADMIN' || userRole == 'MANAGER') {
                             return `
                                 <div class="dropdown d-inline-block">
                                     <button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">

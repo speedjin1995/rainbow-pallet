@@ -16,6 +16,13 @@ if (!empty($data)) {
         $RawMaterialType = !empty($rows['RawMaterialType']) ? trim($rows['RawMaterialType']) : 'Other';
         $Description = !empty($rows['Description']) ? trim($rows['Description']) : '';
         $action = "1";
+
+        // Validate RawMaterialType
+        if (!in_array($RawMaterialType, ['Other', 'Sawn Timber'])) {
+            $errMsg = "Raw Material: ". $Name ." has invalid Raw Material Type. Only 'Other' or 'Sawn Timber' allowed.";
+            $errorSoProductArray[] = $errMsg;
+            continue;
+        }
         
         if($Code != null && $Code != ''){
             if ($raw_mat_stmt = $db->prepare("SELECT * FROM Raw_Mat WHERE raw_mat_code = ? AND status = '0'")) {
