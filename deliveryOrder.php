@@ -549,7 +549,7 @@ else{
                     class: 'action-button',
                     orderable: false,
                     render: function (data, type, row) {
-                        if (isSADMIN) {
+                        if (userRole == 'SADMIN' || userRole == 'ADMIN' || userRole == 'MANAGER') {
                             return `
                                 <div class="dropdown d-inline-block">
                                     <button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
