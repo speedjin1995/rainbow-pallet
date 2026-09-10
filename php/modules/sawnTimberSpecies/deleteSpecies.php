@@ -2,28 +2,45 @@
 session_start();
 require_once '../../db_connect.php';
 
-if (!isset($_POST['id'])) {
-    echo json_encode(array("status" => "failed", "message" => "Missing species"));
-    exit;
-}
+$username = $_SESSION["username"];
 
-$id = trim($_POST['id']);
-$username = $_SESSION['username'];
+if (isset($_POST['userID'])) {
+    $id = filter_input(INPUT_POST, 'userID', FILTER_SANITIZE_STRING);
+    $del = "1";
+    $type = isset($_POST['type']) && $_POST['type'] != '' ? $_POST['type'] : '';
 
-$userStmt = $db->prepare("SET @sawn_timber_species_action_by=?");
-$userStmt->bind_param('s', $username);
-$userStmt->execute();
-$userStmt->close();
+    if ($type == 'MULTI') {
+        $ids = is_array($_POST['userID']) ? implode(",", $_POST['userID']) : $_POST['userID'];
 
-$stmt = $db->prepare("DELETE FROM Sawn_Timber_Species WHERE id=?");
-$stmt->bind_param('s', $id);
+        if ($stmt = $db->prepare("UPDATE Sawn_Timber_Species SET status=?, modified_by=? WHERE id IN ($ids)")) {
+            $stmt->bind_param('ss', $del, $username);
 
-if ($stmt->execute()) {
-    echo json_encode(array("status" => "success", "message" => "Deleted Successfully!!"));
+            if ($stmt->execute()) {
+                $stmt->close();
+                $db->close();
+                echo json_encode(array("status" => "success", "message" => "Deleted"));
+            } else {
+                echo json_encode(array("status" => "failed", "message" => $stmt->error));
+            }
+        } else {
+            echo json_encode(array("status" => "failed", "message" => "Something went wrong"));
+        }
+    } else {
+        if ($stmt = $db->prepare("UPDATE Sawn_Timber_Species SET status=?, modified_by=? WHERE id=?")) {
+            $stmt->bind_param('sss', $del, $username, $id);
+
+            if ($stmt->execute()) {
+                $stmt->close();
+                $db->close();
+                echo json_encode(array("status" => "success", "message" => "Deleted"));
+            } else {
+                echo json_encode(array("status" => "failed", "message" => $stmt->error));
+            }
+        } else {
+            echo json_encode(array("status" => "failed", "message" => "Something went wrong"));
+        }
+    }
 } else {
-    echo json_encode(array("status" => "failed", "message" => $stmt->error));
+    echo json_encode(array("status" => "failed", "message" => "Please fill in all the fields"));
 }
-
-$stmt->close();
-$db->close();
 ?>

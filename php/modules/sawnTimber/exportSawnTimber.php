@@ -130,7 +130,7 @@ if (!$template) {
     $listSheet->setSheetState(\PhpOffice\PhpSpreadsheet\Worksheet\Worksheet::SHEETSTATE_HIDDEN);
 
     $suppliers = getOptionList($db, "SELECT name FROM Supplier WHERE status='0' ORDER BY name ASC", array('name'));
-    $species = getOptionList($db, "SELECT name FROM Sawn_Timber_Species ORDER BY name ASC", array('name'));
+    $species = getOptionList($db, "SELECT name FROM Sawn_Timber_Species WHERE status=0 ORDER BY name ASC", array('name'));
 
     foreach ($suppliers as $index => $value) {
         $listSheet->setCellValue('A'.($index + 1), $value);

@@ -2353,3 +2353,43 @@ DELIMITER ;
 
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('customer_side_info_code', 'Customer Side Info', '客户端信息', 'Maklumat Pihak Pelanggan', 'ग्राहक पक्ष जानकारी');
 
+ALTER TABLE `Sawn_Timber_Species` ADD `status` INT(1) NOT NULL DEFAULT '0' AFTER `name`;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_SAWN_TIMBER_SPECIES` AFTER INSERT ON `Sawn_Timber_Species` FOR EACH ROW INSERT INTO Sawn_Timber_Species_Log (
+    species_id, name, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.name, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_SAWN_TIMBER_SPECIES` BEFORE UPDATE ON `Sawn_Timber_Species` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Check if status = 1, set action_id to 3, otherwise set to 2
+    IF NEW.status = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Sawn_Timber_Species_Log table
+    INSERT INTO Sawn_Timber_Species_Log (
+        species_id, name, action_id, action_by, event_date
+    ) 
+    VALUES (
+        NEW.id, NEW.name, action_value, NEW.modified_by, NEW.modified_date
+    );
+END
+$$
+DELIMITER ;
+DELIMITER $$
+DROP TRIGGER IF EXISTS TRG_DEL_SAWN_TIMBER_SPECIES;
+$$
+DELIMITER ;
+
+ALTER TABLE `Sawn_Timber_Species_Log` CHANGE `event_date` `event_date` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE `Sawn_Timber_Species` CHANGE `modified_date` `modified_date` TIMESTAMP on update CURRENT_TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE `Sawn_Timber_Species` CHANGE `modified_by` `modified_by` VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL;
