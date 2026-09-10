@@ -132,10 +132,10 @@
                                 <a href="customer.php" class="nav-link"><?=$languageArray['customer_code'][$language]?></a>
                             </li>
                             <?php endif; ?>
-
-                            <?php if(hasModulePermission('Master Data', 'Destination', ['view', 'create', 'edit'])): ?>
+                            
+                            <?php if(hasModulePermission('Master Data', 'Supplier', ['view', 'create', 'edit'])): ?>
                             <li class="nav-item">
-                                <a href="destination.php" class="nav-link"><?=$languageArray['destination_code'][$language]?></a>
+                                <a href="supplier.php" class="nav-link"><?=$languageArray['supplier_code'][$language]?></a>
                             </li>
                             <?php endif; ?>
                             
@@ -150,11 +150,17 @@
                                 <a href="rawMaterial.php" class="nav-link"><?=$languageArray['raw_material_code'][$language]?></a>
                             </li>
                             <?php endif; ?>
-                            
-                            <?php if(hasModulePermission('Master Data', 'Supplier', ['view', 'create', 'edit'])): ?>
+
+                            <?php if(hasModulePermission('Master Data', 'Destination', ['view', 'create', 'edit'])): ?>
                             <li class="nav-item">
-                                <a href="supplier.php" class="nav-link"><?=$languageArray['supplier_code'][$language]?></a>
+                                <a href="destination.php" class="nav-link"><?=$languageArray['destination_code'][$language]?></a>
                             </li>
+                            <?php endif; ?>
+
+                            <?php if(hasModulePermission('Master Data', 'Locations', ['view', 'create', 'edit'])): ?>                
+                            <li class="nav-item">
+                                <a href="locations.php" class="nav-link"><?=$languageArray['locations_code'][$language]?></a>
+                            </li>  
                             <?php endif; ?>
                             
                             <?php if(hasModulePermission('Master Data', 'Vehicles', ['view', 'create', 'edit'])): ?>
@@ -175,13 +181,7 @@
                             </li-->
                             <?php endif; ?>
 
-                            <?php if(hasModulePermission('Master Data', 'Locations', ['view', 'create', 'edit'])): ?>                
-                            <li class="nav-item">
-                                <a href="locations.php" class="nav-link"><?=$languageArray['locations_code'][$language]?></a>
-                            </li>  
-                            <?php endif; ?>
-
-                            <?php if(hasModulePermission('Master Data', 'Sawn Timber', ['view', 'create', 'edit'])): ?>                
+                            <?php if(hasModulePermission('Master Data', 'Sawn Timber Species', ['view', 'create', 'edit'])): ?>                
                             <li class="nav-item">
                                 <a href="sawnTimberSpecies.php" class="nav-link"><?=$languageArray['species_code'][$language]?></a>
                             </li>

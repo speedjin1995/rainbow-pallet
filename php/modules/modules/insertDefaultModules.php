@@ -14,6 +14,7 @@ $defaultModules = [
     ['name' => 'Plant', 'category' => 'Master Data'],
     ['name' => 'Locations', 'category' => 'Master Data'],
     ['name' => 'PV Items', 'category' => 'Master Data'],
+    ['name' => 'Sawn Timber Species', 'category' => 'Master Data'],
     ['name' => 'Modules', 'category' => 'User Management'],
     ['name' => 'User Setup', 'category' => 'User Management'],
     ['name' => 'Permission', 'category' => 'User Management'],
