@@ -189,11 +189,12 @@ $defaultPermissions = [
     ]],
     ['name' => 'include_price', 'modules' => [
         ['Audit Log', 'Reports'], 
+        ['Delivery Order', 'Accounting'],
         ['Goods Received', 'Accounting'],
-        ['Sales', 'Reports'], 
-        ['Purchase', 'Reports'], 
-        ['Port', 'Reports'], 
-        ['Miscellaneous', 'Reports']
+        // ['Sales', 'Reports'], 
+        // ['Purchase', 'Reports'], 
+        // ['Port', 'Reports'], 
+        // ['Miscellaneous', 'Reports']
     ]],
     ['name' => 'assign_permissions', 'modules' => [
         ['Role', 'User Management']

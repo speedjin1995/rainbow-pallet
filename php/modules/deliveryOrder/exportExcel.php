@@ -2,6 +2,7 @@
 session_start();
 require_once '../../db_connect.php';
 require_once '../../requires/lookup.php';
+require_once '../../requires/permissions.php';
 
 // Filter the excel data 
 function filterData(&$str){ 
@@ -55,8 +56,7 @@ if($_GET['isMulti'] != null && $_GET['isMulti'] != '' && $_GET['isMulti'] != '-'
 }
 
 // Column names 
-// if (hasModulePermission('Accounting', 'Delivery Order (DO)', ['include_price'])){
-if($_SESSION['roles'] == 'SADMIN' || $_SESSION['roles'] == 'ADMIN'){
+if (hasModulePermission('Accounting', 'Delivery Order', ['include_price'])){
     $fields = array('DocNo', 'DOCREF2', 'DOCDATE', 'DESCRIPTION2', 'CODE', 'COMPANYNAME', 'ITEMCODE', 'DESCRIPTION', 'REMARK2', 'SHIPPER', 'DOCREF1', 'DOCNOEX', 'REMARK1', 'QTY', 'UOM', 'PROJECT', 'LOCATION', 'UNITPRICE', 'Amount', 'Remarks'); 
 }else{
     $fields = array('DocNo', 'DOCREF2', 'DOCDATE', 'DESCRIPTION2', 'CODE', 'COMPANYNAME', 'ITEMCODE', 'DESCRIPTION', 'REMARK2', 'SHIPPER', 'DOCREF1', 'DOCNOEX', 'REMARK1', 'QTY', 'UOM', 'PROJECT', 'LOCATION', 'Remarks'); 
@@ -72,8 +72,7 @@ if ($isMulti == 'N'){
     ## Fetch records
     $query = "select * from Weight where is_complete = 'Y' AND is_cancel <> 'Y'".$searchQuery." order by plant_code asc, purchase_order asc";
 
-    // if (!hasModulePermission('Accounting', 'Delivery Order (DO)', ['view_all_plant'])){
-    if($_SESSION['roles'] == 'SADMIN' || $_SESSION['roles'] == 'ADMIN'){
+    if (!hasModulePermission('Accounting', 'Delivery Order', ['view_all_plant'])){
         $username = implode("', '", $_SESSION["plant"]);
         $query = "select * from Weight where is_complete = 'Y' AND is_cancel <> 'Y' and plant_code IN ('$username')".$searchQuery." order by plant_code asc, purchase_order asc";
     }
@@ -91,8 +90,7 @@ if ($isMulti == 'N'){
             $unitPrice = $row['unit_price'] ?? 0;
             $amt = (float) $qty * (float) $unitPrice;
 
-            // if (hasModulePermission('Accounting', 'Delivery Order (DO)', ['include_price'])){
-            if($_SESSION['roles'] == 'SADMIN' || $_SESSION['roles'] == 'ADMIN'){
+            if (hasModulePermission('Accounting', 'Delivery Order', ['include_price'])){
                 $lineData = array('', $row['transaction_id'], $transactionDateTime, $row['lorry_plate_no1'], $row['customer_code'], $row['customer_name'], $row['product_code'], $row['product_name'], $row['destination'], $row['transporter_code'], '', '', $row['delivery_no'], $qty, $uom, $finalPlantCode, $finalPlantCode, $unitPrice, $amt, $row['remarks']);
             }else{
                 $lineData = array($soNo, $row['transaction_id'], $transactionDateTime, $row['lorry_plate_no1'], $row['customer_code'], $row['customer_name'], $row['product_code'], $row['product_name'], $row['destination'], $row['transporter_code'], '', '', $row['delivery_no'], $qty, $uom, $finalPlantCode, $finalPlantCode, $row['remarks']);
@@ -153,8 +151,7 @@ if ($isMulti == 'N'){
                 $unitPrice = $row2['unit_price'] ?? 0;
                 $amt = (float) $qty * (float) $unitPrice;
                 
-                // if (hasModulePermission('Accounting', 'Delivery Order (DO)', ['include_price'])){
-                if($_SESSION['roles'] == 'SADMIN' || $_SESSION['roles'] == 'ADMIN'){
+                if (hasModulePermission('Accounting', 'Delivery Order', ['include_price'])){
                     $lineData = array('', $row['transaction_id'], $transactionDateTime, $row['lorry_plate_no1'], $row['customer_code'], $row['customer_name'], $row['product_code'], $row['product_name'], $row['destination'], $row['transporter_code'], '', '', $row['delivery_no'], $qty, $uom, $finalPlantCode, $finalPlantCode, $unitPrice, $amt, $row['remarks']);
                 }else{
                     $lineData = array($soNo, $row['transaction_id'], $transactionDateTime, $row['lorry_plate_no1'], $row['customer_code'], $row['customer_name'], $row['product_code'], $row['product_name'], $row['destination'], $row['transporter_code'], '', '', $row['delivery_no'], $qty, $uom, $finalPlantCode, $finalPlantCode, $row['remarks']);
