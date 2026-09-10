@@ -131,7 +131,7 @@ else{
                                                     <div class="col-3" id="supplierSearchDisplay">
                                                         <div class="mb-3">
                                                             <label for="supplierSearch" class="form-label"><?=$languageArray['supplier_code'][$language]?></label>
-                                                            <select id="supplierSearch" class="form-select" >
+                                                            <select id="supplierSearch" class="form-select select2">
                                                                 <option selected>-</option>
                                                                 <?php while($rowSF=mysqli_fetch_assoc($supplier2)){ ?>
                                                                     <option value="<?=$rowSF['supplier_code'] ?>"><?=$rowSF['name'] ?></option>
@@ -142,7 +142,7 @@ else{
                                                     <div class="col-3" id="rawMatSearchDisplay">
                                                         <div class="mb-3">
                                                             <label for="ForminputState" class="form-label"><?=$languageArray['raw_material_code'][$language]?></label>
-                                                            <select id="rawMatSearch" class="form-select" >
+                                                            <select id="rawMatSearch" class="form-select select2">
                                                                 <option selected>-</option>
                                                                 <?php while($rowRawMatF=mysqli_fetch_assoc($rawMaterial2)){ ?>
                                                                     <option value="<?=$rowRawMatF['raw_mat_code'] ?>"><?=$rowRawMatF['name'] ?></option>
