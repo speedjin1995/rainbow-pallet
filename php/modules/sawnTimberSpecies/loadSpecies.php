@@ -10,39 +10,37 @@ $columnName = $_POST['columns'][$columnIndex]['data'];
 $columnSortOrder = $_POST['order'][0]['dir'];
 $searchValue = mysqli_real_escape_string($db, $_POST['search']['value']);
 
-$allowedColumns = array('id', 'name', 'created_date', 'modified_date');
-if (!in_array($columnName, $allowedColumns)) {
-    $columnName = 'name';
-}
-
-$searchQuery = '';
+$searchQuery = " ";
 if ($searchValue != '') {
-    $searchQuery = " WHERE name LIKE '%".$searchValue."%'";
+    $searchQuery = " and (name like '%".$searchValue."%')";
 }
 
-$sel = mysqli_query($db, "SELECT COUNT(*) AS allcount FROM Sawn_Timber_Species");
-$totalRecords = mysqli_fetch_assoc($sel)['allcount'];
+$sel = mysqli_query($db, "select count(*) as allcount from Sawn_Timber_Species");
+$records = mysqli_fetch_assoc($sel);
+$totalRecords = $records['allcount'];
 
-$sel = mysqli_query($db, "SELECT COUNT(*) AS allcount FROM Sawn_Timber_Species".$searchQuery);
-$totalRecordwithFilter = mysqli_fetch_assoc($sel)['allcount'];
+$sel = mysqli_query($db, "select count(*) as allcount from Sawn_Timber_Species WHERE status IN (0)".$searchQuery);
+$records = mysqli_fetch_assoc($sel);
+$totalRecordwithFilter = $records['allcount'];
 
-$query = "SELECT * FROM Sawn_Timber_Species".$searchQuery." ORDER BY ".$columnName." ".$columnSortOrder." LIMIT ".$row.",".$rowperpage;
-$records = mysqli_query($db, $query);
+$empQuery = "select * from Sawn_Timber_Species WHERE status IN (0)".$searchQuery."order by status ASC, ".$columnName." ".$columnSortOrder." limit ".$row.",".$rowperpage;
+$empRecords = mysqli_query($db, $empQuery);
 $data = array();
 
-while ($record = mysqli_fetch_assoc($records)) {
+while ($row = mysqli_fetch_assoc($empRecords)) {
     $data[] = array(
-        "id" => $record['id'],
-        "name" => $record['name'],
-        "created_date" => $record['created_date'],
-        "modified_date" => isset($record['modified_date']) ? $record['modified_date'] : ''
+        "id" => $row['id'],
+        "name" => $row['name'],
+        "status" => $row['status']
     );
 }
 
-echo json_encode(array(
+$response = array(
     "draw" => intval($draw),
     "iTotalRecords" => $totalRecords,
     "iTotalDisplayRecords" => $totalRecordwithFilter,
     "aaData" => $data
-));
+);
+
+echo json_encode($response);
 ?>
