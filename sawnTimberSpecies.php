@@ -105,6 +105,44 @@
                                             </div><!-- /.modal-content -->
                                         </div><!-- /.modal-dialog -->
                                     </div><!-- /.modal -->
+                                    <div class="modal fade" id="uploadModal" style="display:none">
+                                        <div class="modal-dialog modal-xl" style="max-width: 90%;">
+                                            <div class="modal-content">
+                                                <form role="form" id="uploadForm">
+                                                    <div class="modal-header bg-gray-dark color-palette">
+                                                        <h4 class="modal-title"><?=$languageArray['upload_excel_code'][$language] ?? 'Upload Excel'?></h4>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <input type="file" id="fileInput">
+                                                        <button type="button" id="previewButton"><?=$languageArray['preview_data_code'][$language] ?? 'Preview Data'?></button>
+                                                        <div id="previewTable" style="overflow: auto;"></div>
+                                                    </div>
+                                                    <div class="modal-footer justify-content-between bg-gray-dark color-palette">
+                                                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal"><?=$languageArray['close_code'][$language] ?? 'Close'?></button>
+                                                        <button type="button" class="btn btn-success" id="uploadSpecies"><?=$languageArray['submit_code'][$language] ?? 'Submit'?></button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div> 
+                                    <div class="modal fade" id="errorModal" style="display:none">
+                                        <div class="modal-dialog modal-xl" style="max-width: 50%;">
+                                            <div class="modal-content">
+                                                <div class="modal-header bg-gray-dark color-palette">
+                                                    <h4 class="modal-title"><?=$languageArray['error_log_code'][$language] ?? 'Error Log'?></h4>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <div class="row">
+                                                        <div class="form-group">
+                                                            <ol id="errorList" class="text-danger mt-2" style="padding-left: 20px;"></ol>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div> <!-- end row-->
 
@@ -121,6 +159,16 @@
                                                                 <h5 class="card-title mb-0"><?=$languageArray['previous_records_code'][$language] ?? 'Previous Records'?></h5>
                                                             </div>
                                                             <div class="flex-shrink-0">
+                                                                <a href="template/Species_Template.xlsx" download>
+                                                                    <button type="button" id="downloadTemplate" class="btn btn-info waves-effect waves-light">
+                                                                        <i class="ri-file-pdf-line align-middle me-1"></i>
+                                                                        <?=$languageArray['download_template_code'][$language] ?? 'Download Template'?>
+                                                                    </button>
+                                                                </a>
+                                                                <button type="button" id="uploadExcel" class="btn btn-success waves-effect waves-light">
+                                                                    <i class="ri-file-pdf-line align-middle me-1"></i>
+                                                                    <?=$languageArray['upload_excel_code'][$language] ?? 'Upload Excel'?>
+                                                                </button>
                                                                 <button type="button" id="multiDeactivate" class="btn btn-warning waves-effect waves-light">
                                                                     <i class="ri-delete-bin-fill align-middle me-1"></i>
                                                                     <?=$languageArray['delete_code'][$language] ?? 'Delete'?>
@@ -288,6 +336,95 @@ $(function () {
         });
     });
 
+    $('#uploadSpecies').on('click', function(){
+        $('#spinnerLoading').show();
+        var formData = $('#uploadForm').serializeArray();
+        var data = [];
+        var rowIndex = -1;
+        formData.forEach(function(field) {
+        var match = field.name.match(/([a-zA-Z0-9]+)\[(\d+)\]/);
+        if (match) {
+            var fieldName = match[1];
+            var index = parseInt(match[2], 10);
+            if (index !== rowIndex) {
+            rowIndex = index;
+            data.push({});
+            }
+            data[index][fieldName] = field.value;
+        }
+        });
+
+        // Send the JSON array to the server
+        $.ajax({
+            url: 'php/modules/sawnTimberSpecies/uploadSpecies.php',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function(response) {
+                var obj = JSON.parse(response);
+                if (obj.status === 'success') {
+                    $('#spinnerLoading').hide();
+                    $('#uploadModal').modal('hide');
+                    toastr["success"](obj.message, "Success:");
+                    $('#speciesTable').DataTable().ajax.reload(null, false);
+                }
+                else if (obj.status === 'failed') {
+                    $('#spinnerLoading').hide();
+                    toastr["error"](obj.message, "Failed:");
+                }
+                else if (obj.status === 'error') {
+                    $('#spinnerLoading').hide();
+                    $('#uploadModal').modal('hide');
+                    $('#speciesTable').DataTable().ajax.reload(null, false);
+                    $('#errorModal').find('#errorList').empty();
+                    var errorMessage = obj.message;
+                    for (var i = 0; i < errorMessage.length; i++) {
+                        $('#errorModal').find('#errorList').append(`<li>${errorMessage[i]}</li>`);
+                    }
+                    $('#errorModal').modal('show');
+                }
+                else {
+                    $('#spinnerLoading').hide();
+                    toastr["error"]("Failed to save", "Failed:");
+                }
+            }
+        });
+    });
+
+    $('#uploadExcel').on('click', function(){
+        $('#previewTable').html('');
+        $('#fileInput').val('');
+        $('#uploadModal').modal('show');
+
+        $('#uploadForm').validate({
+            errorElement: 'span',
+            errorPlacement: function (error, element) {
+                error.addClass('invalid-feedback');
+                element.closest('.form-group').append(error);
+            },
+            highlight: function (element, errorClass, validClass) {
+                $(element).addClass('is-invalid');
+            },
+            unhighlight: function (element, errorClass, validClass) {
+                $(element).removeClass('is-invalid');
+            }
+        });
+    });
+
+    $('#uploadModal').find('#previewButton').on('click', function(){
+        var fileInput = document.getElementById('fileInput');
+        var file = fileInput.files[0];
+        var reader = new FileReader();
+        
+        reader.onload = function(e) {
+            var data = e.target.result;
+            // Process data and display preview
+            displayPreview(data);
+        };
+
+        reader.readAsBinaryString(file);
+    });
+
     $('#multiDeactivate').on('click', function () {
         $('#spinnerLoading').show();
         var selectedIds = [];
@@ -390,6 +527,57 @@ function deactivate(id){
         });
     }
     $('#spinnerLoading').hide();
+}
+
+function displayPreview(data) {
+    // Parse the Excel data
+    var workbook = XLSX.read(data, { type: 'binary' });
+
+    // Get the first sheet
+    var sheetName = workbook.SheetNames[0];
+    var sheet = workbook.Sheets[sheetName];
+
+    // Convert the sheet to an array of objects
+    var jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+    // Get the headers
+    var headers = jsonData[0];
+
+    // Ensure we handle cases where there may be less than 1 column
+    while (headers.length < 1) {
+        headers.push('');
+    }
+
+    // Create HTML table headers
+    var htmlTable = '<table style="width:50%;"><thead><tr>';
+    headers.forEach(function(header) {
+        htmlTable += '<th>' + header + '</th>';
+    });
+    htmlTable += '</tr></thead><tbody>';
+
+    // Iterate over the data and create table rows
+    for (var i = 1; i < jsonData.length; i++) {
+        htmlTable += '<tr>';
+        var rowData = jsonData[i];
+
+        // Ensure we handle cases where there may be less than 1 cell in a row
+        while (rowData.length < 1) {
+            rowData.push('');
+        }
+
+        for (var j = 0; j < 1; j++) {
+            var cellData = rowData[j];
+            var formattedData = cellData;
+
+            htmlTable += '<td><input type="text" id="'+headers[j].replace(/[^a-zA-Z0-9]/g, '')+(i-1)+'" name="'+headers[j].replace(/[^a-zA-Z0-9]/g, '')+'['+(i-1)+']" value="' + (formattedData == null ? '' : formattedData) + '" /></td>';
+        }
+        htmlTable += '</tr>';
+    }
+
+    htmlTable += '</tbody></table>';
+
+    var previewTable = document.getElementById('previewTable');
+    previewTable.innerHTML = htmlTable;
 }
 
 function reactivate(id) {
