@@ -32,6 +32,10 @@ if($_POST['status'] != null && $_POST['status'] != '' && $_POST['status'] != '-'
 	$searchQuery .= " and transaction_status = '".$_POST['status']."'";
 }
 
+if($_POST['company'] != null && $_POST['company'] != '' && $_POST['company'] != '-'){
+	$searchQuery .= " and company_id = '".$_POST['company']."'";
+}
+
 if($_POST['customer'] != null && $_POST['customer'] != '' && $_POST['customer'] != '-'){
 	$searchQuery .= " and customer_code = '".$_POST['customer']."'";
 }
