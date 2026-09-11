@@ -2453,6 +2453,40 @@ INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALU
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('insert_default_permissions_warning_code', 'Insert default permissions? Existing permissions will not be affected.', '插入默认权限？现有权限不会受到影响。', 'Masukkan kebenaran lalai? Kebenaran sedia ada tidak akan terjejas.', 'இயல்புநிலை அனுமதிகளைச் செருகவா? ஏற்கனவே உள்ள அனுமதிகள் பாதிக்கப்படாது.');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('multi_delete_permissions_message_code', 'Are you sure you want to delete these permissions?', '您确定要删除这些权限吗？', 'Adakah anda pasti mahu memadamkan kebenaran ini?', 'இந்த அனுமதிகளை நிச்சயமாக நீக்க விரும்புகிறீர்களா?');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('delete_permissions_message_code', 'Are you sure you want to delete this permission?', '您确定要删除此权限吗？', 'Adakah anda pasti mahu memadamkan kebenaran ini?', 'இந்த அனுமதியை நிச்சயமாக நீக்க விரும்புகிறீர்களா?');
-
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('confirm_reset_password_code', 'Are you sure you want to reset this user password to 123456?', '您确定要将此用户密码重置为123456吗？', 'Adakah anda pasti mahu menetapkan semula kata laluan pengguna ini kepada 123456?', 'இந்த பயனரின் கடவுச்சொல்லை 123456 ஆக மீட்டமைக்க விரும்புகிறீர்களா?');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('reset_password_code', 'Reset Password', '重置密码', 'Tetapkan Semula Kata Laluan', 'கடவுச்சொல்லை மீட்டமை');
+
+-- Sawn Timber Changes --
+ALTER TABLE `Sawn_Timber_Header` ADD `company_id` INT(11) NULL AFTER `id`, ADD `plant_id` INT(11) NULL AFTER `company_id`;
+ALTER TABLE `Sawn_Timber_Header_Log` ADD `company_id` INT(11) NULL AFTER `id`, ADD `plant_id` INT(11) NULL AFTER `company_id`;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_SAWN_TIMBER_HEADER` AFTER INSERT ON `Sawn_Timber_Header` FOR EACH ROW
+INSERT INTO Sawn_Timber_Header_Log (
+    header_id, company_id, plant_id, transaction_id, transaction_date, supplier, lot, bundle, remarks, status, action_id, action_by, event_date
+) VALUES (
+    NEW.id, NEW.company_id, NEW.plant_id, NEW.transaction_id, NEW.transaction_date, NEW.supplier, NEW.lot, NEW.bundle, NEW.remarks, NEW.status, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_SAWN_TIMBER_HEADER` BEFORE UPDATE ON `Sawn_Timber_Header` FOR EACH ROW
+BEGIN
+    DECLARE action_value INT;
+
+    IF NEW.status = '1' AND OLD.status <> '1' THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    INSERT INTO Sawn_Timber_Header_Log (
+        header_id, company_id, plant_id, transaction_id, transaction_date, supplier, lot, bundle, remarks, status, action_id, action_by, event_date
+    ) VALUES (
+        NEW.id, NEW.company_id, NEW.plant_id, NEW.transaction_id, NEW.transaction_date, NEW.supplier, NEW.lot, NEW.bundle, NEW.remarks, NEW.status, action_value, NEW.modified_by, NEW.modified_date
+    );
+END
+$$
+DELIMITER ;
+
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('details_code', 'Details', '详情', 'Butiran', 'விவரங்கள்');
+

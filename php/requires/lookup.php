@@ -38,7 +38,7 @@ function searchPlantCodeById($value, $db) {
 }
 
 function searchPlantNameById($value, $db) {
-    $id = '0';
+    $id = '';
 
     if(isset($value)){
         if ($select_stmt = $db->prepare("SELECT * FROM Plant WHERE id=?")) {
@@ -264,4 +264,81 @@ function excelSerialToDate($serial) {
     $baseDate = strtotime('1899-12-30');
     return date('Y-m-d', strtotime("+$serial days", $baseDate));
 }
+
+function searchSawnTimberSpeciesNameById($value, $db) {
+    $name = null;
+    if ($value != null && $value != '') {
+        if ($select_stmt = $db->prepare("SELECT name FROM Sawn_Timber_Species WHERE id=? AND status = '0'")) {
+            $select_stmt->bind_param('i', $value);
+            $select_stmt->execute();
+            $result = $select_stmt->get_result();
+            if ($row = $result->fetch_assoc()) {
+                $name = $row['name'];
+            }
+            $select_stmt->close();
+        }
+    }
+    return $name;
+}
+
+function getCompanyIdByName($db, $name) {
+    $id = null;
+    if ($name != null && $name != '') {
+        $stmt = $db->prepare("SELECT id FROM Company WHERE name = ? AND status = '0'");
+        $stmt->bind_param('s', $name);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if ($row = $result->fetch_assoc()) {
+            $id = $row['id'];
+        }
+        $stmt->close();
+    }
+    return $id;
+}
+
+function getPlantIdByName($db, $name) {
+    $id = null;
+    if ($name != null && $name != '') {
+        $stmt = $db->prepare("SELECT id FROM Plant WHERE name = ? AND status = '0'");
+        $stmt->bind_param('s', $name);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if ($row = $result->fetch_assoc()) {
+            $id = $row['id'];
+        }
+        $stmt->close();
+    }
+    return $id;
+}
+
+function getSupplierIdByName($db, $name) {
+    $id = null;
+    if ($name != null && $name != '') {
+        $stmt = $db->prepare("SELECT id FROM Supplier WHERE name = ? AND status = '0'");
+        $stmt->bind_param('s', $name);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if ($row = $result->fetch_assoc()) {
+            $id = $row['id'];
+        }
+        $stmt->close();
+    }
+    return $id;
+}
+
+function getSpeciesIdByName($db, $name) {
+    $id = null;
+    if ($name != null && $name != '') {
+        $stmt = $db->prepare("SELECT id FROM Sawn_Timber_Species WHERE name = ? AND status = '0'");
+        $stmt->bind_param('s', $name);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if ($row = $result->fetch_assoc()) {
+            $id = $row['id'];
+        }
+        $stmt->close();
+    }
+    return $id;
+}
+
 ?>

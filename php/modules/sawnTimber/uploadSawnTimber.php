@@ -1,7 +1,11 @@
 <?php
 session_start();
 require_once '../../db_connect.php';
-require_once 'helpers.php';
+require_once '../../requires/lookup.php';
+
+function calculateSawnTimberTons($thick, $width, $length, $pieces) {
+    return round(((float)$thick * (float)$width * (float)$length * (float)$pieces) / 7200, 4);
+}
 
 $username = $_SESSION['username'];
 $data = json_decode(file_get_contents('php://input'), true);
@@ -30,21 +34,31 @@ function transactionIdExists($db, $transactionId) {
 
 $groups = array();
 foreach ($data as $row) {
+    $company = isset($row['Company']) ? trim($row['Company']) : '';
+    $plant = isset($row['Plant']) ? trim($row['Plant']) : '';
     $transactionId = isset($row['TransactionID']) ? trim($row['TransactionID']) : '';
     $transactionDate = isset($row['TransactionDate']) ? trim($row['TransactionDate']) : '';
     $supplier = isset($row['Supplier']) ? trim($row['Supplier']) : '';
     $lot = isset($row['Lot']) ? trim($row['Lot']) : '';
     $bundle = isset($row['Bundle']) ? trim($row['Bundle']) : '';
-    $remarks = isset($row['Remarks']) ? trim($row['Remarks']) : '';
     $species = isset($row['Species']) ? trim($row['Species']) : '';
+    $remarks = isset($row['Remarks']) ? trim($row['Remarks']) : '';
 
     if (!$transactionDate || !$supplier || !$lot || !$bundle) {
         continue;
     }
 
+    // Convert date from d-m-Y to Y-m-d H:i:s
+    $dateTime = DateTime::createFromFormat('d-m-Y', $transactionDate);
+    if ($dateTime) {
+        $transactionDate = $dateTime->format('Y-m-d H:i:s');
+    }
+
     $key = $transactionId ?: md5($transactionDate.'|'.$supplier.'|'.$lot.'|'.$bundle.'|'.$remarks);
     if (!isset($groups[$key])) {
         $groups[$key] = array(
+            'company' => $company,
+            'plant' => $plant,
             'transaction_id' => $transactionId,
             'transaction_date' => $transactionDate,
             'supplier' => $supplier,
@@ -83,8 +97,12 @@ try {
             throw new Exception("Transaction ID already exists: ".$transactionId);
         }
 
-        $stmt = $db->prepare("INSERT INTO Sawn_Timber_Header (transaction_id, transaction_date, supplier, lot, bundle, remarks, created_by, modified_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param('ssssssss', $transactionId, $group['transaction_date'], $group['supplier'], $group['lot'], $group['bundle'], $group['remarks'], $username, $username);
+        $companyId = getCompanyIdByName($db, $group['company']);
+        $plantId = getPlantIdByName($db, $group['plant']);
+        $supplierId = getSupplierIdByName($db, $group['supplier']);
+
+        $stmt = $db->prepare("INSERT INTO Sawn_Timber_Header (company_id, plant_id, transaction_id, transaction_date, supplier, lot, bundle, remarks, created_by, modified_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param('iissssssss', $companyId, $plantId, $transactionId, $group['transaction_date'], $supplierId, $group['lot'], $group['bundle'], $group['remarks'], $username, $username);
         $stmt->execute();
         $headerId = $stmt->insert_id;
         $stmt->close();
@@ -95,8 +113,9 @@ try {
                 continue;
             }
 
+            $speciesId = getSpeciesIdByName($db, $detail['species']);
             $tons = calculateSawnTimberTons($detail['thick'], $detail['width'], $detail['length'], $detail['pieces']);
-            $detailStmt->bind_param('sssssss', $headerId, $detail['species'], $detail['thick'], $detail['width'], $detail['length'], $detail['pieces'], $tons);
+            $detailStmt->bind_param('isdddid', $headerId, $speciesId, $detail['thick'], $detail['width'], $detail['length'], $detail['pieces'], $tons);
             $detailStmt->execute();
         }
         $detailStmt->close();
