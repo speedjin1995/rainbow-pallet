@@ -2393,3 +2393,66 @@ DELIMITER ;
 ALTER TABLE `Sawn_Timber_Species_Log` CHANGE `event_date` `event_date` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP;
 ALTER TABLE `Sawn_Timber_Species` CHANGE `modified_date` `modified_date` TIMESTAMP on update CURRENT_TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP;
 ALTER TABLE `Sawn_Timber_Species` CHANGE `modified_by` `modified_by` VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL;
+
+-- Role & Permissions
+CREATE TABLE `modules` (
+  `id` int(11) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `category` varchar(100) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ALTER TABLE `modules` ADD PRIMARY KEY (`id`);
+ALTER TABLE `modules` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+CREATE TABLE `permissions` (
+  `id` int(11) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `modules` text NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ALTER TABLE `permissions` ADD PRIMARY KEY (`id`);
+ALTER TABLE `permissions` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+CREATE TABLE `role_permissions` (
+  `role_id` int(11) NOT NULL,
+  `module_id` int(11) NOT NULL,
+  `permission_id` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('user_management_code', 'User Management', '用户管理', 'Pengurusan Pengguna', 'பயனர் மேலாண்மை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('permissions_code', 'Permissions', '权限', 'Kebenaran', 'அனுமதிகள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('manage_modules_code', 'Manage Modules', '权限', 'Kebenaran', 'அனுமதிகள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('module_records_code', 'Module Records', '模块记录', 'Rekod Modul', 'பதிவுகள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('module_name_code', 'Module Name', '模块名称', 'Nama Modul', 'பெயர்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('category_code', 'Category', '类别', 'Kategori', 'பிரிவு');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('add_new_module_code', 'Add New Module', '添加新模块', 'Tambah Modul Baru', 'புதிய தொகுதி சேர்க்க');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('module_code', 'Module', '模块', 'Modul', 'தொகுதி');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('insert_defaults_code', 'Insert Defaults', '插入默认值', 'Masukkan Default', 'இயல்புநிலைகளை சேர்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('access_denied_code', 'Access Denied', '访问被拒绝', 'Akses Ditolak', 'அணுகல் மறுக்கப்பட்டது');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('no_permission_code', 'You do not have permission to access this page.', '您没有权限访问此页面。', 'Anda tidak mempunyai kebenaran untuk mengakses halaman ini.', 'இந்தப் பக்கத்தை அணுக உங்களுக்கு அனுமதி இல்லை.');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('back_to_weighing_code', 'Back to Weighing', '返回称重', 'Kembali ke Penimbangan', 'நிறுத்தலுக்கு திரும்பு');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('permission_records_code', 'Permission Records', '权限记录', 'Rekod Kebenaran', 'அனுமதி பதிவுகள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('delete_permission_code', 'Delete Permission', '删除权限', 'Padam Kebenaran', 'அனுமதியை நீக்கு');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('add_permission_code', 'Add New Permission', '添加新权限', 'Tambah Kebenaran Baru', 'புதிய அனுமதி சேர்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('permission_name_code', 'Permission Name', '权限名称', 'Nama Kebenaran', 'அனுமதி பெயர்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('applicable_module_code', 'Applicable Modules', '适用模块', 'Modul Berkenaan', 'பொருந்தும் தொகுதிகள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('all_modules_code', 'All Modules', '所有模块', 'Semua Modul', 'அனைத்து தொகுதிகள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('roles_code', 'Roles', '角色', 'Peranan', 'பாத்திரங்கள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('role_and_permissions_code', 'Role & Permissions', '角色与权限', 'Peranan & Kebenaran', 'பாத்திரம் & அனுமதிகள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('role_records_code', 'Role Records', '角色记录', 'Rekod Peranan', 'பாத்திர பதிவுகள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('delete_role_code', 'Delete Role', '删除角色', 'Padam Peranan', 'பாத்திரத்தை நீக்கு');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('add_new_role_code', 'Add New Role', '添加新角色', 'Tambah Peranan Baharu', 'புதிய பாத்திரத்தைச் சேர்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('role_name_code', 'Role Name', '角色名称', 'Nama Peranan', 'பாத்திர பெயர்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('role_code_code', 'Role Code', '角色代码', 'Kod Peranan', 'பாத்திர குறியீடு');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('manage_permissions_code', 'Manage Permissions', '管理权限', 'Urus Kebenaran', 'அனுமதிகளை நிர்வகி');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('no_module_found_code', 'No modules found', '未找到模块', 'Tiada modul ditemui', 'தொகுதிகள் எதுவும் கிடைக்கவில்லை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('select_all_code', 'Select All', '全选', 'Pilih Semua', 'அனைத்தையும் தேர்ந்தெடு');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('multi_roles_delete_confirmation_code', 'Are you sure you want to delete these roles?', '您确定要删除这些角色吗？', 'Adakah anda pasti mahu memadam peranan ini?', 'இந்த பாத்திரங்களை நீக்க விரும்புகிறீர்களா?');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('roles_delete_confirmation_code', 'Are you sure you want to delete this role', '您确定要删除此角色吗', 'Adakah anda pasti mahu memadam peranan ini', 'இந்த பாத்திரத்தை நீக்க விரும்புகிறீர்களா');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('min_one_role_delete_code', 'Please select at least one role to delete.', '请至少选择一个角色进行删除。', 'Sila pilih sekurang-kurangnya satu peranan untuk dipadam.', 'நீக்க குறைந்தது ஒரு பாத்திரத்தைத் தேர்ந்தெடுக்கவும்.');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('deselect_all_code', 'Deselect All', '取消全选', 'Nyahpilih Semua', 'அனைத்தையும் தேர்வுநீக்கு');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('insert_default_permissions_code', 'Insert Default Permissions', '插入默认权限', 'Masukkan Kebenaran Lalai', 'இயல்புநிலை அனுமதிகளைச் செருகு');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('insert_default_permissions_warning_code', 'Insert default permissions? Existing permissions will not be affected.', '插入默认权限？现有权限不会受到影响。', 'Masukkan kebenaran lalai? Kebenaran sedia ada tidak akan terjejas.', 'இயல்புநிலை அனுமதிகளைச் செருகவா? ஏற்கனவே உள்ள அனுமதிகள் பாதிக்கப்படாது.');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('multi_delete_permissions_message_code', 'Are you sure you want to delete these permissions?', '您确定要删除这些权限吗？', 'Adakah anda pasti mahu memadamkan kebenaran ini?', 'இந்த அனுமதிகளை நிச்சயமாக நீக்க விரும்புகிறீர்களா?');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('delete_permissions_message_code', 'Are you sure you want to delete this permission?', '您确定要删除此权限吗？', 'Adakah anda pasti mahu memadamkan kebenaran ini?', 'இந்த அனுமதியை நிச்சயமாக நீக்க விரும்புகிறீர்களா?');
+
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('confirm_reset_password_code', 'Are you sure you want to reset this user password to 123456?', '您确定要将此用户密码重置为123456吗？', 'Adakah anda pasti mahu menetapkan semula kata laluan pengguna ini kepada 123456?', 'இந்த பயனரின் கடவுச்சொல்லை 123456 ஆக மீட்டமைக்க விரும்புகிறீர்களா?');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('reset_password_code', 'Reset Password', '重置密码', 'Tetapkan Semula Kata Laluan', 'கடவுச்சொல்லை மீட்டமை');

@@ -2,10 +2,8 @@
 session_start();
 require_once '../../db_connect.php';
 require_once '../../requires/lookup.php';
-// require_once '../../requires/permissions.php';
+require_once '../../requires/permissions.php';
 
-// Load the database configuration file 
- 
 // Filter the excel data 
 function filterData(&$str){ 
     $str = preg_replace("/\t/", "\\t", $str); 
@@ -57,8 +55,7 @@ if($_GET['isMulti'] != null && $_GET['isMulti'] != '' && $_GET['isMulti'] != '-'
 }
 
 // Column names 
-// if (hasModulePermission('Accounting', 'Goods Received (GR)', ['include_price'])){
-if($_SESSION['roles'] == 'SADMIN' || $_SESSION['roles'] == 'ADMIN'){
+if (hasModulePermission('Accounting', 'Goods Received', ['include_price'])){
     $fields = array('DocNo', 'DOCREF2', 'DOCDATE', 'DESCRIPTION2', 'CODE', 'COMPANYNAME', 'ITEMCODE', 'DESCRIPTION', 'REMARK2', 'SHIPPER', 'DOCREF1', 'DOCNOEX', 'REMARK1', 'NETT', 'QTY', 'VAR', 'UOM', 'PROJECT', 'LOCATION', 'UNITPRICE', 'Amount', 'Remarks'); 
 }else{
     $fields = array('DocNo', 'DOCREF2', 'DOCDATE', 'DESCRIPTION2', 'CODE', 'COMPANYNAME', 'ITEMCODE', 'DESCRIPTION', 'REMARK2', 'SHIPPER', 'DOCREF1', 'DOCNOEX', 'REMARK1', 'NETT', 'QTY', 'VAR', 'UOM', 'PROJECT', 'LOCATION', 'Remarks'); 
@@ -74,8 +71,7 @@ if ($isMulti == 'N'){
     // Fetch records from database
     $query = "select * from Weight where is_complete = 'Y' AND is_cancel <> 'Y'".$searchQuery." group by company_id, plant_code, raw_mat_code, supplier_code order by id asc";
     
-    // if (!hasModulePermission('Accounting', 'Goods Received (GR)', ['view_all_plant'])){
-    if($_SESSION['roles'] == 'SADMIN' || $_SESSION['roles'] == 'ADMIN'){
+    if (!hasModulePermission('Accounting', 'Goods Received', ['view_all_plant'])){
         $username = implode("', '", $_SESSION["plant"]);
         $query = "select * from Weight where is_complete = 'Y' AND  is_cancel <> 'Y' and plant_code IN ('$username')".$searchQuery." group by company_id, plant_code, raw_mat_code, supplier_code order by id asc";
     }
@@ -110,8 +106,7 @@ if ($isMulti == 'N'){
                 $var = (float) $row2['weight_different']/1000;
                 $amt = (float) $qty * (float) $unitPrice;
 
-                // if (hasModulePermission('Accounting', 'Goods Received (GR)', ['include_price'])){
-                if($_SESSION['roles'] == 'SADMIN' || $_SESSION['roles'] == 'ADMIN'){
+                if (hasModulePermission('Accounting', 'Goods Received', ['include_price'])){
                     $lineData = array('', $row2['destination'], $transactionDateTime, $row2['lorry_plate_no1'], $row2['supplier_code'], $row2['supplier_name'], $row2['raw_mat_code'], $row2['raw_mat_name'], $row2['transaction_id'], $row2['transporter_code'], '', $row2['purchase_order'], $row2['delivery_no'], $qty, $qty, $var, $uom, $finalPlantCode, $finalPlantCode, $unitPrice, $amt, $row2['remarks']);
                 }else{
                     $lineData = array('', $row2['destination'], $transactionDateTime, $row2['lorry_plate_no1'], $row2['supplier_code'], $row2['supplier_name'], $row2['raw_mat_code'], $row2['raw_mat_name'], $row2['transaction_id'], $row2['transporter_code'], '', $row2['purchase_order'], $row2['delivery_no'], $qty, $qty, $var, $uom, $finalPlantCode, $finalPlantCode, $row2['remarks']);
@@ -175,8 +170,7 @@ if ($isMulti == 'N'){
                 $var = (float) $row2['weight_different']/1000;
                 $amt = (float) $qty * (float) $unitPrice;
 
-                // if (hasModulePermission('Accounting', 'Goods Received (GR)', ['include_price'])){
-                if($_SESSION['roles'] == 'SADMIN' || $_SESSION['roles'] == 'ADMIN'){
+                if (hasModulePermission('Accounting', 'Goods Received', ['include_price'])){
                     $lineData = array('', $row2['destination'], $transactionDateTime, $row2['lorry_plate_no1'], $row2['supplier_code'], $row2['supplier_name'], $row2['raw_mat_code'], $row2['raw_mat_name'], $row2['transaction_id'], $row2['transporter_code'], '', $row2['purchase_order'], $row2['delivery_no'], $qty, $uom, $finalPlantCode, $finalPlantCode, $unitPrice, $amt);
                 }else{
                     $lineData = array('', $row2['destination'], $transactionDateTime, $row2['lorry_plate_no1'], $row2['supplier_code'], $row2['supplier_name'], $row2['raw_mat_code'], $row2['raw_mat_name'], $row2['transaction_id'], $row2['transporter_code'], '', $row2['purchase_order'], $row2['delivery_no'], $qty, $uom, $finalPlantCode, $finalPlantCode);
