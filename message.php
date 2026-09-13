@@ -1,6 +1,12 @@
 <?php include 'layouts/session.php'; ?>
 <?php include 'layouts/head-main.php'; ?>
+<?php
+    if (!hasModulePermission('Master Data', 'Translation', ['view'])){
+        header('Location: no-permission.php');
+        exit;
+    }
 
+?>
 <head>
     <title><?=$languageArray['message_resource_code'][$language] ?> | Synctronix - Weighing System</title>
     <?php include 'layouts/title-meta.php'; ?>
@@ -161,10 +167,12 @@
                                                                 <h5 class="card-title mb-0"><?=$languageArray['previous_records_code'][$language]?></h5>
                                                             </div>
                                                             <div class="flex-shrink-0">
+                                                                <?php if(hasModulePermission('Master Data', 'Translation', ['create'])): ?>
                                                                 <button type="button" id="addMessage" class="btn btn-success waves-effect waves-light" data-bs-toggle="modal" data-bs-target="#messageModal">
                                                                     <i class="ri-add-circle-line align-middle me-1"></i>
                                                                     <?=$languageArray['add_new_code'][$language] ?>
                                                                 </button>
+                                                                <?php endif; ?>
                                                             </div> 
                                                         </div> 
                                                     </div>
@@ -233,6 +241,8 @@
 <script type="text/javascript">
 
 var table;
+var permissions = <?= json_encode($_SESSION['permissions']) ?>;
+var isSADMIN = <?= json_encode($_SESSION['roles'] == 'SADMIN') ?>;
 
 $(function () {
     $('#selectAllCheckbox').on('change', function() {
@@ -261,10 +271,42 @@ $(function () {
             { 
                 data: 'id',
                 render: function ( data, type, row ) {
-                    return '<div class="dropdown d-inline-block"><button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">' +
-                    '<i class="ri-more-fill align-middle"></i></button><ul class="dropdown-menu dropdown-menu-end">' +
-                    '<li><a class="dropdown-item edit-item-btn" id="edit'+data+'" onclick="edit('+data+')"><i class="ri-pencil-fill align-bottom me-2 text-muted"></i> <?=$languageArray['edit_code'][$language] ?></a></li>' +
-                    '<li><a class="dropdown-item remove-item-btn" id="deactivate'+data+'" onclick="deactivate('+data+')"><i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i> <?=$languageArray['delete_code'][$language] ?> </a></li></ul></div>';
+                    if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Translation'] && permissions['Master Data']['Translation'].includes('edit', 'cancelled'))) {
+                        var buttons = `
+                            <div class="dropdown d-inline-block">
+                                <button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="ri-more-fill align-middle"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">`;
+
+                        // Add Edit button condition here
+                        if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Translation'] && permissions['Master Data']['Translation'].includes('edit'))) {
+                            buttons += `
+                                    <li>
+                                        <a class="dropdown-item edit-item-btn" id="edit${data}" onclick="edit(${data})">
+                                            <i class="ri-pencil-fill align-bottom me-2 text-muted"></i> <?=$languageArray['edit_code'][$language]?>
+                                        </a>
+                                    </li>`;
+                        }
+
+                        // Add Delete button condition here
+                        if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Translation'] && permissions['Master Data']['Translation'].includes('cancelled'))) {
+                            buttons += `
+                                    <li>
+                                        <a class="dropdown-item remove-item-btn" id="deactivate${data}" onclick="deactivate(${data})">
+                                            <i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i> <?=$languageArray['delete_code'][$language]?>
+                                        </a>
+                                    </li>`;
+                        }
+
+                        buttons += `
+                                </ul>
+                            </div>`;
+
+                        return buttons;
+                    }
+
+                    return '';
                 }
             }
         ]       

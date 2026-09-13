@@ -2,8 +2,11 @@
 <?php include 'layouts/head-main.php'; ?>
 
 <?php
-require_once "php/db_connect.php";
 require_once "php/requires/lookup.php";
+if (!hasModulePermission('Accounting', 'Delivery Order', ['view'])){
+    header('Location: no-permission.php');
+    exit;
+}
 
 $plantId = $_SESSION['plant'];
 $selectedPlantId = $_SESSION['selected_plant_id'] ?? null;
@@ -18,7 +21,7 @@ $product2 = $db->query("SELECT * FROM Product WHERE status = '0' ORDER BY name A
 
 $plantName = '-';
 $plantCode = '-';
-if($_SESSION["roles"] != 'ADMIN' && $_SESSION["roles"] != 'SADMIN'){
+if (!hasModulePermission('Accounting', 'Delivery Order', ['view_all_plants'])){
     $plant = searchPlantById($selectedPlantId, $db);
 
     $stmt2 = $db->prepare("SELECT * from Plant WHERE id = ?");
@@ -194,17 +197,18 @@ else{
                                                                 <h5 class="card-title mb-0 text-white"><?=$languageArray['delivery_order_records'][$language]?></h5>
                                                             </div>
                                                             <div class="flex-shrink-0">
+                                                                <?php if(hasModulePermission('Accounting', 'Delivery Order', ['export'])): ?>
                                                                 <button type="button" id="exportExcel" class="btn btn-success waves-effect waves-light">
                                                                     <i class="ri-file-excel-line align-middle me-1"></i>
                                                                     <?=$languageArray['export_excel_code'][$language]?>
                                                                 </button>
-
-                                                                <?php if($_SESSION['roles'] == 'SADMIN' || $_SESSION['roles'] == 'ADMIN' || $_SESSION['roles'] == 'MANAGER'){ ?>
+                                                                <?php endif; ?>
+                                                                <?php if(hasModulePermission('Accounting', 'Delivery Order', ['post_to_sql'])): ?>
                                                                 <button type="button" id="postSQL" class="btn btn-warning waves-effect waves-light">
                                                                     <i class="ri-send-plane-line align-middle me-1"></i>
                                                                     <?=$languageArray['post_to_sql_code'][$language]?>
                                                                 </button>
-                                                                <?php } ?>
+                                                                <?php endif; ?>
                                                             </div> 
                                                         </div> 
                                                     </div>
@@ -290,6 +294,7 @@ else{
     <script type="text/javascript">
     var userRole = '<?=$_SESSION["roles"] ?>';
     var table = null;
+    var permissions = <?= json_encode($_SESSION['permissions']) ?>;
     var isSADMIN = <?= json_encode($_SESSION['roles'] == 'SADMIN') ?>;
 
     $(function () {
@@ -551,7 +556,7 @@ else{
                     class: 'action-button',
                     orderable: false,
                     render: function (data, type, row) {
-                        if (userRole == 'SADMIN' || userRole == 'ADMIN' || userRole == 'MANAGER') {
+                        if (isSADMIN || (permissions['Accounting'] && permissions['Accounting']['Delivery Order'] && permissions['Accounting']['Delivery Order'].includes('post_to_sql'))) {
                             return `
                                 <div class="dropdown d-inline-block">
                                     <button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">

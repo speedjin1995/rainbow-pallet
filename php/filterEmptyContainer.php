@@ -28,15 +28,19 @@ if($_POST['toDate'] != null && $_POST['toDate'] != ''){
 	$searchQuery .= " and transaction_date <= '".$toDateTime."'";
 }
 
+if($_POST['plant'] != null && $_POST['plant'] != '' && $_POST['plant'] != '-'){
+	$searchQuery .= " and plant_code = '".$_POST['plant']."'";
+}
+
 if($searchValue != ''){
   $searchQuery = " and (transaction_id like '%".$searchValue."%' or lorry_plate_no1 like '%".$searchValue."%' or container_no like '%".$searchValue."%')";
 }
 
 ## Total number of records without filtering
 $allQuery = "select count(*) as allcount from Weight_Container where status = '0'";
-// if($_SESSION["roles"] != 'ADMIN' && $_SESSION["roles"] != 'SADMIN'){
+// if (!hasPermission('Weighing', ['view_all_plants'])){
 //   $username = implode("', '", $_SESSION["plant"]);
-//   $allQuery = "select count(*) as allcount from Weight where status = '0' and plant_code IN ('$username')";
+//   $allQuery = "select count(*) as allcount from Weight_Container where status = '0' and plant_code IN ('$username')";
 // }
 
 $sel = mysqli_query($db, $allQuery);
@@ -45,9 +49,9 @@ $totalRecords = $records['allcount'];
 
 ## Total number of record with filtering
 $filteredQuery = "select count(*) as allcount from Weight_Container where status = '0'".$searchQuery;
-// if($_SESSION["roles"] != 'ADMIN' && $_SESSION["roles"] != 'SADMIN'){
+// if (!hasPermission('Weighing', ['view_all_plants'])){
 //   $username = implode("', '", $_SESSION["plant"]);
-//   $filteredQuery = "select count(*) as allcount from Weight where status = '0' and plant_code IN ('$username')".$searchQuery;
+//   $filteredQuery = "select count(*) as allcount from Weight_Container where status = '0' and plant_code IN ('$username')".$searchQuery;
 // }
 
 $sel = mysqli_query($db, $filteredQuery);
@@ -56,10 +60,9 @@ $totalRecordwithFilter = $records['allcount'];
 
 ## Fetch records
 $empQuery = "select * from Weight_Container where status = '0'".$searchQuery."order by ".$columnName." ".$columnSortOrder." limit ".$row.",".$rowperpage;
-
-// if($_SESSION["roles"] != 'ADMIN' && $_SESSION["roles"] != 'SADMIN'){
+// if (!hasPermission('Weighing', ['view_all_plants'])){
 //   $username = implode("', '", $_SESSION["plant"]);
-//   $empQuery = "select * from Weight where status = '0' and plant_code IN ('$username')".$searchQuery."order by ".$columnName." ".$columnSortOrder." limit ".$row.",".$rowperpage;
+//   $empQuery = "select * from Weight_Container where status = '0' and plant_code IN ('$username')".$searchQuery."order by ".$columnName." ".$columnSortOrder." limit ".$row.",".$rowperpage;
 // }
 
 $empRecords = mysqli_query($db, $empQuery);

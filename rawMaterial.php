@@ -1,5 +1,11 @@
 <?php include 'layouts/session.php'; ?>
 <?php include 'layouts/head-main.php'; ?>
+<?php
+    if (!hasModulePermission('Master Data', 'Raw Material', ['view'])){
+        header('Location: no-permission.php');
+        exit;
+    }
+?>
 
 <head>
     <title><?=$languageArray['raw_material_code'][$language]?> | Synctronix - Weighing System</title>
@@ -226,24 +232,35 @@
                                                                 <h5 class="card-title mb-0"><?=$languageArray['previous_records_code'][$language]?></h5>
                                                             </div>
                                                             <div class="flex-shrink-0">
+                                                                <?php if(hasModulePermission('Master Data', 'Raw Material', ['download_template'])): ?>
                                                                 <a href="template/Raw_Mat_Template.xlsx" download>
                                                                     <button type="button" class="btn btn-info waves-effect waves-light">
                                                                         <i class="mdi mdi-file-import-outline align-middle me-1"></i>
                                                                         <?=$languageArray['download_template_code'][$language]?>
                                                                     </button>
                                                                 </a>
+                                                                <?php endif; ?>
+
+                                                                <?php if(hasModulePermission('Master Data', 'Raw Material', ['upload_excel'])): ?>
                                                                 <button type="button" id="uploadExcel" class="btn btn-success waves-effect waves-light">
                                                                     <i class="ri-file-pdf-line align-middle me-1"></i>
                                                                     <?=$languageArray['upload_excel_code'][$language]?>
                                                                 </button>
+                                                                <?php endif; ?>
+
+                                                                <?php if(hasModulePermission('Master Data', 'Raw Material', ['cancelled'])): ?>
                                                                 <button type="button" id="multiDeactivate" class="btn btn-warning waves-effect waves-light">
                                                                     <i class="ri-delete-bin-fill align-middle me-1"></i>
                                                                     <?=$languageArray['delete_code'][$language]?>
                                                                 </button>
+                                                                <?php endif; ?>
+
+                                                                <?php if(hasModulePermission('Master Data', 'Raw Material', ['create'])): ?>
                                                                 <button type="button" id="addRawMaterial" class="btn btn-success waves-effect waves-light" data-bs-toggle="modal" data-bs-target="#addModal">
                                                                     <i class="ri-add-circle-line align-middle me-1"></i>
                                                                     <?=$languageArray['add_new_code'][$language]?>
                                                                 </button>
+                                                                <?php endif; ?>
                                                             </div> 
                                                         </div> 
                                                     </div>
@@ -310,6 +327,8 @@
 <script type="text/javascript">
 
 var table;
+var permissions = <?= json_encode($_SESSION['permissions'] ?? []) ?>;
+var isSADMIN = <?= json_encode($_SESSION['roles'] == 'SADMIN') ?>;
 
 $(function () {
     $('#selectAllCheckbox').on('change', function() {
@@ -372,10 +391,40 @@ $(function () {
             { 
                 data: 'id',
                 render: function ( data, type, row ) {
-                    return '<div class="dropdown d-inline-block"><button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">' +
-                    '<i class="ri-more-fill align-middle"></i></button><ul class="dropdown-menu dropdown-menu-end">' +
-                    '<li><a class="dropdown-item edit-item-btn" id="edit'+data+'" onclick="edit('+data+')"><i class="ri-pencil-fill align-bottom me-2 text-muted"></i> <?=$languageArray['edit_code'][$language] ?></a></li>' +
-                    '<li><a class="dropdown-item remove-item-btn" id="deactivate'+data+'" onclick="deactivate('+data+')"><i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i> <?=$languageArray['delete_code'][$language] ?> </a></li></ul></div>';
+                    if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Raw Material'] && ['edit', 'cancelled'].some(p => permissions['Master Data']['Raw Material'].includes(p)))) {
+                        var buttons = `
+                            <div class="dropdown d-inline-block">
+                                <button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="ri-more-fill align-middle"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">`;
+
+                        if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Raw Material'] && permissions['Master Data']['Raw Material'].includes('edit'))) {
+                            buttons += `
+                                    <li>
+                                        <a class="dropdown-item edit-item-btn" id="edit${data}" onclick="edit(${data})">
+                                            <i class="ri-pencil-fill align-bottom me-2 text-muted"></i> <?=$languageArray['edit_code'][$language]?>
+                                        </a>
+                                    </li>`;
+                        }
+
+                        if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Raw Material'] && permissions['Master Data']['Raw Material'].includes('cancelled'))) {
+                            buttons += `
+                                    <li>
+                                        <a class="dropdown-item remove-item-btn" id="deactivate${data}" onclick="deactivate(${data})">
+                                            <i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i> <?=$languageArray['delete_code'][$language]?>
+                                        </a>
+                                    </li>`;
+                        }
+
+                        buttons += `
+                                </ul>
+                            </div>`;
+
+                        return buttons;
+                    }
+
+                    return '';
                 }
             }
         ]       

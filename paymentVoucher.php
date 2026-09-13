@@ -2,6 +2,10 @@
 <?php include 'layouts/head-main.php'; ?>
 
 <?php
+if (!hasModulePermission('Accounting', 'Payment Voucher', ['view', 'create', 'edit'])){
+    header('Location: no-permission.php');
+    exit;
+}
 $plantId = $_SESSION['plant'];
 
 $supplier = $db->query("SELECT * FROM Supplier WHERE status = '0' AND payment_term = 'Term' ORDER BY name ASC");
@@ -175,14 +179,18 @@ $pvItem2 = $db->query("SELECT * FROM Pv_Items WHERE status = 0 ORDER BY item_nam
                                                                         <i class="ri-scissors-cut-line align-middle me-1"></i>
                                                                         <?=$languageArray['cut_off_code'][$language]?>
                                                                     </button> -->
+                                                                    <?php if(hasModulePermission('Accounting', 'Payment Voucher', ['post_to_sql'])): ?>
                                                                     <button type="button" id="postToSql" class="btn btn-warning waves-effect waves-light">
                                                                         <i class="ri-send-plane-line align-middle me-1"></i>
                                                                         <?=$languageArray['post_to_sql_code'][$language]?>
                                                                     </button>
+                                                                    <?php endif; ?>
+                                                                    <?php if(hasModulePermission('Accounting', 'Payment Voucher', ['create'])): ?>
                                                                     <button type="button" id="addPv" class="btn btn-success waves-effect waves-light">
                                                                         <i class="ri-add-circle-line align-middle me-1"></i>
                                                                         <?=$languageArray['add_new_code'][$language]?>
                                                                     </button>
+                                                                    <?php endif; ?>
                                                                 </div> 
                                                             </div> 
                                                         </div>
@@ -744,6 +752,9 @@ $pvItem2 = $db->query("SELECT * FROM Pv_Items WHERE status = 0 ORDER BY item_nam
     const yesterday = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
     yesterday.setDate(yesterday.getDate() - 1);
+    var permissions = <?= json_encode($_SESSION['permissions']) ?>;
+    var isSADMIN = <?= json_encode($_SESSION['roles'] == 'SADMIN') ?>;
+
     $(function () {
         //Date picker
         $('#fromDateSearch').flatpickr({
@@ -1387,6 +1398,7 @@ $pvItem2 = $db->query("SELECT * FROM Pv_Items WHERE status = 0 ORDER BY item_nam
                     },
                     { 
                         data: 'id',
+                        orderable: false,
                         render: function ( data, type, row ) {
                             var approvalBtn = '';
                             if (row.approval_status !== 'Approved') {
@@ -1396,24 +1408,38 @@ $pvItem2 = $db->query("SELECT * FROM Pv_Items WHERE status = 0 ORDER BY item_nam
                                     '</a>' +
                                 '</li>';
                             }
-                            return '<div class="dropdown d-inline-block">' +
-                                '<button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">' +
-                                    '<i class="ri-more-fill align-middle"></i>' +
-                                '</button>' +
-                                '<ul class="dropdown-menu dropdown-menu-end">' +
-                                    approvalBtn +
-                                    '<li>' +
+
+                            if (isSADMIN || (permissions['Accounting'] && permissions['Accounting']['Payment Voucher'] && ['approval', 'edit', 'print'].some(p => permissions['Accounting']['Payment Voucher'].includes(p)))) {
+                                var dropdownItems = '';
+                                
+                                if (isSADMIN || (permissions['Accounting'] && permissions['Accounting']['Payment Voucher'] && permissions['Accounting']['Payment Voucher'].includes('approval'))) {
+                                    dropdownItems += approvalBtn;
+                                }
+                                if (isSADMIN || (permissions['Accounting'] && permissions['Accounting']['Payment Voucher'] && permissions['Accounting']['Payment Voucher'].includes('print'))) {
+                                    dropdownItems += '<li>' +
                                         '<a class="dropdown-item print-item-btn" id="print'+data+'" onclick="print(\'' + row.id + '\')">' +
                                             '<i class="ri-printer-fill align-bottom me-2 text-muted"></i> Print' +
                                         '</a>' +
-                                    '</li>' +
-                                    '<li>' +
+                                    '</li>';
+                                }
+                                if (isSADMIN || (permissions['Accounting'] && permissions['Accounting']['Payment Voucher'] && permissions['Accounting']['Payment Voucher'].includes('edit'))) {
+                                    dropdownItems += '<li>' +
                                         '<a class="dropdown-item apply-unit-price-btn" onclick="edit(\'' + row.id + '\')">' +
                                             '<i class="ri-calculator-fill align-bottom me-2 text-muted"></i> Edit' +
                                         '</a>' +
-                                    '</li>' +
-                                '</ul>' +
-                            '</div>';
+                                    '</li>';
+                                }
+                                
+                                return '<div class="dropdown d-inline-block">' +
+                                    '<button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">' +
+                                        '<i class="ri-more-fill align-middle"></i>' +
+                                    '</button>' +
+                                    '<ul class="dropdown-menu dropdown-menu-end">' +
+                                        dropdownItems +
+                                    '</ul>' +
+                                '</div>';
+                            }
+                            return '';
                         }
                     }
                 ]   

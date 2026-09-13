@@ -1,6 +1,11 @@
 <?php include 'layouts/session.php'; ?>
 <?php include 'layouts/head-main.php'; ?>
 <?php
+if (!hasModulePermission('User Management', 'User Setup', ['view'])){
+    header('Location: no-permission.php');
+    exit;
+}
+
 // Check if the user is already logged in, if yes then redirect him to index page
 $id = $_SESSION['id'];
 $name = $_SESSION["username"];
@@ -82,24 +87,35 @@ mysqli_stmt_bind_result($stmt4, $pcode, $pname);
                                                     <h5 class="card-title mb-0"><?=$languageArray['user_records_code'][$language]?></h5>
                                                 </div>
                                                 <div class="flex-shrink-0">
+                                                    <?php if(hasModulePermission('User Management', 'User Setup', ['download_template'])): ?>
                                                     <a href="template/User_Template.xlsx" download>
                                                         <button type="button" id="downloadTemplate" class="btn btn-info waves-effect waves-light">
                                                             <i class="ri-file-pdf-line align-middle me-1"></i>
                                                             <?=$languageArray['download_template_code'][$language]?>
                                                         </button>
                                                     </a>
+                                                    <?php endif; ?>
+
+                                                    <?php if(hasModulePermission('User Management', 'User Setup', ['upload_excel'])): ?>
                                                     <button type="button" id="uploadExcel" class="btn btn-success waves-effect waves-light">
                                                         <i class="ri-file-pdf-line align-middle me-1"></i>
                                                         <?=$languageArray['upload_excel_code'][$language]?>
                                                     </button>
+                                                    <?php endif; ?>
+
+                                                    <?php if(hasModulePermission('User Management', 'User Setup', ['cancelled'])): ?>
                                                     <button type="button" id="multiDeactivate" class="btn btn-warning waves-effect waves-light">
                                                         <i class="ri-delete-bin-fill align-middle me-1"></i>
                                                         <?=$languageArray['delete_code'][$language]?>
                                                     </button>
+                                                    <?php endif; ?>
+
+                                                    <?php if(hasModulePermission('User Management', 'User Setup', ['create'])): ?>
                                                     <button type="button" id="addMembers" class="btn btn-success waves-effect waves-light" data-bs-toggle="modal" data-bs-target="#addModal">
                                                         <i class="ri-add-circle-line align-middle me-1"></i>
                                                         <?=$languageArray['add_new_code'][$language]?>
                                                     </button>
+                                                    <?php endif; ?>
                                                 </div> 
                                             </div>
                                         </div>
@@ -269,6 +285,7 @@ mysqli_stmt_bind_result($stmt4, $pcode, $pname);
         </div>
     </div>
 
+
     <?php include 'layouts/customizer.php'; ?>
     <?php include 'layouts/vendor-scripts.php'; ?>
 
@@ -301,6 +318,9 @@ mysqli_stmt_bind_result($stmt4, $pcode, $pname);
     <script src="plugins/select2/js/select2.full.min.js"></script>
 
     <script>
+    var permissions = <?= json_encode($_SESSION['permissions'] ?? []) ?>;
+    var isSADMIN = <?= json_encode($_SESSION['roles'] == 'SADMIN') ?>;
+
     $(function () {
         $('#selectAllCheckbox').on('change', function() {
             var checkboxes = $('#usersTable tbody input[type="checkbox"]');
@@ -373,11 +393,49 @@ mysqli_stmt_bind_result($stmt4, $pcode, $pname);
                 { 
                     data: 'id',
                     render: function ( data, type, row ) {
-                        // return '<div class="row"><div class="col-3"><button type="button" id="edit'+data+'" onclick="edit('+data+')" class="btn btn-success btn-sm"><i class="fas fa-pen"></i></button></div><div class="col-3"><button type="button" id="deactivate'+data+'" onclick="deactivate('+data+')" class="btn btn-success btn-sm"><i class="fas fa-trash"></i></button></div></div>';
-                        return '<div class="dropdown d-inline-block"><button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">' +
-                        '<i class="ri-more-fill align-middle"></i></button><ul class="dropdown-menu dropdown-menu-end">' +
-                        '<li><a class="dropdown-item edit-item-btn" id="edit'+data+'" onclick="edit('+data+')"><i class="ri-pencil-fill align-bottom me-2 text-muted"></i> <?=$languageArray['edit_code'][$language] ?></a></li>' +
-                        '<li><a class="dropdown-item remove-item-btn" id="deactivate'+data+'" onclick="deactivate('+data+')"><i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i> <?=$languageArray['delete_code'][$language] ?> </a></li></ul></div>';
+                        if (isSADMIN || (permissions['User Management'] && permissions['User Management']['User Setup'] && ['edit', 'cancelled', 'reset_password'].some(p => permissions['User Management']['User Setup'].includes(p)))) {
+                            var buttons = `
+                                <div class="dropdown d-inline-block">
+                                    <button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="ri-more-fill align-middle"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">`;
+
+                            if (isSADMIN || (permissions['User Management'] && permissions['User Management']['User Setup'] && permissions['User Management']['User Setup'].includes('edit'))) {
+                                buttons += `
+                                        <li>
+                                            <a class="dropdown-item edit-item-btn" id="edit${data}" onclick="edit(${data})">
+                                                <i class="ri-pencil-fill align-bottom me-2 text-muted"></i> <?=$languageArray['edit_code'][$language]?>
+                                            </a>
+                                        </li>`;
+                            }
+
+                            if (isSADMIN || (permissions['User Management'] && permissions['User Management']['User Setup'] && permissions['User Management']['User Setup'].includes('cancelled'))) {
+                                buttons += `
+                                        <li>
+                                            <a class="dropdown-item remove-item-btn" id="deactivate${data}" onclick="deactivate(${data})">
+                                                <i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i> <?=$languageArray['delete_code'][$language]?>
+                                            </a>
+                                        </li>`;
+                            }
+
+                            if (isSADMIN || (permissions['User Management'] && permissions['User Management']['User Setup'] && permissions['User Management']['User Setup'].includes('reset_password'))) {
+                                buttons += `
+                                        <li>
+                                            <a class="dropdown-item" id="resetPassword${data}" onclick="resetPassword(${data})">
+                                                <i class="ri-lock-password-line align-bottom me-2 text-muted"></i> <?=$languageArray['reset_password_code'][$language] ?? 'Reset Password'?>
+                                            </a>
+                                        </li>`;
+                            }
+
+                            buttons += `
+                                    </ul>
+                                </div>`;
+
+                            return buttons;
+                        }
+
+                        return '';
                     }
                 }
             ]
@@ -741,6 +799,20 @@ mysqli_stmt_bind_result($stmt4, $pcode, $pname);
         }
 
         $('#spinnerLoading').hide();
+    }
+
+    function resetPassword(id) {
+        if (!confirm('<?=$languageArray['confirm_reset_password_code'][$language] ?? 'Are you sure you want to reset this user password to 123456?'?>')) return;
+        $('#spinnerLoading').show();
+        $.post('php/modules/user/resetPassword.php', {userID: id}, function(data) {
+            var obj = JSON.parse(data);
+            if (obj.status === 'success') {
+                toastr["success"](obj.message, "Success:");
+            } else {
+                toastr["error"](obj.message, "Failed:");
+            }
+            $('#spinnerLoading').hide();
+        });
     }
     </script>
 

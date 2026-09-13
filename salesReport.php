@@ -228,6 +228,7 @@ else{
                                                                 <h5 class="card-title text-white mb-0"><?=$languageArray['weighing_records_code'][$language]?></h5>
                                                             </div>
                                                             <div class="flex-shrink-0">
+                                                                <?php if(hasModulePermission('Reports', 'Sales', ['export'])): ?>
                                                                 <button type="button" id="exportPdf" class="btn btn-danger waves-effect waves-light">
                                                                     <i class="ri-file-pdf-line align-middle me-1"></i>
                                                                     <?=$languageArray['export_pdf_code'][$language]?>
@@ -236,6 +237,7 @@ else{
                                                                     <i class="ri-file-excel-line align-middle me-1"></i>
                                                                     <?=$languageArray['export_excel_code'][$language]?>
                                                                 </button>
+                                                                <?php endif; ?>
                                                             </div> 
                                                         </div> 
                                                     </div>
@@ -479,6 +481,8 @@ else{
     var fromDateSearchPicker;
     var toDateSearchPicker;
     var table = null;
+    var permissions = <?= json_encode($_SESSION['permissions'] ?? []) ?>;
+    var isSADMIN = <?= json_encode($_SESSION['roles'] == 'SADMIN') ?>;
 
     $(function () {
         const today = new Date();
@@ -733,9 +737,12 @@ else{
                 {
                     data: 'id',
                     render: function (data, type, row) {
-                        return '<div class="dropdown d-inline-block"><button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">' +
-                            '<i class="ri-more-fill align-middle"></i></button><ul class="dropdown-menu dropdown-menu-end">' +
-                            '<li><a class="dropdown-item print-item-btn" id="print' + data + '" onclick="print(' + data + ')"><i class="ri-printer-fill align-bottom me-2 text-muted"></i> Print</a></li></ul></div>';
+                        if (isSADMIN || (permissions['Reports'] && permissions['Reports']['Sales'] && permissions['Reports']['Sales'].includes('print'))) {
+                            return '<div class="dropdown d-inline-block"><button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">' +
+                                '<i class="ri-more-fill align-middle"></i></button><ul class="dropdown-menu dropdown-menu-end">' +
+                                '<li><a class="dropdown-item print-item-btn" id="print' + data + '" onclick="print(' + data + ')"><i class="ri-printer-fill align-bottom me-2 text-muted"></i> <?=$languageArray['print_code'][$language] ?? 'Print'?></a></li></ul></div>';
+                        }
+                        return '';
                     }
                 }
             ]

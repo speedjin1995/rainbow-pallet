@@ -3,6 +3,11 @@
 <?php
     include 'php/db_connect.php';
 
+    if (!hasModulePermission('Master Data', 'Locations', ['view'])){
+        header('Location: no-permission.php');
+        exit;
+    }
+
     $plant = $db->query("SELECT * FROM Plant WHERE status = '0'");
 ?>
 <head>
@@ -280,10 +285,12 @@
                                                                 <h5 class="card-title mb-0"><?=$languageArray['previous_records_code'][$language]?></h5>
                                                             </div>
                                                             <div class="flex-shrink-0">
+                                                                <?php if(hasModulePermission('Master Data', 'Locations', ['create'])): ?>
                                                                 <button type="button" id="addLocation" class="btn btn-success waves-effect waves-light" data-bs-toggle="modal" data-bs-target="#addModal">
                                                                     <i class="ri-add-circle-line align-middle me-1"></i>
                                                                     <?=$languageArray['add_new_code'][$language]?>
                                                                 </button>
+                                                                <?php endif; ?>
                                                             </div> 
                                                         </div> 
                                                     </div>
@@ -352,6 +359,8 @@
     <script type="text/javascript">
 
 var table;
+var permissions = <?= json_encode($_SESSION['permissions'] ?? []) ?>;
+var isSADMIN = <?= json_encode($_SESSION['roles'] == 'SADMIN') ?>;
 
 $(function () {
     debugger;
@@ -398,11 +407,45 @@ $(function () {
             { 
                 data: 'id',
                 render: function ( data, type, row ) {
-                    return '<div class="dropdown d-inline-block"><button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">' +
-                    '<i class="ri-more-fill align-middle"></i></button><ul class="dropdown-menu dropdown-menu-end">' +
-                    '<li><a class="dropdown-item edit-item-btn" id="edit'+data+'" onclick="edit('+data+')"><i class="ri-pencil-fill align-bottom me-2 text-muted"></i> Edit Location</a></li>' +
-                    '<li><a class="dropdown-item" id="portSetup'+data+'" onclick="openPortSetup('+data+')"><i class="ri-settings-3-line align-bottom me-2 text-muted"></i> Port Setup</a></li>' +
-                    '<li><a class="dropdown-item remove-item-btn" id="deactivate'+data+'" onclick="deactivate('+data+')"><i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i> Delete </a></li></ul></div>';
+                    if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Locations'] && ['edit', 'cancelled'].some(p => permissions['Master Data']['Locations'].includes(p)))) {
+                        var buttons = `
+                            <div class="dropdown d-inline-block">
+                                <button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="ri-more-fill align-middle"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">`;
+
+                        if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Locations'] && permissions['Master Data']['Locations'].includes('edit'))) {
+                            buttons += `
+                                    <li>
+                                        <a class="dropdown-item edit-item-btn" id="edit${data}" onclick="edit(${data})">
+                                            <i class="ri-pencil-fill align-bottom me-2 text-muted"></i> Edit Location
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" id="portSetup${data}" onclick="openPortSetup(${data})">
+                                            <i class="ri-settings-3-line align-bottom me-2 text-muted"></i> Port Setup
+                                        </a>
+                                    </li>`;
+                        }
+
+                        if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Locations'] && permissions['Master Data']['Locations'].includes('cancelled'))) {
+                            buttons += `
+                                    <li>
+                                        <a class="dropdown-item remove-item-btn" id="deactivate${data}" onclick="deactivate(${data})">
+                                            <i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i> Delete
+                                        </a>
+                                    </li>`;
+                        }
+
+                        buttons += `
+                                </ul>
+                            </div>`;
+
+                        return buttons;
+                    }
+
+                    return '';
                 }
             }
         ]       

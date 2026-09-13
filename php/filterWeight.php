@@ -2,6 +2,7 @@
 session_start();
 ## Database configuration
 require_once 'db_connect.php';
+require_once 'requires/permissions.php';
 
 ## Read value
 $draw = $_POST['draw'];
@@ -93,7 +94,7 @@ if ($_POST['batch'] == 'N') { //if pending
   ## Total number of records without filtering
   $allQuery = "select COUNT(*) as allcount FROM (SELECT id FROM Weight WHERE status = '0' UNION ALL SELECT id FROM Weight_Container WHERE status = '0') AS combined";
     
-  if($_SESSION["roles"] != 'ADMIN' && $_SESSION["roles"] != 'SADMIN'){
+  if (!hasPermission('Weighing', ['view_all_plants'])){
     $username = implode("', '", $_SESSION["plant"]);
     $allQuery = "select COUNT(*) as allcount FROM (SELECT id FROM Weight WHERE status = '0' and plant_code IN ('$username') UNION ALL SELECT id FROM Weight_Container WHERE status = '0' and plant_code IN ('$username')) AS combined";
   }
@@ -104,7 +105,7 @@ if ($_POST['batch'] == 'N') { //if pending
 
   ## Total number of record with filtering
   $filteredQuery = "select count(*) as allcount from (SELECT id FROM Weight where status = '0'".$searchQuery." UNION ALL SELECT id FROM Weight_Container where status = '0'".$searchQuery.") AS combined"; 
-  if($_SESSION["roles"] != 'ADMIN' && $_SESSION["roles"] != 'SADMIN'){
+  if (!hasPermission('Weighing', ['view_all_plants'])){
     $username = implode("', '", $_SESSION["plant"]);
     $filteredQuery = "select count(*) as allcount from (SELECT id FROM Weight where status = '0' and plant_code IN ('$username')".$searchQuery." UNION ALL SELECT id FROM Weight_Container where status = '0' and plant_code IN ('$username')".$searchQuery.") AS combined";
   }
@@ -116,14 +117,14 @@ if ($_POST['batch'] == 'N') { //if pending
   ## Fetch records
   $empQuery = "(select $weightUnionColumns from Weight where status = '0'".$searchQuery.") UNION ALL (select $weightUnionColumns from Weight_Container where status = '0'".$searchQuery.") order by ".$columnName." ".$columnSortOrder." limit ".$row.",".$rowperpage;
 
-  if($_SESSION["roles"] != 'ADMIN' && $_SESSION["roles"] != 'SADMIN'){
+  if (!hasPermission('Weighing', ['view_all_plants'])){
     $username = implode("', '", $_SESSION["plant"]);
     $empQuery = "(select $weightUnionColumns from Weight where status = '0' and plant_code IN ('$username')".$searchQuery.") UNION ALL (select $weightUnionColumns from Weight_Container where status = '0' and plant_code IN ('$username')".$searchQuery.") order by ".$columnName." ".$columnSortOrder." limit ".$row.",".$rowperpage;
   }
 }else{
   ## Total number of records without filtering
   $allQuery = "select count(*) as allcount from Weight where status = '0'";
-  if($_SESSION["roles"] != 'ADMIN' && $_SESSION["roles"] != 'SADMIN'){
+  if (!hasPermission('Weighing', ['view_all_plants'])){
     $username = implode("', '", $_SESSION["plant"]);
     $allQuery = "select count(*) as allcount from Weight where status = '0' and plant_code IN ('$username')";
   } 
@@ -134,7 +135,7 @@ if ($_POST['batch'] == 'N') { //if pending
 
   ## Total number of record with filtering
   $filteredQuery = "select count(*) as allcount from Weight where status = '0'".$searchQuery;
-  if($_SESSION["roles"] != 'ADMIN' && $_SESSION["roles"] != 'SADMIN'){
+  if (!hasPermission('Weighing', ['view_all_plants'])){
     $username = implode("', '", $_SESSION["plant"]);
     $filteredQuery = "select count(*) as allcount from Weight where status = '0' and plant_code IN ('$username')".$searchQuery;
   }
@@ -145,8 +146,7 @@ if ($_POST['batch'] == 'N') { //if pending
 
   ## Fetch records
   $empQuery = "select * from Weight where status = '0'".$searchQuery."order by ".$columnName." ".$columnSortOrder." limit ".$row.",".$rowperpage;
-
-  if($_SESSION["roles"] != 'ADMIN' && $_SESSION["roles"] != 'SADMIN'){
+  if (!hasPermission('Weighing', ['view_all_plants'])){
     $username = implode("', '", $_SESSION["plant"]);
     $empQuery = "select * from Weight where status = '0' and plant_code IN ('$username')".$searchQuery."order by ".$columnName." ".$columnSortOrder." limit ".$row.",".$rowperpage;
   }
