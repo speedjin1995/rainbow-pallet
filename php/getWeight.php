@@ -6,7 +6,8 @@ if(isset($_POST['userID'])){
 	$id = filter_input(INPUT_POST, 'userID', FILTER_SANITIZE_STRING);
     $format = 'MODAL';
     $type = 'Weight';
-
+    $acctType = null;
+    
     if (isset($_POST['format']) && $_POST['format'] != ''){
         $format = $_POST['format'];
     }

@@ -55,16 +55,16 @@ $vehicles = $db->query("SELECT * FROM Vehicle WHERE status = '0' ORDER BY veh_nu
 $vehicles2 = $db->query("SELECT * FROM Vehicle WHERE status = '0' ORDER BY veh_number ASC");
 $customer = $db->query("SELECT * FROM Customer WHERE status = '0' ORDER BY name ASC");
 $customer2 = $db->query("SELECT * FROM Customer WHERE status = '0' ORDER BY name ASC");
-$product = $db->query("SELECT * FROM Product WHERE status = '0' ORDER BY name ASC");
-$product2 = $db->query("SELECT * FROM Product WHERE status = '0' ORDER BY name ASC");
+$product = $db->query("SELECT * FROM Product WHERE status = '0' AND entity_type = 'Customer' ORDER BY name ASC");
+$product2 = $db->query("SELECT * FROM Product WHERE status = '0' AND entity_type = 'Customer' ORDER BY name ASC");
 $transporter = $db->query("SELECT * FROM Transporter WHERE status = '0' ORDER BY name ASC");
 $destination = $db->query("SELECT * FROM Destination WHERE status = '0' ORDER BY name ASC");
 $supplier = $db->query("SELECT * FROM Supplier WHERE status = '0' ORDER BY name ASC");
 $supplier2 = $db->query("SELECT * FROM Supplier WHERE status = '0' ORDER BY name ASC");
 $purchaseOrder = $db->query("SELECT * FROM Purchase_Order WHERE status = 'Open' AND deleted = '0' ORDER BY po_no ASC");
 $salesOrder = $db->query("SELECT * FROM Sales_Order WHERE status = 'Open' AND deleted = '0' ORDER BY order_no ASC");
-$rawMaterial = $db->query("SELECT * FROM Raw_Mat WHERE status = '0' ORDER BY name ASC");
-$rawMaterial2 = $db->query("SELECT * FROM Raw_Mat WHERE status = '0' ORDER BY name ASC");
+$rawMaterial = $db->query("SELECT * FROM Product WHERE status = '0' AND entity_type = 'Supplier' ORDER BY name ASC");
+$rawMaterial2 = $db->query("SELECT * FROM Product WHERE status = '0' AND entity_type = 'Supplier' ORDER BY name ASC");
 $container = $db->query("SELECT * FROM Weight_Container WHERE status = '0' AND is_complete = 'Y' AND is_cancel = 'N'");
 
 $plantName = '-';
@@ -294,7 +294,7 @@ else{
                                                             <select id="rawMatSearch" class="form-select select2" >
                                                                 <option selected>-</option>
                                                                 <?php while($rowRawMatF=mysqli_fetch_assoc($rawMaterial2)){ ?>
-                                                                    <option value="<?=$rowRawMatF['raw_mat_code'] ?>"><?=$rowRawMatF['name'] ?></option>
+                                                                    <option value="<?=$rowRawMatF['product_code'] ?>"><?=$rowRawMatF['name'] ?></option>
                                                                 <?php } ?>
                                                             </select>
                                                         </div>
@@ -615,7 +615,7 @@ else{
                                                                                         <select class="form-select select2" id="rawMaterialName" name="rawMaterialName" required>
                                                                                             <option selected="-">-</option>
                                                                                             <?php while($rowRowMat=mysqli_fetch_assoc($rawMaterial)){ ?>
-                                                                                                <option value="<?=$rowRowMat['name'] ?>" data-code="<?=$rowRowMat['raw_mat_code'] ?>"><?=$rowRowMat['raw_mat_code'] .' - '. $rowRowMat['name'] ?></option>
+                                                                                                <option value="<?=$rowRowMat['name'] ?>" data-code="<?=$rowRowMat['product_code'] ?>"><?=$rowRowMat['product_code'] .' - '. $rowRowMat['name'] ?></option>
                                                                                             <?php } ?>
                                                                                         </select>           
                                                                                     </div>

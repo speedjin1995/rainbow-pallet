@@ -16,8 +16,8 @@ $vehicles = $db->query("SELECT DISTINCT veh_number FROM Vehicle WHERE status = '
 $vehicles2 = $db->query("SELECT * FROM Vehicle WHERE status = '0' ORDER BY veh_number ASC");
 $customer = $db->query("SELECT * FROM Customer WHERE status = '0' ORDER BY name ASC");
 $customer2 = $db->query("SELECT * FROM Customer WHERE status = '0' ORDER BY name ASC");
-$product = $db->query("SELECT * FROM Product WHERE status = '0' ORDER BY name ASC");
-$product2 = $db->query("SELECT * FROM Product WHERE status = '0' ORDER BY name ASC");
+$product = $db->query("SELECT * FROM Product WHERE status = '0' AND entity_type = 'Customer' ORDER BY name ASC");
+$product2 = $db->query("SELECT * FROM Product WHERE status = '0' AND entity_type = 'Customer' ORDER BY name ASC");
 
 $plantName = '-';
 $plantCode = '-';

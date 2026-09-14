@@ -8,7 +8,7 @@ $plantId = $_SESSION['plant'];
 $selectedPlantId = $_SESSION['selected_plant_id'] ?? null;
 
 $customer = $db->query("SELECT * FROM Customer WHERE status = '0' ORDER BY name ASC");
-$product = $db->query("SELECT * FROM Product WHERE status = '0'");
+$product = $db->query("SELECT * FROM Product WHERE status = '0' AND entity_type = 'Customer' ORDER BY name ASC");
 $transporter = $db->query("SELECT * FROM Transporter WHERE status = '0'");
 $destination = $db->query("SELECT * FROM Destination WHERE status = '0'");
 
@@ -156,7 +156,7 @@ else{
                                                     </div>--><!--end col-->
                                                     <div class="col-3" id="productSearchDisplay">
                                                         <div class="mb-3">
-                                                            <label for="ForminputState" class="form-label"><?=$languageArray['product_code_code'][$language]?></label>
+                                                            <label for="ForminputState" class="form-label"><?=$languageArray['product_code'][$language]?></label>
                                                             <select id="productSearch" class="form-select select2">
                                                                 <option selected>-</option>
                                                                 <?php while($rowProductF=mysqli_fetch_assoc($product)){ ?>

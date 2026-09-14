@@ -2672,3 +2672,6 @@ INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALU
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('add_uom_code', 'Add UOM', '添加单位', 'Tambah UOM', 'அலகு சேர்');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('uom_code', 'UOM', '单位', 'UOM', 'அலகு');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('rate_code', 'Rate', '比率', 'Kadar', 'விகிதம்');
+
+UPDATE message_resource SET en = 'Item', zh = '物品', my = 'Item', ne = 'பொருள்' WHERE message_key_code = 'raw_material_code';
+UPDATE message_resource SET en = 'Item', zh = '物品', my = 'Item', ne = 'பொருள்' WHERE message_key_code = 'product_code';
