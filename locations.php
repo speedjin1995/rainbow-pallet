@@ -298,7 +298,7 @@
                                                         <table id="locationTable" class="table table-bordered nowrap table-striped align-middle" style="width:100%">
                                                             <thead>
                                                                 <tr>
-                                                                    <th><input type="checkbox" id="selectAllCheckbox" class="selectAllCheckbox"></th>
+                                                                    <!-- <th><input type="checkbox" id="selectAllCheckbox" class="selectAllCheckbox"></th> -->
                                                                     <th><?=$languageArray['location_code_code'][$language]?></th>
                                                                     <th><?=$languageArray['location_name_code'][$language]?></th>
                                                                     <th><?=$languageArray['weighing_count_code'][$language]?></th>
@@ -376,10 +376,10 @@ $(function () {
         $('#serialPort').html(options);
     });
 
-    $('#selectAllCheckbox').on('change', function() {
-        var checkboxes = $('#locationTable tbody input[type="checkbox"]');
-        checkboxes.prop('checked', $(this).prop('checked')).trigger('change');
-    });
+    // $('#selectAllCheckbox').on('change', function() {
+    //     var checkboxes = $('#locationTable tbody input[type="checkbox"]');
+    //     checkboxes.prop('checked', $(this).prop('checked')).trigger('change');
+    // });
 
     table = $("#locationTable").DataTable({
         "responsive": true,
@@ -391,15 +391,15 @@ $(function () {
             'url':'php/modules/locations/loadLocations.php'
         },
         'columns': [
-            {
-                // Add a checkbox with a unique ID for each row
-                data: 'id', // Assuming 'serialNo' is a unique identifier for each row
-                className: 'select-checkbox',
-                orderable: false,
-                render: function (data, type, row) {
-                    return '<input type="checkbox" class="select-checkbox" id="checkbox_' + data + '" value="'+data+'"/>';
-                }
-            },
+            // {
+            //     // Add a checkbox with a unique ID for each row
+            //     data: 'id', // Assuming 'serialNo' is a unique identifier for each row
+            //     className: 'select-checkbox',
+            //     orderable: false,
+            //     render: function (data, type, row) {
+            //         return '<input type="checkbox" class="select-checkbox" id="checkbox_' + data + '" value="'+data+'"/>';
+            //     }
+            // },
             { data: 'location_code' },
             { data: 'location_name' },
             { data: 'weighing_count' },
