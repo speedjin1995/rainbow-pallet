@@ -141,7 +141,7 @@
                             
                             <?php if(hasModulePermission('Master Data', 'Product Category', ['view', 'create', 'edit'])): ?>
                             <li class="nav-item">
-                                <a href="productCategories.php" class="nav-link"><?=$languageArray['product_categories_code'][$language]?></a>
+                                <a href="productCategories.php" class="nav-link"><?=$languageArray['product_category_code'][$language]?></a>
                             </li>
                             <?php endif; ?>
 
