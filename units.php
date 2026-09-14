@@ -249,7 +249,8 @@ $(function () {
         'serverSide': true,
         'serverMethod': 'post',
         'ajax': {
-            'url':'php/modules/unit/filter.php'
+            'url':'php/modules/unit/index.php',
+            'data': { action: 'getAll' }
         },
         'columns': [
             {
@@ -316,8 +317,8 @@ $(function () {
     $('#submitUnit').on('click', function(){
         if($('#unitForm').valid()){
             $('#spinnerLoading').show();
-            var url = $('#addModal').find('#id').val() ? 'php/modules/unit/update.php' : 'php/modules/unit/create.php';
-            $.post(url, $('#unitForm').serialize(), function(data){
+            var action = $('#addModal').find('#id').val() ? 'update' : 'create';
+            $.post('php/modules/unit/index.php', $('#unitForm').serialize() + '&action=' + action, function(data){
                 var obj = JSON.parse(data);
                 if(obj.status === 'success') {
                     table.ajax.reload();
@@ -373,7 +374,7 @@ $(function () {
         });
 
         $.ajax({
-            url: 'php/modules/unit/upload.php',
+            url: 'php/modules/unit/index.php?action=upload',
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(data),
@@ -435,7 +436,7 @@ $(function () {
 
         if (selectedIds.length > 0) {
             if (confirm('Are you sure you want to delete these units?')) {
-                $.post('php/modules/unit/delete.php', {id: selectedIds, type: 'MULTI'}, function(data){
+                $.post('php/modules/unit/index.php', {action: 'delete', id: selectedIds, type: 'MULTI'}, function(data){
                     var obj = JSON.parse(data);
                     
                     if(obj.status === 'success'){
@@ -460,7 +461,7 @@ $(function () {
 
 function edit(id){
     $('#spinnerLoading').show();
-    $.post('php/modules/unit/get.php', {id: id}, function(data)
+    $.post('php/modules/unit/index.php', {action: 'get', id: id}, function(data)
     {
         var obj = JSON.parse(data);
         if(obj.status === 'success'){
@@ -493,7 +494,7 @@ function edit(id){
 function deactivate(id){
     $('#spinnerLoading').show();
     if (confirm('Are you sure you want to delete this unit?')) {
-        $.post('php/modules/unit/delete.php', {id: id}, function(data){
+        $.post('php/modules/unit/index.php', {action: 'delete', id: id}, function(data){
             var obj = JSON.parse(data);
 
             if(obj.status === 'success'){
@@ -553,7 +554,7 @@ function displayPreview(data) {
 function reactivate(id) {
     if (confirm('Do you want to reactivate this unit?')) {
         $('#spinnerLoading').show();
-        $.post('php/modules/unit/reactivate.php', {id: id}, function(data){
+        $.post('php/modules/unit/index.php', {action: 'reactivate', id: id}, function(data){
             var obj = JSON.parse(data);
 
             if(obj.status === 'success'){
