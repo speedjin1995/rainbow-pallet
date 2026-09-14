@@ -2554,3 +2554,103 @@ CREATE OR REPLACE TRIGGER `TRG_UPD_PROD_CAT` BEFORE UPDATE ON `Product_Categorie
 END
 $$
 DELIMITER ;
+
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('items_code', 'Items', '物品', 'Item', 'பொருட்கள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('item_code_code', 'Items', '物品', 'Item', 'பொருட்கள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('item_name_code', 'Items', '物品', 'Item', 'பொருட்கள்');
+
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('units_code', 'Units', '单位', 'Unit', 'அலகுகள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('unit_code', 'Unit', '单位', 'Unit', 'அலகு');
+
+ALTER TABLE `Product` ADD `category` INT(11) NOT NULL AFTER `low`, ADD `entity_type` VARCHAR(10) NOT NULL AFTER `category`;
+ALTER TABLE `Product_Log` ADD `category` INT(11) NOT NULL AFTER `low`, ADD `entity_type` VARCHAR(10) NOT NULL AFTER `category`;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_PRODUCT` AFTER INSERT ON `Product` FOR EACH ROW 
+INSERT INTO Product_Log (
+    product_id, product_code, name, description, variance, high, low, category, entity_type, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.product_code, NEW.name, NEW.description, NEW.variance, NEW.high, NEW.low, NEW.category, NEW.entity_type, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_PRODUCT` BEFORE UPDATE ON `Product` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Check if status = 1, set action_id to 3, otherwise set to 2
+    IF NEW.status = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Product_Log table
+    INSERT INTO Product_Log (
+    product_id, product_code, name, description, variance, high, low, category, entity_type, action_id, action_by, event_date
+    ) 
+    VALUES (
+        NEW.id, NEW.product_code, NEW.name, NEW.description, NEW.variance, NEW.high, NEW.low, NEW.category, NEW.entity_type, action_value, NEW.modified_by, NEW.modified_date
+    );
+END
+$$
+DELIMITER ;
+
+CREATE TABLE `Units` (
+  `id` int(11) NOT NULL,
+  `unit` varchar(100) NOT NULL,
+  `status` int(1) NOT NULL DEFAULT 0,
+  `created_by` varchar(50) DEFAULT NULL,
+  `created_date` datetime DEFAULT current_timestamp(),
+  `modified_by` varchar(50) DEFAULT NULL,
+  `modified_date` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+ALTER TABLE `Units` ADD PRIMARY KEY (`id`);
+
+ALTER TABLE `Units` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+CREATE TABLE `Units_Log` (
+  `id` int(11) NOT NULL,
+  `unit_id` int(11) NOT NULL,
+  `unit` varchar(100) NOT NULL,
+  `action_id` int(11) NOT NULL,
+  `action_by` varchar(50) NOT NULL,
+  `event_date` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+ALTER TABLE `Units_Log` ADD PRIMARY KEY (`id`);
+
+ALTER TABLE `Units_Log` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_UNITS` AFTER INSERT ON `Units` FOR EACH ROW INSERT INTO Units_Log (
+    unit_id, unit, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.unit, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_UNITS` BEFORE UPDATE ON `Units` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Check if status = 1, set action_id to 3, otherwise set to 2
+    IF NEW.status = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Units_Log table
+    INSERT INTO Units_Log (
+        unit_id, unit, action_id, action_by, event_date
+    ) 
+    VALUES (
+        NEW.id, NEW.unit, action_value, NEW.modified_by, NEW.modified_date
+    );
+END
+$$
+DELIMITER ;
