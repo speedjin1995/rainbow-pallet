@@ -2558,20 +2558,21 @@ DELIMITER ;
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('items_code', 'Items', '物品', 'Item', 'பொருட்கள்');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('item_code_code', 'Items', '物品', 'Item', 'பொருட்கள்');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('item_name_code', 'Items', '物品', 'Item', 'பொருட்கள்');
-
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('units_code', 'Units', '单位', 'Unit', 'அலகுகள்');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('unit_code', 'Unit', '单位', 'Unit', 'அலகு');
 
 ALTER TABLE `Product` ADD `category` INT(11) NOT NULL AFTER `low`, ADD `entity_type` VARCHAR(10) NOT NULL AFTER `category`;
 ALTER TABLE `Product_Log` ADD `category` INT(11) NOT NULL AFTER `low`, ADD `entity_type` VARCHAR(10) NOT NULL AFTER `category`;
+ALTER TABLE `Product` ADD `uom` INT(11) NOT NULL AFTER `entity_type`;
+ALTER TABLE `Product_Log` ADD `uom` INT(11) NOT NULL AFTER `entity_type`;
 
 DELIMITER $$
 CREATE OR REPLACE TRIGGER `TRG_INS_PRODUCT` AFTER INSERT ON `Product` FOR EACH ROW 
 INSERT INTO Product_Log (
-    product_id, product_code, name, description, variance, high, low, category, entity_type, action_id, action_by, event_date
+    product_id, product_code, name, description, variance, high, low, category, entity_type, uom, action_id, action_by, event_date
 ) 
 VALUES (
-    NEW.id, NEW.product_code, NEW.name, NEW.description, NEW.variance, NEW.high, NEW.low, NEW.category, NEW.entity_type, 1, NEW.created_by, NEW.created_date
+    NEW.id, NEW.product_code, NEW.name, NEW.description, NEW.variance, NEW.high, NEW.low, NEW.category, NEW.entity_type, NEW.uom, 1, NEW.created_by, NEW.created_date
 )
 $$
 DELIMITER ;
@@ -2588,10 +2589,10 @@ CREATE OR REPLACE TRIGGER `TRG_UPD_PRODUCT` BEFORE UPDATE ON `Product` FOR EACH 
 
     -- Insert into Product_Log table
     INSERT INTO Product_Log (
-    product_id, product_code, name, description, variance, high, low, category, entity_type, action_id, action_by, event_date
+    product_id, product_code, name, description, variance, high, low, category, entity_type, uom, action_id, action_by, event_date
     ) 
     VALUES (
-        NEW.id, NEW.product_code, NEW.name, NEW.description, NEW.variance, NEW.high, NEW.low, NEW.category, NEW.entity_type, action_value, NEW.modified_by, NEW.modified_date
+        NEW.id, NEW.product_code, NEW.name, NEW.description, NEW.variance, NEW.high, NEW.low, NEW.category, NEW.entity_type, NEW.uom, action_value, NEW.modified_by, NEW.modified_date
     );
 END
 $$
@@ -2654,3 +2655,20 @@ CREATE OR REPLACE TRIGGER `TRG_UPD_UNITS` BEFORE UPDATE ON `Units` FOR EACH ROW 
 END
 $$
 DELIMITER ;
+
+CREATE TABLE `Product_Uom` (
+  `id` int(11) NOT NULL,
+  `product_id` int(11) DEFAULT NULL,
+  `unit_id` int(11) DEFAULT NULL,
+  `rate` varchar(50) DEFAULT NULL,
+  `status` int(1) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+ALTER TABLE `Product_Uom` ADD PRIMARY KEY (`id`);
+
+ALTER TABLE `Product_Uom` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('uom_conversion_code', 'UOM Conversion', '单位换算', 'Penukaran UOM', 'அலகு மாற்றம்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('add_uom_code', 'Add UOM', '添加单位', 'Tambah UOM', 'அலகு சேர்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('uom_code', 'UOM', '单位', 'UOM', 'அலகு');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('rate_code', 'Rate', '比率', 'Kadar', 'விகிதம்');
