@@ -323,13 +323,13 @@
                                                             <thead>
                                                                 <tr>
                                                                     <th><input type="checkbox" id="selectAllCheckbox" class="selectAllCheckbox"></th>
-                                                                    <th><?=$languageArray['product_code_code'][$language]?></th>
-                                                                    <th><?=$languageArray['product_name_code'][$language]?></th>
+                                                                    <th><?=$languageArray['item_code_code'][$language] ?? 'Item Code'?></th>
+                                                                    <th><?=$languageArray['item_name_code'][$language] ?? 'Item Name'?></th>
                                                                     <th><?=$languageArray['category_code'][$language] ?? 'Category'?></th>
                                                                     <th><?=$languageArray['entity_type_code'][$language] ?? 'Entity Type'?></th>
-                                                                    <th><?=$languageArray['description_code'][$language]?></th>
-                                                                    <th><?=$languageArray['status_code'][$language]?></th>
-                                                                    <th><?=$languageArray['action_code'][$language]?></th>
+                                                                    <th><?=$languageArray['description_code'][$language] ?? 'Description'?></th>
+                                                                    <th><?=$languageArray['status_code'][$language] ?? 'Status'?></th>
+                                                                    <th><?=$languageArray['action_code'][$language] ?? 'Action'?></th>
                                                                 </tr>
                                                             </thead>
                                                         </table>

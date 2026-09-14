@@ -2556,8 +2556,8 @@ $$
 DELIMITER ;
 
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('items_code', 'Items', '物品', 'Item', 'பொருட்கள்');
-INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('item_code_code', 'Items', '物品', 'Item', 'பொருட்கள்');
-INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('item_name_code', 'Items', '物品', 'Item', 'பொருட்கள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('item_code_code', 'Item Code', '物品代码', 'Kod Item', 'பொருள் குறியீடு');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('item_name_code', 'Item Name', '物品名称', 'Nama Item', 'பொருள் பெயர்');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('units_code', 'Units', '单位', 'Unit', 'அலகுகள்');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('unit_code', 'Unit', '单位', 'Unit', 'அலகு');
 
