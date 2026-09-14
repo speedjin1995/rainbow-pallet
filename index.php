@@ -3498,6 +3498,7 @@ else{
         var fromDateI = $('#fromDateSearch').val();
         var toDateI = $('#toDateSearch').val();
         var statusI = $('#statusSearch').val() || '';
+        var companyI = $('#companySearch').val() || '';
         var customerNoI = $('#customerNoSearch').val() || '';
         var supplierI = $('#supplierSearch').val() || '';
         var vehicleNoI = $('#vehicleNo').val() || '';
@@ -3532,6 +3533,7 @@ else{
                     fromDate: fromDateI,
                     toDate: toDateI,
                     status: statusI,
+                    company: companyI,
                     customer: customerNoI,
                     supplier: supplierI,
                     vehicle: vehicleNoI,
