@@ -2491,7 +2491,7 @@ DELIMITER ;
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('details_code', 'Details', '详情', 'Butiran', 'விவரங்கள்');
 
 -- 14/09/2026 --
-INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('product_categories_code', 'Product Categories', '产品类别', 'Kategori Produk', 'தயாரிப்பு வகைகள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('product_category_code', 'Product Category', '产品类别', 'Kategori Produk', 'தயாரிப்பு வகை');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('category_name_code', 'Category Name', '类别名称', 'Nama Kategori', 'வகை பெயர்');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('entity_type_code', 'Entity Type', '实体类型', 'Jenis Entiti', 'நிறுவன வகை');
 

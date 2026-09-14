@@ -8,7 +8,7 @@
 ?>
 
 <head>
-    <title><?=$languageArray['product_categories_code'][$language] ?? 'Product Categories'?> | Synctronix - Weighing System</title>
+    <title><?=$languageArray['product_category_code'][$language] ?? 'Product Categories'?> | Synctronix - Weighing System</title>
     <?php include 'layouts/title-meta.php'; ?>
 
     <!-- jsvectormap css -->
@@ -291,7 +291,8 @@ $(function () {
         'serverSide': true,
         'serverMethod': 'post',
         'ajax': {
-            'url':'php/modules/productCategory/filter.php'
+            'url':'php/modules/productCategory/index.php',
+            'data': { action: 'getAll' }
         },
         'columns': [
             {
@@ -359,8 +360,8 @@ $(function () {
     $('#submitProductCategory').on('click', function(){
         if($('#productCategoryForm').valid()){
             $('#spinnerLoading').show();
-            var url = $('#addModal').find('#id').val() ? 'php/modules/productCategory/update.php' : 'php/modules/productCategory/create.php';
-            $.post(url, $('#productCategoryForm').serialize(), function(data){
+            var action = $('#addModal').find('#id').val() ? 'update' : 'create';
+            $.post('php/modules/productCategory/index.php', $('#productCategoryForm').serialize() + '&action=' + action, function(data){
                 var obj = JSON.parse(data);
                 if(obj.status === 'success') {
                     table.ajax.reload();
@@ -424,7 +425,7 @@ $(function () {
 
         // Send the JSON array to the server
         $.ajax({
-            url: 'php/modules/productCategory/upload.php',
+            url: 'php/modules/productCategory/index.php?action=upload',
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(data),
@@ -505,7 +506,7 @@ $(function () {
 
         if (selectedIds.length > 0) {
             if (confirm('Are you sure you want to delete these product categories?')) {
-                $.post('php/modules/productCategory/delete.php', {id: selectedIds, type: 'MULTI'}, function(data){
+                $.post('php/modules/productCategory/index.php', {action: 'delete', id: selectedIds, type: 'MULTI'}, function(data){
                     var obj = JSON.parse(data);
                     
                     if(obj.status === 'success'){
@@ -535,7 +536,7 @@ $(function () {
 
 function edit(id){
     $('#spinnerLoading').show();
-    $.post('php/modules/productCategory/get.php', {id: id}, function(data)
+    $.post('php/modules/productCategory/index.php', {action: 'get', id: id}, function(data)
     {
         var obj = JSON.parse(data);
         if(obj.status === 'success'){
@@ -577,7 +578,7 @@ function edit(id){
 function deactivate(id){
     $('#spinnerLoading').show();
     if (confirm('Are you sure you want to delete this category?')) {
-        $.post('php/modules/productCategory/delete.php', {id: id}, function(data){
+        $.post('php/modules/productCategory/index.php', {action: 'delete', id: id}, function(data){
             var obj = JSON.parse(data);
 
             if(obj.status === 'success'){
@@ -652,7 +653,7 @@ function displayPreview(data) {
 function reactivate(id) {
   if (confirm('Do you want to reactivate this category?')) {
     $('#spinnerLoading').show();
-    $.post('php/modules/productCategory/reactivate.php', {id: id}, function(data){
+    $.post('php/modules/productCategory/index.php', {action: 'reactivate', id: id}, function(data){
         var obj = JSON.parse(data);
 
         if(obj.status === 'success'){
