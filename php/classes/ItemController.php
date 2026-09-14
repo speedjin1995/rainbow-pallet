@@ -29,16 +29,16 @@ class ItemController extends BaseController {
         // Search filter
         $searchQuery = "";
         if ($searchValue != '') {
-            $searchQuery = " AND (product_code LIKE '%{$searchValue}%' OR name LIKE '%{$searchValue}%' OR description LIKE '%{$searchValue}%')";
+            $searchQuery = " AND (p.product_code LIKE '%{$searchValue}%' OR p.name LIKE '%{$searchValue}%' OR p.description LIKE '%{$searchValue}%' OR c.category_name LIKE '%{$searchValue}%' OR p.entity_type LIKE '%{$searchValue}%')";
         }
         
         // Filtered records
-        $filteredQuery = "SELECT COUNT(*) as total FROM {$this->table} WHERE status = 0 {$searchQuery}";
+        $filteredQuery = "SELECT COUNT(*) as total FROM {$this->table} p LEFT JOIN Product_Categories c ON p.category = c.id WHERE p.status = 0 {$searchQuery}";
         $filteredResult = $this->db->query($filteredQuery);
         $totalFiltered = $filteredResult->fetch_assoc()['total'];
         
         // Data
-        $dataQuery = "SELECT id, product_code, name, description, status FROM {$this->table} WHERE status = 0 {$searchQuery} ORDER BY {$columnName} {$columnSortOrder} LIMIT {$start}, {$length}";
+        $dataQuery = "SELECT p.id, p.product_code, p.name, p.description, p.status, p.entity_type, IFNULL(c.category_name, '') as category_name FROM {$this->table} p LEFT JOIN Product_Categories c ON p.category = c.id WHERE p.status = 0 {$searchQuery} ORDER BY {$columnName} {$columnSortOrder} LIMIT {$start}, {$length}";
         $dataResult = $this->db->query($dataQuery);
         
         $data = [];

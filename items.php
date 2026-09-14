@@ -325,6 +325,8 @@
                                                                     <th><input type="checkbox" id="selectAllCheckbox" class="selectAllCheckbox"></th>
                                                                     <th><?=$languageArray['product_code_code'][$language]?></th>
                                                                     <th><?=$languageArray['product_name_code'][$language]?></th>
+                                                                    <th><?=$languageArray['category_code'][$language] ?? 'Category'?></th>
+                                                                    <th><?=$languageArray['entity_type_code'][$language] ?? 'Entity Type'?></th>
                                                                     <th><?=$languageArray['description_code'][$language]?></th>
                                                                     <th><?=$languageArray['status_code'][$language]?></th>
                                                                     <th><?=$languageArray['action_code'][$language]?></th>
@@ -455,6 +457,8 @@
                     },
                     { data: 'product_code' },
                     { data: 'name' },
+                    { data: 'category_name' },
+                    { data: 'entity_type' },
                     { data: 'description' },
                     { 
                         data: 'id',
