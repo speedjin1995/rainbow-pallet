@@ -7,6 +7,7 @@ $defaultModules = [
     ['name' => 'Companies', 'category' => 'Master Data'],
     ['name' => 'Customer', 'category' => 'Master Data'],
     ['name' => 'Destination', 'category' => 'Master Data'],
+    ['name' => 'Product Category', 'category' => 'Master Data'],
     ['name' => 'Products', 'category' => 'Master Data'],
     ['name' => 'Raw Material', 'category' => 'Master Data'],
     ['name' => 'Supplier', 'category' => 'Master Data'],

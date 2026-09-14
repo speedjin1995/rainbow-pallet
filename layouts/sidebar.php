@@ -139,6 +139,12 @@
                             </li>
                             <?php endif; ?>
                             
+                            <?php if(hasModulePermission('Master Data', 'Product Category', ['view', 'create', 'edit'])): ?>
+                            <li class="nav-item">
+                                <a href="productCategories.php" class="nav-link"><?=$languageArray['product_categories_code'][$language]?></a>
+                            </li>
+                            <?php endif; ?>
+
                             <?php if(hasModulePermission('Master Data', 'Products', ['view', 'create', 'edit'])): ?>
                             <li class="nav-item">
                                 <a href="product.php" class="nav-link"><?=$languageArray['product_code'][$language]?></a>
