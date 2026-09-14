@@ -96,12 +96,12 @@
                                                                             </div>
                                                                             <div class="col-xxl-12 col-lg-12 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="entityType" class="col-sm-4 col-form-label"><?=$languageArray['entity_type_code'][$language] ?? 'Entity Type'?> *</label>
+                                                                                    <label for="postToSql" class="col-sm-4 col-form-label"><?=$languageArray['post_to_sql_code'][$language] ?? 'Post to SQL'?> *</label>
                                                                                     <div class="col-sm-8">
-                                                                                        <select class="form-select" id="entityType" name="entityType" required>
+                                                                                        <select class="form-select" id="postToSql" name="postToSql" required>
                                                                                             <option value=""><?=$languageArray['please_select_code'][$language] ?? 'Please Select'?></option>
-                                                                                            <option value="Supplier"><?=$languageArray['supplier_code'][$language] ?? 'Supplier'?></option>
-                                                                                            <option value="Customer"><?=$languageArray['customer_code'][$language] ?? 'Customer'?></option>
+                                                                                            <option value="Y"><?=$languageArray['yes_code'][$language] ?? 'Yes'?></option>
+                                                                                            <option value="N"><?=$languageArray['no_code'][$language] ?? 'No'?></option>
                                                                                         </select>
                                                                                         <div class="invalid-feedback">
                                                                                             <?=$languageArray['please_fill_in_the_field_code'][$language] ?? 'Please fill in the field'?>
@@ -218,7 +218,7 @@
                                                                 <tr>
                                                                     <th><input type="checkbox" id="selectAllCheckbox" class="selectAllCheckbox"></th>
                                                                     <th><?=$languageArray['category_name_code'][$language] ?? 'Category Name'?></th>
-                                                                    <th><?=$languageArray['entity_type_code'][$language] ?? 'Entity Type'?></th>
+                                                                    <th><?=$languageArray['post_to_sql_code'][$language] ?? 'Post to SQL'?></th>
                                                                     <th><?=$languageArray['status_code'][$language] ?? 'Status'?></th>
                                                                     <th><?=$languageArray['action_code'][$language] ?? 'Action'?></th>
                                                                 </tr>
@@ -303,7 +303,7 @@ $(function () {
                 }
             },
             { data: 'category_name' },
-            { data: 'entity_type' },
+            { data: 'post_to_sql' },
             {
                 data: 'id',
                 render: function ( data, type, row ) {
@@ -382,7 +382,7 @@ $(function () {
     $('#addProductCategory').on('click', function(){
         $('#addModal').find('#id').val("");
         $('#addModal').find('#categoryName').val("");
-        $('#addModal').find('#entityType').val("");
+        $('#addModal').find('#postToSql').val("");
 
         // Remove Validation Error Message
         $('#addModal .is-invalid').removeClass('is-invalid');
@@ -541,7 +541,7 @@ function edit(id){
         if(obj.status === 'success'){
             $('#addModal').find('#id').val(obj.data.id);
             $('#addModal').find('#categoryName').val(obj.data.category_name);
-            $('#addModal').find('#entityType').val(obj.data.entity_type);
+            $('#addModal').find('#postToSql').val(obj.data.post_to_sql);
 
             // Remove Validation Error Message
             $('#addModal .is-invalid').removeClass('is-invalid');

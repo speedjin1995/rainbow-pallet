@@ -29,7 +29,7 @@ class ProductCategoryController extends BaseController {
         // Search filter
         $searchQuery = "";
         if ($searchValue != '') {
-            $searchQuery = " AND (category_name LIKE '%{$searchValue}%' OR entity_type LIKE '%{$searchValue}%')";
+            $searchQuery = " AND (category_name LIKE '%{$searchValue}%' OR post_to_sql LIKE '%{$searchValue}%')";
         }
         
         // Filtered records
@@ -38,7 +38,7 @@ class ProductCategoryController extends BaseController {
         $totalFiltered = $filteredResult->fetch_assoc()['total'];
         
         // Data
-        $dataQuery = "SELECT id, category_name, entity_type, status FROM {$this->table} WHERE status = 0 {$searchQuery} ORDER BY {$columnName} {$columnSortOrder} LIMIT {$start}, {$length}";
+        $dataQuery = "SELECT id, category_name, CASE WHEN post_to_sql = 'Y' THEN 'Yes' ELSE 'No' END AS post_to_sql, status FROM {$this->table} WHERE status = 0 {$searchQuery} ORDER BY {$columnName} {$columnSortOrder} LIMIT {$start}, {$length}";
         $dataResult = $this->db->query($dataQuery);
         
         $data = [];
@@ -60,7 +60,7 @@ class ProductCategoryController extends BaseController {
      */
     public function create() {
         $categoryName = $this->getRequiredPost('categoryName');
-        $entityType = $this->getRequiredPost('entityType');
+        $postToSql = $this->getRequiredPost('postToSql');
         
         // Check duplicate
         if ($this->isDuplicate('category_name', $categoryName)) {
@@ -70,12 +70,12 @@ class ProductCategoryController extends BaseController {
         try {
             $this->db->begin_transaction();
             
-            $stmt = $this->db->prepare("INSERT INTO {$this->table} (category_name, entity_type, created_by, modified_by) VALUES (?, ?, ?, ?)");
+            $stmt = $this->db->prepare("INSERT INTO {$this->table} (category_name, post_to_sql, created_by, modified_by) VALUES (?, ?, ?, ?)");
             if (!$stmt) {
                 throw new Exception($this->db->error);
             }
             
-            $stmt->bind_param('ssss', $categoryName, $entityType, $this->username, $this->username);
+            $stmt->bind_param('ssss', $categoryName, $postToSql, $this->username, $this->username);
             
             if (!$stmt->execute()) {
                 throw new Exception($stmt->error);
@@ -99,7 +99,7 @@ class ProductCategoryController extends BaseController {
     public function update() {
         $id = $this->getRequiredPost('id');
         $categoryName = $this->getRequiredPost('categoryName');
-        $entityType = $this->getRequiredPost('entityType');
+        $postToSql = $this->getRequiredPost('postToSql');
         
         // Check duplicate (exclude current record)
         if ($this->isDuplicate('category_name', $categoryName, $id)) {
@@ -109,12 +109,12 @@ class ProductCategoryController extends BaseController {
         try {
             $this->db->begin_transaction();
             
-            $stmt = $this->db->prepare("UPDATE {$this->table} SET category_name=?, entity_type=?, modified_by=? WHERE id=?");
+            $stmt = $this->db->prepare("UPDATE {$this->table} SET category_name=?, post_to_sql=?, modified_by=? WHERE id=?");
             if (!$stmt) {
                 throw new Exception($this->db->error);
             }
             
-            $stmt->bind_param('sssi', $categoryName, $entityType, $this->username, $id);
+            $stmt->bind_param('sssi', $categoryName, $postToSql, $this->username, $id);
             
             if (!$stmt->execute()) {
                 throw new Exception($stmt->error);
@@ -245,7 +245,7 @@ class ProductCategoryController extends BaseController {
             $rowNum = $index + 1; // Excel row number (1-based + header)
             
             $categoryName = isset($row['CategoryName']) ? trim($row['CategoryName']) : null;
-            $entityType = isset($row['EntityType']) ? trim($row['EntityType']) : null;
+            $postToSql = isset($row['PostToSQL']) ? trim($row['PostToSQL']) : null;
             
             // Validate required fields
             if (empty($categoryName)) {
@@ -253,14 +253,18 @@ class ProductCategoryController extends BaseController {
                 continue;
             }
             
-            if (empty($entityType)) {
-                $errors[] = "Row {$rowNum}: Entity Type is required";
+            if (empty($postToSql)) {
+                $errors[] = "Row {$rowNum}: Post to SQL is required";
                 continue;
             }
             
-            // Validate entity type value
-            if (!in_array($entityType, ['Supplier', 'Customer'])) {
-                $errors[] = "Row {$rowNum}: Entity Type must be 'Supplier' or 'Customer'";
+            // Validate and format post to sql value
+            if (in_array($postToSql, ['Yes', 'Y'])) {
+                $postToSql = 'Y';
+            } elseif (in_array($postToSql, ['No', 'N'])) {
+                $postToSql = 'N';
+            } else {
+                $errors[] = "Row {$rowNum}: Post to SQL must be 'Yes' or 'No'";
                 continue;
             }
             
@@ -271,8 +275,8 @@ class ProductCategoryController extends BaseController {
             }
             
             // Insert
-            $stmt = $this->db->prepare("INSERT INTO {$this->table} (category_name, entity_type, created_by, modified_by) VALUES (?, ?, ?, ?)");
-            $stmt->bind_param('ssss', $categoryName, $entityType, $this->username, $this->username);
+            $stmt = $this->db->prepare("INSERT INTO {$this->table} (category_name, post_to_sql, created_by) VALUES (?, ?, ?)");
+            $stmt->bind_param('sss', $categoryName, $postToSql, $this->username);
             
             if ($stmt->execute()) {
                 $successCount++;

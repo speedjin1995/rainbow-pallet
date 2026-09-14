@@ -2492,11 +2492,13 @@ INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALU
 
 -- 14/09/2026 --
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('product_categories_code', 'Product Categories', '产品类别', 'Kategori Produk', 'தயாரிப்பு வகைகள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('category_name_code', 'Category Name', '类别名称', 'Nama Kategori', 'வகை பெயர்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('entity_type_code', 'Entity Type', '实体类型', 'Jenis Entiti', 'நிறுவன வகை');
 
 CREATE TABLE `Product_Categories` (
   `id` int(11) NOT NULL,
   `category_name` varchar(100) NOT NULL,
-  `entity_type` varchar(10) NOT NULL,
+  `post_to_sql` varchar(1) NOT NULL DEFAULT 'Y',
   `status` int(1) NOT NULL DEFAULT 0,
   `created_by` varchar(50) DEFAULT NULL,
   `created_date` datetime DEFAULT current_timestamp(),
@@ -2512,7 +2514,7 @@ CREATE TABLE `Product_Categories_Log` (
   `id` int(11) NOT NULL,
   `category_id` int(11) NOT NULL,
   `category_name` varchar(100) NOT NULL,
-  `entity_type` varchar(10) NOT NULL,
+  `post_to_sql` varchar(1) NOT NULL DEFAULT 'Y',
   `action_id` int(11) NOT NULL,
   `action_by` varchar(50) NOT NULL,
   `event_date` datetime NOT NULL DEFAULT current_timestamp()
@@ -2524,10 +2526,10 @@ ALTER TABLE `Product_Categories_Log` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT
 
 DELIMITER $$
 CREATE OR REPLACE TRIGGER `TRG_INS_PROD_CAT` AFTER INSERT ON `Product_Categories` FOR EACH ROW INSERT INTO Product_Categories_Log (
-    category_id, category_name, entity_type, action_id, action_by, event_date
+    category_id, category_name, post_to_sql, action_id, action_by, event_date
 ) 
 VALUES (
-    NEW.id, NEW.category_name, NEW.entity_type, 1, NEW.created_by, NEW.created_date
+    NEW.id, NEW.category_name, NEW.post_to_sql, 1, NEW.created_by, NEW.created_date
 )
 $$
 DELIMITER ;
@@ -2544,10 +2546,10 @@ CREATE OR REPLACE TRIGGER `TRG_UPD_PROD_CAT` BEFORE UPDATE ON `Product_Categorie
 
     -- Insert into Product_Categories_Log table
     INSERT INTO Product_Categories_Log (
-        category_id, category_name, entity_type, action_id, action_by, event_date
+        category_id, category_name, post_to_sql, action_id, action_by, event_date
     ) 
     VALUES (
-        NEW.id, NEW.category_name, NEW.entity_type, action_value, NEW.modified_by, NEW.modified_date
+        NEW.id, NEW.category_name, NEW.post_to_sql, action_value, NEW.modified_by, NEW.modified_date
     );
 END
 $$
