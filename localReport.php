@@ -7,6 +7,7 @@ require_once "php/requires/lookup.php";
 $plantId = $_SESSION['plant'];
 $selectedPlantId = $_SESSION['selected_plant_id'] ?? null;
 
+$company = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
 $supplier = $db->query("SELECT * FROM Supplier WHERE status = '0' ORDER BY name ASC");
 $transporter = $db->query("SELECT * FROM Transporter WHERE status = '0'");
 $destination = $db->query("SELECT * FROM Destination WHERE status = '0'");
@@ -114,6 +115,17 @@ else{
                                                             <label for="transactionStatusSearch" class="form-label"><?=$languageArray['transaction_status_code'][$language]?></label>
                                                             <select id="transactionStatusSearch" class="form-select select2">
                                                                 <option value="Local"><?=$languageArray['internal_transfer_code'][$language]?></option>
+                                                            </select>
+                                                        </div>
+                                                    </div><!--end col-->
+                                                    <div class="col-3">
+                                                        <div class="mb-3">
+                                                            <label for="companySearch" class="form-label"><?=$languageArray['company_code'][$language]?></label>
+                                                            <select id="companySearch" class="form-select select2">
+                                                                <option selected>-</option>
+                                                                <?php while($rowCompany = mysqli_fetch_assoc($company)){ ?>
+                                                                    <option value="<?=$rowCompany['id'] ?>"><?=$rowCompany['name'] ?></option>
+                                                                <?php } ?>
                                                             </select>
                                                         </div>
                                                     </div><!--end col-->
@@ -532,6 +544,7 @@ else{
             fromDateSearchPicker.setDate(yesterday);
             toDateSearchPicker.setDate(today);
             $('#transactionStatusSearch').val('Local').trigger('change');
+            $('#companySearch').val('-').trigger('change');
             $('#supplierSearch').val('-').trigger('change');
             $('#vehicleNo').val('');
             $('#invoiceNoSearch').val('-').trigger('change');
@@ -673,6 +686,7 @@ else{
                 fromDate: $('#fromDateSearch').val(),
                 toDate: $('#toDateSearch').val(),
                 transactionStatus: $('#transactionStatusSearch').val() || '',
+                company: $('#companySearch').val() || '',
                 supplier: $('#supplierSearch').val() || '',
                 vehicle: $('#vehicleNo').val() || '',
                 weighingType: $('#invoiceNoSearch').val() || '',
@@ -715,6 +729,7 @@ else{
                 "&fromDate=" + encodeURIComponent($('#fromDateSearch').val()) +
                 "&toDate=" + encodeURIComponent($('#toDateSearch').val()) +
                 "&transactionStatus=" + encodeURIComponent($('#transactionStatusSearch').val() || '') +
+                "&company=" + encodeURIComponent($('#companySearch').val() || '') +
                 "&supplier=" + encodeURIComponent($('#supplierSearch').val() || '') +
                 "&vehicle=" + encodeURIComponent($('#vehicleNo').val() || '') +
                 "&weighingType=" + encodeURIComponent($('#invoiceNoSearch').val() || '') +
@@ -740,7 +755,7 @@ else{
                 var isEmptyContainer = $('#prePrintModal').find('#isEmptyContainer').val();
                 var printTemplate = $('#prePrintModal').find('#printTemplate').val();
                 var transactionStatus = $('#prePrintModal').find('#prePrintTransactionStatus').val();
-                $.post('php/print.php', {userID: id, file: 'weight', prePrint: prePrintStatus, isEmptyContainer: isEmptyContainer, printTemplate: printTemplate, transactionStatus: transactionStatus}, function(data){
+                $.post('php/modules/weighing/index.php', {action: 'print', userID: id, file: 'weight', prePrint: prePrintStatus, isEmptyContainer: isEmptyContainer, printTemplate: printTemplate, transactionStatus: transactionStatus}, function(data){
                     var obj = JSON.parse(data);
 
                     if(obj.status === 'success'){
@@ -772,6 +787,7 @@ else{
         var fromDateI = $('#fromDateSearch').val();
         var toDateI = $('#toDateSearch').val();
         var transactionStatusI = $('#transactionStatusSearch').val() || '';
+        var companyI = $('#companySearch').val() || '';
         var customerNoI = $('#customerNoSearch').val() || '';
         var supplierNoI = $('#supplierSearch').val() || '';
         var vehicleNoI = $('#vehicleNo').val() || '';
@@ -803,6 +819,7 @@ else{
                     fromDate: fromDateI,
                     toDate: toDateI,
                     transactionStatus: transactionStatusI,
+                    company: companyI,
                     customer: customerNoI,
                     supplier: supplierNoI,
                     vehicle: vehicleNoI,
@@ -849,7 +866,7 @@ else{
                         if (isSADMIN || (permissions['Reports'] && permissions['Reports']['Local'] && permissions['Reports']['Local'].includes('print'))) {
                             return '<div class="dropdown d-inline-block"><button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">' +
                                 '<i class="ri-more-fill align-middle"></i></button><ul class="dropdown-menu dropdown-menu-end">' +
-                                '<li><a class="dropdown-item print-item-btn" id="print' + data + '" onclick="print(' + data + ')"><i class="ri-printer-fill align-bottom me-2 text-muted"></i> <?=$languageArray['print_code'][$language] ?? 'Print'?></a></li></ul></div>';
+                                '<li><a class="dropdown-item print-item-btn" id="print' + data + '" onclick="print(' + data + ', \'Local\')"><i class="ri-printer-fill align-bottom me-2 text-muted"></i> <?=$languageArray['print_code'][$language] ?? 'Print'?></a></li></ul></div>';
                         }
                         return '';
                     }
@@ -865,7 +882,7 @@ else{
         $('#prePrintModal').find('#prePrint').val("<?=$language ?>");
         $('#prePrintModal').find('#printTemplate').val("with_weight");
 
-        if (transactionStatus == 'Purchase' || isEmptyContainer == 'Y') {
+        if (transactionStatus == 'Purchase' || transactionStatus == 'Local' || isEmptyContainer == 'Y') {
             $('#prePrintModal').find('#printTemplateDisplay').hide();
         } else {
             $('#prePrintModal').find('#printTemplateDisplay').show();

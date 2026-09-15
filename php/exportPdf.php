@@ -132,6 +132,15 @@ if(isset($_POST['plant']) && $_POST['plant'] != null && $_POST['plant'] != '' &&
     }
 }
 
+if(isset($_POST['company']) && $_POST['company'] != null && $_POST['company'] != '' && $_POST['company'] != '-'){
+    if($_POST["file"] == 'weight'){
+        $searchQuery .= " and Weight.company_id = '".$_POST['company']."'";
+    }
+    else{
+        $searchQuery .= " and count.company_id = '".$_POST['company']."'";
+    }
+}
+
 if($_POST['status'] != null && $_POST['status'] != '' && $_POST['status'] != '-'){
     if ($_POST['status'] == 'Complete'){
         $searchQuery .= " and is_complete = 'Y'";

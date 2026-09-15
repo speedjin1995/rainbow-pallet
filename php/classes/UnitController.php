@@ -37,9 +37,9 @@ class UnitController extends BaseController {
         
         echo json_encode([
             'draw' => intval($draw),
-            'iTotalRecords' => $totalRecords,
-            'iTotalDisplayRecords' => $totalFiltered,
-            'aaData' => $data
+            'recordsTotal' => $totalRecords,
+            'recordsFiltered' => $totalFiltered,
+            'data' => $data
         ]);
         exit();
     }
@@ -169,7 +169,7 @@ class UnitController extends BaseController {
         
         if ($row = $result->fetch_assoc()) {
             $stmt->close();
-            $this->success('Record found', $row);
+            $this->success('Record found', ['data' => $row]);
         } else {
             $stmt->close();
             $this->failed('Record not found');

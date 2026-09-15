@@ -15,13 +15,10 @@ class BaseController {
     }
     
     /**
-     * Send JSON response
+     * Send JSON response — any extra key-value pairs in $extra are merged at top level
      */
-    protected function response($status, $message, $data = null) {
-        $response = ['status' => $status, 'message' => $message];
-        if ($data !== null) {
-            $response['data'] = $data;
-        }
+    protected function response($status, $message, $extra = []) {
+        $response = array_merge(['status' => $status, 'message' => $message], $extra);
         echo json_encode($response);
         exit();
     }
@@ -29,15 +26,15 @@ class BaseController {
     /**
      * Success response
      */
-    protected function success($message, $data = null) {
-        $this->response('success', $message, $data);
+    protected function success($message, $extra = []) {
+        $this->response('success', $message, $extra);
     }
     
     /**
      * Failed response
      */
-    protected function failed($message) {
-        $this->response('failed', $message);
+    protected function failed($message, $extra = []) {
+        $this->response('failed', $message, $extra);
     }
     
     /**
