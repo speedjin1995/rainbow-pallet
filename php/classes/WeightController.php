@@ -18,6 +18,57 @@ class WeightController extends BaseController {
         $service->handle();
     }
 
+    // ─── Filter / Get / Delete ────────────────────────────────────────────────────
+    public function handleFilterWeight() {
+        echo json_encode($this->service->filterWeight($_POST, $_SESSION['language'], $_SESSION['languageArray']));
+    }
+
+    public function handleFilterEmptyContainer() {
+        echo json_encode($this->service->filterEmptyContainer($_POST, $_SESSION['language'], $_SESSION['languageArray']));
+    }
+
+    public function handleGetWeight() {
+        $id       = $_POST['userID'] ?? null;
+        $format   = $_POST['format'] ?? 'MODAL';
+        $type     = $_POST['type'] ?? 'Weight';
+        $acctType = $_POST['acctType'] ?? null;
+        $fromDate = $_POST['fromDate'] ?? null;
+        $toDate   = $_POST['toDate'] ?? null;
+        if (!$id) $this->failed('Missing Attribute');
+        $data = $this->service->getWeight($id, $format, $type, $acctType, $fromDate, $toDate);
+        if ($data === null) $this->failed('Something went wrong');
+        echo json_encode(['status' => 'success', 'message' => $data]);
+    }
+
+    public function handleGetEmptyContainer() {
+        $id = $_POST['userID'] ?? null;
+        if (!$id) $this->failed('Missing Attribute');
+        $data = $this->service->getEmptyContainer($id);
+        if ($data === null) $this->failed('Record not found');
+        echo json_encode(['status' => 'success', 'message' => $data]);
+    }
+
+    public function handleGetContainers() {
+        $id = $_POST['userID'] ?? null;
+        if (!$id) $this->failed('Missing Attribute');
+        echo json_encode(['status' => 'success', 'message' => $this->service->getContainers($id)]);
+    }
+
+    public function handleDelete() {
+        $cancelReason     = $_POST['cancelReason'] ?? null;
+        $isEmptyContainer = $_POST['isEmptyContainer'] ?? 'N';
+        $isMulti          = $_POST['isMulti'] ?? '';
+        $id               = $_POST['id'] ?? null;
+        $containerId      = $_POST['containerId'] ?? null;
+        if ($cancelReason === null) $this->failed('Please fill in all the fields');
+        try {
+            $this->service->deleteWeight($id, $cancelReason, $isEmptyContainer, $isMulti, $containerId);
+            $this->success('Deleted');
+        } catch (Exception $e) {
+            $this->failed($e->getMessage());
+        }
+    }
+
     // ─── Entry Point ─────────────────────────────────────────────────────────────
     public function handle() {
         try {
