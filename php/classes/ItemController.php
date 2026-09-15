@@ -338,7 +338,7 @@ class ItemController extends BaseController {
             
             $row['uom_conversions'] = $uomData;
             
-            $this->success('Record found', $row);
+            $this->success('Record found', ['data' => $row]);
         } else {
             $stmt->close();
             $this->failed('Record not found');
