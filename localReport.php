@@ -10,7 +10,7 @@ $selectedPlantId = $_SESSION['selected_plant_id'] ?? null;
 $supplier = $db->query("SELECT * FROM Supplier WHERE status = '0' ORDER BY name ASC");
 $transporter = $db->query("SELECT * FROM Transporter WHERE status = '0'");
 $destination = $db->query("SELECT * FROM Destination WHERE status = '0'");
-$rawMaterial = $db->query("SELECT * FROM Raw_Mat WHERE status = '0'");
+$rawMaterial = $db->query("SELECT * FROM Product WHERE status = '0' AND entity_type = 'Supplier' ORDER BY name ASC");
 
 $plantName = '-';
 $plantCode = '-';
@@ -156,11 +156,11 @@ else{
                                                     </div>--><!--end col-->
                                                     <div class="col-3">
                                                         <div class="mb-3">
-                                                            <label for="rawMatSearch" class="form-label"><?=$languageArray['raw_material_code_code'][$language]?></label>
+                                                            <label for="rawMatSearch" class="form-label"><?=$languageArray['raw_material_code'][$language]?></label>
                                                             <select id="rawMatSearch" class="form-select select2">
                                                                 <option selected>-</option>
                                                                 <?php while($rowRawMatF=mysqli_fetch_assoc($rawMaterial)){ ?>
-                                                                    <option value="<?=$rowRawMatF['raw_mat_code'] ?>"><?=$rowRawMatF['name'] ?></option>
+                                                                    <option value="<?=$rowRawMatF['product_code'] ?>"><?=$rowRawMatF['name'] ?></option>
                                                                 <?php } ?>
                                                             </select>
                                                         </div>

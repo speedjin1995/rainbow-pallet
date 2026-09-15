@@ -16,8 +16,8 @@ $vehicles = $db->query("SELECT DISTINCT veh_number FROM Vehicle WHERE status = '
 $vehicles2 = $db->query("SELECT * FROM Vehicle WHERE status = '0' ORDER BY veh_number ASC");
 $supplier = $db->query("SELECT * FROM Supplier WHERE status = '0' ORDER BY name ASC");
 $supplier2 = $db->query("SELECT * FROM Supplier WHERE status = '0' ORDER BY name ASC");
-$rawMaterial = $db->query("SELECT * FROM Raw_Mat WHERE status = '0' ORDER BY name ASC");
-$rawMaterial2 = $db->query("SELECT * FROM Raw_Mat WHERE status = '0' ORDER BY name ASC");
+$rawMaterial = $db->query("SELECT * FROM Product WHERE status = '0' AND entity_type = 'Supplier' ORDER BY name ASC");
+$rawMaterial2 = $db->query("SELECT * FROM Product WHERE status = '0' AND entity_type = 'Supplier' ORDER BY name ASC");
 
 $plantName = '-';
 $plantCode = '-';
@@ -145,7 +145,7 @@ else{
                                                             <select id="rawMatSearch" class="form-select select2">
                                                                 <option selected>-</option>
                                                                 <?php while($rowRawMatF=mysqli_fetch_assoc($rawMaterial2)){ ?>
-                                                                    <option value="<?=$rowRawMatF['raw_mat_code'] ?>"><?=$rowRawMatF['name'] ?></option>
+                                                                    <option value="<?=$rowRawMatF['product_code'] ?>"><?=$rowRawMatF['name'] ?></option>
                                                                 <?php } ?>
                                                             </select>
                                                         </div>

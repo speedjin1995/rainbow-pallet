@@ -2490,3 +2490,188 @@ DELIMITER ;
 
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('details_code', 'Details', '详情', 'Butiran', 'விவரங்கள்');
 
+-- 14/09/2026 --
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('product_category_code', 'Product Category', '产品类别', 'Kategori Produk', 'தயாரிப்பு வகை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('category_name_code', 'Category Name', '类别名称', 'Nama Kategori', 'வகை பெயர்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('entity_type_code', 'Entity Type', '实体类型', 'Jenis Entiti', 'நிறுவன வகை');
+
+CREATE TABLE `Product_Categories` (
+  `id` int(11) NOT NULL,
+  `category_name` varchar(100) NOT NULL,
+  `post_to_sql` varchar(1) NOT NULL DEFAULT 'Y',
+  `status` int(1) NOT NULL DEFAULT 0,
+  `created_by` varchar(50) DEFAULT NULL,
+  `created_date` datetime DEFAULT current_timestamp(),
+  `modified_by` varchar(50) DEFAULT NULL,
+  `modified_date` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+ALTER TABLE `Product_Categories` ADD PRIMARY KEY (`id`);
+
+ALTER TABLE `Product_Categories` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+CREATE TABLE `Product_Categories_Log` (
+  `id` int(11) NOT NULL,
+  `category_id` int(11) NOT NULL,
+  `category_name` varchar(100) NOT NULL,
+  `post_to_sql` varchar(1) NOT NULL DEFAULT 'Y',
+  `action_id` int(11) NOT NULL,
+  `action_by` varchar(50) NOT NULL,
+  `event_date` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+ALTER TABLE `Product_Categories_Log` ADD PRIMARY KEY (`id`);
+  
+ALTER TABLE `Product_Categories_Log` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_PROD_CAT` AFTER INSERT ON `Product_Categories` FOR EACH ROW INSERT INTO Product_Categories_Log (
+    category_id, category_name, post_to_sql, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.category_name, NEW.post_to_sql, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_PROD_CAT` BEFORE UPDATE ON `Product_Categories` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Check if status = 1, set action_id to 3, otherwise set to 2
+    IF NEW.status = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Product_Categories_Log table
+    INSERT INTO Product_Categories_Log (
+        category_id, category_name, post_to_sql, action_id, action_by, event_date
+    ) 
+    VALUES (
+        NEW.id, NEW.category_name, NEW.post_to_sql, action_value, NEW.modified_by, NEW.modified_date
+    );
+END
+$$
+DELIMITER ;
+
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('items_code', 'Items', '物品', 'Item', 'பொருட்கள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('item_code_code', 'Item Code', '物品代码', 'Kod Item', 'பொருள் குறியீடு');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('item_name_code', 'Item Name', '物品名称', 'Nama Item', 'பொருள் பெயர்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('units_code', 'Units', '单位', 'Unit', 'அலகுகள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('unit_code', 'Unit', '单位', 'Unit', 'அலகு');
+
+ALTER TABLE `Product` ADD `category` INT(11) NOT NULL AFTER `low`, ADD `entity_type` VARCHAR(10) NOT NULL AFTER `category`;
+ALTER TABLE `Product_Log` ADD `category` INT(11) NOT NULL AFTER `low`, ADD `entity_type` VARCHAR(10) NOT NULL AFTER `category`;
+ALTER TABLE `Product` ADD `uom` INT(11) NOT NULL AFTER `entity_type`;
+ALTER TABLE `Product_Log` ADD `uom` INT(11) NOT NULL AFTER `entity_type`;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_PRODUCT` AFTER INSERT ON `Product` FOR EACH ROW 
+INSERT INTO Product_Log (
+    product_id, product_code, name, description, variance, high, low, category, entity_type, uom, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.product_code, NEW.name, NEW.description, NEW.variance, NEW.high, NEW.low, NEW.category, NEW.entity_type, NEW.uom, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_PRODUCT` BEFORE UPDATE ON `Product` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Check if status = 1, set action_id to 3, otherwise set to 2
+    IF NEW.status = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Product_Log table
+    INSERT INTO Product_Log (
+    product_id, product_code, name, description, variance, high, low, category, entity_type, uom, action_id, action_by, event_date
+    ) 
+    VALUES (
+        NEW.id, NEW.product_code, NEW.name, NEW.description, NEW.variance, NEW.high, NEW.low, NEW.category, NEW.entity_type, NEW.uom, action_value, NEW.modified_by, NEW.modified_date
+    );
+END
+$$
+DELIMITER ;
+
+CREATE TABLE `Units` (
+  `id` int(11) NOT NULL,
+  `unit` varchar(100) NOT NULL,
+  `status` int(1) NOT NULL DEFAULT 0,
+  `created_by` varchar(50) DEFAULT NULL,
+  `created_date` datetime DEFAULT current_timestamp(),
+  `modified_by` varchar(50) DEFAULT NULL,
+  `modified_date` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+ALTER TABLE `Units` ADD PRIMARY KEY (`id`);
+
+ALTER TABLE `Units` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+CREATE TABLE `Units_Log` (
+  `id` int(11) NOT NULL,
+  `unit_id` int(11) NOT NULL,
+  `unit` varchar(100) NOT NULL,
+  `action_id` int(11) NOT NULL,
+  `action_by` varchar(50) NOT NULL,
+  `event_date` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+ALTER TABLE `Units_Log` ADD PRIMARY KEY (`id`);
+
+ALTER TABLE `Units_Log` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_UNITS` AFTER INSERT ON `Units` FOR EACH ROW INSERT INTO Units_Log (
+    unit_id, unit, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.unit, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_UNITS` BEFORE UPDATE ON `Units` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Check if status = 1, set action_id to 3, otherwise set to 2
+    IF NEW.status = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Units_Log table
+    INSERT INTO Units_Log (
+        unit_id, unit, action_id, action_by, event_date
+    ) 
+    VALUES (
+        NEW.id, NEW.unit, action_value, NEW.modified_by, NEW.modified_date
+    );
+END
+$$
+DELIMITER ;
+
+CREATE TABLE `Product_Uom` (
+  `id` int(11) NOT NULL,
+  `product_id` int(11) DEFAULT NULL,
+  `unit_id` int(11) DEFAULT NULL,
+  `rate` varchar(50) DEFAULT NULL,
+  `status` int(1) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+ALTER TABLE `Product_Uom` ADD PRIMARY KEY (`id`);
+
+ALTER TABLE `Product_Uom` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('uom_conversion_code', 'UOM Conversion', '单位换算', 'Penukaran UOM', 'அலகு மாற்றம்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('add_uom_code', 'Add UOM', '添加单位', 'Tambah UOM', 'அலகு சேர்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('uom_code', 'UOM', '单位', 'UOM', 'அலகு');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('rate_code', 'Rate', '比率', 'Kadar', 'விகிதம்');
+
+UPDATE message_resource SET en = 'Item', zh = '物品', my = 'Item', ne = 'பொருள்' WHERE message_key_code = 'raw_material_code';
+UPDATE message_resource SET en = 'Item', zh = '物品', my = 'Item', ne = 'பொருள்' WHERE message_key_code = 'product_code';

@@ -2,101 +2,83 @@
 session_start();
 require_once '../../db_connect.php';
 
-if(!isset($_SESSION['id'])){
-	echo '<script type="text/javascript">location.href = "../login.php";</script>'; 
-} else{
-	$username = $_SESSION["username"];
+if (!isset($_SESSION['id'])) {
+    echo '<script type="text/javascript">location.href = "../login.php";</script>';
+} else {
+    $username = $_SESSION["username"];
 }
-// Check if the user is already logged in, if yes then redirect him to index page
 $id = $_SESSION['id'];
 
-// Processing form data when form is submitted
 if (isset($_POST['roleCode'], $_POST['roleName'])) {
 
-    if (empty($_POST["roleId"])) {
-        $roleId = null;
-    } else {
-        $roleId = trim($_POST["roleId"]);
-    }
+    $roleId = empty($_POST["roleId"]) ? null : trim($_POST["roleId"]);
+    $roleCode = empty($_POST["roleCode"]) ? null : trim($_POST["roleCode"]);
+    $roleName = empty($_POST["roleName"]) ? null : trim($_POST["roleName"]);
 
-    if (empty($_POST["roleCode"])) {
-        $roleCode = null;
+    // Check for duplicate role_code (exclude current record when updating)
+    $duplicateCheck = $db->prepare("SELECT id FROM roles WHERE role_code = ? AND deleted = '0'" . (!empty($roleId) ? " AND id != ?" : ""));
+    if (!empty($roleId)) {
+        $duplicateCheck->bind_param('si', $roleCode, $roleId);
     } else {
-        $roleCode = trim($_POST["roleCode"]);
+        $duplicateCheck->bind_param('s', $roleCode);
     }
+    $duplicateCheck->execute();
+    $duplicateCheck->store_result();
 
-    if (empty($_POST["roleName"])) {
-        $roleName = null;
-    } else {
-        $roleName = trim($_POST["roleName"]);
+    if ($duplicateCheck->num_rows > 0) {
+        echo json_encode(array("status" => "failed", "message" => "Role code already exists"));
+        $duplicateCheck->close();
+        $db->close();
+        exit;
     }
-    
-    if(!empty($roleId))
-    {
-        if ($update_stmt = $db->prepare("UPDATE roles SET role_code=?, role_name=? WHERE id=?")) 
-        {
-            $update_stmt->bind_param('sss', $roleCode, $roleName, $roleId);
+    $duplicateCheck->close();
 
-            // Execute the prepared query.
-            if (! $update_stmt->execute()) {
-                echo json_encode(
-                    array(
-                        "status"=> "failed", 
-                        "message"=> $update_stmt->error
-                    )
-                );
+    try {
+        $db->begin_transaction();
+        
+        if (!empty($roleId)) {
+            // Update existing record
+            $stmt = $db->prepare("UPDATE roles SET role_code=?, role_name=? WHERE id=?");
+            if (!$stmt) {
+                throw new Exception($db->error);
             }
-            else{
-                $update_stmt->close();
-                $db->close();
+            $stmt->bind_param('sss', $roleCode, $roleName, $roleId);
 
-                echo json_encode(
-                    array(
-                        "status"=> "success", 
-                        "message"=> "Updated Successfully!!" 
-                    )
-                );
+            if (!$stmt->execute()) {
+                throw new Exception($stmt->error);
             }
+
+            $stmt->close();
+            $db->commit();
+            $db->close();
+
+            echo json_encode(['status' => 'success', 'message' => 'Updated Successfully!!']);
+            exit();
+        } else {
+            // Insert new record
+            $stmt = $db->prepare("INSERT INTO roles (role_code, role_name) VALUES (?, ?)");
+            if (!$stmt) {
+                throw new Exception($db->error);
+            }
+            $stmt->bind_param('ss', $roleCode, $roleName);
+
+            if (!$stmt->execute()) {
+                throw new Exception($stmt->error);
+            }
+
+            $stmt->close();
+            $db->commit();
+            $db->close();
+
+            echo json_encode(['status' => 'success', 'message' => 'Added Successfully!!']);
+            exit();
         }
+    } catch (Exception $e) {
+        $db->rollback();
+        echo json_encode(['status' => 'failed', 'message' => $e->getMessage()]);
+        exit();
     }
-    else
-    {
-        if ($insert_stmt = $db->prepare("INSERT INTO roles (role_code, role_name) VALUES (?, ?)")) {
-            $insert_stmt->bind_param('ss', $roleCode, $roleName);
-
-            // Execute the prepared query.
-            if (! $insert_stmt->execute()) {
-                echo json_encode(
-                    array(
-                        "status"=> "failed", 
-                        "message"=> $insert_stmt->error
-                    )
-                );
-            }
-            else{
-                $insert_stmt->close();
-                $db->close();
-                
-                
-                echo json_encode(
-                    array(
-                        "status"=> "success", 
-                        "message"=> "Added Successfully!!" 
-                    )
-                );
-
-            }
-        }
-    }
-    
-}
-else
-{
-    echo json_encode(
-        array(
-            "status"=> "failed", 
-            "message"=> "Please fill in all the fields"
-        )
-    );
+} else {
+    echo json_encode(array("status" => "failed", "message" => "Please fill in all the fields"));
 }
 ?>

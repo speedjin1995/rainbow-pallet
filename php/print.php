@@ -342,12 +342,29 @@ if(isset($_POST['userID'], $_POST["file"], $_POST['isEmptyContainer'])){
                         $headerDetails = getPrintHeaderDetails($db, $row, $companyDetails);
                         $companyAddress = getAddressLines($headerDetails);
                         $contactLine = getContactLine($headerDetails);
-                        $customerName = $row['customer_name'];
-                        $supplierName = $compname;
-
-                        if ($row['transaction_status'] == 'Purchase') {
+                        $product = '-';
+                        
+                        if ($row['transaction_status'] == 'Purchase' || $row['transaction_status'] == 'Local') {
                             $customerName = $compname;
-                            $supplierName = $row['customer_name'];
+                            $supplierName = $row['supplier_name'];
+                            $pid = $row['raw_mat_code'];
+                        }else{
+                            $customerName = $row['customer_name'];
+                            $supplierName = $compname;
+                            $pid = $row['product_code'];
+                        }
+
+                        if ($update_stmt2 = $db->prepare("SELECT * FROM Product WHERE product_code=?")) {
+                            $update_stmt2->bind_param('s', $pid);
+                            
+                            // Execute the prepared query.
+                            if ($update_stmt2->execute()) {
+                                $result3 = $update_stmt2->get_result();
+                                
+                                if ($row3 = $result3->fetch_assoc()) {
+                                    $product = $row3['name'];
+                                }
+                            }
                         }
 
                         $message = '
@@ -475,7 +492,7 @@ if(isset($_POST['userID'], $_POST["file"], $_POST['isEmptyContainer'])){
                                         </tr>
                                         <tr>
                                             <td class="info-label">'.messageLabel($languageArray, $language, 'trans_type_code').':</td>
-                                            <td class="info-value">&nbsp;</td>
+                                            <td class="info-value">'.messageLabel($languageArray, $language, $row['transaction_status']).'</td>
                                             <td class="info-label">'.messageLabel($languageArray, $language, 'do_no_code').':</td>
                                             <td class="info-value">'.printValue($row['delivery_no']).'</td>
                                         </tr>
@@ -490,7 +507,7 @@ if(isset($_POST['userID'], $_POST["file"], $_POST['isEmptyContainer'])){
                                         </tr>
                                         <tr>
                                             <td class="text-center">'.printValue($row['lorry_plate_no1']).'</td>
-                                            <td>'.printValue($row['product_name']).'</td>
+                                            <td>'.printValue($product).'</td>
                                             <td class="text-center">'.printValue($grossWeightTime).'</td>
                                             <td class="text-center">'.messageLabel($languageArray, $language, 'first_code').'</td>
                                             <td class="text-right">'.printValue(formatWeight($row['gross_weight1'])).'</td>
@@ -601,22 +618,22 @@ if(isset($_POST['userID'], $_POST["file"], $_POST['isEmptyContainer'])){
 
                         $pid = $row['raw_mat_code'];
                     
-                        if ($update_stmt2 = $db->prepare("SELECT * FROM Raw_Mat WHERE raw_mat_code=?")) {
-                            $update_stmt2->bind_param('s', $pid);
+                        // if ($update_stmt2 = $db->prepare("SELECT * FROM Raw_Mat WHERE raw_mat_code=?")) {
+                        //     $update_stmt2->bind_param('s', $pid);
                             
-                            // Execute the prepared query.
-                            if ($update_stmt2->execute()) {
-                                $result3 = $update_stmt2->get_result();
+                        //     // Execute the prepared query.
+                        //     if ($update_stmt2->execute()) {
+                        //         $result3 = $update_stmt2->get_result();
                                 
-                                if ($row3 = $result3->fetch_assoc()) {
-                                    $product = $row3['name'];
-                                    $variance = $row3['variance'] ?? '';
-                                    $high = $row3['high'] ?? '0';
-                                    $low = $row3['low'] ?? '0';
-                                    $price = $row3['price'] ??  '0.00';
-                                }
-                            }
-                        }
+                        //         if ($row3 = $result3->fetch_assoc()) {
+                        //             $product = $row3['name'];
+                        //             $variance = $row3['variance'] ?? '';
+                        //             $high = $row3['high'] ?? '0';
+                        //             $low = $row3['low'] ?? '0';
+                        //             $price = $row3['price'] ??  '0.00';
+                        //         }
+                        //     }
+                        // }
                     }
                     else{
                         $cid = $row['customer_code'];
@@ -643,20 +660,37 @@ if(isset($_POST['userID'], $_POST["file"], $_POST['isEmptyContainer'])){
 
                         $pid = $row['product_code'];
                     
-                        if ($update_stmt2 = $db->prepare("SELECT * FROM Product WHERE product_code=?")) {
-                            $update_stmt2->bind_param('s', $pid);
+                        // if ($update_stmt2 = $db->prepare("SELECT * FROM Product WHERE product_code=?")) {
+                        //     $update_stmt2->bind_param('s', $pid);
                             
-                            // Execute the prepared query.
-                            if ($update_stmt2->execute()) {
-                                $result3 = $update_stmt2->get_result();
+                        //     // Execute the prepared query.
+                        //     if ($update_stmt2->execute()) {
+                        //         $result3 = $update_stmt2->get_result();
                                 
-                                if ($row3 = $result3->fetch_assoc()) {
-                                    $product = $row3['name'];
-                                    $variance = $row3['variance'] ?? '';
-                                    $high = $row3['high'] ?? '0';
-                                    $low = $row3['low'] ?? '0';
-                                    $price = $row3['price'] ??  '0.00';
-                                }
+                        //         if ($row3 = $result3->fetch_assoc()) {
+                        //             $product = $row3['name'];
+                        //             $variance = $row3['variance'] ?? '';
+                        //             $high = $row3['high'] ?? '0';
+                        //             $low = $row3['low'] ?? '0';
+                        //             $price = $row3['price'] ??  '0.00';
+                        //         }
+                        //     }
+                        // }
+                    }
+                    
+                    if ($update_stmt2 = $db->prepare("SELECT * FROM Product WHERE product_code=?")) {
+                        $update_stmt2->bind_param('s', $pid);
+                        
+                        // Execute the prepared query.
+                        if ($update_stmt2->execute()) {
+                            $result3 = $update_stmt2->get_result();
+                            
+                            if ($row3 = $result3->fetch_assoc()) {
+                                $product = $row3['name'];
+                                $variance = $row3['variance'] ?? '';
+                                $high = $row3['high'] ?? '0';
+                                $low = $row3['low'] ?? '0';
+                                $price = $row3['price'] ??  '0.00';
                             }
                         }
                     }

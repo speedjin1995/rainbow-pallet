@@ -1,5 +1,5 @@
 <?php
-$role = $_SESSION['roles'];
+$role = $_SESSION['roles'] ?? null;
 
 function hasPermission($category, $permission = 'view') {
     global $role;

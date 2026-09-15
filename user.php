@@ -389,7 +389,15 @@ mysqli_stmt_bind_result($stmt4, $pcode, $pname);
                 { data: 'name' },
                 { data: 'useremail' },
                 { data: 'role' },
-                { data: 'plant' },
+                { 
+                    data: 'plant',
+                    render: function(data, type, row) {
+                        if (Array.isArray(data)) {
+                            return data.join(', ');
+                        }
+                        return data || '';
+                    }
+                },
                 { 
                     data: 'id',
                     render: function ( data, type, row ) {

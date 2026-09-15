@@ -139,7 +139,25 @@
                             </li>
                             <?php endif; ?>
                             
-                            <?php if(hasModulePermission('Master Data', 'Products', ['view', 'create', 'edit'])): ?>
+                            <?php if(hasModulePermission('Master Data', 'Product Category', ['view', 'create', 'edit'])): ?>
+                            <li class="nav-item">
+                                <a href="productCategories.php" class="nav-link"><?=$languageArray['product_category_code'][$language]?></a>
+                            </li>
+                            <?php endif; ?>
+
+                            <?php if(hasModulePermission('Master Data', 'Units', ['view', 'create', 'edit'])): ?>
+                            <li class="nav-item">
+                                <a href="units.php" class="nav-link"><?=$languageArray['units_code'][$language]?></a>
+                            </li>
+                            <?php endif; ?>
+
+                            <?php if(hasModulePermission('Master Data', 'Items', ['view', 'create', 'edit'])): ?>
+                            <li class="nav-item">
+                                <a href="items.php" class="nav-link"><?=$languageArray['items_code'][$language]?></a>
+                            </li>
+                            <?php endif; ?>
+                            
+                            <!-- <?php if(hasModulePermission('Master Data', 'Products', ['view', 'create', 'edit'])): ?>
                             <li class="nav-item">
                                 <a href="product.php" class="nav-link"><?=$languageArray['product_code'][$language]?></a>
                             </li>
@@ -149,7 +167,7 @@
                             <li class="nav-item">
                                 <a href="rawMaterial.php" class="nav-link"><?=$languageArray['raw_material_code'][$language]?></a>
                             </li>
-                            <?php endif; ?>
+                            <?php endif; ?> -->
 
                             <?php if(hasModulePermission('Master Data', 'Destination', ['view', 'create', 'edit'])): ?>
                             <li class="nav-item">
