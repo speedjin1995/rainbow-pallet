@@ -437,6 +437,42 @@ class WeightService extends BaseService {
         }
     }
 
+    // ─── Customer Side Info Processing ─────────────────────────────────────────────
+    public function saveCustomerSideInfo($id, $doNo, $mc, $firstWeight, $secondWeight) {
+        $nettWeight = null;
+        $weightDifference = null;
+        if ($firstWeight !== null && $secondWeight !== null) {
+            $nettWeight = abs((float)$firstWeight - (float)$secondWeight);
+        }
+        if ($nettWeight !== null) {
+            $stmt = $this->db->prepare("SELECT nett_weight1 FROM Weight WHERE id=?");
+            $stmt->bind_param('s', $id);
+            $stmt->execute();
+            $row = $stmt->get_result()->fetch_assoc();
+            $stmt->close();
+            if ($row && $row['nett_weight1'] !== null && $row['nett_weight1'] !== '') {
+                $weightDifference = (float)$row['nett_weight1'] - $nettWeight;
+            }
+        }
+        $stmt = $this->db->prepare("UPDATE Weight SET cust_side_do_no=?, cust_side_mc=?, cust_side_first_weight=?, cust_side_second_weight=?, cust_side_nett_weight=?, weight_difference=? WHERE id=?");
+        if (!$stmt) throw new Exception($this->db->error);
+        $stmt->bind_param('sssssss', $doNo, $mc, $firstWeight, $secondWeight, $nettWeight, $weightDifference, $id);
+        if (!$stmt->execute()) throw new Exception($stmt->error);
+        $stmt->close();
+        return ['nett_weight' => $nettWeight, 'weight_difference' => $weightDifference];
+    }
+
+    public function getCustomerSideInfo($id) {
+        $stmt = $this->db->prepare("SELECT cust_side_do_no, cust_side_mc, cust_side_first_weight, cust_side_second_weight, cust_side_nett_weight, weight_difference FROM Weight WHERE id=?");
+        if (!$stmt) throw new Exception($this->db->error);
+        $stmt->bind_param('s', $id);
+        if (!$stmt->execute()) throw new Exception($stmt->error);
+        $row = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+        $defaults = ['cust_side_do_no'=>'','cust_side_mc'=>'','cust_side_first_weight'=>'','cust_side_second_weight'=>'','cust_side_nett_weight'=>'','weight_difference'=>''];
+        return $row ? array_merge($defaults, array_map(fn($v) => $v ?? '', $row)) : $defaults;
+    }
+
     // ─── Plant / Transaction Helpers ─────────────────────────────────────────────
     private function getPlantCountColumn($status) {
         $map = ['Purchase' => 'purchase', 'Local' => 'locals', 'Port' => 'port', 'Misc' => 'misc'];

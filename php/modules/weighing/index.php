@@ -19,6 +19,7 @@ switch ($action) {
     case 'getWeight':           $controller->handleGetWeight(); break;
     case 'getEmptyContainer':   $controller->handleGetEmptyContainer(); break;
     case 'getContainers':       $controller->handleGetContainers(); break;
+    case 'customerSideInfo':   $controller->handleCustomerSideInfo(); break;
     case 'delete':              $controller->handleDelete(); break;
     default:
         if (!isset($_POST['transactionId'], $_POST['transactionStatus'], $_POST['weightType'], $_POST['transactionDate'], $_POST['grossIncoming'], $_POST['grossIncomingDate'], $_POST['manualWeight'], $_POST['plantCode'], $_POST['plant'], $_POST['companyId'])) {

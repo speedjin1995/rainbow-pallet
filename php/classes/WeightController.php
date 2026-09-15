@@ -54,6 +54,25 @@ class WeightController extends BaseController {
         echo json_encode(['status' => 'success', 'message' => $this->service->getContainers($id)]);
     }
 
+    public function handleCustomerSideInfo() {
+        $id = $_POST['id'] ?? null;
+        if (!$id) $this->failed('Missing weight record');
+        $action = $_POST['custAction'] ?? 'get';
+        if ($action === 'save') {
+            $result = $this->service->saveCustomerSideInfo(
+                $id,
+                $_POST['custSideDoNo'] ?? null,
+                $_POST['custSideMc'] ?? null,
+                $_POST['custSideFirstWeight'] ?? null,
+                $_POST['custSideSecondWeight'] ?? null
+            );
+            $this->success('Updated Successfully!!', $result);
+        } else {
+            $data = $this->service->getCustomerSideInfo($id);
+            echo json_encode(['status' => 'success', 'message' => $data]);
+        }
+    }
+
     public function handleDelete() {
         $cancelReason     = $_POST['cancelReason'] ?? null;
         $isEmptyContainer = $_POST['isEmptyContainer'] ?? 'N';

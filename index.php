@@ -1971,7 +1971,7 @@ else{
 
         $('#submitCustomerSideInfo').on('click', function(){
             $('#spinnerLoading').show();
-            $.post('php/customerSideInfo.php', $('#customerSideInfoForm').serialize(), function(data){
+            $.post('php/modules/weighing/index.php', $('#customerSideInfoForm').serialize() + '&action=customerSideInfo&custAction=save', function(data){
                 var obj = JSON.parse(data);
 
                 if(obj.status === 'success'){
@@ -4363,7 +4363,7 @@ else{
         $('#customerSideInfoModal').find('#customerSideInfoId').val(id);
         $('#customerSideInfoModal').find('#custSideNettWeight').val('');
 
-        $.post('php/customerSideInfo.php', { id: id, action: 'get' }, function(data){
+        $.post('php/modules/weighing/index.php', { id: id, action: 'customerSideInfo', custAction: 'get' }, function(data){
             var obj = JSON.parse(data);
 
             if(obj.status === 'success'){
