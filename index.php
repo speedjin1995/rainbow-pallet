@@ -2585,7 +2585,7 @@ else{
             var transactionStatus = $('#transactionStatus').val();
 
             if (x){
-                $.post('php/modules/vehicle/getVehicle.php', {userID: x, type: 'pullCustomer'}, function (data){
+                $.post('php/modules/vehicle/index.php', {userID: x, type: 'pullCustomer', action: 'get'}, function (data){
                     var obj = JSON.parse(data);
 
                     if (obj.status == 'success'){
@@ -2634,7 +2634,7 @@ else{
             var vehiclePlateNo1 = $(this).val();
             var transactionStatus = $('#transactionStatus').val();
             if (vehiclePlateNo1){
-                $.post('php/modules/vehicle/getVehicle.php', {userID: vehiclePlateNo1, type: 'pullCustomer'}, function (data){
+                $.post('php/modules/vehicle/index.php', {userID: vehiclePlateNo1, type: 'pullCustomer', action: 'get'}, function (data){
                     var obj = JSON.parse(data);
 
                     if (obj.status == 'success'){
@@ -2701,7 +2701,7 @@ else{
             var weightType = $('#weightType').val();
 
             if (weightType == 'Different Container' && x) {
-                $.post('php/modules/vehicle/getVehicle.php', {userID: x, type: 'pullCustomer'}, function (data){
+                $.post('php/modules/vehicle/index.php', {userID: x, type: 'pullCustomer', action: 'get'}, function (data){
                     var obj = JSON.parse(data);
 
                     if (obj.status == 'success'){
@@ -2730,7 +2730,7 @@ else{
             var vehiclePlateNo2 = $(this).val();
             var weightType = $('#weightType').val();
             if (weightType == 'Different Container' && vehiclePlateNo2){
-                $.post('php/modules/vehicle/getVehicle.php', {userID: vehiclePlateNo2, type: 'pullCustomer'}, function (data){
+                $.post('php/modules/vehicle/index.php', {userID: vehiclePlateNo2, type: 'pullCustomer', action: 'get'}, function (data){
                     var obj = JSON.parse(data);
 
                     if (obj.status == 'success'){
