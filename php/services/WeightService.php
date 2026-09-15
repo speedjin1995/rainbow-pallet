@@ -2,7 +2,6 @@
 require_once __DIR__ . '/../services/BaseService.php';
 
 class WeightService extends BaseService {
-
     // ─── Normal / Container ──────────────────────────────────────────────────────
     public function saveNormal($f) {
         $misValue = $this->getPlantCount($f['plantCode'], $f['transactionStatus']);
@@ -20,6 +19,8 @@ class WeightService extends BaseService {
         $id = $stmt->insert_id;
         $stmt->close();
         $this->persistCustomerSideFields($id, $f['customerSide']);
+        $this->autoRegisterVehicle($f['vehiclePlateNo1']);
+        $this->autoRegisterVehicle($f['vehiclePlateNo2']);
         $misValue++;
         $this->incrementPlantCount($f['plantCode'], $f['transactionStatus'], $misValue);
         if ($f['weightType'] === 'Container') {
@@ -41,6 +42,8 @@ class WeightService extends BaseService {
         }
         $stmt->close();
         $this->persistCustomerSideFields($f['weightId'], $f['customerSide']);
+        $this->autoRegisterVehicle($f['vehiclePlateNo1']);
+        $this->autoRegisterVehicle($f['vehiclePlateNo2']);
         if ($f['weightType'] === 'Container') {
             $this->flagContainerStatus($f['containerNo'], $f['isComplete']);
         }
@@ -66,6 +69,8 @@ class WeightService extends BaseService {
         }
         $id = $stmt->insert_id;
         $stmt->close();
+        $this->autoRegisterVehicle($f['vehiclePlateNo1']);
+        $this->autoRegisterVehicle($f['vehiclePlateNo2']);
         $misValue++;
         $this->incrementPlantCount($f['plantCode'], $f['transactionStatus'], $misValue);
         return ['id' => $id];
@@ -110,6 +115,8 @@ class WeightService extends BaseService {
             }
             $stmt->close();
         }
+        $this->autoRegisterVehicle($f['vehiclePlateNo1']);
+        $this->autoRegisterVehicle($f['vehiclePlateNo2']);
         return ['id' => $f['weightId']];
     }
 
@@ -133,6 +140,8 @@ class WeightService extends BaseService {
         $id = $stmt->insert_id;
         $stmt->close();
         $this->persistCustomerSideFields($id, $f['customerSide']);
+        $this->autoRegisterVehicle($f['vehiclePlateNo1']);
+        $this->autoRegisterVehicle($f['vehiclePlateNo2']);
         $misValue++;
         $this->incrementPlantCount($f['plantCode'], $f['transactionStatus'], $misValue);
         if ($f['isComplete'] === 'Y') {
@@ -160,6 +169,8 @@ class WeightService extends BaseService {
         }
         $stmt->close();
         $this->persistCustomerSideFields($f['weightId'], $f['customerSide']);
+        $this->autoRegisterVehicle($f['vehiclePlateNo1']);
+        $this->autoRegisterVehicle($f['vehiclePlateNo2']);
         if (!empty($f['containerNo'])) {
             $this->flagContainerStatus($f['containerNo'], $f['isComplete']);
             if ($f['isComplete'] === 'Y') {
@@ -169,9 +180,7 @@ class WeightService extends BaseService {
         return ['id' => $f['weightId']];
     }
 
-    
     // ─── Filter / Get / Delete (moved to top section) ──────────────────────────
-
     public function filterWeight($post, $language, $languageArray) {
         $draw        = $post['draw'];
         $start       = $post['start'];
@@ -611,6 +620,36 @@ class WeightService extends BaseService {
             $d['moistureContent'], $d['officerName'], $d['rainbowDriver'],
             $d['timeIn'], $d['timeOut'], $weightId
         );
+        if (!$stmt->execute()) {
+            throw new Exception($stmt->error);
+        }
+        $stmt->close();
+    }
+
+    private function autoRegisterVehicle($plateNo, $vehicleWeight = 0) {
+        if (empty($plateNo)) {
+            return;
+        }
+
+        $stmt = $this->db->prepare("SELECT id FROM Vehicle WHERE veh_number=? AND status='0'");
+        if (!$stmt) {
+            throw new Exception($this->db->error);
+        }
+        $stmt->bind_param('s', $plateNo);
+        $stmt->execute();
+        $stmt->store_result();
+        $exists = $stmt->num_rows > 0;
+        $stmt->close();
+
+        if ($exists) {
+            return;
+        }
+
+        $stmt = $this->db->prepare("INSERT INTO Vehicle (veh_number, vehicle_weight, is_manual, created_by, modified_by) VALUES (?, ?, 'Y', ?, ?)");
+        if (!$stmt) {
+            throw new Exception($this->db->error);
+        }
+        $stmt->bind_param('ssss', $plateNo, $vehicleWeight, $this->username, $this->username);
         if (!$stmt->execute()) {
             throw new Exception($stmt->error);
         }

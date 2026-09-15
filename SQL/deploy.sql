@@ -2675,3 +2675,39 @@ INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALU
 
 UPDATE message_resource SET en = 'Item', zh = '物品', my = 'Item', ne = 'பொருள்' WHERE message_key_code = 'raw_material_code';
 UPDATE message_resource SET en = 'Item', zh = '物品', my = 'Item', ne = 'பொருள்' WHERE message_key_code = 'product_code';
+
+-- 15/09/2026 --
+ALTER TABLE `Vehicle` ADD `is_manual` VARCHAR(1) NOT NULL DEFAULT 'N' AFTER `supplier_name`;
+ALTER TABLE `Vehicle_Log` ADD `is_manual` VARCHAR(1) NOT NULL DEFAULT 'N' AFTER `supplier_name`;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_VEH` AFTER INSERT ON `Vehicle` FOR EACH ROW 
+INSERT INTO Vehicle_Log (
+    vehicle_id, veh_number, vehicle_weight, transporter_code, transporter_name, customer_code, customer_name, supplier_code, supplier_name, is_manual, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.veh_number, NEW.vehicle_weight, NEW.transporter_code, NEW.transporter_name, NEW.customer_code, NEW.customer_name, NEW.supplier_code, NEW.supplier_name, NEW.is_manual, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_VEH` BEFORE UPDATE ON `Vehicle` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Check if status = 1, set action_id to 3, otherwise set to 2
+    IF NEW.status = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Vehicle_Log table
+    INSERT INTO Vehicle_Log (
+        vehicle_id, veh_number, vehicle_weight, transporter_code, transporter_name, customer_code, customer_name, supplier_code, supplier_name, is_manual, action_id, action_by, event_date
+    ) 
+    VALUES (
+        NEW.id, NEW.veh_number, NEW.vehicle_weight, NEW.transporter_code, NEW.transporter_name, NEW.customer_code, NEW.customer_name, NEW.supplier_code, NEW.supplier_name, NEW.is_manual, action_value, NEW.modified_by, NEW.modified_date
+    );
+END
+$$
+DELIMITER ;

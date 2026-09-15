@@ -27,7 +27,7 @@ try {
     $db->begin_transaction();
 
     if (!empty($vehicleId)) {
-        $stmt = $db->prepare("UPDATE Vehicle SET veh_number=?, vehicle_weight=?, transporter_code=?, transporter_name=?, customer_code=?, customer_name=?, supplier_code=?, supplier_name=?, created_by=?, modified_by=? WHERE id=?");
+        $stmt = $db->prepare("UPDATE Vehicle SET veh_number=?, vehicle_weight=?, transporter_code=?, transporter_name=?, customer_code=?, customer_name=?, supplier_code=?, supplier_name=?, is_manual='N', created_by=?, modified_by=? WHERE id=?");
         $stmt->bind_param('sssssssssss', $vehicleNo, $vehicleWeight, $transporterCode, $transporter, $customerCode, $customer, $supplierCode, $supplier, $username, $username, $vehicleId);
 
         if (!$stmt->execute()) {

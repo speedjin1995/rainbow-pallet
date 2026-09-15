@@ -372,6 +372,11 @@ $(function () {
         'ajax': {
             'url':'php/modules/vehicle/loadVehicle.php'
         },
+        'createdRow': function(row, data) {
+            if (data.is_manual === 'Y') {
+                $(row).css('background-color', '#ffd6d6');
+            }
+        },
         'columns': [
             {
                 // Add a checkbox with a unique ID for each row

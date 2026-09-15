@@ -34,7 +34,7 @@ $records = mysqli_fetch_assoc($sel);
 $totalRecordwithFilter = $records['allcount'];
 
 ## Fetch records
-$empQuery = "select * from Vehicle WHERE status IN (0)".$searchQuery."order by status ASC, ".$columnName." ".$columnSortOrder." limit ".$row.",".$rowperpage;
+$empQuery = "select * from Vehicle WHERE status IN (0)".$searchQuery."order by is_manual = 'Y' DESC, ".$columnName." ".$columnSortOrder." limit ".$row.",".$rowperpage;
 $empRecords = mysqli_query($db, $empQuery);
 $data = array();
 
@@ -46,16 +46,17 @@ while ($row = mysqli_fetch_assoc($empRecords)) {
         "transporter_name" => $row['transporter_name'],
         "customer_name"    => $row['customer_name'],
         "supplier_name"    => $row['supplier_name'],
+        "is_manual"        => $row['is_manual'],
         "status"           => (($row['status'] == '0') ? 'Active' : 'Inactive')
     );
 }
 
 ## Response
 $response = array(
-    "draw"                 => intval($draw),
-    "iTotalRecords"        => $totalRecords,
-    "iTotalDisplayRecords" => $totalRecordwithFilter,
-    "aaData"               => $data
+    "draw"            => intval($draw),
+    "recordsTotal"    => $totalRecords,
+    "recordsFiltered" => $totalRecordwithFilter,
+    "data"            => $data
 );
 
 echo json_encode($response);
