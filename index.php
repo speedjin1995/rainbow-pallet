@@ -3346,6 +3346,57 @@ else{
 
         pass = true;
 
+        // Validation for Normal weighing type
+        var transStatus = $('#transactionStatus').val();
+        var transStatusLabel = '';
+        if (transStatus == 'Sales') {
+            transStatusLabel = '<?=$languageArray['dispatch_code'][$language]?>';
+        } else if (transStatus == 'Purchase') {
+            transStatusLabel = '<?=$languageArray['receiving_code'][$language]?>';
+        } else if (transStatus == 'Port') {
+            transStatusLabel = '<?=$languageArray['trx_to_port_code'][$language]?>';
+        } else if (transStatus == 'Local') {
+            transStatusLabel = '<?=$languageArray['internal_transfer_code'][$language]?>';
+        } else {
+            transStatusLabel = '<?=$languageArray['miscellaneous_code'][$language]?>';
+        }
+        
+        if ($('#weightType').val() == 'Normal' && $('#grossIncoming').val() && $('#tareOutgoing').val()) {
+            var incoming = parseFloat($('#grossIncoming').val()) || 0;
+            var outgoing = parseFloat($('#tareOutgoing').val()) || 0;
+
+            if (transStatus == 'Sales' || transStatus == 'Port' || transStatus == 'Misc') {
+                // Sales | Port | Misc: incoming < outgoing
+                if (incoming >= outgoing) {
+                    alert('For ' + transStatusLabel + ', Incoming must be less than Outgoing.');
+                    return;
+                }
+            } else if (transStatus == 'Purchase' || transStatus == 'Local') {
+                // Purchase | Local: outgoing < incoming
+                if (outgoing >= incoming) {
+                    alert('For ' + transStatusLabel + ', Outgoing must be less than Incoming.');
+                    return;
+                }
+            }
+        }else if ($('#weightType').val() == 'Container' && $('#grossIncoming2').val() && $('#tareOutgoing2').val()){
+            var incoming = parseFloat($('#grossIncoming2').val()) || 0;
+            var outgoing = parseFloat($('#tareOutgoing2').val()) || 0;
+
+            if (transStatus == 'Sales' || transStatus == 'Port' || transStatus == 'Misc') {
+                // Sales | Port | Misc: incoming < outgoing
+                if (incoming >= outgoing) {
+                    alert('For ' + transStatusLabel + ', Incoming 2 must be less than Outgoing.');
+                    return;
+                }
+            } else if (transStatus == 'Purchase' || transStatus == 'Local') {
+                // Purchase | Local: outgoing < incoming
+                if (outgoing >= incoming) {
+                    alert('For ' + transStatusLabel + ', Outgoing 2 must be less than Incoming.');
+                    return;
+                }
+            }
+        }
+
         if (!withPrint) {
             var isValid = true;
 
@@ -3764,6 +3815,8 @@ else{
             transactionStatus = '<?=$languageArray['receiving_code'][$language]?>';
         } else if (row.transaction_status == 'Local') {
             transactionStatus = '<?=$languageArray['internal_transfer_code'][$language]?>';
+        } else if (row.transaction_status == 'Port') {
+            transactionStatus = '<?=$languageArray['trx_to_port_code'][$language]?>';
         } else {
             transactionStatus = '<?=$languageArray['miscellaneous_code'][$language]?>';
         }
