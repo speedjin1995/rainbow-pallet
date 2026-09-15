@@ -3963,7 +3963,6 @@ else{
                     $('#addModal').find('#tareCapture').show();
                 }
 
-                console.log(obj.message.company_id);
                 $('#addModal').find('#id').val(obj.message.id);
                 $('#addModal').find('#companyId').val(obj.message.company_id).trigger('change');
                 $('#addModal').find('#transactionId').val(obj.message.transaction_id);
