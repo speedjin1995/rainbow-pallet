@@ -631,7 +631,7 @@ else{
                 var isEmptyContainer = $('#prePrintModal').find('#isEmptyContainer').val();
                 var printTemplate = $('#prePrintModal').find('#printTemplate').val();
                 var transactionStatus = $('#prePrintModal').find('#prePrintTransactionStatus').val();
-                $.post('php/print.php', {userID: id, file: 'weight', prePrint: prePrintStatus, isEmptyContainer: isEmptyContainer, printTemplate: printTemplate, transactionStatus: transactionStatus}, function(data){
+                $.post('php/modules/weighing/index.php', {action: 'print', userID: id, file: 'weight', prePrint: prePrintStatus, isEmptyContainer: isEmptyContainer, printTemplate: printTemplate, transactionStatus: transactionStatus}, function(data){
                     var obj = JSON.parse(data);
 
                     if(obj.status === 'success'){

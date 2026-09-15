@@ -740,7 +740,7 @@ else{
                 var isEmptyContainer = $('#prePrintModal').find('#isEmptyContainer').val();
                 var printTemplate = $('#prePrintModal').find('#printTemplate').val();
                 var transactionStatus = $('#prePrintModal').find('#prePrintTransactionStatus').val();
-                $.post('php/print.php', {userID: id, file: 'weight', prePrint: prePrintStatus, isEmptyContainer: isEmptyContainer, printTemplate: printTemplate, transactionStatus: transactionStatus}, function(data){
+                $.post('php/modules/weighing/index.php', {action: 'print', userID: id, file: 'weight', prePrint: prePrintStatus, isEmptyContainer: isEmptyContainer, printTemplate: printTemplate, transactionStatus: transactionStatus}, function(data){
                     var obj = JSON.parse(data);
 
                     if(obj.status === 'success'){
@@ -849,7 +849,7 @@ else{
                         if (isSADMIN || (permissions['Reports'] && permissions['Reports']['Local'] && permissions['Reports']['Local'].includes('print'))) {
                             return '<div class="dropdown d-inline-block"><button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">' +
                                 '<i class="ri-more-fill align-middle"></i></button><ul class="dropdown-menu dropdown-menu-end">' +
-                                '<li><a class="dropdown-item print-item-btn" id="print' + data + '" onclick="print(' + data + ')"><i class="ri-printer-fill align-bottom me-2 text-muted"></i> <?=$languageArray['print_code'][$language] ?? 'Print'?></a></li></ul></div>';
+                                '<li><a class="dropdown-item print-item-btn" id="print' + data + '" onclick="print(' + data + ', \'Local\')"><i class="ri-printer-fill align-bottom me-2 text-muted"></i> <?=$languageArray['print_code'][$language] ?? 'Print'?></a></li></ul></div>';
                         }
                         return '';
                     }
@@ -865,7 +865,7 @@ else{
         $('#prePrintModal').find('#prePrint').val("<?=$language ?>");
         $('#prePrintModal').find('#printTemplate').val("with_weight");
 
-        if (transactionStatus == 'Purchase' || isEmptyContainer == 'Y') {
+        if (transactionStatus == 'Purchase' || transactionStatus == 'Local' || isEmptyContainer == 'Y') {
             $('#prePrintModal').find('#printTemplateDisplay').hide();
         } else {
             $('#prePrintModal').find('#printTemplateDisplay').show();

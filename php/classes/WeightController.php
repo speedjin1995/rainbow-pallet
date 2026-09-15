@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/BaseController.php';
 require_once __DIR__ . '/../services/WeightService.php';
+require_once __DIR__ . '/../services/PrintService.php';
 
 class WeightController extends BaseController {
     protected $table = 'Weight';
@@ -9,6 +10,38 @@ class WeightController extends BaseController {
     public function __construct($db) {
         parent::__construct($db);
         $this->service = new WeightService($db, $this->username);
+    }
+
+    // ─── Print ────────────────────────────────────────────────────────────────────
+    public function handlePrint() {
+        $service = new PrintService($this->db);
+        $service->handle();
+    }
+
+    // ─── Entry Point ─────────────────────────────────────────────────────────────
+    public function handle() {
+        try {
+            $f = $this->parseFields();
+            $isUpdate = !empty($f['weightId']);
+            $this->db->begin_transaction();
+            switch ($f['weightType']) {
+                case 'Empty Container':
+                    $result = $isUpdate ? $this->service->updateEmptyContainer($f) : $this->service->saveEmptyContainer($f);
+                    break;
+                case 'Different Container':
+                    $result = $isUpdate ? $this->service->updateDifferentContainer($f) : $this->service->saveDifferentContainer($f);
+                    break;
+                default:
+                    $result = $isUpdate ? $this->service->updateNormal($f) : $this->service->saveNormal($f);
+                    break;
+            }
+            $this->db->commit();
+            $message = $isUpdate ? 'Updated Successfully!!' : 'Added Successfully!!';
+            $this->success($message, $result);
+        } catch (Exception $e) {
+            $this->db->rollback();
+            $this->failed($e->getMessage());
+        }
     }
 
     // ─── Input Parsing ───────────────────────────────────────────────────────────
@@ -104,32 +137,6 @@ class WeightController extends BaseController {
         }
         $f['isCancel'] = 'N';
         return $f;
-    }
-
-    // ─── Entry Point ─────────────────────────────────────────────────────────────
-    public function handle() {
-        try {
-            $f = $this->parseFields();
-            $isUpdate = !empty($f['weightId']);
-            $this->db->begin_transaction();
-            switch ($f['weightType']) {
-                case 'Empty Container':
-                    $result = $isUpdate ? $this->service->updateEmptyContainer($f) : $this->service->saveEmptyContainer($f);
-                    break;
-                case 'Different Container':
-                    $result = $isUpdate ? $this->service->updateDifferentContainer($f) : $this->service->saveDifferentContainer($f);
-                    break;
-                default:
-                    $result = $isUpdate ? $this->service->updateNormal($f) : $this->service->saveNormal($f);
-                    break;
-            }
-            $this->db->commit();
-            $message = $isUpdate ? 'Updated Successfully!!' : 'Added Successfully!!';
-            $this->success($message, $result);
-        } catch (Exception $e) {
-            $this->db->rollback();
-            $this->failed($e->getMessage());
-        }
     }
 }
 ?>

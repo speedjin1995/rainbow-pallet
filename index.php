@@ -1909,7 +1909,7 @@ else{
                 var isEmptyContainer = $('#prePrintModal').find('#isEmptyContainer').val();
                 var printTemplate = $('#prePrintModal').find('#printTemplate').val();
                 var transactionStatus = $('#prePrintModal').find('#prePrintTransactionStatus').val();
-                $.post('php/print.php', {userID: id, file: 'weight', prePrint: prePrintStatus, isEmptyContainer: isEmptyContainer, printTemplate: printTemplate, transactionStatus: transactionStatus}, function(data){
+                $.post('php/modules/weighing/index.php', {action: 'print', userID: id, file: 'weight', prePrint: prePrintStatus, isEmptyContainer: isEmptyContainer, printTemplate: printTemplate, transactionStatus: transactionStatus}, function(data){
                     var obj = JSON.parse(data);
 
                     if(obj.status === 'success'){
@@ -3376,7 +3376,7 @@ else{
 
         if (pass && $('#weightForm').valid()) {
             $('#spinnerLoading').show();
-            $.post('php/weight.php', $('#weightForm').serialize(), function (data) {
+            $.post('php/modules/weighing/index.php', $('#weightForm').serialize(), function (data) {
                 var obj = JSON.parse(data);
                 if (obj.status === 'success') {
                     $('#spinnerLoading').hide();
@@ -3515,6 +3515,10 @@ else{
                     class: 'action-button',
                     render: function (data, type, row) {
                         var transactionKey = row.transaction_status;
+                        if (transactionKey == 'Transfer To Port'){
+                            transactionKey = 'Port';
+                        }
+
                         var buttons = `<div class="row g-1 d-flex">`;
 
                         if (isSADMIN || (permissions['Weighing'] && permissions['Weighing'][transactionKey] && permissions['Weighing'][transactionKey].includes('edit'))) {
@@ -3646,6 +3650,9 @@ else{
                     class: 'action-button',
                     render: function (data, type, row) {
                         var transactionKey = row.transaction_status;
+                        if (transactionKey == 'Transfer To Port'){
+                            transactionKey = 'Port';
+                        }
                         var buttons = `<div class="row g-1 d-flex">`;
 
                         if (isSADMIN || (permissions['Weighing'] && permissions['Weighing'][transactionKey] && permissions['Weighing'][transactionKey].includes('edit'))) {
@@ -4310,7 +4317,7 @@ else{
         //var id = $('#prePrintModal').find('#id').val();
         /*var prePrintStatus = 'N';
 
-        $.post('php/print.php', {userID: id, file: 'weight', prePrint: prePrintStatus, isEmptyContainer: isEmptyContainer}, function(data){
+        $.post('php/modules/weighing/index.php', {action: 'print', userID: id, file: 'weight', prePrint: prePrintStatus, isEmptyContainer: isEmptyContainer}, function(data){
             var obj = JSON.parse(data);
 
             if(obj.status === 'success'){
