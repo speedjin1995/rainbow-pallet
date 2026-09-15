@@ -918,7 +918,7 @@ else{
                                                                             <label for="vehicleWeight2" class="col-sm-4 col-form-label"><?=$languageArray['vehicle_weight_code'][$language]?></label>
                                                                             <div class="col-sm-8">
                                                                                 <div class="input-group">
-                                                                                    <input type="number" class="form-control input-readonly" id="vehicleWeight2" name="vehicleWeight2" placeholder="0" readonly>
+                                                                                    <input type="number" class="form-control input-readonly" id="vehicleWeight2" name="vehicleWeight2" placeholder="0">
                                                                                     <div class="input-group-text">Kg</div>
                                                                                 </div>
                                                                             </div>
@@ -1893,210 +1893,12 @@ else{
             }
         });
 
-        $('#submitWeight').on('click', function(){
-            // Check weight
-            var trueWeight = 0;
-            var variance = $('#productVariance').val() || '';
-            var high = $('#productHigh').val() || '';
-            var low = $('#productLow').val() || '';
-            var final = $('#finalWeight').val() || '0';
-            var completed = 'N';
-            var pass = true;
-
-            if($('#transactionStatus').val() == "Purchase" || $('#transactionStatus').val() == "Local"){
-                trueWeight = parseFloat($('#addModal').find('#supplierWeight').val());
-            }
-            else{
-                trueWeight = parseFloat($('#addModal').find('#orderWeight').val());
-            }
-
-            if($('#weightType').val() == 'Normal' && ($('#grossIncoming').val() && $('#tareOutgoing').val())){
-                isComplete = 'Y';
-            }
-            else if($('#weightType').val() == 'Container' && ($('#grossIncoming').val() && $('#tareOutgoing').val() && $('#grossIncoming2').val() && $('#tareOutgoing2').val())){
-                isComplete = 'Y';
-            }
-            else{
-                isComplete = 'N';
-            }
-
-            if (isComplete == 'Y' && variance != '') {
-                final = parseFloat(final);
-                low = low != '' ? parseFloat(low) : null;
-                high = high != '' ? parseFloat(high) : null;
-                
-                if (variance == 'W') {
-                    if (low !== null && (final < trueWeight - low)) {
-                        pass = false;
-                    } 
-                    else if (high !== null && (final > trueWeight + high)) {
-                        pass = false;
-                    }
-                } 
-                else if (variance == 'P') {
-                    if (low !== null && (final < trueWeight * (1 - low / 100))) {
-                        pass = false;
-                    } 
-                    else if (high !== null && (final > trueWeight * (1 + high / 100))) {
-                        pass = false;
-                    }
-                }
-            }
-
-            pass = true;
-
-            var isValid = true;
-
-            // custom validation for select2
-            $('#addModal .select2[required]').each(function () {
-                var select2Field = $(this);
-                var select2Container = select2Field.next('.select2-container'); // Get Select2 UI
-                var errorMsg = "<span class='select2-error text-danger' style='font-size: 11.375px;'>Please fill in the field.</span>";
-
-                // Check if the value is empty
-                if (select2Field.val() === "" || select2Field.val() === null) {
-                    select2Container.find('.select2-selection').css('border', '1px solid red'); // Add red border
-
-                    // Add error message if not already present
-                    if (select2Container.next('.select2-error').length === 0) {
-                        select2Container.after(errorMsg);
-                    }
-
-                    isValid = false;
-                } else {
-                    select2Container.find('.select2-selection').css('border', ''); // Remove red border
-                    select2Container.next('.select2-error').remove(); // Remove error message
-                }
-            });
-
-            if(pass && $('#weightForm').valid()){
-                $('#spinnerLoading').show();
-                $.post('php/weight.php', $('#weightForm').serialize(), function(data){
-                    var obj = JSON.parse(data); 
-                    if(obj.status === 'success'){
-                        <?php
-                            if(isset($_GET['weight'])){
-                                echo "window.location = 'index.php';";
-                            }
-                        ?>
-                        table.ajax.reload();
-                        window.location = 'index.php';
-                        $('#spinnerLoading').hide();
-                        $('#addModal').modal('hide');
-                        $("#successBtn").attr('data-toast-text', obj.message);
-                        $("#successBtn").click();
-                    }
-                    else if(obj.status === 'failed'){
-                        $('#spinnerLoading').hide();
-                        alert(obj.message);
-                        $("#failBtn").attr('data-toast-text', obj.message );
-                        $("#failBtn").click();
-                    }
-                    else{
-                        $('#spinnerLoading').hide();
-                        alert(obj.message);
-                        $("#failBtn").attr('data-toast-text', 'Failed to save');
-                        $("#failBtn").click();
-                    }
-                });
-            }
+        $('#submitWeight').on('click', function () { 
+            handleWeightSubmit(false); 
         });
 
-        $('#submitWeightPrint').on('click', function(){
-            // Check weight
-            var trueWeight = 0;
-            var variance = $('#productVariance').val() || '';
-            var high = $('#productHigh').val() || '';
-            var low = $('#productLow').val() || '';
-            var final = $('#finalWeight').val() || '0';
-            var completed = 'N';
-            var pass = true;
-
-            if($('#transactionStatus').val() == "Purchase" || $('#transactionStatus').val() == "Local"){
-                trueWeight = parseFloat($('#addModal').find('#supplierWeight').val());
-            }
-            else{
-                trueWeight = parseFloat($('#addModal').find('#orderWeight').val());
-            }
-
-            if($('#weightType').val() == 'Normal' && ($('#grossIncoming').val() && $('#tareOutgoing').val())){
-                isComplete = 'Y';
-            }
-            else if($('#weightType').val() == 'Container' && ($('#grossIncoming').val() && $('#tareOutgoing').val() && $('#grossIncoming2').val() && $('#tareOutgoing2').val())){
-                isComplete = 'Y';
-            }
-            else{
-                isComplete = 'N';
-            }
-
-            if (isComplete == 'Y' && variance != '') {
-                final = parseFloat(final);
-                low = low != '' ? parseFloat(low) : null;
-                high = high != '' ? parseFloat(high) : null;
-                
-                if (variance == 'W') {
-                    if (low !== null && (final < trueWeight - low)) {
-                        pass = false;
-                    } 
-                    else if (high !== null && (final > trueWeight + high)) {
-                        pass = false;
-                    }
-                } 
-                else if (variance == 'P') {
-                    if (low !== null && (final < trueWeight * (1 - low / 100))) {
-                        pass = false;
-                    } 
-                    else if (high !== null && (final > trueWeight * (1 + high / 100))) {
-                        pass = false;
-                    }
-                }
-            }
-
-            pass = true;
-
-            var isEmptyContainer = 'N';
-            if ($('#weightType').val() == 'Empty Container'){
-                isEmptyContainer = 'Y';
-            }
-
-            if(pass && $('#weightForm').valid()){
-                $('#spinnerLoading').show();
-                $.post('php/weight.php', $('#weightForm').serialize(), function(data){
-                    var obj = JSON.parse(data); 
-                    if(obj.status === 'success'){
-                        $('#spinnerLoading').hide();
-                        $('#addModal').modal('hide');
-                        $("#successBtn").attr('data-toast-text', obj.message);
-                        $("#successBtn").click();
-                        preparePrePrintModal(obj.id, $('#transactionStatus').val(), isEmptyContainer);
-                        $("#prePrintModal").modal("show");
-
-                        $('#prePrintForm').validate({
-                            errorElement: 'span',
-                            errorPlacement: function (error, element) {
-                                error.addClass('invalid-feedback');
-                                element.closest('.form-group').append(error);
-                            },
-                            highlight: function (element, errorClass, validClass) {
-                                $(element).addClass('is-invalid');
-                            },
-                            unhighlight: function (element, errorClass, validClass) {
-                                $(element).removeClass('is-invalid');
-                            }
-                        });
-                    }
-                    else if(obj.status === 'failed'){
-                        $('#spinnerLoading').hide();
-                        $("#failBtn").attr('data-toast-text', obj.message );
-                        $("#failBtn").click();
-                    }
-                    else{
-                        $('#spinnerLoading').hide();
-                        $("#failBtn").attr('data-toast-text', 'Failed to save');
-                        $("#failBtn").click();
-                    }
-                });
-            }
+        $('#submitWeightPrint').on('click', function () { 
+            handleWeightSubmit(true); 
         });
 
         $('#submitPrePrint').on('click', function(){
@@ -3494,6 +3296,135 @@ else{
         ?>
     });
 
+    function handleWeightSubmit(withPrint) {
+        var trueWeight = 0;
+        var variance = $('#productVariance').val() || '';
+        var high = $('#productHigh').val() || '';
+        var low = $('#productLow').val() || '';
+        var final = $('#finalWeight').val() || '0';
+        var pass = true;
+
+        if ($('#transactionStatus').val() == "Purchase" || $('#transactionStatus').val() == "Local") {
+            trueWeight = parseFloat($('#addModal').find('#supplierWeight').val());
+        }
+        else {
+            trueWeight = parseFloat($('#addModal').find('#orderWeight').val());
+        }
+
+        if ($('#weightType').val() == 'Normal' && ($('#grossIncoming').val() && $('#tareOutgoing').val())) {
+            isComplete = 'Y';
+        }
+        else if ($('#weightType').val() == 'Container' && ($('#grossIncoming').val() && $('#tareOutgoing').val() && $('#grossIncoming2').val() && $('#tareOutgoing2').val())) {
+            isComplete = 'Y';
+        }
+        else {
+            isComplete = 'N';
+        }
+
+        if (isComplete == 'Y' && variance != '') {
+            final = parseFloat(final);
+            low = low != '' ? parseFloat(low) : null;
+            high = high != '' ? parseFloat(high) : null;
+
+            if (variance == 'W') {
+                if (low !== null && (final < trueWeight - low)) {
+                    pass = false;
+                }
+                else if (high !== null && (final > trueWeight + high)) {
+                    pass = false;
+                }
+            }
+            else if (variance == 'P') {
+                if (low !== null && (final < trueWeight * (1 - low / 100))) {
+                    pass = false;
+                }
+                else if (high !== null && (final > trueWeight * (1 + high / 100))) {
+                    pass = false;
+                }
+            }
+        }
+
+        pass = true;
+
+        if (!withPrint) {
+            var isValid = true;
+
+            // custom validation for select2
+            $('#addModal .select2[required]').each(function () {
+                var select2Field = $(this);
+                var select2Container = select2Field.next('.select2-container'); // Get Select2 UI
+                var errorMsg = "<span class='select2-error text-danger' style='font-size: 11.375px;'>Please fill in the field.</span>";
+
+                // Check if the value is empty
+                if (select2Field.val() === "" || select2Field.val() === null) {
+                    select2Container.find('.select2-selection').css('border', '1px solid red'); // Add red border
+
+                    // Add error message if not already present
+                    if (select2Container.next('.select2-error').length === 0) {
+                        select2Container.after(errorMsg);
+                    }
+
+                    isValid = false;
+                } else {
+                    select2Container.find('.select2-selection').css('border', ''); // Remove red border
+                    select2Container.next('.select2-error').remove(); // Remove error message
+                }
+            });
+        }
+
+        var isEmptyContainer = $('#weightType').val() == 'Empty Container' ? 'Y' : 'N';
+
+        if (pass && $('#weightForm').valid()) {
+            $('#spinnerLoading').show();
+            $.post('php/weight.php', $('#weightForm').serialize(), function (data) {
+                var obj = JSON.parse(data);
+                if (obj.status === 'success') {
+                    $('#spinnerLoading').hide();
+                    $('#addModal').modal('hide');
+                    $("#successBtn").attr('data-toast-text', obj.message);
+                    $("#successBtn").click();
+                    if (withPrint) {
+                        preparePrePrintModal(obj.id, $('#transactionStatus').val(), isEmptyContainer);
+                        $("#prePrintModal").modal("show");
+                        $('#prePrintForm').validate({
+                            errorElement: 'span',
+                            errorPlacement: function (error, element) {
+                                error.addClass('invalid-feedback');
+                                element.closest('.form-group').append(error);
+                            },
+                            highlight: function (element, errorClass, validClass) {
+                                $(element).addClass('is-invalid');
+                            },
+                            unhighlight: function (element, errorClass, validClass) {
+                                $(element).removeClass('is-invalid');
+                            }
+                        });
+                    } else {
+                        <?php
+                            if(isset($_GET['weight'])){
+                                echo "window.location = 'index.php';";
+                            }
+                        ?>
+                        table.ajax.reload();
+                        window.location = 'index.php';
+                    }
+                }
+                else if (obj.status === 'failed') {
+                    $('#spinnerLoading').hide();
+                    if (!withPrint) { alert(obj.message); }
+                    $("#failBtn").attr('data-toast-text', obj.message);
+                    $("#failBtn").click();
+                }
+                else {
+                    $('#spinnerLoading').hide();
+                    if (!withPrint) { alert(obj.message); }
+                    $("#failBtn").attr('data-toast-text', 'Failed to save');
+                    $("#failBtn").click();
+                }
+            });
+        }
+    }
+
     function renderTable() {
         var fromDateI = $('#fromDateSearch').val();
         var toDateI = $('#toDateSearch').val();
@@ -4032,6 +3963,7 @@ else{
                     $('#addModal').find('#tareCapture').show();
                 }
 
+                console.log(obj.message.company_id);
                 $('#addModal').find('#id').val(obj.message.id);
                 $('#addModal').find('#companyId').val(obj.message.company_id).trigger('change');
                 $('#addModal').find('#transactionId').val(obj.message.transaction_id);

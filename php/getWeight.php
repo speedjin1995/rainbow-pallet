@@ -71,7 +71,6 @@ if(isset($_POST['userID'])){
                         if ($format == 'EXPANDABLE'){
                             $message['id'] = $row['id'];
     
-
                             if ($row['transaction_status'] == 'Purchase' || $row['transaction_status'] == 'Local'){
                                 if ($customer_stmt = $db->prepare("SELECT * FROM Supplier WHERE supplier_code=? AND status = '0'")) {
                                     $customer_stmt->bind_param('s', $row['supplier_code']);
@@ -109,6 +108,8 @@ if(isset($_POST['userID'])){
                                 $message['product_rawmat_name'] = $row['product_name'] ?? '';
     
                             }
+
+                            $message['company_id'] = $row['company_id'];
                             $message['transporter'] = $row['transporter'] ?? '';
                             $message['destination'] = $row['destination'] ?? '';
                             $message['plant_name'] = $row['plant_name'] ?? '';
@@ -142,6 +143,7 @@ if(isset($_POST['userID'])){
                             $message['weight_difference'] = $row['weight_difference'] ?? '';
                         }else{
                             $message['id'] = $row['id'];
+                            $message['company_id'] = $row['company_id'];
                             $message['transaction_id'] = $row['transaction_id'];
                             $message['transaction_status'] = $row['transaction_status'];
                             $message['weight_type'] = $row['weight_type'];
@@ -327,6 +329,7 @@ if(isset($_POST['userID'])){
                                 $message['product_rawmat_name'] = $row['product_code'] ?? '';
     
                             }
+                            $message['company_id'] = $row['company_id'];
                             $message['transporter'] = $row['transporter'] ?? '';
                             $message['destination'] = $row['destination'] ?? '';
                             $message['plant_name'] = $row['plant_name'] ?? '';
