@@ -755,7 +755,7 @@ if (isset($_POST['transactionId'], $_POST['transactionStatus'], $_POST['weightTy
         if(! empty($weightId)){
             $action = "2";
             
-            if ($update_stmt = $db->prepare("UPDATE Weight SET company_id, transaction_id=?, transaction_status=?, weight_type=?, customer_type=?, transaction_date=?, lorry_plate_no1=?, lorry_plate_no2=?, supplier_weight=?, order_weight=?, customer_code=?, customer_name=?, supplier_code=?, supplier_name=?,
+            if ($update_stmt = $db->prepare("UPDATE Weight SET company_id=?, transaction_id=?, transaction_status=?, weight_type=?, customer_type=?, transaction_date=?, lorry_plate_no1=?, lorry_plate_no2=?, supplier_weight=?, order_weight=?, customer_code=?, customer_name=?, supplier_code=?, supplier_name=?,
             product_code=?, product_name=?, raw_mat_code=?, raw_mat_name=?, container_no=?, seal_no=?, container_no2=?, seal_no2=?, invoice_no=?, purchase_order=?, delivery_no=?, transporter_code=?, transporter=?, destination_code=?, destination=?, remarks=?, gross_weight1=?, gross_weight1_date=?, gross_weight_by1=?, tare_weight1=?, tare_weight1_date=?, tare_weight_by1=?, nett_weight1=?, lorry_no2_weight=?, empty_container2_weight=?, 
             replacement_container=?, gross_weight2=?, gross_weight2_date=?, gross_weight_by2=?, tare_weight2=?, tare_weight2_date=?, tare_weight_by2=?, nett_weight2=?, reduce_weight=?, final_weight=?, weight_different=?, weight_different_perc=?, is_complete=?, is_cancel=?, manual_weight=?, indicator_id=?, weighbridge_id=?, created_by=?, modified_by=?, indicator_id_2=?, 
             product_description=?, unit_price=?, sub_total=?, sst=?, total_price=?, is_approved=?, plant_code=?, plant_name=? WHERE id=?"))
