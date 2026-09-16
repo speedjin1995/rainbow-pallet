@@ -29,7 +29,7 @@ $records = mysqli_fetch_assoc($sel);
 $totalRecordwithFilter = $records['allcount'];
 
 ## Fetch records
-$empQuery = "select * from Supplier WHERE status IN (0)".$searchQuery."order by status ASC, ".$columnName." ".$columnSortOrder." limit ".$row.",".$rowperpage;
+$empQuery = "select * from Supplier WHERE status IN (0)".$searchQuery."order by is_manual DESC, ".$columnName." ".$columnSortOrder." limit ".$row.",".$rowperpage;
 $empRecords = mysqli_query($db, $empQuery);
 $data = array();
 
@@ -51,7 +51,8 @@ while ($row = mysqli_fetch_assoc($empRecords)) {
         "payment_term" => $row['payment_term'],
         "payment_term_period" => $row['payment_term_period'],
         "account_no" => $row['account_no'],
-        "status" => $row['status']
+        "status" => $row['status'],
+        "is_manual" => $row['is_manual']
     );
 }
 

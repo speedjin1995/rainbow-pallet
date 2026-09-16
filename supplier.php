@@ -430,6 +430,11 @@ $(function () {
         'ajax': {
             'url':'php/modules/supplier/loadSupplier.php'
         },
+        'rowCallback': function(row, data) {
+            if (data.is_manual === 'Y') {
+                $(row).css('background-color', '#ffcccc');
+            }
+        },
         'columns': [
             {
                 // Add a checkbox with a unique ID for each row

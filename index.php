@@ -534,12 +534,20 @@ else{
                                                                                 <div class="row">
                                                                                     <label for="customerName" class="col-sm-4 col-form-label"><?=$languageArray['customer_name_code'][$language]?></label>
                                                                                     <div class="col-sm-8">
-                                                                                        <select class="form-select js-choice select2" id="customerName" name="customerName" required>
-                                                                                            <option selected="-">-</option>
-                                                                                            <?php while($rowCustomer=mysqli_fetch_assoc($customer)){ ?>
-                                                                                                <option value="<?=$rowCustomer['name'] ?>" data-code="<?=$rowCustomer['customer_code'] ?>"><?=$rowCustomer['name'] ?></option>
-                                                                                            <?php } ?>
-                                                                                        </select>
+                                                                                        <div class="input-group">
+                                                                                            <div class="input-group-text">
+                                                                                                <input class="form-check-input mt-0" id="manualCustomer" name="manualCustomer" type="checkbox" value="0">
+                                                                                            </div>
+                                                                                            <input type="text" class="form-control" id="customerNameTxt" name="customerNameTxt" placeholder="<?=$languageArray['customer_name_code'][$language]?>" style="display:none">
+                                                                                            <div class="col-10 index-customer">
+                                                                                                <select class="form-select js-choice select2" id="customerName" name="customerName" required>
+                                                                                                    <option selected="-">-</option>
+                                                                                                    <?php while($rowCustomer=mysqli_fetch_assoc($customer)){ ?>
+                                                                                                        <option value="<?=$rowCustomer['name'] ?>" data-code="<?=$rowCustomer['customer_code'] ?>"><?=$rowCustomer['name'] ?></option>
+                                                                                                    <?php } ?>
+                                                                                                </select>
+                                                                                            </div>
+                                                                                        </div>
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
@@ -547,12 +555,20 @@ else{
                                                                                 <div class="row">
                                                                                     <label for="supplierName" class="col-sm-4 col-form-label"><?=$languageArray['supplier_name_code'][$language]?></label>
                                                                                     <div class="col-sm-8">
-                                                                                        <select class="form-select select2" id="supplierName" name="supplierName" required>
-                                                                                            <option selected="-">-</option>
-                                                                                            <?php while($rowSupplier=mysqli_fetch_assoc($supplier)){ ?>
-                                                                                                <option value="<?=$rowSupplier['name'] ?>" data-code="<?=$rowSupplier['supplier_code'] ?>"><?=$rowSupplier['name'] ?></option>
-                                                                                            <?php } ?>
-                                                                                        </select>                                                                                        
+                                                                                        <div class="input-group">
+                                                                                            <div class="input-group-text">
+                                                                                                <input class="form-check-input mt-0" id="manualSupplier" name="manualSupplier" type="checkbox" value="0">
+                                                                                            </div>
+                                                                                            <input type="text" class="form-control" id="supplierNameTxt" name="supplierNameTxt" placeholder="<?=$languageArray['supplier_name_code'][$language]?>" style="display:none">
+                                                                                            <div class="col-10 index-supplier">
+                                                                                                <select class="form-select select2" id="supplierName" name="supplierName" required>
+                                                                                                    <option selected="-">-</option>
+                                                                                                    <?php while($rowSupplier=mysqli_fetch_assoc($supplier)){ ?>
+                                                                                                        <option value="<?=$rowSupplier['name'] ?>" data-code="<?=$rowSupplier['supplier_code'] ?>"><?=$rowSupplier['name'] ?></option>
+                                                                                                    <?php } ?>
+                                                                                                </select>
+                                                                                            </div>
+                                                                                        </div>
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
@@ -2115,6 +2131,8 @@ else{
             $('#addModal').find('#manualVehicle2').prop('checked', false).trigger('change');
             $('#addModal').find('#manualProduct').prop('checked', false).trigger('change');
             $('#addModal').find('#manualRawMaterial').prop('checked', false).trigger('change');
+            $('#addModal').find('#manualCustomer').prop('checked', false).trigger('change');
+            $('#addModal').find('#manualSupplier').prop('checked', false).trigger('change');
             $('#addModal').find('#grossIncoming').val("");
             grossIncomingDatePicker.clear();
             $('#addModal').find('#tareOutgoing').val("");
@@ -2743,6 +2761,40 @@ else{
                 $('#rawMaterialNameTxt').hide();
                 $('#rawMaterialNameTxt').val('');
                 $('.index-rawmaterial').show();
+            }
+        });
+
+        // Manual Customer checkbox handler
+        $('#manualCustomer').on('change', function(){
+            if($(this).is(':checked')){
+                $(this).val(1);
+                $('#customerName').val('-').trigger('change');
+                $('.index-customer').hide();
+                $('#customerNameTxt').show();
+                $('#customerCode').val('');
+            }
+            else{
+                $(this).val(0);
+                $('#customerNameTxt').hide();
+                $('#customerNameTxt').val('');
+                $('.index-customer').show();
+            }
+        });
+
+        // Manual Supplier checkbox handler
+        $('#manualSupplier').on('change', function(){
+            if($(this).is(':checked')){
+                $(this).val(1);
+                $('#supplierName').val('-').trigger('change');
+                $('.index-supplier').hide();
+                $('#supplierNameTxt').show();
+                $('#supplierCode').val('');
+            }
+            else{
+                $(this).val(0);
+                $('#supplierNameTxt').hide();
+                $('#supplierNameTxt').val('');
+                $('.index-supplier').show();
             }
         });
 

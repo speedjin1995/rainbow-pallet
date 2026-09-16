@@ -2,16 +2,22 @@
 require_once __DIR__ . '/../services/BaseService.php';
 require_once __DIR__ . '/../services/VehicleService.php';
 require_once __DIR__ . '/../services/ItemService.php';
+require_once __DIR__ . '/../services/CustomerService.php';
+require_once __DIR__ . '/../services/SupplierService.php';
 
 class WeightService extends BaseService {
 
     private $vehicleService;
     private $itemService;
+    private $customerService;
+    private $supplierService;
 
     public function __construct($db, $username) {
         parent::__construct($db, $username);
         $this->vehicleService = new VehicleService($db, $username);
         $this->itemService = new ItemService($db, $username);
+        $this->customerService = new CustomerService($db, $username);
+        $this->supplierService = new SupplierService($db, $username);
     }
     
     public function saveNormal($f) {
@@ -24,7 +30,7 @@ class WeightService extends BaseService {
         if (!$stmt) {
             throw new Exception($this->db->error);
         }
-        $stmt->bind_param('ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss', ...$params);
+        $stmt->bind_param(str_repeat('s', count($params)), ...$params);
         if (!$stmt->execute()) {
             throw new Exception($stmt->error);
         }
@@ -49,7 +55,7 @@ class WeightService extends BaseService {
         if (!$stmt) {
             throw new Exception($this->db->error);
         }
-        $stmt->bind_param('sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss', ...$params);
+        $stmt->bind_param(str_repeat('s', count($params)), ...$params);
         if (!$stmt->execute()) {
             throw new Exception($stmt->error);
         }
@@ -77,7 +83,7 @@ class WeightService extends BaseService {
         if (!$stmt) {
             throw new Exception($this->db->error);
         }
-        $stmt->bind_param('ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss', ...$params);
+        $stmt->bind_param(str_repeat('s', count($params)), ...$params);
         if (!$stmt->execute()) {
             throw new Exception($stmt->error);
         }
@@ -111,7 +117,7 @@ class WeightService extends BaseService {
             if (!$stmt) {
                 throw new Exception($this->db->error);
             }
-            $stmt->bind_param('sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss', ...$p);
+            $stmt->bind_param(str_repeat('s', count($p)), ...$p);
             if (!$stmt->execute()) {
                 throw new Exception($stmt->error);
             }
@@ -124,7 +130,7 @@ class WeightService extends BaseService {
                 throw new Exception($this->db->error);
             }
             $p = array_merge([$f['weightId']], $params);
-            $stmt->bind_param('sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss', ...$p);
+            $stmt->bind_param(str_repeat('s', count($p)), ...$p);
             if (!$stmt->execute()) {
                 throw new Exception($stmt->error);
             }
@@ -149,7 +155,7 @@ class WeightService extends BaseService {
         if (!$stmt) {
             throw new Exception($this->db->error);
         }
-        $stmt->bind_param('sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss', ...$params);
+        $stmt->bind_param(str_repeat('s', count($params)), ...$params);
         if (!$stmt->execute()) {
             throw new Exception($stmt->error);
         }
@@ -180,7 +186,7 @@ class WeightService extends BaseService {
         if (!$stmt) {
             throw new Exception($this->db->error);
         }
-        $stmt->bind_param('ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss', ...$params);
+        $stmt->bind_param(str_repeat('s', count($params)), ...$params);
         if (!$stmt->execute()) {
             throw new Exception($stmt->error);
         }
@@ -563,19 +569,19 @@ class WeightService extends BaseService {
 
     // ─── SQL Fragments ───────────────────────────────────────────────────────────
     private function normalCols() {
-        return "company_id, transaction_id, transaction_status, weight_type, customer_type, transaction_date, lorry_plate_no1, lorry_plate_no2, supplier_weight, order_weight, customer_code, customer_name, supplier_code, supplier_name, product_code, product_name, raw_mat_code, raw_mat_name, container_no, seal_no, container_no2, seal_no2, invoice_no, purchase_order, delivery_no, transporter_code, transporter, destination_code, destination, remarks, gross_weight1, gross_weight1_date, gross_weight_by1, tare_weight1, tare_weight1_date, tare_weight_by1, nett_weight1, gross_weight2, gross_weight2_date, gross_weight_by2, tare_weight2, tare_weight2_date, tare_weight_by2, nett_weight2, reduce_weight, final_weight, weight_different, weight_different_perc, is_complete, is_cancel, manual_weight, indicator_id, weighbridge_id, created_by, modified_by, indicator_id_2, product_description, unit_price, sub_total, sst, total_price, is_approved, plant_code, plant_name, is_manual_product, is_manual_raw_material";
+        return "company_id, transaction_id, transaction_status, weight_type, customer_type, transaction_date, lorry_plate_no1, lorry_plate_no2, supplier_weight, order_weight, customer_code, customer_name, supplier_code, supplier_name, product_code, product_name, raw_mat_code, raw_mat_name, container_no, seal_no, container_no2, seal_no2, invoice_no, purchase_order, delivery_no, transporter_code, transporter, destination_code, destination, remarks, gross_weight1, gross_weight1_date, gross_weight_by1, tare_weight1, tare_weight1_date, tare_weight_by1, nett_weight1, gross_weight2, gross_weight2_date, gross_weight_by2, tare_weight2, tare_weight2_date, tare_weight_by2, nett_weight2, reduce_weight, final_weight, weight_different, weight_different_perc, is_complete, is_cancel, manual_weight, indicator_id, weighbridge_id, created_by, modified_by, indicator_id_2, product_description, unit_price, sub_total, sst, total_price, is_approved, plant_code, plant_name, is_manual_product, is_manual_raw_material, is_manual_customer, is_manual_supplier";
     }
 
     private function normalSetCols() {
-        return "company_id=?, transaction_id=?, transaction_status=?, weight_type=?, customer_type=?, transaction_date=?, lorry_plate_no1=?, lorry_plate_no2=?, supplier_weight=?, order_weight=?, customer_code=?, customer_name=?, supplier_code=?, supplier_name=?, product_code=?, product_name=?, raw_mat_code=?, raw_mat_name=?, container_no=?, seal_no=?, container_no2=?, seal_no2=?, invoice_no=?, purchase_order=?, delivery_no=?, transporter_code=?, transporter=?, destination_code=?, destination=?, remarks=?, gross_weight1=?, gross_weight1_date=?, gross_weight_by1=?, tare_weight1=?, tare_weight1_date=?, tare_weight_by1=?, nett_weight1=?, gross_weight2=?, gross_weight2_date=?, gross_weight_by2=?, tare_weight2=?, tare_weight2_date=?, tare_weight_by2=?, nett_weight2=?, reduce_weight=?, final_weight=?, weight_different=?, weight_different_perc=?, is_complete=?, is_cancel=?, manual_weight=?, indicator_id=?, weighbridge_id=?, created_by=?, modified_by=?, indicator_id_2=?, product_description=?, unit_price=?, sub_total=?, sst=?, total_price=?, is_approved=?, plant_code=?, plant_name=?, is_manual_product=?, is_manual_raw_material=?";
+        return "company_id=?, transaction_id=?, transaction_status=?, weight_type=?, customer_type=?, transaction_date=?, lorry_plate_no1=?, lorry_plate_no2=?, supplier_weight=?, order_weight=?, customer_code=?, customer_name=?, supplier_code=?, supplier_name=?, product_code=?, product_name=?, raw_mat_code=?, raw_mat_name=?, container_no=?, seal_no=?, container_no2=?, seal_no2=?, invoice_no=?, purchase_order=?, delivery_no=?, transporter_code=?, transporter=?, destination_code=?, destination=?, remarks=?, gross_weight1=?, gross_weight1_date=?, gross_weight_by1=?, tare_weight1=?, tare_weight1_date=?, tare_weight_by1=?, nett_weight1=?, gross_weight2=?, gross_weight2_date=?, gross_weight_by2=?, tare_weight2=?, tare_weight2_date=?, tare_weight_by2=?, nett_weight2=?, reduce_weight=?, final_weight=?, weight_different=?, weight_different_perc=?, is_complete=?, is_cancel=?, manual_weight=?, indicator_id=?, weighbridge_id=?, created_by=?, modified_by=?, indicator_id_2=?, product_description=?, unit_price=?, sub_total=?, sst=?, total_price=?, is_approved=?, plant_code=?, plant_name=?, is_manual_product=?, is_manual_raw_material=?, is_manual_customer=?, is_manual_supplier=?";
     }
 
     private function diffCols() {
-        return "company_id, transaction_id, transaction_status, weight_type, customer_type, transaction_date, lorry_plate_no1, lorry_plate_no2, supplier_weight, order_weight, customer_code, customer_name, supplier_code, supplier_name, product_code, product_name, raw_mat_code, raw_mat_name, container_no, seal_no, container_no2, seal_no2, invoice_no, purchase_order, delivery_no, transporter_code, transporter, destination_code, destination, remarks, gross_weight1, gross_weight1_date, gross_weight_by1, tare_weight1, tare_weight1_date, tare_weight_by1, nett_weight1, lorry_no2_weight, empty_container2_weight, replacement_container, gross_weight2, gross_weight2_date, gross_weight_by2, tare_weight2, tare_weight2_date, tare_weight_by2, nett_weight2, reduce_weight, final_weight, weight_different, weight_different_perc, is_complete, is_cancel, manual_weight, indicator_id, weighbridge_id, created_by, modified_by, indicator_id_2, product_description, unit_price, sub_total, sst, total_price, is_approved, plant_code, plant_name, is_manual_product, is_manual_raw_material";
+        return "company_id, transaction_id, transaction_status, weight_type, customer_type, transaction_date, lorry_plate_no1, lorry_plate_no2, supplier_weight, order_weight, customer_code, customer_name, supplier_code, supplier_name, product_code, product_name, raw_mat_code, raw_mat_name, container_no, seal_no, container_no2, seal_no2, invoice_no, purchase_order, delivery_no, transporter_code, transporter, destination_code, destination, remarks, gross_weight1, gross_weight1_date, gross_weight_by1, tare_weight1, tare_weight1_date, tare_weight_by1, nett_weight1, lorry_no2_weight, empty_container2_weight, replacement_container, gross_weight2, gross_weight2_date, gross_weight_by2, tare_weight2, tare_weight2_date, tare_weight_by2, nett_weight2, reduce_weight, final_weight, weight_different, weight_different_perc, is_complete, is_cancel, manual_weight, indicator_id, weighbridge_id, created_by, modified_by, indicator_id_2, product_description, unit_price, sub_total, sst, total_price, is_approved, plant_code, plant_name, is_manual_product, is_manual_raw_material, is_manual_customer, is_manual_supplier";
     }
 
     private function diffSetCols() {
-        return "company_id=?, transaction_id=?, transaction_status=?, weight_type=?, customer_type=?, transaction_date=?, lorry_plate_no1=?, lorry_plate_no2=?, supplier_weight=?, order_weight=?, customer_code=?, customer_name=?, supplier_code=?, supplier_name=?, product_code=?, product_name=?, raw_mat_code=?, raw_mat_name=?, container_no=?, seal_no=?, container_no2=?, seal_no2=?, invoice_no=?, purchase_order=?, delivery_no=?, transporter_code=?, transporter=?, destination_code=?, destination=?, remarks=?, gross_weight1=?, gross_weight1_date=?, gross_weight_by1=?, tare_weight1=?, tare_weight1_date=?, tare_weight_by1=?, nett_weight1=?, lorry_no2_weight=?, empty_container2_weight=?, replacement_container=?, gross_weight2=?, gross_weight2_date=?, gross_weight_by2=?, tare_weight2=?, tare_weight2_date=?, tare_weight_by2=?, nett_weight2=?, reduce_weight=?, final_weight=?, weight_different=?, weight_different_perc=?, is_complete=?, is_cancel=?, manual_weight=?, indicator_id=?, weighbridge_id=?, created_by=?, modified_by=?, indicator_id_2=?, product_description=?, unit_price=?, sub_total=?, sst=?, total_price=?, is_approved=?, plant_code=?, plant_name=?, is_manual_product=?, is_manual_raw_material=?";
+        return "company_id=?, transaction_id=?, transaction_status=?, weight_type=?, customer_type=?, transaction_date=?, lorry_plate_no1=?, lorry_plate_no2=?, supplier_weight=?, order_weight=?, customer_code=?, customer_name=?, supplier_code=?, supplier_name=?, product_code=?, product_name=?, raw_mat_code=?, raw_mat_name=?, container_no=?, seal_no=?, container_no2=?, seal_no2=?, invoice_no=?, purchase_order=?, delivery_no=?, transporter_code=?, transporter=?, destination_code=?, destination=?, remarks=?, gross_weight1=?, gross_weight1_date=?, gross_weight_by1=?, tare_weight1=?, tare_weight1_date=?, tare_weight_by1=?, nett_weight1=?, lorry_no2_weight=?, empty_container2_weight=?, replacement_container=?, gross_weight2=?, gross_weight2_date=?, gross_weight_by2=?, tare_weight2=?, tare_weight2_date=?, tare_weight_by2=?, nett_weight2=?, reduce_weight=?, final_weight=?, weight_different=?, weight_different_perc=?, is_complete=?, is_cancel=?, manual_weight=?, indicator_id=?, weighbridge_id=?, created_by=?, modified_by=?, indicator_id_2=?, product_description=?, unit_price=?, sub_total=?, sst=?, total_price=?, is_approved=?, plant_code=?, plant_name=?, is_manual_product=?, is_manual_raw_material=?, is_manual_customer=?, is_manual_supplier=?";
     }
 
     // ─── Param Builders ──────────────────────────────────────────────────────────
@@ -583,6 +589,8 @@ class WeightService extends BaseService {
     private function normalParams($f) {
         $isManualProduct = (!empty($f['manualProduct']) && $f['manualProduct'] == '1') ? 'Y' : 'N';
         $isManualRawMaterial = (!empty($f['manualRawMaterial']) && $f['manualRawMaterial'] == '1') ? 'Y' : 'N';
+        $isManualCustomer = (!empty($f['manualCustomer']) && $f['manualCustomer'] == '1') ? 'Y' : 'N';
+        $isManualSupplier = (!empty($f['manualSupplier']) && $f['manualSupplier'] == '1') ? 'Y' : 'N';
         return [
             $f['companyId'], $f['transactionId'], $f['transactionStatus'], $f['weightType'], $f['customerType'], $f['transactionDate'],
             $f['vehiclePlateNo1'], $f['vehiclePlateNo2'], $f['supplierWeight'], $f['orderWeight'],
@@ -600,7 +608,7 @@ class WeightService extends BaseService {
             $this->username, $this->username, $f['indicatorId2'],
             $f['productDescription'], $f['unitPrice'], $f['subTotalPrice'], $f['sstPrice'], $f['totalPrice'],
             $f['isApproved'], $f['plantCode'], $f['plant'],
-            $isManualProduct, $isManualRawMaterial
+            $isManualProduct, $isManualRawMaterial, $isManualCustomer, $isManualSupplier
         ];
     }
 
@@ -608,6 +616,8 @@ class WeightService extends BaseService {
         $plate1 = $useVehicle2ForPlate1 ? $f['vehiclePlateNo2'] : $f['vehiclePlateNo1'];
         $isManualProduct = (!empty($f['manualProduct']) && $f['manualProduct'] == '1') ? 'Y' : 'N';
         $isManualRawMaterial = (!empty($f['manualRawMaterial']) && $f['manualRawMaterial'] == '1') ? 'Y' : 'N';
+        $isManualCustomer = (!empty($f['manualCustomer']) && $f['manualCustomer'] == '1') ? 'Y' : 'N';
+        $isManualSupplier = (!empty($f['manualSupplier']) && $f['manualSupplier'] == '1') ? 'Y' : 'N';
         return [
             $f['companyId'], $f['transactionId'], $f['transactionStatus'], $f['weightType'], $f['customerType'], $f['transactionDate'],
             $plate1, $f['vehiclePlateNo2'], $f['supplierWeight'], $f['orderWeight'],
@@ -626,7 +636,7 @@ class WeightService extends BaseService {
             $this->username, $this->username, $f['indicatorId2'],
             $f['productDescription'], $f['unitPrice'], $f['subTotalPrice'], $f['sstPrice'], $f['totalPrice'],
             $f['isApproved'], $f['plantCode'], $f['plant'],
-            $isManualProduct, $isManualRawMaterial
+            $isManualProduct, $isManualRawMaterial, $isManualCustomer, $isManualSupplier
         ];
     }
 
@@ -677,7 +687,7 @@ class WeightService extends BaseService {
         if (!$stmt) {
             throw new Exception($this->db->error);
         }
-        $stmt->bind_param('sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss', ...$params);
+        $stmt->bind_param(str_repeat('s', count($params)), ...$params);
         if (!$stmt->execute()) {
             throw new Exception($stmt->error);
         }
@@ -845,6 +855,20 @@ class WeightService extends BaseService {
             $result = $this->itemService->autoRegisterProduct($f['rawMaterialNameTxt'], 'Supplier');
             $f['rawMaterialCode'] = $result['product_code'];
             $f['rawMaterialName'] = $result['name'];
+        }
+        
+        // Handle manual customer
+        if (!empty($f['manualCustomer']) && $f['manualCustomer'] == '1' && !empty($f['customerNameTxt'])) {
+            $result = $this->customerService->autoRegisterCustomer($f['customerNameTxt']);
+            $f['customerCode'] = $result['customer_code'];
+            $f['customerName'] = $result['name'];
+        }
+        
+        // Handle manual supplier
+        if (!empty($f['manualSupplier']) && $f['manualSupplier'] == '1' && !empty($f['supplierNameTxt'])) {
+            $result = $this->supplierService->autoRegisterSupplier($f['supplierNameTxt']);
+            $f['supplierCode'] = $result['supplier_code'];
+            $f['supplierName'] = $result['name'];
         }
         
         return $f;

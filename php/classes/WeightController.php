@@ -168,6 +168,10 @@ class WeightController extends BaseController {
         $f['manualRawMaterial']     = $this->getPost('manualRawMaterial', '0');
         $f['productNameTxt']        = $this->getPost('productNameTxt');
         $f['rawMaterialNameTxt']    = $this->getPost('rawMaterialNameTxt');
+        $f['manualCustomer']        = $this->getPost('manualCustomer', '0');
+        $f['manualSupplier']        = $this->getPost('manualSupplier', '0');
+        $f['customerNameTxt']       = $this->getPost('customerNameTxt');
+        $f['supplierNameTxt']       = $this->getPost('supplierNameTxt');
         $f['destinationCode']       = $this->getPost('destinationCode');
         $f['transporterCode']       = $this->getPost('transporterCode');
         $f['finalWeight']           = $this->getPost('finalWeight', '0');
