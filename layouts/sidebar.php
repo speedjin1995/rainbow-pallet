@@ -199,11 +199,11 @@
                             </li-->
                             <?php endif; ?>
 
-                            <?php if(hasModulePermission('Master Data', 'Sawn Timber Species', ['view', 'create', 'edit'])): ?>                
+                            <!-- <?php if(hasModulePermission('Master Data', 'Sawn Timber Species', ['view', 'create', 'edit'])): ?>                
                             <li class="nav-item">
                                 <a href="sawnTimberSpecies.php" class="nav-link"><?=$languageArray['species_code'][$language]?></a>
                             </li>
-                            <?php endif; ?>
+                            <?php endif; ?> -->
 
                             <?php if(hasModulePermission('Master Data', 'PV Items', ['view', 'create', 'edit'])): ?>                
                             <li class="nav-item">
