@@ -238,11 +238,11 @@
                                 </li>
                                 <?php endif; ?>
                                 
-                                <?php if(hasModulePermission('Reports', 'Local', ['view', 'create', 'edit'])): ?>
+                                <!-- <?php if(hasModulePermission('Reports', 'Local', ['view', 'create', 'edit'])): ?>
                                 <li class="nav-item">
                                     <a href="localReport.php" class="nav-link"><?=$languageArray['internal_transfer_report_code'][$language]?></a>
                                 </li>
-                                <?php endif; ?>
+                                <?php endif; ?> -->
 
                                 <?php if(hasModulePermission('Reports', 'Port', ['view', 'create', 'edit'])): ?>
                                 <li class="nav-item">

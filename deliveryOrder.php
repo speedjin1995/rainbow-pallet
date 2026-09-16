@@ -659,7 +659,7 @@ else{
     }
 
     function print(id) {
-        $.post('php/print.php', {userID: id, file: 'weight'}, function(data){
+        $.post('php/modules/weighing/index.php', {action: 'print', userID: id, file: 'weight'}, function(data){
             var obj = JSON.parse(data);
 
             if(obj.status === 'success'){

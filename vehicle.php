@@ -92,7 +92,7 @@
                                                                         <div class="row">
                                                                             <div class="col-xxl-12 col-lg-12 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="vehicleNo" class="col-sm-4 col-form-label"><?=$languageArray['vehicle_no_code'][$language]?></label>
+                                                                                    <label for="vehicleNo" class="col-sm-4 col-form-label"><?=$languageArray['vehicle_no_code'][$language]?> *</label>
                                                                                     <div class="col-sm-8">
                                                                                         <input type="text" class="form-control" id="vehicleNo" name="vehicleNo" placeholder="<?=$languageArray['vehicle_no_code'][$language]?>" required>
                                                                                         <div class="invalid-feedback">
@@ -104,7 +104,7 @@
 
                                                                             <div class="col-xxl-12 col-lg-12 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="vehicleWeight" class="col-sm-4 col-form-label"><?=$languageArray['vehicle_weight_code'][$language]?></label>
+                                                                                    <label for="vehicleWeight" class="col-sm-4 col-form-label"><?=$languageArray['vehicle_weight_code'][$language]?> *</label>
                                                                                     <div class="col-sm-8">
                                                                                         <input type="number" class="form-control" id="vehicleWeight" name="vehicleWeight" placeholder="<?=$languageArray['vehicle_weight_code'][$language]?>" required>
                                                                                         <div class="invalid-feedback">
@@ -370,7 +370,13 @@ $(function () {
         'serverSide': true,
         'serverMethod': 'post',
         'ajax': {
-            'url':'php/modules/vehicle/loadVehicle.php'
+            'url': 'php/modules/vehicle/index.php',
+            'data': function(d) { d.action = 'filter'; }
+        },
+        'createdRow': function(row, data) {
+            if (data.is_manual === 'Y') {
+                $(row).css('background-color', '#ffd6d6');
+            }
         },
         'columns': [
             {
@@ -441,7 +447,7 @@ $(function () {
     $('#submitVehicle').on('click', function(){
         if($('#vehicleForm').valid()){
             $('#spinnerLoading').show();
-            $.post('php/modules/vehicle/vehicle.php', $('#vehicleForm').serialize(), function(data){
+            $.post('php/modules/vehicle/index.php', $('#vehicleForm').serialize(), function(data){
                 var obj = JSON.parse(data);
                 if(obj.status === 'success') {
                     table.ajax.reload();
@@ -523,7 +529,7 @@ $(function () {
 
         // Send the JSON array to the server
         $.ajax({
-            url: 'php/modules/vehicle/uploadVehicle.php',
+            url: 'php/modules/vehicle/index.php?action=upload',
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(data),
@@ -604,7 +610,7 @@ $(function () {
 
         if (selectedIds.length > 0) {
             if (confirm('Are you sure you want to delete these vehicles?')) {
-                $.post('php/modules/vehicle/deleteVehicle.php', {userID: selectedIds, type: 'MULTI'}, function(data){
+                $.post('php/modules/vehicle/index.php', {userID: selectedIds, type: 'MULTI', action: 'delete'}, function(data){
                     var obj = JSON.parse(data);
                     
                     if(obj.status === 'success'){
@@ -635,7 +641,7 @@ $(function () {
 
 function edit(id){
     $('#spinnerLoading').show();
-    $.post('php/modules/vehicle/getVehicle.php', {userID: id}, function(data)
+    $.post('php/modules/vehicle/index.php', {userID: id, action: 'get'}, function(data)
     {
         var obj = JSON.parse(data);
         if(obj.status === 'success'){
@@ -679,7 +685,7 @@ function edit(id){
 function deactivate(id){
     $('#spinnerLoading').show();
     if (confirm('Are you sure you want to delete this vehicle?')) {
-        $.post('php/modules/vehicle/deleteVehicle.php', {userID: id}, function(data){
+        $.post('php/modules/vehicle/index.php', {userID: id, action: 'delete'}, function(data){
             var obj = JSON.parse(data);
 
             if(obj.status === 'success'){

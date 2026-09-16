@@ -76,6 +76,10 @@ if(!empty($_GET['plant']) && isset($_GET['status']) && $_GET['status'] != null &
     }
 }
 
+if(!empty($_GET['company']) && isset($_GET['company']) && $_GET['company'] != null && $_GET['company'] != '' && $_GET['company'] != '-'){
+    $searchQuery .= " and Weight.company_id = '".$_GET['company']."'";
+}
+
 if(isset($_GET['reportType']) && $_GET['reportType'] != null && $_GET['reportType'] != '' && $_GET['reportType'] != '-'){
     $reportType = $_GET['reportType'];
 }

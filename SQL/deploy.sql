@@ -2675,3 +2675,402 @@ INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALU
 
 UPDATE message_resource SET en = 'Item', zh = '物品', my = 'Item', ne = 'பொருள்' WHERE message_key_code = 'raw_material_code';
 UPDATE message_resource SET en = 'Item', zh = '物品', my = 'Item', ne = 'பொருள்' WHERE message_key_code = 'product_code';
+
+-- 15/09/2026 --
+ALTER TABLE `Vehicle` ADD `is_manual` VARCHAR(1) NOT NULL DEFAULT 'N' AFTER `supplier_name`;
+ALTER TABLE `Vehicle_Log` ADD `is_manual` VARCHAR(1) NOT NULL DEFAULT 'N' AFTER `supplier_name`;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_VEH` AFTER INSERT ON `Vehicle` FOR EACH ROW 
+INSERT INTO Vehicle_Log (
+    vehicle_id, veh_number, vehicle_weight, transporter_code, transporter_name, customer_code, customer_name, supplier_code, supplier_name, is_manual, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.veh_number, NEW.vehicle_weight, NEW.transporter_code, NEW.transporter_name, NEW.customer_code, NEW.customer_name, NEW.supplier_code, NEW.supplier_name, NEW.is_manual, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_VEH` BEFORE UPDATE ON `Vehicle` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Check if status = 1, set action_id to 3, otherwise set to 2
+    IF NEW.status = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Vehicle_Log table
+    INSERT INTO Vehicle_Log (
+        vehicle_id, veh_number, vehicle_weight, transporter_code, transporter_name, customer_code, customer_name, supplier_code, supplier_name, is_manual, action_id, action_by, event_date
+    ) 
+    VALUES (
+        NEW.id, NEW.veh_number, NEW.vehicle_weight, NEW.transporter_code, NEW.transporter_name, NEW.customer_code, NEW.customer_name, NEW.supplier_code, NEW.supplier_name, NEW.is_manual, action_value, NEW.modified_by, NEW.modified_date
+    );
+END
+$$
+DELIMITER ;
+
+ALTER TABLE `Product` ADD `is_manual` VARCHAR(1) NOT NULL DEFAULT 'N' AFTER `uom`;
+ALTER TABLE `Product_Log` ADD `is_manual` VARCHAR(1) NOT NULL DEFAULT 'N' AFTER `uom`;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_PRODUCT` AFTER INSERT ON `Product` FOR EACH ROW 
+INSERT INTO Product_Log (
+    product_id, product_code, name, description, variance, high, low, category, entity_type, uom, is_manual, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.product_code, NEW.name, NEW.description, NEW.variance, NEW.high, NEW.low, NEW.category, NEW.entity_type, NEW.uom, NEW.is_manual, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_PRODUCT` BEFORE UPDATE ON `Product` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Check if status = 1, set action_id to 3, otherwise set to 2
+    IF NEW.status = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Product_Log table
+    INSERT INTO Product_Log (
+    product_id, product_code, name, description, variance, high, low, category, entity_type, uom, is_manual, action_id, action_by, event_date
+    ) 
+    VALUES (
+        NEW.id, NEW.product_code, NEW.name, NEW.description, NEW.variance, NEW.high, NEW.low, NEW.category, NEW.entity_type, NEW.uom, NEW.is_manual, action_value, NEW.modified_by, NEW.modified_date
+    );
+END
+$$
+DELIMITER ;
+
+ALTER TABLE `Raw_Mat` ADD `uom` INT(11) NULL AFTER `low`, ADD `is_manual` VARCHAR(1) NOT NULL DEFAULT 'N' AFTER `uom`;
+ALTER TABLE `Raw_Mat_Log` ADD `uom` INT(11) NULL AFTER `low`, ADD `is_manual` VARCHAR(1) NOT NULL DEFAULT 'N' AFTER `uom`;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_RAW_MAT` AFTER INSERT ON `Raw_Mat` FOR EACH ROW 
+INSERT INTO Raw_Mat_Log (
+    raw_mat_id, raw_mat_code, name, description, variance, high, low, raw_mat_type, uom, is_manual, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.raw_mat_code, NEW.name, NEW.description, NEW.variance, NEW.high, NEW.low, NEW.raw_mat_type, NEW.uom, NEW.is_manual, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_RAW_MAT` BEFORE UPDATE ON `Raw_Mat` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Check if status = 1, set action_id to 3, otherwise set to 2
+    IF NEW.status = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Raw_Mat_Log table
+    INSERT INTO Raw_Mat_Log (
+        raw_mat_id, raw_mat_code, name, description, variance, high, low, raw_mat_type, uom, is_manual, action_id, action_by, event_date
+    ) 
+    VALUES (
+        NEW.id, NEW.raw_mat_code, NEW.name, NEW.description, NEW.variance, NEW.high, NEW.low, NEW.raw_mat_type, NEW.uom, NEW.is_manual, action_value, NEW.modified_by, NEW.modified_date
+    );
+END
+$$
+DELIMITER ;
+
+ALTER TABLE Weight ADD COLUMN is_manual_product VARCHAR(1) NULL AFTER manual_weight;
+ALTER TABLE Weight ADD COLUMN is_manual_raw_material VARCHAR(1) NULL AFTER is_manual_product;
+ALTER TABLE Weight_Log ADD COLUMN is_manual_product VARCHAR(1) NULL AFTER manual_weight;
+ALTER TABLE Weight_Log ADD COLUMN is_manual_raw_material VARCHAR(1) NULL AFTER is_manual_product;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_WEIGHT` AFTER INSERT ON `Weight` FOR EACH ROW 
+INSERT INTO Weight_Log (
+    weight_id, company_id, transaction_id, transaction_status, weight_type, transaction_date, lorry_plate_no1, lorry_plate_no2, supplier_weight, order_weight, plant_code, plant_name, customer_code, customer_name, supplier_code, supplier_name, product_code, product_name, product_description, raw_mat_code, raw_mat_name, container_no, invoice_no, purchase_order, delivery_no, transporter_code, transporter, destination_code, destination, remarks, gross_weight1, gross_weight1_date, tare_weight1, tare_weight1_date, nett_weight1, lorry_no2_weight, empty_container2_weight, replacement_container, gross_weight2, gross_weight2_date, tare_weight2, tare_weight2_date, nett_weight2, reduce_weight, final_weight, weight_different, weight_different_perc, is_complete, is_cancel, is_approved, manual_weight, is_manual_product, is_manual_raw_material, indicator_id, weighbridge_id, indicator_id_2, unit_price, sub_total, sst, total_price, status, pv_id, customer_side_company, customer_side_removal_pass_no, customer_side_license_no, customer_side_moisture_content, customer_side_officer_name, customer_side_rainbow_driver, customer_side_time_in, customer_side_time_out, cust_side_do_no, cust_side_mc, cust_side_first_weight, cust_side_second_weight, cust_side_nett_weight, weight_difference, synced, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.company_id, NEW.transaction_id, NEW.transaction_status, NEW.weight_type, NEW.transaction_date, NEW.lorry_plate_no1, NEW.lorry_plate_no2, NEW.supplier_weight, NEW.order_weight, NEW.plant_code, NEW.plant_name, NEW.customer_code, NEW.customer_name, NEW.supplier_code, NEW.supplier_name, NEW.product_code, NEW.product_name, NEW.product_description, NEW.raw_mat_code, NEW.raw_mat_name, NEW.container_no, NEW.invoice_no, NEW.purchase_order, NEW.delivery_no, NEW.transporter_code, NEW.transporter, NEW.destination_code, NEW.destination, NEW.remarks, NEW.gross_weight1, NEW.gross_weight1_date, NEW.tare_weight1, NEW.tare_weight1_date, NEW.nett_weight1, NEW.lorry_no2_weight, NEW.empty_container2_weight, NEW.replacement_container, NEW.gross_weight2, NEW.gross_weight2_date, NEW.tare_weight2, NEW.tare_weight2_date, NEW.nett_weight2, NEW.reduce_weight, NEW.final_weight, NEW.weight_different, NEW.weight_different_perc, NEW.is_complete, NEW.is_cancel, NEW.is_approved, NEW.manual_weight, NEW.is_manual_product, NEW.is_manual_raw_material, NEW.indicator_id, NEW.weighbridge_id, NEW.indicator_id_2, NEW.unit_price, NEW.sub_total, NEW.sst, NEW.total_price, NEW.status, NEW.pv_id, NEW.customer_side_company, NEW.customer_side_removal_pass_no, NEW.customer_side_license_no, NEW.customer_side_moisture_content, NEW.customer_side_officer_name, NEW.customer_side_rainbow_driver, NEW.customer_side_time_in, NEW.customer_side_time_out, NEW.cust_side_do_no, NEW.cust_side_mc, NEW.cust_side_first_weight, NEW.cust_side_second_weight, NEW.cust_side_nett_weight, NEW.weight_difference, NEW.synced, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_WEIGHT` BEFORE UPDATE ON `Weight` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Check if status = 1, set action_id to 3, otherwise set to 2
+    IF NEW.status = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Weight_Log table
+    INSERT INTO Weight_Log (
+        weight_id, company_id, transaction_id, transaction_status, weight_type, transaction_date, lorry_plate_no1, lorry_plate_no2, supplier_weight, order_weight, plant_code, plant_name, customer_code, customer_name, supplier_code, supplier_name, product_code, product_name, product_description, raw_mat_code,raw_mat_name, container_no, invoice_no, purchase_order, delivery_no, transporter_code, transporter, destination_code, destination, remarks, gross_weight1, gross_weight1_date, tare_weight1, tare_weight1_date, nett_weight1, lorry_no2_weight, empty_container2_weight, replacement_container, gross_weight2, gross_weight2_date, tare_weight2, tare_weight2_date, nett_weight2, reduce_weight, final_weight, weight_different, weight_different_perc, is_complete, is_cancel, is_approved, manual_weight, is_manual_product, is_manual_raw_material, indicator_id, weighbridge_id, indicator_id_2, unit_price, sub_total, sst, total_price, status, pv_id, customer_side_company, customer_side_removal_pass_no, customer_side_license_no, customer_side_moisture_content, customer_side_officer_name, customer_side_rainbow_driver, customer_side_time_in, customer_side_time_out, cust_side_do_no, cust_side_mc, cust_side_first_weight, cust_side_second_weight, cust_side_nett_weight, weight_difference, synced, action_id, action_by, event_date
+    ) 
+    VALUES (
+        NEW.id, NEW.company_id, NEW.transaction_id, NEW.transaction_status, NEW.weight_type, NEW.transaction_date, 
+        NEW.lorry_plate_no1, NEW.lorry_plate_no2, NEW.supplier_weight, NEW.order_weight, 
+        NEW.plant_code, NEW.plant_name,
+        NEW.customer_code, NEW.customer_name, 
+        NEW.supplier_code, NEW.supplier_name, NEW.product_code, NEW.product_name, 
+        NEW.product_description, NEW.raw_mat_code, NEW.raw_mat_name, 
+        NEW.container_no, NEW.invoice_no, NEW.purchase_order, NEW.delivery_no, 
+        NEW.transporter_code, NEW.transporter, NEW.destination_code, NEW.destination, 
+        NEW.remarks, NEW.gross_weight1, NEW.gross_weight1_date, NEW.tare_weight1, 
+        NEW.tare_weight1_date, NEW.nett_weight1, NEW.lorry_no2_weight, NEW.empty_container2_weight, 
+        NEW.replacement_container, NEW.gross_weight2, NEW.gross_weight2_date, 
+        NEW.tare_weight2, NEW.tare_weight2_date, NEW.nett_weight2, NEW.reduce_weight,
+        NEW.final_weight, NEW.weight_different, NEW.weight_different_perc, NEW.is_complete, NEW.is_cancel, 
+        NEW.is_approved, NEW.manual_weight, NEW.is_manual_product, NEW.is_manual_raw_material, NEW.indicator_id, NEW.weighbridge_id, 
+        NEW.indicator_id_2, NEW.unit_price, NEW.sub_total, NEW.sst, NEW.total_price, NEW.status, NEW.pv_id,
+        NEW.customer_side_company, NEW.customer_side_removal_pass_no, NEW.customer_side_license_no, NEW.customer_side_moisture_content, NEW.customer_side_officer_name, NEW.customer_side_rainbow_driver, NEW.customer_side_time_in, NEW.customer_side_time_out, NEW.cust_side_do_no, NEW.cust_side_mc, NEW.cust_side_first_weight, NEW.cust_side_second_weight, NEW.cust_side_nett_weight, NEW.weight_difference,
+        NEW.synced, action_value, NEW.modified_by, NEW.modified_date
+    );
+END
+$$
+DELIMITER ;
+
+ALTER TABLE Weight_Container ADD COLUMN is_manual_product VARCHAR(1) NULL AFTER manual_weight;
+ALTER TABLE Weight_Container ADD COLUMN is_manual_raw_material VARCHAR(1) NULL AFTER is_manual_product;
+ALTER TABLE Weight_Container_Log ADD COLUMN is_manual_product VARCHAR(1) NULL AFTER manual_weight;
+ALTER TABLE Weight_Container_Log ADD COLUMN is_manual_raw_material VARCHAR(1) NULL AFTER is_manual_product;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_WEIGHT_CONTAINER` AFTER INSERT ON `Weight_Container` FOR EACH ROW 
+INSERT INTO Weight_Container_Log (
+    weight_id, company_id, transaction_id, transaction_status, weight_type, transaction_date, lorry_plate_no1, lorry_plate_no2, supplier_weight, order_weight, plant_code, plant_name, customer_code, customer_name, supplier_code, supplier_name, product_code, product_name, product_description, raw_mat_code, raw_mat_name, container_no, invoice_no, purchase_order, delivery_no, transporter_code, transporter, destination_code, destination, remarks, gross_weight1, gross_weight1_date, tare_weight1, tare_weight1_date, nett_weight1, lorry_no2_weight, empty_container2_weight, replacement_container, gross_weight2, gross_weight2_date, tare_weight2, tare_weight2_date, nett_weight2, reduce_weight, final_weight, weight_different, weight_different_perc, is_complete, is_cancel, is_approved, manual_weight, is_manual_product, is_manual_raw_material, indicator_id, weighbridge_id, indicator_id_2, unit_price, sub_total, sst, total_price, status, pv_id, customer_side_company, customer_side_removal_pass_no, customer_side_license_no, customer_side_moisture_content, customer_side_officer_name, customer_side_rainbow_driver, customer_side_time_in, customer_side_time_out, cust_side_do_no, cust_side_mc, cust_side_first_weight, cust_side_second_weight, cust_side_nett_weight, weight_difference, synced, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.company_id, NEW.transaction_id, NEW.transaction_status, NEW.weight_type, NEW.transaction_date, NEW.lorry_plate_no1, NEW.lorry_plate_no2, NEW.supplier_weight, NEW.order_weight, NEW.plant_code, NEW.plant_name, NEW.customer_code, NEW.customer_name, NEW.supplier_code, NEW.supplier_name, NEW.product_code, NEW.product_name, NEW.product_description, NEW.raw_mat_code, NEW.raw_mat_name, NEW.container_no, NEW.invoice_no, NEW.purchase_order, NEW.delivery_no, NEW.transporter_code, NEW.transporter, NEW.destination_code, NEW.destination, NEW.remarks, NEW.gross_weight1, NEW.gross_weight1_date, NEW.tare_weight1, NEW.tare_weight1_date, NEW.nett_weight1, NEW.lorry_no2_weight, NEW.empty_container2_weight, NEW.replacement_container, NEW.gross_weight2, NEW.gross_weight2_date, NEW.tare_weight2, NEW.tare_weight2_date, NEW.nett_weight2, NEW.reduce_weight, NEW.final_weight, NEW.weight_different, NEW.weight_different_perc, NEW.is_complete, NEW.is_cancel, NEW.is_approved, NEW.manual_weight, NEW.is_manual_product, NEW.is_manual_raw_material, NEW.indicator_id, NEW.weighbridge_id, NEW.indicator_id_2, NEW.unit_price, NEW.sub_total, NEW.sst, NEW.total_price, NEW.status, NEW.pv_id, NEW.customer_side_company, NEW.customer_side_removal_pass_no, NEW.customer_side_license_no, NEW.customer_side_moisture_content, NEW.customer_side_officer_name, NEW.customer_side_rainbow_driver, NEW.customer_side_time_in, NEW.customer_side_time_out, NEW.cust_side_do_no, NEW.cust_side_mc, NEW.cust_side_first_weight, NEW.cust_side_second_weight, NEW.cust_side_nett_weight, NEW.weight_difference, NEW.synced, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_WEIGHT_CONTAINER` BEFORE UPDATE ON `Weight_Container` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Check if status = 1, set action_id to 3, otherwise set to 2
+    IF NEW.status = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Weight_Container_Log table
+    INSERT INTO Weight_Container_Log (
+        weight_id, company_id, transaction_id, transaction_status, weight_type, transaction_date, lorry_plate_no1, lorry_plate_no2, supplier_weight, order_weight, plant_code, plant_name, customer_code, customer_name, supplier_code, supplier_name, product_code, product_name, product_description, raw_mat_code,raw_mat_name, container_no, invoice_no, purchase_order, delivery_no, transporter_code, transporter, destination_code, destination, remarks, gross_weight1, gross_weight1_date, tare_weight1, tare_weight1_date, nett_weight1, lorry_no2_weight, empty_container2_weight, replacement_container, gross_weight2, gross_weight2_date, tare_weight2, tare_weight2_date, nett_weight2, reduce_weight, final_weight, weight_different, weight_different_perc, is_complete, is_cancel, is_approved, manual_weight, is_manual_product, is_manual_raw_material, indicator_id, weighbridge_id, indicator_id_2, unit_price, sub_total, sst, total_price, status, pv_id, customer_side_company, customer_side_removal_pass_no, customer_side_license_no, customer_side_moisture_content, customer_side_officer_name, customer_side_rainbow_driver, customer_side_time_in, customer_side_time_out, cust_side_do_no, cust_side_mc, cust_side_first_weight, cust_side_second_weight, cust_side_nett_weight, weight_difference, synced, action_id, action_by, event_date
+    ) 
+    VALUES (
+        NEW.id, NEW.company_id, NEW.transaction_id, NEW.transaction_status, NEW.weight_type, NEW.transaction_date, 
+        NEW.lorry_plate_no1, NEW.lorry_plate_no2, NEW.supplier_weight, NEW.order_weight, 
+        NEW.plant_code, NEW.plant_name,
+        NEW.customer_code, NEW.customer_name, 
+        NEW.supplier_code, NEW.supplier_name, NEW.product_code, NEW.product_name, 
+        NEW.product_description, NEW.raw_mat_code, NEW.raw_mat_name, 
+        NEW.container_no, NEW.invoice_no, NEW.purchase_order, NEW.delivery_no, 
+        NEW.transporter_code, NEW.transporter, NEW.destination_code, NEW.destination, 
+        NEW.remarks, NEW.gross_weight1, NEW.gross_weight1_date, NEW.tare_weight1, 
+        NEW.tare_weight1_date, NEW.nett_weight1, NEW.lorry_no2_weight, NEW.empty_container2_weight, 
+        NEW.replacement_container, NEW.gross_weight2, NEW.gross_weight2_date, 
+        NEW.tare_weight2, NEW.tare_weight2_date, NEW.nett_weight2, NEW.reduce_weight,
+        NEW.final_weight, NEW.weight_different, NEW.weight_different_perc, NEW.is_complete, NEW.is_cancel, 
+        NEW.is_approved, NEW.manual_weight, NEW.is_manual_product, NEW.is_manual_raw_material, NEW.indicator_id, NEW.weighbridge_id, 
+        NEW.indicator_id_2, NEW.unit_price, NEW.sub_total, NEW.sst, NEW.total_price, NEW.status, NEW.pv_id, NEW.customer_side_company, NEW.customer_side_removal_pass_no, NEW.customer_side_license_no, NEW.customer_side_moisture_content, NEW.customer_side_officer_name, NEW.customer_side_rainbow_driver, NEW.customer_side_time_in, NEW.customer_side_time_out, NEW.cust_side_do_no, NEW.cust_side_mc, NEW.cust_side_first_weight, NEW.cust_side_second_weight, NEW.cust_side_nett_weight, NEW.weight_difference, NEW.synced, action_value, NEW.modified_by, NEW.modified_date
+    );
+END
+$$
+DELIMITER ;
+
+ALTER TABLE `Product` CHANGE `category` `category` INT(11) NULL;
+ALTER TABLE `Product` CHANGE `uom` `uom` INT(11) NULL;
+ALTER TABLE `Product` CHANGE `modified_by` `modified_by` VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL;
+ALTER TABLE `Product` CHANGE `modified_date` `modified_date` TIMESTAMP on update CURRENT_TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE `Product` CHANGE `created_date` `created_date` DATETIME NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE `Product` CHANGE `created_by` `created_by` VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL;
+
+ALTER TABLE `Product_Log` CHANGE `category` `category` INT(11) NULL;
+ALTER TABLE `Product_Log` CHANGE `uom` `uom` INT(11) NULL;
+
+ALTER TABLE `Customer` ADD `is_manual` VARCHAR(1) NOT NULL DEFAULT 'N' AFTER `email`;
+ALTER TABLE `Customer_Log` ADD `is_manual` VARCHAR(1) NOT NULL DEFAULT 'N' AFTER `email`;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_CUSTOMER` AFTER INSERT ON `Customer` FOR EACH ROW 
+INSERT INTO Customer_Log (
+    customer_id, customer_code, company_reg_no, new_reg_no, name, address_line_1, address_line_2, address_line_3, address_line_4, phone_no, fax_no, contact_name, ic_no, tin_no, email, is_manual, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.customer_code, NEW.company_reg_no, NEW.new_reg_no, NEW.name, NEW.address_line_1, NEW.address_line_2, NEW.address_line_3, NEW.address_line_4, NEW.phone_no, NEW.fax_no, NEW.contact_name, NEW.ic_no, NEW.tin_no, NEW.email, NEW.is_manual, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_CUSTOMER` BEFORE UPDATE ON `Customer` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Check if status = 1, set action_id to 3, otherwise set to 2
+    IF NEW.status = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Customer_Log table
+    INSERT INTO Customer_Log (
+        customer_id, customer_code, company_reg_no, new_reg_no, name, address_line_1, address_line_2, address_line_3, address_line_4, phone_no, fax_no, contact_name, ic_no, tin_no, email, is_manual, action_id, action_by, event_date
+    ) 
+    VALUES (
+        NEW.id, NEW.customer_code, NEW.company_reg_no, NEW.new_reg_no, NEW.name, NEW.address_line_1, NEW.address_line_2, NEW.address_line_3, NEW.address_line_4, NEW.phone_no, NEW.fax_no, NEW.contact_name, NEW.ic_no, NEW.tin_no, NEW.email, NEW.is_manual, action_value, NEW.modified_by, NEW.modified_date
+    );
+END
+$$
+DELIMITER ;
+
+ALTER TABLE `Supplier` ADD `is_manual` VARCHAR(1) NOT NULL DEFAULT 'N' AFTER `account_no`;
+ALTER TABLE `Supplier_Log` ADD `is_manual` VARCHAR(1) NOT NULL DEFAULT 'N' AFTER `account_no`;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_SUPPLIER` AFTER INSERT ON `Supplier` FOR EACH ROW 
+INSERT INTO Supplier_Log (
+    supplier_id, supplier_code, company_reg_no, new_reg_no, name, address_line_1, address_line_2, address_line_3, phone_no, fax_no, contact_name, ic_no, tin_no, payment_term, payment_term_period, account_no, is_manual, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.supplier_code, NEW.company_reg_no, NEW.new_reg_no, NEW.name, NEW.address_line_1, NEW.address_line_2, NEW.address_line_3, NEW.phone_no, NEW.fax_no, NEW.contact_name, NEW.ic_no, NEW.tin_no, NEW.payment_term, NEW.payment_term_period, NEW.account_no, NEW.is_manual, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_SUPPLIER` BEFORE UPDATE ON `Supplier` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Check if status = 1, set action_id to 3, otherwise set to 2
+    IF NEW.status = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Supplier_Log table
+    INSERT INTO Supplier_Log (
+        supplier_id, supplier_code, company_reg_no, new_reg_no, name, address_line_1, address_line_2, address_line_3, phone_no, fax_no, contact_name, ic_no, tin_no, payment_term, payment_term_period, account_no, is_manual, action_id, action_by, event_date
+    ) 
+    VALUES (
+        NEW.id, NEW.supplier_code, NEW.company_reg_no, NEW.new_reg_no, NEW.name, NEW.address_line_1, NEW.address_line_2, NEW.address_line_3, NEW.phone_no, NEW.fax_no, NEW.contact_name, NEW.ic_no, NEW.tin_no, NEW.payment_term, NEW.payment_term_period, NEW.account_no, NEW.is_manual, action_value, NEW.modified_by, NEW.modified_date
+    );
+END
+$$
+DELIMITER ;
+
+ALTER TABLE Weight ADD COLUMN is_manual_customer VARCHAR(1) NULL AFTER is_manual_raw_material;
+ALTER TABLE Weight ADD COLUMN is_manual_supplier VARCHAR(1) NULL AFTER is_manual_customer;
+ALTER TABLE Weight_Log ADD COLUMN is_manual_customer VARCHAR(1) NULL AFTER is_manual_raw_material;
+ALTER TABLE Weight_Log ADD COLUMN is_manual_supplier VARCHAR(1) NULL AFTER is_manual_customer;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_WEIGHT` AFTER INSERT ON `Weight` FOR EACH ROW 
+INSERT INTO Weight_Log (
+    weight_id, company_id, transaction_id, transaction_status, weight_type, transaction_date, lorry_plate_no1, lorry_plate_no2, supplier_weight, order_weight, plant_code, plant_name, customer_code, customer_name, supplier_code, supplier_name, product_code, product_name, product_description, raw_mat_code, raw_mat_name, container_no, invoice_no, purchase_order, delivery_no, transporter_code, transporter, destination_code, destination, remarks, gross_weight1, gross_weight1_date, tare_weight1, tare_weight1_date, nett_weight1, lorry_no2_weight, empty_container2_weight, replacement_container, gross_weight2, gross_weight2_date, tare_weight2, tare_weight2_date, nett_weight2, reduce_weight, final_weight, weight_different, weight_different_perc, is_complete, is_cancel, is_approved, manual_weight, is_manual_product, is_manual_raw_material, is_manual_customer, is_manual_supplier, indicator_id, weighbridge_id, indicator_id_2, unit_price, sub_total, sst, total_price, status, pv_id, customer_side_company, customer_side_removal_pass_no, customer_side_license_no, customer_side_moisture_content, customer_side_officer_name, customer_side_rainbow_driver, customer_side_time_in, customer_side_time_out, cust_side_do_no, cust_side_mc, cust_side_first_weight, cust_side_second_weight, cust_side_nett_weight, weight_difference, synced, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.company_id, NEW.transaction_id, NEW.transaction_status, NEW.weight_type, NEW.transaction_date, NEW.lorry_plate_no1, NEW.lorry_plate_no2, NEW.supplier_weight, NEW.order_weight, NEW.plant_code, NEW.plant_name, NEW.customer_code, NEW.customer_name, NEW.supplier_code, NEW.supplier_name, NEW.product_code, NEW.product_name, NEW.product_description, NEW.raw_mat_code, NEW.raw_mat_name, NEW.container_no, NEW.invoice_no, NEW.purchase_order, NEW.delivery_no, NEW.transporter_code, NEW.transporter, NEW.destination_code, NEW.destination, NEW.remarks, NEW.gross_weight1, NEW.gross_weight1_date, NEW.tare_weight1, NEW.tare_weight1_date, NEW.nett_weight1, NEW.lorry_no2_weight, NEW.empty_container2_weight, NEW.replacement_container, NEW.gross_weight2, NEW.gross_weight2_date, NEW.tare_weight2, NEW.tare_weight2_date, NEW.nett_weight2, NEW.reduce_weight, NEW.final_weight, NEW.weight_different, NEW.weight_different_perc, NEW.is_complete, NEW.is_cancel, NEW.is_approved, NEW.manual_weight, NEW.is_manual_product, NEW.is_manual_raw_material, NEW.is_manual_customer, NEW.is_manual_supplier, NEW.indicator_id, NEW.weighbridge_id, NEW.indicator_id_2, NEW.unit_price, NEW.sub_total, NEW.sst, NEW.total_price, NEW.status, NEW.pv_id, NEW.customer_side_company, NEW.customer_side_removal_pass_no, NEW.customer_side_license_no, NEW.customer_side_moisture_content, NEW.customer_side_officer_name, NEW.customer_side_rainbow_driver, NEW.customer_side_time_in, NEW.customer_side_time_out, NEW.cust_side_do_no, NEW.cust_side_mc, NEW.cust_side_first_weight, NEW.cust_side_second_weight, NEW.cust_side_nett_weight, NEW.weight_difference, NEW.synced, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_WEIGHT` BEFORE UPDATE ON `Weight` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Check if status = 1, set action_id to 3, otherwise set to 2
+    IF NEW.status = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Weight_Log table
+    INSERT INTO Weight_Log (
+        weight_id, company_id, transaction_id, transaction_status, weight_type, transaction_date, lorry_plate_no1, lorry_plate_no2, supplier_weight, order_weight, plant_code, plant_name, customer_code, customer_name, supplier_code, supplier_name, product_code, product_name, product_description, raw_mat_code,raw_mat_name, container_no, invoice_no, purchase_order, delivery_no, transporter_code, transporter, destination_code, destination, remarks, gross_weight1, gross_weight1_date, tare_weight1, tare_weight1_date, nett_weight1, lorry_no2_weight, empty_container2_weight, replacement_container, gross_weight2, gross_weight2_date, tare_weight2, tare_weight2_date, nett_weight2, reduce_weight, final_weight, weight_different, weight_different_perc, is_complete, is_cancel, is_approved, manual_weight, is_manual_product, is_manual_raw_material, is_manual_customer, is_manual_supplier, indicator_id, weighbridge_id, indicator_id_2, unit_price, sub_total, sst, total_price, status, pv_id, customer_side_company, customer_side_removal_pass_no, customer_side_license_no, customer_side_moisture_content, customer_side_officer_name, customer_side_rainbow_driver, customer_side_time_in, customer_side_time_out, cust_side_do_no, cust_side_mc, cust_side_first_weight, cust_side_second_weight, cust_side_nett_weight, weight_difference, synced, action_id, action_by, event_date
+    ) 
+    VALUES (
+        NEW.id, NEW.company_id, NEW.transaction_id, NEW.transaction_status, NEW.weight_type, NEW.transaction_date, 
+        NEW.lorry_plate_no1, NEW.lorry_plate_no2, NEW.supplier_weight, NEW.order_weight, 
+        NEW.plant_code, NEW.plant_name,
+        NEW.customer_code, NEW.customer_name, 
+        NEW.supplier_code, NEW.supplier_name, NEW.product_code, NEW.product_name, 
+        NEW.product_description, NEW.raw_mat_code, NEW.raw_mat_name, 
+        NEW.container_no, NEW.invoice_no, NEW.purchase_order, NEW.delivery_no, 
+        NEW.transporter_code, NEW.transporter, NEW.destination_code, NEW.destination, 
+        NEW.remarks, NEW.gross_weight1, NEW.gross_weight1_date, NEW.tare_weight1, 
+        NEW.tare_weight1_date, NEW.nett_weight1, NEW.lorry_no2_weight, NEW.empty_container2_weight, 
+        NEW.replacement_container, NEW.gross_weight2, NEW.gross_weight2_date, 
+        NEW.tare_weight2, NEW.tare_weight2_date, NEW.nett_weight2, NEW.reduce_weight,
+        NEW.final_weight, NEW.weight_different, NEW.weight_different_perc, NEW.is_complete, NEW.is_cancel, 
+        NEW.is_approved, NEW.manual_weight, NEW.is_manual_product, NEW.is_manual_raw_material, 
+        NEW.is_manual_customer, NEW.is_manual_supplier, NEW.indicator_id, NEW.weighbridge_id, 
+        NEW.indicator_id_2, NEW.unit_price, NEW.sub_total, NEW.sst, NEW.total_price, NEW.status, NEW.pv_id,
+        NEW.customer_side_company, NEW.customer_side_removal_pass_no, NEW.customer_side_license_no, NEW.customer_side_moisture_content, NEW.customer_side_officer_name, NEW.customer_side_rainbow_driver, NEW.customer_side_time_in, NEW.customer_side_time_out, NEW.cust_side_do_no, NEW.cust_side_mc, NEW.cust_side_first_weight, NEW.cust_side_second_weight, NEW.cust_side_nett_weight, NEW.weight_difference,
+        NEW.synced, action_value, NEW.modified_by, NEW.modified_date
+    );
+END
+$$
+DELIMITER ;
+
+ALTER TABLE Weight_Container ADD COLUMN is_manual_customer VARCHAR(1) NULL AFTER is_manual_raw_material;
+ALTER TABLE Weight_Container ADD COLUMN is_manual_supplier VARCHAR(1) NULL AFTER is_manual_customer;
+ALTER TABLE Weight_Container_Log ADD COLUMN is_manual_customer VARCHAR(1) NULL AFTER is_manual_raw_material;
+ALTER TABLE Weight_Container_Log ADD COLUMN is_manual_supplier VARCHAR(1) NULL AFTER is_manual_customer;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_WEIGHT_CONTAINER` AFTER INSERT ON `Weight_Container` FOR EACH ROW 
+INSERT INTO Weight_Container_Log (
+    weight_id, company_id, transaction_id, transaction_status, weight_type, transaction_date, lorry_plate_no1, lorry_plate_no2, supplier_weight, order_weight, plant_code, plant_name, customer_code, customer_name, supplier_code, supplier_name, product_code, product_name, product_description, raw_mat_code, raw_mat_name, container_no, invoice_no, purchase_order, delivery_no, transporter_code, transporter, destination_code, destination, remarks, gross_weight1, gross_weight1_date, tare_weight1, tare_weight1_date, nett_weight1, lorry_no2_weight, empty_container2_weight, replacement_container, gross_weight2, gross_weight2_date, tare_weight2, tare_weight2_date, nett_weight2, reduce_weight, final_weight, weight_different, weight_different_perc, is_complete, is_cancel, is_approved, manual_weight, is_manual_product, is_manual_raw_material, is_manual_customer, is_manual_supplier, indicator_id, weighbridge_id, indicator_id_2, unit_price, sub_total, sst, total_price, status, pv_id, customer_side_company, customer_side_removal_pass_no, customer_side_license_no, customer_side_moisture_content, customer_side_officer_name, customer_side_rainbow_driver, customer_side_time_in, customer_side_time_out, cust_side_do_no, cust_side_mc, cust_side_first_weight, cust_side_second_weight, cust_side_nett_weight, weight_difference, synced, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.company_id, NEW.transaction_id, NEW.transaction_status, NEW.weight_type, NEW.transaction_date, NEW.lorry_plate_no1, NEW.lorry_plate_no2, NEW.supplier_weight, NEW.order_weight, NEW.plant_code, NEW.plant_name, NEW.customer_code, NEW.customer_name, NEW.supplier_code, NEW.supplier_name, NEW.product_code, NEW.product_name, NEW.product_description, NEW.raw_mat_code, NEW.raw_mat_name, NEW.container_no, NEW.invoice_no, NEW.purchase_order, NEW.delivery_no, NEW.transporter_code, NEW.transporter, NEW.destination_code, NEW.destination, NEW.remarks, NEW.gross_weight1, NEW.gross_weight1_date, NEW.tare_weight1, NEW.tare_weight1_date, NEW.nett_weight1, NEW.lorry_no2_weight, NEW.empty_container2_weight, NEW.replacement_container, NEW.gross_weight2, NEW.gross_weight2_date, NEW.tare_weight2, NEW.tare_weight2_date, NEW.nett_weight2, NEW.reduce_weight, NEW.final_weight, NEW.weight_different, NEW.weight_different_perc, NEW.is_complete, NEW.is_cancel, NEW.is_approved, NEW.manual_weight, NEW.is_manual_product, NEW.is_manual_raw_material, NEW.is_manual_customer, NEW.is_manual_supplier, NEW.indicator_id, NEW.weighbridge_id, NEW.indicator_id_2, NEW.unit_price, NEW.sub_total, NEW.sst, NEW.total_price, NEW.status, NEW.pv_id, NEW.customer_side_company, NEW.customer_side_removal_pass_no, NEW.customer_side_license_no, NEW.customer_side_moisture_content, NEW.customer_side_officer_name, NEW.customer_side_rainbow_driver, NEW.customer_side_time_in, NEW.customer_side_time_out, NEW.cust_side_do_no, NEW.cust_side_mc, NEW.cust_side_first_weight, NEW.cust_side_second_weight, NEW.cust_side_nett_weight, NEW.weight_difference, NEW.synced, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_WEIGHT_CONTAINER` BEFORE UPDATE ON `Weight_Container` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Check if status = 1, set action_id to 3, otherwise set to 2
+    IF NEW.status = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Weight_Container_Log table
+    INSERT INTO Weight_Container_Log (
+        weight_id, company_id, transaction_id, transaction_status, weight_type, transaction_date, lorry_plate_no1, lorry_plate_no2, supplier_weight, order_weight, plant_code, plant_name, customer_code, customer_name, supplier_code, supplier_name, product_code, product_name, product_description, raw_mat_code,raw_mat_name, container_no, invoice_no, purchase_order, delivery_no, transporter_code, transporter, destination_code, destination, remarks, gross_weight1, gross_weight1_date, tare_weight1, tare_weight1_date, nett_weight1, lorry_no2_weight, empty_container2_weight, replacement_container, gross_weight2, gross_weight2_date, tare_weight2, tare_weight2_date, nett_weight2, reduce_weight, final_weight, weight_different, weight_different_perc, is_complete, is_cancel, is_approved, manual_weight, is_manual_product, is_manual_raw_material, is_manual_customer, is_manual_supplier, indicator_id, weighbridge_id, indicator_id_2, unit_price, sub_total, sst, total_price, status, pv_id, customer_side_company, customer_side_removal_pass_no, customer_side_license_no, customer_side_moisture_content, customer_side_officer_name, customer_side_rainbow_driver, customer_side_time_in, customer_side_time_out, cust_side_do_no, cust_side_mc, cust_side_first_weight, cust_side_second_weight, cust_side_nett_weight, weight_difference, synced, action_id, action_by, event_date
+    ) 
+    VALUES (
+        NEW.id, NEW.company_id, NEW.transaction_id, NEW.transaction_status, NEW.weight_type, NEW.transaction_date, 
+        NEW.lorry_plate_no1, NEW.lorry_plate_no2, NEW.supplier_weight, NEW.order_weight, 
+        NEW.plant_code, NEW.plant_name,
+        NEW.customer_code, NEW.customer_name, 
+        NEW.supplier_code, NEW.supplier_name, NEW.product_code, NEW.product_name, 
+        NEW.product_description, NEW.raw_mat_code, NEW.raw_mat_name, 
+        NEW.container_no, NEW.invoice_no, NEW.purchase_order, NEW.delivery_no, 
+        NEW.transporter_code, NEW.transporter, NEW.destination_code, NEW.destination, 
+        NEW.remarks, NEW.gross_weight1, NEW.gross_weight1_date, NEW.tare_weight1, 
+        NEW.tare_weight1_date, NEW.nett_weight1, NEW.lorry_no2_weight, NEW.empty_container2_weight, 
+        NEW.replacement_container, NEW.gross_weight2, NEW.gross_weight2_date, 
+        NEW.tare_weight2, NEW.tare_weight2_date, NEW.nett_weight2, NEW.reduce_weight,
+        NEW.final_weight, NEW.weight_different, NEW.weight_different_perc, NEW.is_complete, NEW.is_cancel, 
+        NEW.is_approved, NEW.manual_weight, NEW.is_manual_product, NEW.is_manual_raw_material, 
+        NEW.is_manual_customer, NEW.is_manual_supplier, NEW.indicator_id, NEW.weighbridge_id, 
+        NEW.indicator_id_2, NEW.unit_price, NEW.sub_total, NEW.sst, NEW.total_price, NEW.status, NEW.pv_id, NEW.customer_side_company, NEW.customer_side_removal_pass_no, NEW.customer_side_license_no, NEW.customer_side_moisture_content, NEW.customer_side_officer_name, NEW.customer_side_rainbow_driver, NEW.customer_side_time_in, NEW.customer_side_time_out, NEW.cust_side_do_no, NEW.cust_side_mc, NEW.cust_side_first_weight, NEW.cust_side_second_weight, NEW.cust_side_nett_weight, NEW.weight_difference, NEW.synced, action_value, NEW.modified_by, NEW.modified_date
+    );
+END
+$$
+DELIMITER ;
+
+ALTER TABLE `Supplier` CHANGE `modified_date` `modified_date` TIMESTAMP on update CURRENT_TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE `Customer` CHANGE `modified_date` `modified_date` TIMESTAMP on update CURRENT_TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE `Customer` CHANGE `modified_by` `modified_by` VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL;
