@@ -64,18 +64,27 @@ $records = mysqli_fetch_assoc($sel);
 $totalRecordwithFilter = mysqli_num_rows($sel);
 
 ## Fetch records
-$empQuery = "SELECT h.id, h.company_id, h.plant_id, h.weight_id, w.transaction_id, h.record_date, w.supplier_name, h.remarks, h.status, COALESCE(SUM(d.pieces),0) AS total_pieces, COALESCE(SUM(d.tons),0) AS total_tons FROM Sawn_Timber_Header h LEFT JOIN Sawn_Timber_Detail d ON h.id=d.header_id LEFT JOIN Weight w ON h.weight_id=w.id WHERE h.status = 0".$searchQuery." group by h.id order by ".$columnName." ".$columnSortOrder." limit ".$row.",".$rowperpage;
+$empQuery = "SELECT h.id, h.company_id, h.plant_id, h.weight_id, w.transaction_id, h.record_date, 
+  c.name AS customer_name, s.name AS supplier_name, h.remarks, h.status, 
+  COALESCE(SUM(d.pieces),0) AS total_pieces, COALESCE(SUM(d.tons),0) AS total_tons 
+  FROM Sawn_Timber_Header h 
+  LEFT JOIN Sawn_Timber_Detail d ON h.id=d.header_id 
+  LEFT JOIN Weight w ON h.weight_id=w.id 
+  LEFT JOIN Customer c ON w.customer_code=c.customer_code 
+  LEFT JOIN Supplier s ON w.supplier_code=s.supplier_code 
+  WHERE h.status = 0".$searchQuery." group by h.id order by ".$columnName." ".$columnSortOrder." limit ".$row.",".$rowperpage;
 $empRecords = mysqli_query($db, $empQuery);
 $data = array();
 
 while($row = mysqli_fetch_assoc($empRecords)) {
+  $customerSupplier = $row['customer_name'] ?? $row['supplier_name'] ?? '';
   $data[] = array( 
     "id" => $row['id'],
+    "record_date" => $row['record_date'],
     "transaction_id" => $row['transaction_id'],
-    "transaction_date" => $row['record_date'],
     "company" => searchCompanyById($row['company_id'], $db)['name'],
     "plant" => searchPlantNameById($row['plant_id'], $db),
-    "supplier" => $row['supplier_name'] ?? '',
+    "customer_supplier" => $customerSupplier,
     "total_pieces" => $row['total_pieces'],
     "total_tons" => number_format((float)$row['total_tons'], 4, '.', ''),
     "remarks" => $row['remarks'],

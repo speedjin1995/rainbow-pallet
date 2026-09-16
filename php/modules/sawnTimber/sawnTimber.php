@@ -23,11 +23,16 @@ try {
 
     // Get detail arrays from form
     $speciesArr = isset($_POST['species']) ? $_POST['species'] : [];
+    $lotArr = isset($_POST['lot']) ? $_POST['lot'] : [];
+    $bundleArr = isset($_POST['bundle']) ? $_POST['bundle'] : [];
     $thickArr = isset($_POST['thick']) ? $_POST['thick'] : [];
     $widthArr = isset($_POST['width']) ? $_POST['width'] : [];
     $lengthArr = isset($_POST['length']) ? $_POST['length'] : [];
     $piecesArr = isset($_POST['pieces']) ? $_POST['pieces'] : [];
     $tonsArr = isset($_POST['tons']) ? $_POST['tons'] : [];
+    $kdChargesArr = isset($_POST['kdCharges']) ? $_POST['kdCharges'] : [];
+    $bundlingChargesArr = isset($_POST['bundlingCharges']) ? $_POST['bundlingCharges'] : [];
+    $graderFeesArr = isset($_POST['graderFees']) ? $_POST['graderFees'] : [];
 
     if (!$companyId || !$plantId || !$weightId || !$transactionId || !$sawnTimberDate || empty($speciesArr)) {
         throw new Exception("Please fill in all the fields");
@@ -80,18 +85,21 @@ try {
         $stmt->close();
     }
 
-    $detailStmt = $db->prepare("INSERT INTO Sawn_Timber_Detail (header_id, species, thick, width, length, pieces, tons) VALUES (?, ?, ?, ?, ?, ?, ?)");
+    $detailStmt = $db->prepare("INSERT INTO Sawn_Timber_Detail (header_id, species, lot, bundle, thick, width, length, pieces, tons, kd_charges, bundling_charges, grader_fees) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
     foreach ($speciesArr as $index => $species) {
-        if (empty($species)) continue;
-
+        $lot = isset($lotArr[$index]) ? $lotArr[$index] : null;
+        $bundle = isset($bundleArr[$index]) ? $bundleArr[$index] : null;
         $thick = isset($thickArr[$index]) ? $thickArr[$index] : 0;
         $width = isset($widthArr[$index]) ? $widthArr[$index] : 0;
         $length = isset($lengthArr[$index]) ? $lengthArr[$index] : 0;
         $pieces = isset($piecesArr[$index]) ? $piecesArr[$index] : 0;
         $tons = isset($tonsArr[$index]) ? $tonsArr[$index] : 0;
+        $kdCharges = isset($kdChargesArr[$index]) ? $kdChargesArr[$index] : 0;
+        $bundlingCharges = isset($bundlingChargesArr[$index]) ? $bundlingChargesArr[$index] : 0;
+        $graderFees = isset($graderFeesArr[$index]) ? $graderFeesArr[$index] : 0;
 
-        $detailStmt->bind_param('isdddid', $id, $species, $thick, $width, $length, $pieces, $tons);
+        $detailStmt->bind_param('isssdddddddd', $id, $species, $lot, $bundle, $thick, $width, $length, $pieces, $tons, $kdCharges, $bundlingCharges, $graderFees);
         $detailStmt->execute();
     }
 

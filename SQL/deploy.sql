@@ -3118,4 +3118,42 @@ DELIMITER ;
 INSERT INTO Product_Categories (`category_name`, `post_to_sql`, `created_by`) VALUES ('Sawn Timber', 'N', 'System');
 
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('record_date_code', 'Record Date', '记录日期', 'Tarikh Rekod', 'பதிவு தேதி');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('kd_charges_code', 'KD Charges', 'KD费用', 'Caj KD', 'KD கட்டணங்கள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('bundling_charges_code', 'Bundling Charges', '捆扎费用', 'Caj Pembungkusan', 'மூட்டை கட்டணங்கள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('grader_fees_code', 'Grader Fees', '分级费用', 'Yuran Penggred', 'தரப்படுத்தி கட்டணங்கள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('weighing_transactions_code', 'Weighing Transactions', '称重交易', 'Transaksi Penimbangan', 'எடை பரிவர்த்தனைகள்');
 
+ALTER TABLE `Sawn_Timber_Detail` 
+  MODIFY `species` VARCHAR(255) NULL,
+  ADD `lot` VARCHAR(255) NULL AFTER `species`,
+  ADD `bundle` VARCHAR(255) NULL AFTER `lot`,
+  ADD `kd_charges` VARCHAR(255) NULL AFTER `tons`,
+  ADD `bundling_charges` VARCHAR(255) NULL AFTER `kd_charges`,
+  ADD `grader_fees` VARCHAR(255) NULL AFTER `bundling_charges`;
+
+ALTER TABLE `Sawn_Timber_Detail_Log` 
+  MODIFY `species` VARCHAR(255) NULL,
+  ADD `lot` VARCHAR(255) NULL AFTER `species`,
+  ADD `bundle` VARCHAR(255) NULL AFTER `lot`,
+  ADD `kd_charges` VARCHAR(255) NULL AFTER `tons`,
+  ADD `bundling_charges` VARCHAR(255) NULL AFTER `kd_charges`,
+  ADD `grader_fees` VARCHAR(255) NULL AFTER `bundling_charges`;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_SAWN_TIMBER_DETAIL` AFTER INSERT ON `Sawn_Timber_Detail` FOR EACH ROW
+INSERT INTO Sawn_Timber_Detail_Log (
+    detail_id, header_id, species, lot, bundle, thick, width, length, pieces, tons, kd_charges, bundling_charges, grader_fees, action_id, action_by, event_date
+) VALUES (
+    NEW.id, NEW.header_id, NEW.species, NEW.lot, NEW.bundle, NEW.thick, NEW.width, NEW.length, NEW.pieces, NEW.tons, NEW.kd_charges, NEW.bundling_charges, NEW.grader_fees, 1, COALESCE(@sawn_timber_action_by, 'system'), NOW()
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_DEL_SAWN_TIMBER_DETAIL` BEFORE DELETE ON `Sawn_Timber_Detail` FOR EACH ROW
+INSERT INTO Sawn_Timber_Detail_Log (
+    detail_id, header_id, species, lot, bundle, thick, width, length, pieces, tons, kd_charges, bundling_charges, grader_fees, action_id, action_by, event_date
+) VALUES (
+    OLD.id, OLD.header_id, OLD.species, OLD.lot, OLD.bundle, OLD.thick, OLD.width, OLD.length, OLD.pieces, OLD.tons, OLD.kd_charges, OLD.bundling_charges, OLD.grader_fees, 3, COALESCE(@sawn_timber_action_by, 'system'), NOW()
+)
+$$
+DELIMITER ;
