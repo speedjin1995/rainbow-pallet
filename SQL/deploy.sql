@@ -3074,3 +3074,106 @@ DELIMITER ;
 ALTER TABLE `Supplier` CHANGE `modified_date` `modified_date` TIMESTAMP on update CURRENT_TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP;
 ALTER TABLE `Customer` CHANGE `modified_date` `modified_date` TIMESTAMP on update CURRENT_TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP;
 ALTER TABLE `Customer` CHANGE `modified_by` `modified_by` VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL;
+
+-- 16/09/2026 (Sawn Timber) --
+ALTER TABLE `Sawn_Timber_Detail` DROP FOREIGN KEY `fk_sawn_timber_detail_header`;
+ALTER TABLE `Sawn_Timber_Header` ADD `weight_id` INT(11) NULL AFTER `plant_id`;
+ALTER TABLE `Sawn_Timber_Header_Log` ADD `weight_id` INT(11) NULL AFTER `plant_id`;
+ALTER TABLE `Sawn_Timber_Header` DROP `lot`, DROP `bundle`;
+ALTER TABLE `Sawn_Timber_Header_Log` DROP `lot`, DROP `bundle`;
+ALTER TABLE `Sawn_Timber_Header` DROP `supplier`;
+ALTER TABLE `Sawn_Timber_Header_Log` DROP `supplier`;
+ALTER TABLE `Sawn_Timber_Header` CHANGE `transaction_date` `record_date` DATETIME NULL DEFAULT NULL;
+ALTER TABLE `Sawn_Timber_Header_Log` CHANGE `transaction_date` `record_date` DATETIME NULL DEFAULT NULL;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_SAWN_TIMBER_HEADER` AFTER INSERT ON `Sawn_Timber_Header` FOR EACH ROW
+INSERT INTO Sawn_Timber_Header_Log (
+    header_id, weight_id, company_id, plant_id, transaction_id, record_date, remarks, status, action_id, action_by, event_date
+) VALUES (
+    NEW.id, NEW.weight_id, NEW.company_id, NEW.plant_id, NEW.transaction_id, NEW.record_date, NEW.remarks, NEW.status, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_SAWN_TIMBER_HEADER` BEFORE UPDATE ON `Sawn_Timber_Header` FOR EACH ROW
+BEGIN
+    DECLARE action_value INT;
+
+    IF NEW.status = '1' AND OLD.status <> '1' THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    INSERT INTO Sawn_Timber_Header_Log (
+        header_id, weight_id, company_id, plant_id, transaction_id, record_date, remarks, status, action_id, action_by, event_date
+    ) VALUES (
+        NEW.id, NEW.weight_id, NEW.company_id, NEW.plant_id, NEW.transaction_id, NEW.record_date, NEW.remarks, NEW.status, action_value, NEW.modified_by, NEW.modified_date
+    );
+END
+$$
+DELIMITER ;
+
+INSERT INTO Product_Categories (`category_name`, `post_to_sql`, `created_by`) VALUES ('Sawn Timber', 'N', 'System');
+
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('record_date_code', 'Record Date', '记录日期', 'Tarikh Rekod', 'பதிவு தேதி');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('kd_charges_code', 'KD Charges', 'KD费用', 'Caj KD', 'KD கட்டணங்கள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('bundling_charges_code', 'Bundling Charges', '捆扎费用', 'Caj Pembungkusan', 'மூட்டை கட்டணங்கள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('grader_fees_code', 'Grader Fees', '分级费用', 'Yuran Penggred', 'தரப்படுத்தி கட்டணங்கள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('weighing_transactions_code', 'Weighing Transactions', '称重交易', 'Transaksi Penimbangan', 'எடை பரிவர்த்தனைகள்');
+
+ALTER TABLE `Sawn_Timber_Detail` 
+  MODIFY `species` VARCHAR(255) NULL,
+  ADD `lot` VARCHAR(255) NULL AFTER `species`,
+  ADD `bundle` VARCHAR(255) NULL AFTER `lot`,
+  ADD `kd_charges` VARCHAR(255) NULL AFTER `tons`,
+  ADD `bundling_charges` VARCHAR(255) NULL AFTER `kd_charges`,
+  ADD `grader_fees` VARCHAR(255) NULL AFTER `bundling_charges`;
+
+ALTER TABLE `Sawn_Timber_Detail_Log` 
+  MODIFY `species` VARCHAR(255) NULL,
+  ADD `lot` VARCHAR(255) NULL AFTER `species`,
+  ADD `bundle` VARCHAR(255) NULL AFTER `lot`,
+  ADD `kd_charges` VARCHAR(255) NULL AFTER `tons`,
+  ADD `bundling_charges` VARCHAR(255) NULL AFTER `kd_charges`,
+  ADD `grader_fees` VARCHAR(255) NULL AFTER `bundling_charges`;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_SAWN_TIMBER_DETAIL` AFTER INSERT ON `Sawn_Timber_Detail` FOR EACH ROW
+INSERT INTO Sawn_Timber_Detail_Log (
+    detail_id, header_id, species, lot, bundle, thick, width, length, pieces, tons, kd_charges, bundling_charges, grader_fees, action_id, action_by, event_date
+) VALUES (
+    NEW.id, NEW.header_id, NEW.species, NEW.lot, NEW.bundle, NEW.thick, NEW.width, NEW.length, NEW.pieces, NEW.tons, NEW.kd_charges, NEW.bundling_charges, NEW.grader_fees, 1, COALESCE(@sawn_timber_action_by, 'system'), NOW()
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_DEL_SAWN_TIMBER_DETAIL` BEFORE DELETE ON `Sawn_Timber_Detail` FOR EACH ROW
+INSERT INTO Sawn_Timber_Detail_Log (
+    detail_id, header_id, species, lot, bundle, thick, width, length, pieces, tons, kd_charges, bundling_charges, grader_fees, action_id, action_by, event_date
+) VALUES (
+    OLD.id, OLD.header_id, OLD.species, OLD.lot, OLD.bundle, OLD.thick, OLD.width, OLD.length, OLD.pieces, OLD.tons, OLD.kd_charges, OLD.bundling_charges, OLD.grader_fees, 3, COALESCE(@sawn_timber_action_by, 'system'), NOW()
+)
+$$
+DELIMITER ;
+
+-- Drop unique key on Sawn_Timber_Species if exists
+SET @exist := (SELECT COUNT(*) FROM information_schema.statistics 
+               WHERE table_schema = DATABASE() 
+               AND table_name = 'Sawn_Timber_Species' 
+               AND index_name = 'uniq_sawn_timber_species_name');
+SET @sqlstmt := IF(@exist > 0, 'ALTER TABLE Sawn_Timber_Species DROP INDEX uniq_sawn_timber_species_name', 'SELECT "Index does not exist"');
+PREPARE stmt FROM @sqlstmt;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- Drop unique key on Sawn_Timber_Header if exists
+SET @exist := (SELECT COUNT(*) FROM information_schema.statistics 
+               WHERE table_schema = DATABASE() 
+               AND table_name = 'Sawn_Timber_Header' 
+               AND index_name = 'uniq_sawn_timber_transaction_id');
+SET @sqlstmt := IF(@exist > 0, 'ALTER TABLE Sawn_Timber_Header DROP INDEX uniq_sawn_timber_transaction_id', 'SELECT "Index does not exist"');
+PREPARE stmt FROM @sqlstmt;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
