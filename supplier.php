@@ -428,7 +428,8 @@ $(function () {
         'serverSide': true,
         'serverMethod': 'post',
         'ajax': {
-            'url':'php/modules/supplier/loadSupplier.php'
+            'url':'php/modules/supplier/index.php',
+            'data': { action: 'filter' }
         },
         'rowCallback': function(row, data) {
             if (data.is_manual === 'Y') {
@@ -517,7 +518,7 @@ $(function () {
         $('#submitCustomer').on('click', function(){
             if($('#supplierForm').valid()){
                 $('#spinnerLoading').show();
-                $.post('php/modules/supplier/supplier.php', $('#supplierForm').serialize(), function(data){
+                $.post('php/modules/supplier/index.php', $('#supplierForm').serialize() + '&action=save', function(data){
                     var obj = JSON.parse(data);
                     if(obj.status === 'success'){
                         table.ajax.reload();
@@ -554,7 +555,7 @@ $(function () {
 
         // Send the JSON array to the server
         $.ajax({
-            url: 'php/modules/supplier/uploadSuppliers.php',
+            url: 'php/modules/supplier/index.php?action=upload',
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(data),
@@ -673,7 +674,7 @@ $(function () {
 
         if (selectedIds.length > 0) {
             if (confirm('Are you sure you want to delete these suppliers?')) {
-                $.post('php/modules/supplier/deleteSupplier.php', {userID: selectedIds, type: 'MULTI'}, function(data){
+                $.post('php/modules/supplier/index.php', {userID: selectedIds, type: 'MULTI', action: 'delete'}, function(data){
                     var obj = JSON.parse(data);
                     
                     if(obj.status === 'success'){
@@ -784,7 +785,7 @@ function displayPreview(data) {
 
 function edit(id){
     $('#spinnerLoading').show();
-    $.post('php/modules/supplier/getSupplier.php', {userID: id}, function(data){
+    $.post('php/modules/supplier/index.php', {userID: id, action: 'get'}, function(data){
         var obj = JSON.parse(data);
         
         if(obj.status === 'success'){
@@ -839,7 +840,7 @@ function edit(id){
 function deactivate(id){
     $('#spinnerLoading').show();
     if (confirm('Are you sure you want to delete this supplier?')) {
-        $.post('php/modules/supplier/deleteSupplier.php', {userID: id}, function(data){
+        $.post('php/modules/supplier/index.php', {userID: id, action: 'delete'}, function(data){
             var obj = JSON.parse(data);
 
             if(obj.status === 'success'){

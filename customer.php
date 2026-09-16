@@ -413,7 +413,8 @@ $(function () {
         'serverSide': true,
         'serverMethod': 'post',
         'ajax': {
-            'url':'php/modules/customer/loadCustomers.php'
+            'url':'php/modules/customer/index.php',
+            'data': { action: 'filter' }
         },
         'rowCallback': function(row, data) {
             if (data.is_manual === 'Y') {
@@ -499,7 +500,7 @@ $(function () {
     $('#submitCustomer').on('click', function(){
         if($('#customerForm').valid()){
             $('#spinnerLoading').show();
-            $.post('php/modules/customer/customers.php', $('#customerForm').serialize(), function(data){
+            $.post('php/modules/customer/index.php', $('#customerForm').serialize() + '&action=save', function(data){
                 var obj = JSON.parse(data); 
                 if(obj.status === 'success')
                 {
@@ -542,7 +543,7 @@ $(function () {
 
         // Send the JSON array to the server
         $.ajax({
-            url: 'php/modules/customer/uploadCustomers.php',
+            url: 'php/modules/customer/index.php?action=upload',
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(data),
@@ -659,7 +660,7 @@ $(function () {
 
         if (selectedIds.length > 0) {
             if (confirm('Are you sure you want to delete these customers?')) {
-                $.post('php/modules/customer/deleteCustomer.php', {userID: selectedIds, type: 'MULTI'}, function(data){
+                $.post('php/modules/customer/index.php', {userID: selectedIds, type: 'MULTI', action: 'delete'}, function(data){
                     var obj = JSON.parse(data);
                     
                     if(obj.status === 'success'){
@@ -690,7 +691,7 @@ $(function () {
 
 function edit(id){
     $('#spinnerLoading').show();
-    $.post('php/modules/customer/getCustomer.php', {userID: id}, function(data)
+    $.post('php/modules/customer/index.php', {userID: id, action: 'get'}, function(data)
     {
         var obj = JSON.parse(data);
         if(obj.status === 'success'){
@@ -742,7 +743,7 @@ function edit(id){
 function deactivate(id){
     $('#spinnerLoading').show();
     if (confirm('Are you sure you want to delete this customer?')) {
-        $.post('php/modules/customer/deleteCustomer.php', {userID: id}, function(data){
+        $.post('php/modules/customer/index.php', {userID: id, action: 'delete'}, function(data){
             var obj = JSON.parse(data);
             
             if(obj.status === 'success'){
