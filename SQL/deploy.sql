@@ -3074,3 +3074,40 @@ DELIMITER ;
 ALTER TABLE `Supplier` CHANGE `modified_date` `modified_date` TIMESTAMP on update CURRENT_TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP;
 ALTER TABLE `Customer` CHANGE `modified_date` `modified_date` TIMESTAMP on update CURRENT_TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP;
 ALTER TABLE `Customer` CHANGE `modified_by` `modified_by` VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL;
+
+-- 16/09/2026 (Sawn Timber) --
+ALTER TABLE `Sawn_Timber_Header` ADD `weight_id` INT(11) NULL AFTER `plant_id`;
+ALTER TABLE `Sawn_Timber_Header_Log` ADD `weight_id` INT(11) NULL AFTER `plant_id`;
+
+-- Remove lot and bundle columns
+ALTER TABLE `Sawn_Timber_Header` DROP `lot`, DROP `bundle`;
+ALTER TABLE `Sawn_Timber_Header_Log` DROP `lot`, DROP `bundle`;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_SAWN_TIMBER_HEADER` AFTER INSERT ON `Sawn_Timber_Header` FOR EACH ROW
+INSERT INTO Sawn_Timber_Header_Log (
+    header_id, company_id, plant_id, weight_id, transaction_id, transaction_date, supplier, remarks, status, action_id, action_by, event_date
+) VALUES (
+    NEW.id, NEW.company_id, NEW.plant_id, NEW.weight_id, NEW.transaction_id, NEW.transaction_date, NEW.supplier, NEW.remarks, NEW.status, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_SAWN_TIMBER_HEADER` BEFORE UPDATE ON `Sawn_Timber_Header` FOR EACH ROW
+BEGIN
+    DECLARE action_value INT;
+
+    IF NEW.status = '1' AND OLD.status <> '1' THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    INSERT INTO Sawn_Timber_Header_Log (
+        header_id, company_id, plant_id, weight_id, transaction_id, transaction_date, supplier, remarks, status, action_id, action_by, event_date
+    ) VALUES (
+        NEW.id, NEW.company_id, NEW.plant_id, NEW.weight_id, NEW.transaction_id, NEW.transaction_date, NEW.supplier, NEW.remarks, NEW.status, action_value, NEW.modified_by, NEW.modified_date
+    );
+END
+$$
+DELIMITER ;

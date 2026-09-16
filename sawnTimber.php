@@ -175,12 +175,6 @@ else{
                                                     </div><!--end col-->
                                                     <div class="col-3">
                                                         <div class="mb-3">
-                                                            <label for="lotSearch" class="form-label"><?=$languageArray['lot_code'][$language]?></label>
-                                                            <input id="lotSearch" name="lotSearch" class="form-control">
-                                                        </div>
-                                                    </div><!--end col-->
-                                                    <div class="col-3">
-                                                        <div class="mb-3">
                                                             <label for="speciesSearch" class="form-label"><?=$languageArray['species_code'][$language]?></label>
                                                             <select id="speciesSearch" class="form-select select2">
                                                                 <option selected>-</option>
@@ -218,6 +212,32 @@ else{
                                                         <div class="bg-white p-3 rounded shadow-sm mb-3">
                                                             <div class="row g-3">
                                                                 <div class="col-md-4">
+                                                                    <label class="form-label"><?=$languageArray['transaction_id_code'][$language]?> <span class="text-danger">*</span></label>
+                                                                    <select class="form-control select2" id="weightId" name="weightId" required>
+                                                                        <option value="">-</option>
+                                                                    </select>
+                                                                </div>
+                                                                <div class="col-md-4">
+                                                                    <label class="form-label"><?=$languageArray['trans_type_code'][$language]?></label>
+                                                                    <input type="text" class="form-control" id="transactionStatus" name="transactionStatus" readonly>
+                                                                </div>
+                                                                <div class="col-md-4">
+                                                                    <label class="form-label"><?=$languageArray['customer_code'][$language]?> / <?=$languageArray['supplier_code'][$language]?></label>
+                                                                    <input type="text" class="form-control" id="customerSupplier" name="customerSupplier" readonly>
+                                                                </div>
+                                                                <div class="col-md-4">
+                                                                    <label class="form-label"><?=$languageArray['destination_code'][$language]?></label>
+                                                                    <input type="text" class="form-control" id="deliveredTo" name="deliveredTo" readonly>
+                                                                </div>
+                                                                <div class="col-md-4">
+                                                                    <label class="form-label"><?=$languageArray['vehicle_no_code'][$language]?></label>
+                                                                    <input type="text" class="form-control" id="lorryNo" name="lorryNo" readonly>
+                                                                </div>
+                                                                <div class="col-md-4">
+                                                                    <label class="form-label"><?=$languageArray['do_no_code'][$language]?></label>
+                                                                    <input type="text" class="form-control" id="doNo" name="doNo" readonly>
+                                                                </div>
+                                                                <div class="col-md-4">
                                                                     <label class="form-label"><?=$languageArray['company_code'][$language]?> <span class="text-danger">*</span></label>
                                                                     <select class="form-control select2" id="companyId" name="companyId" required>
                                                                         <option value="">-</option>
@@ -235,31 +255,11 @@ else{
                                                                     </select>
                                                                 </div>
                                                                 <div class="col-md-4">
-                                                                    <label class="form-label"><?=$languageArray['transaction_id_code'][$language]?> <span class="text-danger">*</span></label>
-                                                                    <input type="text" class="form-control" id="transactionId" name="transactionId" placeholder="Enter transaction ID" required>
-                                                                </div>
-                                                                <div class="col-md-4">
                                                                     <label class="form-label"><?=$languageArray['transaction_date_code'][$language]?> <span class="text-danger">*</span></label>
                                                                     <input type="text" class="form-control" data-provider="flatpickr" id="transactionDate" name="transactionDate" required>
                                                                 </div>
-                                                                <div class="col-md-4">
-                                                                    <label class="form-label"><?=$languageArray['supplier_code'][$language]?> <span class="text-danger">*</span></label>
-                                                                    <select class="form-control select2" id="supplier" name="supplier" required>
-                                                                        <option value="">-</option>
-                                                                        <?php while($rowSF=mysqli_fetch_assoc($supplier2)){ ?>
-                                                                            <option value="<?=$rowSF['id'] ?>"><?=$rowSF['name'] ?></option>
-                                                                        <?php } ?>
-                                                                    </select>
-                                                                </div>
-                                                                <div class="col-md-4">
-                                                                    <label class="form-label"><?=$languageArray['lot_code'][$language]?> <span class="text-danger">*</span></label>
-                                                                    <input type="text" class="form-control" id="lot" name="lot" placeholder="Enter lot number" required>
-                                                                </div>
-                                                                <div class="col-md-4">
-                                                                    <label class="form-label"><?=$languageArray['bundle_code'][$language]?> <span class="text-danger">*</span></label>
-                                                                    <input type="text" class="form-control" id="bundle" name="bundle" placeholder="Enter bundle number" required>
-                                                                </div>
                                                                 <input type="hidden" class="form-control" id="id" name="id">
+                                                                <input type="hidden" id="transactionId" name="transactionId">
                                                             </div>
                                                             <div class="row g-3 mt-2">
                                                                 <div class="col-md-12">
@@ -409,7 +409,6 @@ else{
                                                                     <th><?=$languageArray['company_code'][$language]?></th>
                                                                     <th><?=$languageArray['plant_code'][$language]?></th>
                                                                     <th><?=$languageArray['supplier_code'][$language]?></th>
-                                                                    <th><?=$languageArray['lot_code'][$language]?></th>
                                                                     <th><?=$languageArray['total_pcs_code'][$language]?></th>
                                                                     <th><?=$languageArray['total_tons_code'][$language]?></th>
                                                                     <th><?=$languageArray['action_code'][$language]?></th>
@@ -597,10 +596,45 @@ else{
             $('#sawnTimberForm')[0].reset();
             $('#companyId').val(1).trigger('change');
             $('#plantId').val('').trigger('change');
-            $('#supplier').val('').trigger('change');
+            $('#weightId').val('').trigger('change');
+            $('#transactionStatus').val('');
+            $('#customerSupplier').val('');
+            $('#deliveredTo').val('');
+            $('#lorryNo').val('');
+            $('#doNo').val('');
+            $('#transactionId').val('');
             $('#detailTable tbody').html('');
             $('#id').val('');
             detailRowCount = 0;
+            loadSawnTimberWeighing();
+        });
+
+        // Handle weight dropdown change
+        $('#weightId').on('change', function() {
+            var selectedOption = $(this).find('option:selected');
+            if (selectedOption.val()) {
+                $('#transactionId').val(selectedOption.data('transaction-id'));
+                $('#transactionStatus').val(selectedOption.data('transaction-status'));
+                var customer = selectedOption.data('customer-name') || '';
+                var supplier = selectedOption.data('supplier-name') || '';
+                $('#customerSupplier').val(customer || supplier);
+                $('#deliveredTo').val(selectedOption.data('destination') || '');
+                $('#lorryNo').val(selectedOption.data('lorry-no') || '');
+                $('#doNo').val(selectedOption.data('do-no') || '');
+                var transDate = selectedOption.data('transaction-date');
+                if (transDate) {
+                    var d = new Date(transDate);
+                    var formatted = ('0' + d.getDate()).slice(-2) + '-' + ('0' + (d.getMonth()+1)).slice(-2) + '-' + d.getFullYear();
+                    $('#transactionDate').val(formatted);
+                }
+            } else {
+                $('#transactionId').val('');
+                $('#transactionStatus').val('');
+                $('#customerSupplier').val('');
+                $('#deliveredTo').val('');
+                $('#lorryNo').val('');
+                $('#doNo').val('');
+            }
         });
 
         // Add event listener for opening and closing details on row click
@@ -754,7 +788,6 @@ else{
         var supplierNoI = $('#supplierSearch').val() || '';
         var plantI = $('#plantSearch').val() || '';
         var transactionIdI = $('#transactionIdSearch').val() || '';
-        var lotI = $('#lotSearch').val() || '';
         var speciesI = $('#speciesSearch').val() || '';
 
         // Destroy the old Datatable if exists
@@ -779,7 +812,6 @@ else{
                     supplier: supplierNoI,
                     plant: plantI,
                     transactionId: transactionIdI,
-                    lot: lotI,
                     species: speciesI,
                 }
             },
@@ -797,7 +829,6 @@ else{
                 { data: 'company' },
                 { data: 'plant' },
                 { data: 'supplier' },
-                { data: 'lot' },
                 { data: 'total_pieces' },
                 { data: 'total_tons' },
                 { data: 'id', orderable: false, className: 'sawn-action-cell', render: function(data) {
@@ -962,6 +993,28 @@ else{
         });
     }
 
+    function loadSawnTimberWeighing() {
+        $.get('php/modules/sawnTimber/getSawnTimberWeighing.php', function(data) {
+            var obj = JSON.parse(data);
+            if (obj.status === 'success') {
+                var options = '<option value="">-</option>';
+                obj.data.forEach(function(item) {
+                    options += '<option value="' + item.id + '"' +
+                        ' data-transaction-id="' + item.transaction_id + '"' +
+                        ' data-transaction-status="' + item.transaction_status + '"' +
+                        ' data-customer-name="' + (item.customer_name || '') + '"' +
+                        ' data-supplier-name="' + (item.supplier_name || '') + '"' +
+                        ' data-destination="' + (item.destination || '') + '"' +
+                        ' data-lorry-no="' + (item.lorry_plate_no1 || '') + '"' +
+                        ' data-do-no="' + (item.delivery_no || '') + '"' +
+                        ' data-transaction-date="' + (item.transaction_date || '') + '"' +
+                        '>' + item.transaction_id + '</option>';
+                });
+                $('#weightId').html(options);
+            }
+        });
+    }
+
     function openEntry(record) {
         record = record || {};
         $('#sawnTimberForm')[0].reset();
@@ -971,11 +1024,9 @@ else{
         $('#id').val(record.id || '');
         $('#companyId').val(record.company_id || '').trigger('change');
         $('#plantId').val(record.plant_id || '').trigger('change');
+        $('#weightId').val(record.weight_id || '').trigger('change');
         $('#transactionId').val(record.transaction_id || '');
         $('#transactionDate').val(record.transaction_date ? record.transaction_date.split(' ')[0].split('-').reverse().join('-') : '');
-        $('#supplier').val(record.supplier || '').trigger('change');
-        $('#lot').val(record.lot || '');
-        $('#bundle').val(record.bundle || '');
         $('#remarks').val(record.remarks || '');
 
         if (record.details && record.details.length > 0) {
