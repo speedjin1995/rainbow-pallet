@@ -54,10 +54,6 @@ if($_POST['species'] != null && $_POST['species'] != '' && $_POST['species'] != 
     $searchQuery .= " AND EXISTS (SELECT 1 FROM Sawn_Timber_Detail d2 WHERE d2.header_id=h.id AND d2.species='".mysqli_real_escape_string($db, $_POST['species'])."')";
 }
 
-if($_POST['lot'] != null && $_POST['lot'] != ''){
-    $searchQuery .= " AND h.lot LIKE '%".mysqli_real_escape_string($db, $_POST['lot'])."%'";
-}
-
 if($_POST['transactionId'] != null && $_POST['transactionId'] != ''){
     $searchQuery .= " AND h.transaction_id LIKE '%".mysqli_real_escape_string($db, $_POST['transactionId'])."%'";
 }
@@ -76,7 +72,7 @@ $records = mysqli_fetch_assoc($sel);
 $totalRecordwithFilter = mysqli_num_rows($sel);
 
 ## Fetch records
-$empQuery = "SELECT h.id, h.company_id, h. plant_id, h.transaction_id, h.transaction_date, h.supplier, h.lot, h.bundle, h.remarks, h.status, COALESCE(SUM(d.pieces),0) AS total_pieces, COALESCE(SUM(d.tons),0) AS total_tons FROM Sawn_Timber_Header h LEFT JOIN Sawn_Timber_Detail d ON h.id=d.header_id WHERE h.status = 0".$searchQuery."group by h.id order by ".$columnName." ".$columnSortOrder." limit ".$row.",".$rowperpage;
+$empQuery = "SELECT h.id, h.company_id, h.plant_id, h.weight_id, h.transaction_id, h.transaction_date, h.supplier, h.remarks, h.status, COALESCE(SUM(d.pieces),0) AS total_pieces, COALESCE(SUM(d.tons),0) AS total_tons FROM Sawn_Timber_Header h LEFT JOIN Sawn_Timber_Detail d ON h.id=d.header_id WHERE h.status = 0".$searchQuery."group by h.id order by ".$columnName." ".$columnSortOrder." limit ".$row.",".$rowperpage;
 $empRecords = mysqli_query($db, $empQuery);
 $data = array();
 
@@ -88,8 +84,6 @@ while($row = mysqli_fetch_assoc($empRecords)) {
     "company" => searchCompanyById($row['company_id'], $db)['name'],
     "plant" => searchPlantNameById($row['plant_id'], $db),
     "supplier" => searchSupplierNameById($row['supplier'], $db) ?? '',
-    "lot" => $row['lot'],
-    "bundle" => $row['bundle'],
     "total_pieces" => $row['total_pieces'],
     "total_tons" => number_format((float)$row['total_tons'], 4, '.', ''),
     "remarks" => $row['remarks'],
