@@ -134,18 +134,6 @@
                                                                             </div>
                                                                             <div class="col-xxl-12 col-lg-12 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="entityType" class="col-sm-4 col-form-label"><?=$languageArray['entity_type_code'][$language] ?? 'Entity Type'?> <span class="text-danger">*</span></label>
-                                                                                    <div class="col-sm-8">
-                                                                                        <select class="form-control select2" style="width: 100%;" id="entityType" name="entityType" required>
-                                                                                            <option value="">Please Select</option>
-                                                                                            <option value="Supplier"><?=$languageArray['supplier_code'][$language] ?? 'Supplier'?></option>
-                                                                                            <option value="Customer"><?=$languageArray['customer_code'][$language] ?? 'Customer'?></option>
-                                                                                        </select>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-xxl-12 col-lg-12 mb-3">
-                                                                                <div class="row">
                                                                                     <label for="description" class="col-sm-4 col-form-label"><?=$languageArray['description_code'][$language]?></label>
                                                                                     <div class="col-sm-8">
                                                                                         <input type="text" class="form-control" id="description" name="description" placeholder="<?=$languageArray['description_code'][$language]?>">
@@ -327,7 +315,6 @@
                                                                     <th><?=$languageArray['item_code_code'][$language] ?? 'Item Code'?></th>
                                                                     <th><?=$languageArray['item_name_code'][$language] ?? 'Item Name'?></th>
                                                                     <th><?=$languageArray['category_code'][$language] ?? 'Category'?></th>
-                                                                    <th><?=$languageArray['entity_type_code'][$language] ?? 'Entity Type'?></th>
                                                                     <th><?=$languageArray['description_code'][$language] ?? 'Description'?></th>
                                                                     <th><?=$languageArray['status_code'][$language] ?? 'Status'?></th>
                                                                     <th><?=$languageArray['action_code'][$language] ?? 'Action'?></th>
@@ -465,7 +452,6 @@
                     { data: 'product_code' },
                     { data: 'name' },
                     { data: 'category_name' },
-                    { data: 'entity_type' },
                     { data: 'description' },
                     { 
                         data: 'id',
@@ -633,7 +619,6 @@
                 $('#addModal').find('#productName').val("");
                 $('#addModal').find('#categoryId').val("").trigger('change');
                 $('#addModal').find('#uom').val("").trigger('change');
-                $('#addModal').find('#entityType').val("").trigger('change');
                 $('#addModal').find('#description').val("");
                 $('#addModal').find('#varianceType').val("");
                 $('#addModal').find('#high').val("0");
@@ -799,7 +784,6 @@
                     $('#addModal').find('#productName').val(obj.data.name);
                     $('#addModal').find('#categoryId').val(obj.data.category).trigger('change');
                     $('#addModal').find('#uom').val(obj.data.uom).trigger('change');
-                    $('#addModal').find('#entityType').val(obj.data.entity_type).trigger('change');
                     $('#addModal').find('#description').val(obj.data.description);
                     $('#addModal').find('#varianceType').val(obj.data.variance).trigger('change');
                     $('#addModal').find('#high').val(obj.data.high || 0);
