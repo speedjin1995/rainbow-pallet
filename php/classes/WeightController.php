@@ -196,9 +196,9 @@ class WeightController extends BaseController {
             'timeOut'         => $this->getPost('customerSideTimeOut'),
         ];
         $wt = $f['weightType'];
-        if (($wt === 'Normal' || $wt === 'Empty Container') && $f['grossIncoming'] != null && $f['tareOutgoing'] != null) {
+        if (($wt === 'Normal' || $wt === 'Empty Container') && !empty($f['grossIncoming']) && !empty($f['tareOutgoing'])) {
             $f['isComplete'] = 'Y';
-        } elseif (($wt === 'Container' || $wt === 'Different Container') && $f['grossIncoming'] != null && $f['tareOutgoing'] != null && $f['grossIncoming2'] != null && $f['tareOutgoing2'] != null) {
+        } elseif (($wt === 'Container' || $wt === 'Different Container') && !empty($f['grossIncoming']) && !empty($f['tareOutgoing']) && !empty($f['grossIncoming2']) && !empty($f['tareOutgoing2'])) {
             $f['isComplete'] = 'Y';
         } else {
             $f['isComplete'] = 'N';
