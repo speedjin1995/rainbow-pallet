@@ -18,8 +18,7 @@ try {
     $plantId = empty($_POST["plantId"]) ? null : trim($_POST["plantId"]);
     $weightId = empty($_POST["weightId"]) ? null : trim($_POST["weightId"]);
     $transactionId = empty($_POST["transactionId"]) ? null : trim($_POST["transactionId"]);
-    $transactionDate = empty($_POST["transactionDate"]) ? null : date('Y-m-d H:i:s', strtotime(trim($_POST["transactionDate"])));
-    $supplier = empty($_POST["supplier"]) ? null : trim($_POST["supplier"]);
+    $sawnTimberDate = empty($_POST["sawnTimberDate"]) ? null : date('Y-m-d H:i:s', strtotime(trim($_POST["sawnTimberDate"])));
     $remarks = empty($_POST["remarks"]) ? null : trim($_POST["remarks"]);
 
     // Get detail arrays from form
@@ -30,7 +29,7 @@ try {
     $piecesArr = isset($_POST['pieces']) ? $_POST['pieces'] : [];
     $tonsArr = isset($_POST['tons']) ? $_POST['tons'] : [];
 
-    if (!$companyId || !$plantId || !$weightId || !$transactionId || !$transactionDate || empty($speciesArr)) {
+    if (!$companyId || !$plantId || !$weightId || !$transactionId || !$sawnTimberDate || empty($speciesArr)) {
         throw new Exception("Please fill in all the fields");
     }
 
@@ -58,8 +57,8 @@ try {
     $actionByStmt->close();
 
     if (!empty($id)) {
-        $stmt = $db->prepare("UPDATE Sawn_Timber_Header SET company_id=?, plant_id=?, weight_id=?, transaction_id=?, transaction_date=?, supplier=?, remarks=?, modified_by=? WHERE id=?");
-        $stmt->bind_param('iiissssi', $companyId, $plantId, $weightId, $transactionId, $transactionDate, $supplier, $remarks, $username, $id);
+        $stmt = $db->prepare("UPDATE Sawn_Timber_Header SET company_id=?, plant_id=?, weight_id=?, transaction_id=?, record_date=?, remarks=?, modified_by=? WHERE id=?");
+        $stmt->bind_param('iiissssi', $companyId, $plantId, $weightId, $transactionId, $sawnTimberDate, $remarks, $username, $id);
 
         if (!$stmt->execute()) {
             throw new Exception($stmt->error);
@@ -71,8 +70,8 @@ try {
         $deleteStmt->execute();
         $deleteStmt->close();
     } else {
-        $stmt = $db->prepare("INSERT INTO Sawn_Timber_Header (company_id, plant_id, weight_id, transaction_id, transaction_date, supplier, remarks, created_by, modified_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param('iiissssss', $companyId, $plantId, $weightId, $transactionId, $transactionDate, $supplier, $remarks, $username, $username);
+        $stmt = $db->prepare("INSERT INTO Sawn_Timber_Header (company_id, plant_id, weight_id, transaction_id, record_date, remarks, created_by, modified_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param('iiisssss', $companyId, $plantId, $weightId, $transactionId, $sawnTimberDate, $remarks, $username, $username);
 
         if (!$stmt->execute()) {
             throw new Exception($stmt->error);

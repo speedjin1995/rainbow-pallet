@@ -137,23 +137,18 @@ else{
                                                     </div><!--end col-->
                                                     <div class="col-3">
                                                         <div class="mb-3">
+                                                            <label for="transactionIdSearch" class="form-label"><?=$languageArray['transaction_id_code'][$language]?></label>
+                                                            <input id="transactionIdSearch" name="transactionIdSearch" class="form-control">
+                                                        </div>
+                                                    </div><!--end col-->
+                                                    <div class="col-3">
+                                                        <div class="mb-3">
                                                             <label for="companySearch" class="form-label"><?=$languageArray['company_code'][$language]?></label>
                                                             <select class="form-select select2" id="companySearch" name="companySearch" required>
                                                                 <?php while($rowCompany=mysqli_fetch_assoc($company)){ ?>
                                                                     <option value="<?=$rowCompany['id'] ?>" <?=$rowCompany['id'] == 1 ? 'selected' : ''?>><?=$rowCompany['name'] ?></option>
                                                                 <?php } ?>
                                                             </select>           
-                                                        </div>
-                                                    </div><!--end col-->
-                                                    <div class="col-3" id="supplierSearchDisplay">
-                                                        <div class="mb-3">
-                                                            <label for="supplierSearch" class="form-label"><?=$languageArray['supplier_code'][$language]?></label>
-                                                            <select id="supplierSearch" class="form-select select2" >
-                                                                <option selected>-</option>
-                                                                <?php while($rowSF=mysqli_fetch_assoc($supplier)){ ?>
-                                                                    <option value="<?=$rowSF['supplier_code'] ?>"><?=$rowSF['name'] ?></option>
-                                                                <?php } ?>
-                                                            </select>
                                                         </div>
                                                     </div><!--end col-->
                                                     <div class="col-3">
@@ -163,23 +158,6 @@ else{
                                                                 <option selected>-</option>
                                                                 <?php while($rowPlantF=mysqli_fetch_assoc($plant)){ ?>
                                                                     <option value="<?=$rowPlantF['plant_code'] ?>" <?= ($rowPlantF['plant_code'] == $plantCode) ? 'selected' : '' ?>><?=$rowPlantF['name'] ?></option>
-                                                                <?php } ?>
-                                                            </select>
-                                                        </div>
-                                                    </div><!--end col-->
-                                                    <div class="col-3">
-                                                        <div class="mb-3">
-                                                            <label for="transactionIdSearch" class="form-label"><?=$languageArray['transaction_id_code'][$language]?></label>
-                                                            <input id="transactionIdSearch" name="transactionIdSearch" class="form-control">
-                                                        </div>
-                                                    </div><!--end col-->
-                                                    <div class="col-3">
-                                                        <div class="mb-3">
-                                                            <label for="speciesSearch" class="form-label"><?=$languageArray['species_code'][$language]?></label>
-                                                            <select id="speciesSearch" class="form-select select2">
-                                                                <option selected>-</option>
-                                                                <?php while($rowSpecies=mysqli_fetch_assoc($species)){ ?>
-                                                                    <option value="<?=$rowSpecies['id'] ?>"><?=$rowSpecies['name'] ?></option>
                                                                 <?php } ?>
                                                             </select>
                                                         </div>
@@ -218,48 +196,41 @@ else{
                                                                     </select>
                                                                 </div>
                                                                 <div class="col-md-4">
-                                                                    <label class="form-label"><?=$languageArray['trans_type_code'][$language]?></label>
-                                                                    <input type="text" class="form-control" id="transactionStatus" name="transactionStatus" readonly>
+                                                                    <label class="form-label"><?=$languageArray['record_date_code'][$language]?> <span class="text-danger">*</span></label>
+                                                                    <input type="text" class="form-control" data-provider="flatpickr" id="sawnTimberDate" name="sawnTimberDate" required>
+                                                                </div>
+                                                                <div class="col-md-4">
+                                                                    <label class="form-label"><?=$languageArray['transaction_status_code'][$language]?></label>
+                                                                    <input type="text" class="form-control input-readonly" id="transactionStatus" name="transactionStatus" readonly>
                                                                 </div>
                                                                 <div class="col-md-4">
                                                                     <label class="form-label"><?=$languageArray['customer_code'][$language]?> / <?=$languageArray['supplier_code'][$language]?></label>
-                                                                    <input type="text" class="form-control" id="customerSupplier" name="customerSupplier" readonly>
+                                                                    <input type="text" class="form-control input-readonly" id="customerSupplier" name="customerSupplier" readonly>
                                                                 </div>
                                                                 <div class="col-md-4">
                                                                     <label class="form-label"><?=$languageArray['destination_code'][$language]?></label>
-                                                                    <input type="text" class="form-control" id="deliveredTo" name="deliveredTo" readonly>
+                                                                    <input type="text" class="form-control input-readonly" id="deliveredTo" name="deliveredTo" readonly>
                                                                 </div>
                                                                 <div class="col-md-4">
                                                                     <label class="form-label"><?=$languageArray['vehicle_no_code'][$language]?></label>
-                                                                    <input type="text" class="form-control" id="lorryNo" name="lorryNo" readonly>
+                                                                    <input type="text" class="form-control input-readonly" id="lorryNo" name="lorryNo" readonly>
                                                                 </div>
                                                                 <div class="col-md-4">
                                                                     <label class="form-label"><?=$languageArray['do_no_code'][$language]?></label>
-                                                                    <input type="text" class="form-control" id="doNo" name="doNo" readonly>
+                                                                    <input type="text" class="form-control input-readonly" id="doNo" name="doNo" readonly>
                                                                 </div>
                                                                 <div class="col-md-4">
-                                                                    <label class="form-label"><?=$languageArray['company_code'][$language]?> <span class="text-danger">*</span></label>
-                                                                    <select class="form-control select2" id="companyId" name="companyId" required>
-                                                                        <option value="">-</option>
-                                                                        <?php while($rowC=mysqli_fetch_assoc($company2)){ ?>
-                                                                            <option value="<?=$rowC['id'] ?>"><?=$rowC['name'] ?></option>
-                                                                        <?php } ?>
-                                                                    </select>
+                                                                    <label class="form-label"><?=$languageArray['company_code'][$language]?></label>
+                                                                    <input type="text" class="form-control input-readonly" id="companyDisplay" readonly>
                                                                 </div>
                                                                 <div class="col-md-4">
-                                                                    <label class="form-label"><?=$languageArray['plant_code'][$language]?> <span class="text-danger">*</span></label>
-                                                                    <select class="form-control select2" id="plantId" name="plantId" required>
-                                                                        <?php while($rowP=mysqli_fetch_assoc($plant2)){ ?>
-                                                                            <option value="<?=$rowP['id'] ?>"><?=$rowP['name'] ?></option>
-                                                                        <?php } ?>
-                                                                    </select>
-                                                                </div>
-                                                                <div class="col-md-4">
-                                                                    <label class="form-label"><?=$languageArray['transaction_date_code'][$language]?> <span class="text-danger">*</span></label>
-                                                                    <input type="text" class="form-control" data-provider="flatpickr" id="transactionDate" name="transactionDate" required>
+                                                                    <label class="form-label"><?=$languageArray['plant_code'][$language]?></label>
+                                                                    <input type="text" class="form-control input-readonly" id="plantDisplay" readonly>
                                                                 </div>
                                                                 <input type="hidden" class="form-control" id="id" name="id">
                                                                 <input type="hidden" id="transactionId" name="transactionId">
+                                                                <input type="hidden" id="companyId" name="companyId">
+                                                                <input type="hidden" id="plantId" name="plantId">
                                                             </div>
                                                             <div class="row g-3 mt-2">
                                                                 <div class="col-md-12">
@@ -367,7 +338,7 @@ else{
                                                                 </button>
                                                                 <?php endif; ?>
 
-                                                                <?php if(hasModulePermission('Sawn Timber', 'Sawn Timber', ['download_template'])): ?>
+                                                                <!-- <?php if(hasModulePermission('Sawn Timber', 'Sawn Timber', ['download_template'])): ?>
                                                                 <a href="php/modules/sawnTimber/exportSawnTimber.php?template=1" download>
                                                                     <button type="button" class="btn btn-info waves-effect waves-light">
                                                                         <i class="mdi mdi-file-import-outline align-middle me-1"></i>
@@ -381,7 +352,7 @@ else{
                                                                     <i class="ri-file-pdf-line align-middle me-1"></i>
                                                                     <?=$languageArray['upload_excel_code'][$language]?>
                                                                 </button>
-                                                                <?php endif; ?>
+                                                                <?php endif; ?> -->
 
                                                                 <?php if(hasModulePermission('Sawn Timber', 'Sawn Timber', ['cancelled'])): ?>
                                                                 <button type="button" id="multiDeactivate" class="btn btn-danger waves-effect waves-light">
@@ -515,7 +486,7 @@ else{
             defaultDate: today
         });
 
-        $('#transactionDate').flatpickr({
+        $('#sawnTimberDate').flatpickr({
             dateFormat: "d-m-Y",
             defaultDate: today
         });
@@ -594,8 +565,10 @@ else{
         // Reset form and detailTable when Add button is clicked
         $('#addSawTimber').on('click', function() {
             $('#sawnTimberForm')[0].reset();
-            $('#companyId').val(1).trigger('change');
-            $('#plantId').val('').trigger('change');
+            $('#companyDisplay').val('');
+            $('#plantDisplay').val('');
+            $('#companyId').val('');
+            $('#plantId').val('');
             $('#weightId').val('').trigger('change');
             $('#transactionStatus').val('');
             $('#customerSupplier').val('');
@@ -621,11 +594,15 @@ else{
                 $('#deliveredTo').val(selectedOption.data('destination') || '');
                 $('#lorryNo').val(selectedOption.data('lorry-no') || '');
                 $('#doNo').val(selectedOption.data('do-no') || '');
+                $('#companyDisplay').val(selectedOption.data('company-name') || '');
+                $('#plantDisplay').val(selectedOption.data('plant-display') || '');
+                $('#companyId').val(selectedOption.data('company-id') || '');
+                $('#plantId').val(selectedOption.data('plant-id') || '');
                 var transDate = selectedOption.data('transaction-date');
                 if (transDate) {
                     var d = new Date(transDate);
                     var formatted = ('0' + d.getDate()).slice(-2) + '-' + ('0' + (d.getMonth()+1)).slice(-2) + '-' + d.getFullYear();
-                    $('#transactionDate').val(formatted);
+                    $('#sawnTimberDate').val(formatted);
                 }
             } else {
                 $('#transactionId').val('');
@@ -634,6 +611,10 @@ else{
                 $('#deliveredTo').val('');
                 $('#lorryNo').val('');
                 $('#doNo').val('');
+                $('#companyDisplay').val('');
+                $('#plantDisplay').val('');
+                $('#companyId').val('');
+                $('#plantId').val('');
             }
         });
 
@@ -671,10 +652,7 @@ else{
                 toDate: $('#toDateSearch').val(),
                 company: $('#companySearch').val(),
                 plant: $('#plantSearch').val(),
-                supplier: $('#supplierSearch').val(),
-                transactionId: $('#transactionIdSearch').val(),
-                lot: $('#lotSearch').val(),
-                species: $('#speciesSearch').val()
+                transactionId: $('#transactionIdSearch').val()
             });
             window.location = 'php/modules/sawnTimber/exportSawnTimber.php?' + params;
         });
@@ -693,102 +671,100 @@ else{
             });
         });
 
-        $('#uploadExcel').on('click', function(){
-            $('#previewTable').html('');
-            $('#fileInput').val('');
-            $('#uploadModal').modal('show');
+        // $('#uploadExcel').on('click', function(){
+        //     $('#previewTable').html('');
+        //     $('#fileInput').val('');
+        //     $('#uploadModal').modal('show');
 
-            $('#uploadForm').validate({
-                errorElement: 'span',
-                errorPlacement: function (error, element) {
-                    error.addClass('invalid-feedback');
-                    element.closest('.form-group').append(error);
-                },
-                highlight: function (element, errorClass, validClass) {
-                    $(element).addClass('is-invalid');
-                },
-                unhighlight: function (element, errorClass, validClass) {
-                    $(element).removeClass('is-invalid');
-                }
-            });
-        });
+        //     $('#uploadForm').validate({
+        //         errorElement: 'span',
+        //         errorPlacement: function (error, element) {
+        //             error.addClass('invalid-feedback');
+        //             element.closest('.form-group').append(error);
+        //         },
+        //         highlight: function (element, errorClass, validClass) {
+        //             $(element).addClass('is-invalid');
+        //         },
+        //         unhighlight: function (element, errorClass, validClass) {
+        //             $(element).removeClass('is-invalid');
+        //         }
+        //     });
+        // });
 
-        $('#uploadModal').find('#previewButton').on('click', function(){
-            var fileInput = document.getElementById('fileInput');
-            var file = fileInput.files[0];
-            var reader = new FileReader();
+        // $('#uploadModal').find('#previewButton').on('click', function(){
+        //     var fileInput = document.getElementById('fileInput');
+        //     var file = fileInput.files[0];
+        //     var reader = new FileReader();
             
-            reader.onload = function(e) {
-                var data = e.target.result;
-                displayPreview(data);
-            };
+        //     reader.onload = function(e) {
+        //         var data = e.target.result;
+        //         displayPreview(data);
+        //     };
 
-            reader.readAsBinaryString(file);
-        });
+        //     reader.readAsBinaryString(file);
+        // });
 
-        $('#submitUpload').on('click', function(){
-            $('#spinnerLoading').show();
-            var formData = $('#uploadForm').serializeArray();
-            var data = [];
-            var rowIndex = -1;
-            formData.forEach(function(field) {
-                var match = field.name.match(/([a-zA-Z0-9]+)\[(\d+)\]/);
-                if (match) {
-                    var fieldName = match[1];
-                    var index = parseInt(match[2], 10);
-                    if (index !== rowIndex) {
-                        rowIndex = index;
-                        data.push({});
-                    }
-                    data[index][fieldName] = field.value;
-                }
-            });
+        // $('#submitUpload').on('click', function(){
+        //     $('#spinnerLoading').show();
+        //     var formData = $('#uploadForm').serializeArray();
+        //     var data = [];
+        //     var rowIndex = -1;
+        //     formData.forEach(function(field) {
+        //         var match = field.name.match(/([a-zA-Z0-9]+)\[(\d+)\]/);
+        //         if (match) {
+        //             var fieldName = match[1];
+        //             var index = parseInt(match[2], 10);
+        //             if (index !== rowIndex) {
+        //                 rowIndex = index;
+        //                 data.push({});
+        //             }
+        //             data[index][fieldName] = field.value;
+        //         }
+        //     });
 
-            $.ajax({
-                url: 'php/modules/sawnTimber/uploadSawnTimber.php',
-                type: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify(data),
-                success: function(response) {
-                    var obj = JSON.parse(response);
-                    if (obj.status === 'success') {
-                        $('#spinnerLoading').hide();
-                        $('#uploadModal').modal('hide');
-                        toastr["success"](obj.message, "Success:");
-                        table.ajax.reload(null, false);
-                    } 
-                    else if (obj.status === 'failed') {
-                        $('#spinnerLoading').hide();
-                        toastr["error"](obj.message, "Failed:");
-                    } 
-                    else if (obj.status === 'error') {
-                        $('#spinnerLoading').hide();
-                        $('#uploadModal').modal('hide');
-                        table.ajax.reload(null, false);
-                        $('#errorModal').find('#errorList').empty();
-                        var errorMessage = obj.message;
-                        for (var i = 0; i < errorMessage.length; i++) {
-                            $('#errorModal').find('#errorList').append(`<li>${errorMessage[i]}</li>`);                            
-                        }
-                        $('#errorModal').modal('show');
-                    } 
-                    else {
-                        $('#spinnerLoading').hide();
-                        toastr["error"]("Failed to save", "Failed:");
-                    }
-                }
-            });
-        });
+        //     $.ajax({
+        //         url: 'php/modules/sawnTimber/uploadSawnTimber.php',
+        //         type: 'POST',
+        //         contentType: 'application/json',
+        //         data: JSON.stringify(data),
+        //         success: function(response) {
+        //             var obj = JSON.parse(response);
+        //             if (obj.status === 'success') {
+        //                 $('#spinnerLoading').hide();
+        //                 $('#uploadModal').modal('hide');
+        //                 toastr["success"](obj.message, "Success:");
+        //                 table.ajax.reload(null, false);
+        //             } 
+        //             else if (obj.status === 'failed') {
+        //                 $('#spinnerLoading').hide();
+        //                 toastr["error"](obj.message, "Failed:");
+        //             } 
+        //             else if (obj.status === 'error') {
+        //                 $('#spinnerLoading').hide();
+        //                 $('#uploadModal').modal('hide');
+        //                 table.ajax.reload(null, false);
+        //                 $('#errorModal').find('#errorList').empty();
+        //                 var errorMessage = obj.message;
+        //                 for (var i = 0; i < errorMessage.length; i++) {
+        //                     $('#errorModal').find('#errorList').append(`<li>${errorMessage[i]}</li>`);                            
+        //                 }
+        //                 $('#errorModal').modal('show');
+        //             } 
+        //             else {
+        //                 $('#spinnerLoading').hide();
+        //                 toastr["error"]("Failed to save", "Failed:");
+        //             }
+        //         }
+        //     });
+        // });
     });
 
     function renderTable() {
         var fromDateI = $('#fromDateSearch').val();
         var toDateI = $('#toDateSearch').val();
         var companyI = $('#companySearch').val() || '';
-        var supplierNoI = $('#supplierSearch').val() || '';
         var plantI = $('#plantSearch').val() || '';
         var transactionIdI = $('#transactionIdSearch').val() || '';
-        var speciesI = $('#speciesSearch').val() || '';
 
         // Destroy the old Datatable if exists
         if ($.fn.DataTable.isDataTable('#sawnTimberTable')) {
@@ -809,10 +785,8 @@ else{
                     fromDate: fromDateI,
                     toDate: toDateI,
                     company: companyI,
-                    supplier: supplierNoI,
                     plant: plantI,
                     transactionId: transactionIdI,
-                    species: speciesI,
                 }
             },
             'columns': [
@@ -918,6 +892,91 @@ else{
         return returnString;
     }
 
+    function loadSawnTimberWeighing() {
+        $.get('php/modules/sawnTimber/getSawnTimberWeighing.php', function(data) {
+            var obj = JSON.parse(data);
+            if (obj.status === 'success') {
+                var options = '<option value="">-</option>';
+                obj.data.forEach(function(item) {
+                    options += '<option value="' + item.id + '"' +
+                        ' data-transaction-id="' + item.transaction_id + '"' +
+                        ' data-transaction-status="' + item.transaction_status + '"' +
+                        ' data-customer-name="' + (item.customer_name || '') + '"' +
+                        ' data-supplier-name="' + (item.supplier_name || '') + '"' +
+                        ' data-destination="' + (item.destination || '') + '"' +
+                        ' data-lorry-no="' + (item.lorry_plate_no1 || '') + '"' +
+                        ' data-do-no="' + (item.delivery_no || '') + '"' +
+                        ' data-transaction-date="' + (item.transaction_date || '') + '"' +
+                        ' data-company-id="' + (item.company_id || '') + '"' +
+                        ' data-company-name="' + (item.company_name || '') + '"' +
+                        ' data-plant-id="' + (item.plant_id || '') + '"' +
+                        ' data-plant-display="' + (item.plant_display || '') + '"' +
+                        '>' + item.transaction_id + '</option>';
+                });
+                $('#weightId').html(options);
+            }
+        });
+    }
+
+    function editRecord(id) {
+        $('#spinnerLoading').show();
+        $.post('php/modules/sawnTimber/getSawnTimber.php', {id: id}, function(data) {
+            $('#spinnerLoading').hide();
+            var obj = JSON.parse(data);
+            if (obj.status === 'success') {
+                var record = obj.message.header;
+                record.details = obj.message.details;
+                openEntry(record);
+            } else {
+                toastr.error(obj.message);
+            }
+        });
+    }
+    
+    function openEntry(record) {
+        record = record || {};
+        $('#sawnTimberForm')[0].reset();
+        $('#detailTable tbody').html('');
+        detailRowCount = 0;
+
+        $('#id').val(record.id || '');
+        $('#companyDisplay').val(record.company_name || '');
+        $('#plantDisplay').val(record.plant_display || '');
+        $('#companyId').val(record.company_id || '');
+        $('#plantId').val(record.plant_id || '');
+        $('#transactionId').val(record.transaction_id || '');
+        $('#transactionStatus').val(record.transaction_status || '');
+        $('#customerSupplier').val(record.customer_name || record.supplier_name || '');
+        $('#deliveredTo').val(record.destination || '');
+        $('#lorryNo').val(record.lorry_plate_no1 || '');
+        $('#doNo').val(record.delivery_no || '');
+        $('#sawnTimberDate').val(record.record_date ? record.record_date.split(' ')[0].split('-').reverse().join('-') : '');
+        $('#remarks').val(record.remarks || '');
+
+        // Set weightId dropdown - add option if not exists
+        if (record.weight_id) {
+            if ($('#weightId option[value="' + record.weight_id + '"]').length === 0) {
+                $('#weightId').append('<option value="' + record.weight_id + '">' + record.transaction_id + '</option>');
+            }
+            $('#weightId').val(record.weight_id);
+        }
+
+        if (record.details && record.details.length > 0) {
+            for (var i = 0; i < record.details.length; i++) {
+                addDetailRow({
+                    species: record.details[i].species,
+                    thick: record.details[i].thick,
+                    width: record.details[i].width,
+                    length: record.details[i].length,
+                    pieces: record.details[i].pieces,
+                    tons: record.details[i].tons
+                });
+            }
+        }
+
+        $('#addModal').modal('show');
+    }
+
     function addDetailRow(detail) {
         detail = detail || {};
         var $addContents = $("#detailRowTemplate").clone();
@@ -976,73 +1035,6 @@ else{
         var length = parseFloat(row.find('.length').val()) || 0;
         var pieces = parseFloat(row.find('.pieces').val()) || 0;
         row.find('.tons').val(((thick * width * length * pieces) / 7200).toFixed(4));
-    }
-
-    function editRecord(id) {
-        $('#spinnerLoading').show();
-        $.post('php/modules/sawnTimber/getSawnTimber.php', {id: id}, function(data) {
-            $('#spinnerLoading').hide();
-            var obj = JSON.parse(data);
-            if (obj.status === 'success') {
-                var record = obj.message.header;
-                record.details = obj.message.details;
-                openEntry(record);
-            } else {
-                toastr.error(obj.message);
-            }
-        });
-    }
-
-    function loadSawnTimberWeighing() {
-        $.get('php/modules/sawnTimber/getSawnTimberWeighing.php', function(data) {
-            var obj = JSON.parse(data);
-            if (obj.status === 'success') {
-                var options = '<option value="">-</option>';
-                obj.data.forEach(function(item) {
-                    options += '<option value="' + item.id + '"' +
-                        ' data-transaction-id="' + item.transaction_id + '"' +
-                        ' data-transaction-status="' + item.transaction_status + '"' +
-                        ' data-customer-name="' + (item.customer_name || '') + '"' +
-                        ' data-supplier-name="' + (item.supplier_name || '') + '"' +
-                        ' data-destination="' + (item.destination || '') + '"' +
-                        ' data-lorry-no="' + (item.lorry_plate_no1 || '') + '"' +
-                        ' data-do-no="' + (item.delivery_no || '') + '"' +
-                        ' data-transaction-date="' + (item.transaction_date || '') + '"' +
-                        '>' + item.transaction_id + '</option>';
-                });
-                $('#weightId').html(options);
-            }
-        });
-    }
-
-    function openEntry(record) {
-        record = record || {};
-        $('#sawnTimberForm')[0].reset();
-        $('#detailTable tbody').html('');
-        detailRowCount = 0;
-
-        $('#id').val(record.id || '');
-        $('#companyId').val(record.company_id || '').trigger('change');
-        $('#plantId').val(record.plant_id || '').trigger('change');
-        $('#weightId').val(record.weight_id || '').trigger('change');
-        $('#transactionId').val(record.transaction_id || '');
-        $('#transactionDate').val(record.transaction_date ? record.transaction_date.split(' ')[0].split('-').reverse().join('-') : '');
-        $('#remarks').val(record.remarks || '');
-
-        if (record.details && record.details.length > 0) {
-            for (var i = 0; i < record.details.length; i++) {
-                addDetailRow({
-                    species: record.details[i].species,
-                    thick: record.details[i].thick,
-                    width: record.details[i].width,
-                    length: record.details[i].length,
-                    pieces: record.details[i].pieces,
-                    tons: record.details[i].tons
-                });
-            }
-        }
-
-        $('#addModal').modal('show');
     }
 
     function displayPreview(data) {

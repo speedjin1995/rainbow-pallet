@@ -5,7 +5,7 @@ require_once '../../db_connect.php';
 if (isset($_POST['id'])) {
     $id = filter_input(INPUT_POST, 'id', FILTER_SANITIZE_STRING);
 
-    if ($stmt = $db->prepare("SELECT * FROM Sawn_Timber_Header WHERE id=?")) {
+    if ($stmt = $db->prepare("SELECT h.*, c.name AS company_name, CONCAT(pl.plant_code, ' - ', pl.name) AS plant_display, w.transaction_id, w.transaction_status, w.customer_name, w.supplier_name, w.destination, w.lorry_plate_no1, w.delivery_no FROM Sawn_Timber_Header h LEFT JOIN Company c ON h.company_id = c.id LEFT JOIN Plant pl ON h.plant_id = pl.id LEFT JOIN Weight w ON h.weight_id = w.id WHERE h.id=?")) {
         $stmt->bind_param('s', $id);
 
         if (!$stmt->execute()) {

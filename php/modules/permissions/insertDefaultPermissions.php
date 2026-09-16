@@ -163,7 +163,7 @@ $defaultPermissions = [
         ['PV Items', 'Master Data'],
         ['Sawn Timber Species', 'Master Data'],
         ['User Setup', 'User Management'],
-        ['Sawn Timber', 'Sawn Timber'],
+        // ['Sawn Timber', 'Sawn Timber'],
     ]],
     ['name' => 'upload_excel', 'modules' => [
         ['Companies', 'Master Data'], 
@@ -181,7 +181,7 @@ $defaultPermissions = [
         ['PV Items', 'Master Data'],
         ['Sawn Timber Species', 'Master Data'],
         ['User Setup', 'User Management'],
-        ['Sawn Timber', 'Sawn Timber'],
+        // ['Sawn Timber', 'Sawn Timber'],
     ]],
     ['name' => 'export', 'modules' => [
         ['Delivery Order', 'Accounting'], 

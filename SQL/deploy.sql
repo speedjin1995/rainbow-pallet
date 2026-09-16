@@ -3076,19 +3076,22 @@ ALTER TABLE `Customer` CHANGE `modified_date` `modified_date` TIMESTAMP on updat
 ALTER TABLE `Customer` CHANGE `modified_by` `modified_by` VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL;
 
 -- 16/09/2026 (Sawn Timber) --
+ALTER TABLE `Sawn_Timber_Detail` DROP FOREIGN KEY `fk_sawn_timber_detail_header`;
 ALTER TABLE `Sawn_Timber_Header` ADD `weight_id` INT(11) NULL AFTER `plant_id`;
 ALTER TABLE `Sawn_Timber_Header_Log` ADD `weight_id` INT(11) NULL AFTER `plant_id`;
-
--- Remove lot and bundle columns
 ALTER TABLE `Sawn_Timber_Header` DROP `lot`, DROP `bundle`;
 ALTER TABLE `Sawn_Timber_Header_Log` DROP `lot`, DROP `bundle`;
+ALTER TABLE `Sawn_Timber_Header` DROP `supplier`;
+ALTER TABLE `Sawn_Timber_Header_Log` DROP `supplier`;
+ALTER TABLE `Sawn_Timber_Header` CHANGE `transaction_date` `record_date` DATETIME NULL DEFAULT NULL;
+ALTER TABLE `Sawn_Timber_Header_Log` CHANGE `transaction_date` `record_date` DATETIME NULL DEFAULT NULL;
 
 DELIMITER $$
 CREATE OR REPLACE TRIGGER `TRG_INS_SAWN_TIMBER_HEADER` AFTER INSERT ON `Sawn_Timber_Header` FOR EACH ROW
 INSERT INTO Sawn_Timber_Header_Log (
-    header_id, company_id, plant_id, weight_id, transaction_id, transaction_date, supplier, remarks, status, action_id, action_by, event_date
+    header_id, weight_id, company_id, plant_id, transaction_id, record_date, remarks, status, action_id, action_by, event_date
 ) VALUES (
-    NEW.id, NEW.company_id, NEW.plant_id, NEW.weight_id, NEW.transaction_id, NEW.transaction_date, NEW.supplier, NEW.remarks, NEW.status, 1, NEW.created_by, NEW.created_date
+    NEW.id, NEW.weight_id, NEW.company_id, NEW.plant_id, NEW.transaction_id, NEW.record_date, NEW.remarks, NEW.status, 1, NEW.created_by, NEW.created_date
 )
 $$
 DELIMITER ;
@@ -3104,10 +3107,15 @@ BEGIN
     END IF;
 
     INSERT INTO Sawn_Timber_Header_Log (
-        header_id, company_id, plant_id, weight_id, transaction_id, transaction_date, supplier, remarks, status, action_id, action_by, event_date
+        header_id, weight_id, company_id, plant_id, transaction_id, record_date, remarks, status, action_id, action_by, event_date
     ) VALUES (
-        NEW.id, NEW.company_id, NEW.plant_id, NEW.weight_id, NEW.transaction_id, NEW.transaction_date, NEW.supplier, NEW.remarks, NEW.status, action_value, NEW.modified_by, NEW.modified_date
+        NEW.id, NEW.weight_id, NEW.company_id, NEW.plant_id, NEW.transaction_id, NEW.record_date, NEW.remarks, NEW.status, action_value, NEW.modified_by, NEW.modified_date
     );
 END
 $$
 DELIMITER ;
+
+INSERT INTO Product_Categories (`category_name`, `post_to_sql`, `created_by`) VALUES ('Sawn Timber', 'N', 'System');
+
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('record_date_code', 'Record Date', '记录日期', 'Tarikh Rekod', 'பதிவு தேதி');
+
