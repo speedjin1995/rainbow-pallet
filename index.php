@@ -2614,106 +2614,106 @@ else{
             }
         });
 
-        $('#vehicleNoTxt').on('keyup', function(){
-            var x = $('#vehicleNoTxt').val();
-            x = x.toUpperCase();
-            $('#vehicleNoTxt').val(x);
-            var transactionStatus = $('#transactionStatus').val();
+        // $('#vehicleNoTxt').on('keyup', function(){
+        //     var x = $('#vehicleNoTxt').val();
+        //     x = x.toUpperCase();
+        //     $('#vehicleNoTxt').val(x);
+        //     var transactionStatus = $('#transactionStatus').val();
 
-            if (x){
-                $.post('php/modules/vehicle/index.php', {userID: x, type: 'pullCustomer', action: 'get'}, function (data){
-                    var obj = JSON.parse(data);
+        //     if (x){
+        //         $.post('php/modules/vehicle/index.php', {userID: x, type: 'pullCustomer', action: 'get'}, function (data){
+        //             var obj = JSON.parse(data);
 
-                    if (obj.status == 'success'){
-                        var customerName = obj.message.customer_name;
-                        var customerCode = obj.message.customer_code;
-                        var supplierName = obj.message.supplier_name;
-                        var supplierCode = obj.message.supplier_code;
+        //             if (obj.status == 'success'){
+        //                 var customerName = obj.message.customer_name;
+        //                 var customerCode = obj.message.customer_code;
+        //                 var supplierName = obj.message.supplier_name;
+        //                 var supplierCode = obj.message.supplier_code;
 
-                        if (transactionStatus == 'Purchase' || transactionStatus == 'Local') {
-                            var existingSupplierName = $('#addModal').find('#supplierName').val();
-                            var existingSupplierCode = $('#addModal').find('#supplierCode').val();
+        //                 if (transactionStatus == 'Purchase' || transactionStatus == 'Local') {
+        //                     var existingSupplierName = $('#addModal').find('#supplierName').val();
+        //                     var existingSupplierCode = $('#addModal').find('#supplierCode').val();
                             
-                            if ((!existingSupplierName && !existingSupplierCode) || (supplierName && supplierCode)) {
-                                $('#addModal').find('#supplierName').val(supplierName).trigger('change');
-                                $('#addModal').find('#supplierCode').val(supplierCode);
-                            }
-                        } else {
-                            var existingCustomerName = $('#addModal').find('#customerName').val();
-                            var existingCustomerCode = $('#addModal').find('#customerCode').val();
+        //                     if ((!existingSupplierName && !existingSupplierCode) || (supplierName && supplierCode)) {
+        //                         $('#addModal').find('#supplierName').val(supplierName).trigger('change');
+        //                         $('#addModal').find('#supplierCode').val(supplierCode);
+        //                     }
+        //                 } else {
+        //                     var existingCustomerName = $('#addModal').find('#customerName').val();
+        //                     var existingCustomerCode = $('#addModal').find('#customerCode').val();
                             
-                            if ((!existingCustomerName && !existingCustomerCode) || (customerName && customerCode)) {
-                                $('#addModal').find('#customerName').val(customerName).trigger('change');
-                                $('#addModal').find('#customerCode').val(customerCode);
-                            }
-                        }
-                    }
-                    else if(obj.status === 'error'){
-                        alert(obj.message);
-                        $('#vehicleNoTxt').val('');
-                    }
-                    else if(obj.status === 'failed'){
-                        $('#spinnerLoading').hide();
-                        $("#failBtn").attr('data-toast-text', obj.message );
-                        $("#failBtn").click();
-                    }
-                    else{
-                        $('#spinnerLoading').hide();
-                        $("#failBtn").attr('data-toast-text', obj.message );
-                        $("#failBtn").click();
-                    }
-                });
-            }
-        });
+        //                     if ((!existingCustomerName && !existingCustomerCode) || (customerName && customerCode)) {
+        //                         $('#addModal').find('#customerName').val(customerName).trigger('change');
+        //                         $('#addModal').find('#customerCode').val(customerCode);
+        //                     }
+        //                 }
+        //             }
+        //             else if(obj.status === 'error'){
+        //                 alert(obj.message);
+        //                 $('#vehicleNoTxt').val('');
+        //             }
+        //             else if(obj.status === 'failed'){
+        //                 $('#spinnerLoading').hide();
+        //                 $("#failBtn").attr('data-toast-text', obj.message );
+        //                 $("#failBtn").click();
+        //             }
+        //             else{
+        //                 $('#spinnerLoading').hide();
+        //                 $("#failBtn").attr('data-toast-text', obj.message );
+        //                 $("#failBtn").click();
+        //             }
+        //         });
+        //     }
+        // });
 
-        $('#vehiclePlateNo1').on('change', function(){
-            var vehiclePlateNo1 = $(this).val();
-            var transactionStatus = $('#transactionStatus').val();
-            if (vehiclePlateNo1){
-                $.post('php/modules/vehicle/index.php', {userID: vehiclePlateNo1, type: 'pullCustomer', action: 'get'}, function (data){
-                    var obj = JSON.parse(data);
+        // $('#vehiclePlateNo1').on('change', function(){
+        //     var vehiclePlateNo1 = $(this).val();
+        //     var transactionStatus = $('#transactionStatus').val();
+        //     if (vehiclePlateNo1){
+        //         $.post('php/modules/vehicle/index.php', {userID: vehiclePlateNo1, type: 'pullCustomer', action: 'get'}, function (data){
+        //             var obj = JSON.parse(data);
 
-                    if (obj.status == 'success'){
-                        var customerName = obj.message.customer_name;
-                        var customerCode = obj.message.customer_code;
-                        var supplierName = obj.message.supplier_name;
-                        var supplierCode = obj.message.supplier_code;
+        //             if (obj.status == 'success'){
+        //                 var customerName = obj.message.customer_name;
+        //                 var customerCode = obj.message.customer_code;
+        //                 var supplierName = obj.message.supplier_name;
+        //                 var supplierCode = obj.message.supplier_code;
 
-                        if (transactionStatus == 'Purchase' || transactionStatus == 'Local') {
-                            var existingSupplierName = $('#addModal').find('#supplierName').val();
-                            var existingSupplierCode = $('#addModal').find('#supplierCode').val();
+        //                 if (transactionStatus == 'Purchase' || transactionStatus == 'Local') {
+        //                     var existingSupplierName = $('#addModal').find('#supplierName').val();
+        //                     var existingSupplierCode = $('#addModal').find('#supplierCode').val();
                             
-                            if ((!existingSupplierName && !existingSupplierCode) || (supplierName && supplierCode)) {
-                                $('#addModal').find('#supplierName').val(supplierName).trigger('change');
-                                $('#addModal').find('#supplierCode').val(supplierCode);
-                            }
-                        } else {
-                            var existingCustomerName = $('#addModal').find('#customerName').val();
-                            var existingCustomerCode = $('#addModal').find('#customerCode').val();
+        //                     if ((!existingSupplierName && !existingSupplierCode) || (supplierName && supplierCode)) {
+        //                         $('#addModal').find('#supplierName').val(supplierName).trigger('change');
+        //                         $('#addModal').find('#supplierCode').val(supplierCode);
+        //                     }
+        //                 } else {
+        //                     var existingCustomerName = $('#addModal').find('#customerName').val();
+        //                     var existingCustomerCode = $('#addModal').find('#customerCode').val();
                             
-                            if ((!existingCustomerName && !existingCustomerCode) || (customerName && customerCode)) {
-                                $('#addModal').find('#customerName').val(customerName).trigger('change');
-                                $('#addModal').find('#customerCode').val(customerCode);
-                            }
-                        }
-                    }
-                    else if(obj.status === 'error'){
-                        alert(obj.message);
-                        $('#vehicleNoTxt').val('');
-                    }
-                    else if(obj.status === 'failed'){
-                        $('#spinnerLoading').hide();
-                        $("#failBtn").attr('data-toast-text', obj.message );
-                        $("#failBtn").click();
-                    }
-                    else{
-                        $('#spinnerLoading').hide();
-                        $("#failBtn").attr('data-toast-text', obj.message );
-                        $("#failBtn").click();
-                    }
-                });
-            }
-        });
+        //                     if ((!existingCustomerName && !existingCustomerCode) || (customerName && customerCode)) {
+        //                         $('#addModal').find('#customerName').val(customerName).trigger('change');
+        //                         $('#addModal').find('#customerCode').val(customerCode);
+        //                     }
+        //                 }
+        //             }
+        //             else if(obj.status === 'error'){
+        //                 alert(obj.message);
+        //                 $('#vehicleNoTxt').val('');
+        //             }
+        //             else if(obj.status === 'failed'){
+        //                 $('#spinnerLoading').hide();
+        //                 $("#failBtn").attr('data-toast-text', obj.message );
+        //                 $("#failBtn").click();
+        //             }
+        //             else{
+        //                 $('#spinnerLoading').hide();
+        //                 $("#failBtn").attr('data-toast-text', obj.message );
+        //                 $("#failBtn").click();
+        //             }
+        //         });
+        //     }
+        // });
 
         $('#manualVehicle2').on('change', function(){
             if($(this).is(':checked')){
