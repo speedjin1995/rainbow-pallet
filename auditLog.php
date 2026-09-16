@@ -85,7 +85,7 @@
                                                             <option value="Customer" selected><?=$languageArray['customer_code'][$language]?></option>
                                                             <option value="Destination"><?=$languageArray['destination_code'][$language]?></option>
                                                             <option value="Product"><?=$languageArray['product_code'][$language]?></option>
-                                                            <option value="Raw Materials"><?=$languageArray['raw_material_code'][$language]?></option>
+                                                            <!-- <option value="Raw Materials"><?=$languageArray['raw_material_code'][$language]?></option> -->
                                                             <option value="Supplier"><?=$languageArray['supplier_code'][$language]?></option>
                                                             <option value="Vehicle"><?=$languageArray['vehicle_code'][$language]?></option>
                                                             <option value="Transporter"><?=$languageArray['transporter_code'][$language]?></option>
@@ -417,11 +417,11 @@ $(function () {
             $('.inputCode').hide();
             $('.productInput').show();
         }
-        else if($(this).val() == "Raw Materials")
-        {
-            $('.inputCode').hide();
-            $('.rawMatInput').show();
-        }
+        // else if($(this).val() == "Raw Materials")
+        // {
+        //     $('.inputCode').hide();
+        //     $('.rawMatInput').show();
+        // }
         else if($(this).val() == "Supplier")
         {
             $('.inputCode').hide();
@@ -480,12 +480,12 @@ $(function () {
 
     $(".flatpickrStart").flatpickr({
         defaultDate: new Date(startDate), 
-        dateFormat: "y-m-d"
+        dateFormat: "d-m-Y"
     });
 
     $(".flatpickrEnd").flatpickr({
         defaultDate: new Date(), 
-        dateFormat: "y-m-d"
+        dateFormat: "d-m-Y"
     });
 
     // Add event listener for opening and closing details on row click

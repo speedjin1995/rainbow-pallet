@@ -17,14 +17,14 @@ require_once 'requires/lookup.php';
 $searchQuery = " ";
 
 if($_POST['fromDateSearch'] != null && $_POST['fromDateSearch'] != ''){
-    $fromDate = new DateTime($_POST['fromDateSearch']);
-    $fromDateTime = date_format($fromDate,"Y-m-d 00:00:00");
+    $fromDate = DateTime::createFromFormat('d-m-Y', $_POST['fromDateSearch']);
+    $fromDateTime = $fromDate->format('Y-m-d 00:00:00');
      $searchQuery = " WHERE event_date >= '".$fromDateTime."'";
   }
   
   if($_POST['toDateSearch'] != null && $_POST['toDateSearch'] != ''){
-    $toDate = new DateTime($_POST['toDateSearch']);
-    $toDateTime = date_format($toDate,"Y-m-d 23:59:59");
+    $toDate = DateTime::createFromFormat('d-m-Y', $_POST['toDateSearch']);
+    $toDateTime = $toDate->format('Y-m-d 23:59:59');
       $searchQuery .= " and event_date <= '".$toDateTime."'";
   }
 
@@ -181,7 +181,9 @@ if($_POST['selectedValue'] == "Destination")
 if($_POST['selectedValue'] == "Product")
 {
     ## Fetch records
-    $empQuery = "select * from Product_Log".$searchQuery;
+    $empQuery = "select pl.*, pc.category_name, u.unit as unit_name from Product_Log pl 
+                 LEFT JOIN Product_Categories pc ON pl.category = pc.id 
+                 LEFT JOIN Units u ON pl.uom = u.id".$searchQuery;
     $empRecords = mysqli_query($db, $empQuery);
     $data = array();
 
@@ -190,21 +192,24 @@ if($_POST['selectedValue'] == "Product")
         "id"=>$row['id'],
         "Product Code"=>$row['product_code'],
         "Product Name"=>$row['name'],
-        "Product Price"=>$row['price'],
         "Description"=>$row['description'],
+        "Category"=>$row['category_name'],
+        "Entity Type"=>$row['entity_type'],
+        "UOM"=>$row['unit_name'],
         "Variance Type"=>$row['variance'],
         "High"=>$row['high'],
         "Low"=>$row['low'],
+        "Is Manual"=>$row['is_manual'],
         "Action"=>searchActionNameById($row['action_id'], $db),
         "Action By"=>$row['action_by'],
         "Event Date"=>$row['event_date'],
         );
     }
 
-    $columnNames = ["Product Code", "Product Name", "Product Price", "Description", "Variance Type", "High", "Low", "Action", "Action By", "Event Date"];
+    $columnNames = ["Product Code", "Product Name", "Description", "Category", "Entity Type", "UOM", "Variance Type", "High", "Low", "Is Manual", "Action", "Action By", "Event Date"];
 }
 
-if($_POST['selectedValue'] == "Product")
+if($_POST['selectedValue'] == "Raw Materials")
 {
     ## Fetch records
     $empQuery = "select * from Raw_Mat_Log".$searchQuery;
