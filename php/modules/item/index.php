@@ -9,7 +9,7 @@ if (!isset($_SESSION['id'])) {
 }
 
 $action = $_POST['action'] ?? $_GET['action'] ?? '';
-$controller = new ItemController($db);
+$controller = new ItemController($db, $_SESSION['username']);
 
 switch ($action) {
     case 'create':    $controller->create(); break;

@@ -323,6 +323,7 @@
                                                             <thead>
                                                                 <tr>
                                                                     <th><input type="checkbox" id="selectAllCheckbox" class="selectAllCheckbox"></th>
+                                                                    <th><?=$languageArray['manual_code'][$language] ?? 'Manual'?></th>
                                                                     <th><?=$languageArray['item_code_code'][$language] ?? 'Item Code'?></th>
                                                                     <th><?=$languageArray['item_name_code'][$language] ?? 'Item Name'?></th>
                                                                     <th><?=$languageArray['category_code'][$language] ?? 'Category'?></th>
@@ -455,6 +456,12 @@
                             return '<input type="checkbox" class="select-checkbox" id="checkbox_' + data + '" value="'+data+'"/>';
                         }
                     },
+                    { 
+                        data: 'is_manual',
+                        render: function (data, type, row) {
+                            return data === 'Y' ? '<span class="badge bg-danger">Yes</span>' : '<span class="badge bg-secondary">No</span>';
+                        }
+                    },
                     { data: 'product_code' },
                     { data: 'name' },
                     { data: 'category_name' },
@@ -509,7 +516,12 @@
                             return '';
                         }
                     }
-                ]       
+                ],
+                'rowCallback': function(row, data) {
+                    if (data.is_manual === 'Y') {
+                        $(row).css('background-color', '#ffcccc');
+                    }
+                }       
             });
             
             $('#submitProduct').on('click', function(){

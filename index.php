@@ -591,33 +591,49 @@ else{
                                                                             </div>
                                                                             <div class="col-xxl-4 col-lg-4 mb-3">
                                                                                 <div class="row" id="productNameDisplay">
-                                                                                    <label for="productName" class="col-sm-4 col-form-label"><?=$languageArray['product_code_code'][$language]?></label>
+                                                                                    <label for="productName" class="col-sm-4 col-form-label"><?=$languageArray['product_code'][$language]?></label>
                                                                                     <div class="col-sm-8">
-                                                                                        <select class="form-select select2" id="productName" name="productName" required>
-                                                                                            <option selected="-">-</option>
-                                                                                            <?php while($rowProduct=mysqli_fetch_assoc($product)){ ?>
-                                                                                                <option 
-                                                                                                    value="<?=$rowProduct['name'] ?>" 
-                                                                                                    data-code="<?=$rowProduct['product_code'] ?>" 
-                                                                                                    data-high="<?=$rowProduct['high'] ?>" 
-                                                                                                    data-low="<?=$rowProduct['low'] ?>" 
-                                                                                                    data-variance="<?=$rowProduct['variance'] ?>" 
-                                                                                                    data-description="<?=$rowProduct['description'] ?>">
-                                                                                                    <?=$rowProduct['product_code'] .' - '. $rowProduct['name']?>
-                                                                                                </option>
-                                                                                            <?php } ?>
-                                                                                        </select>                                                                                        
+                                                                                        <div class="input-group">
+                                                                                            <div class="input-group-text">
+                                                                                                <input class="form-check-input mt-0" id="manualProduct" name="manualProduct" type="checkbox" value="0">
+                                                                                            </div>
+                                                                                            <input type="text" class="form-control" id="productNameTxt" name="productNameTxt" placeholder="<?=$languageArray['product_code'][$language]?>" style="display:none">
+                                                                                            <div class="col-10 index-product">
+                                                                                                <select class="form-select select2" id="productName" name="productName" required>
+                                                                                                    <option selected="-">-</option>
+                                                                                                    <?php while($rowProduct=mysqli_fetch_assoc($product)){ ?>
+                                                                                                        <option 
+                                                                                                            value="<?=$rowProduct['name'] ?>" 
+                                                                                                            data-code="<?=$rowProduct['product_code'] ?>" 
+                                                                                                            data-high="<?=$rowProduct['high'] ?>" 
+                                                                                                            data-low="<?=$rowProduct['low'] ?>" 
+                                                                                                            data-variance="<?=$rowProduct['variance'] ?>" 
+                                                                                                            data-description="<?=$rowProduct['description'] ?>">
+                                                                                                            <?=$rowProduct['product_code'] .' - '. $rowProduct['name']?>
+                                                                                                        </option>
+                                                                                                    <?php } ?>
+                                                                                                </select>
+                                                                                            </div>
+                                                                                        </div>
                                                                                     </div>
                                                                                 </div>
                                                                                 <div class="row" id="rawMaterialDisplay" style="display:none;">
-                                                                                    <label for="rawMaterialName" class="col-sm-4 col-form-label"><?=$languageArray['raw_material_code_code'][$language]?></label>
+                                                                                    <label for="rawMaterialName" class="col-sm-4 col-form-label"><?=$languageArray['raw_material_code'][$language]?></label>
                                                                                     <div class="col-sm-8">
-                                                                                        <select class="form-select select2" id="rawMaterialName" name="rawMaterialName" required>
-                                                                                            <option selected="-">-</option>
-                                                                                            <?php while($rowRowMat=mysqli_fetch_assoc($rawMaterial)){ ?>
-                                                                                                <option value="<?=$rowRowMat['name'] ?>" data-code="<?=$rowRowMat['product_code'] ?>"><?=$rowRowMat['product_code'] .' - '. $rowRowMat['name'] ?></option>
-                                                                                            <?php } ?>
-                                                                                        </select>           
+                                                                                        <div class="input-group">
+                                                                                            <div class="input-group-text">
+                                                                                                <input class="form-check-input mt-0" id="manualRawMaterial" name="manualRawMaterial" type="checkbox" value="0">
+                                                                                            </div>
+                                                                                            <input type="text" class="form-control" id="rawMaterialNameTxt" name="rawMaterialNameTxt" placeholder="<?=$languageArray['raw_material_code'][$language]?>" style="display:none">
+                                                                                            <div class="col-10 index-rawmaterial">
+                                                                                                <select class="form-select select2" id="rawMaterialName" name="rawMaterialName" required>
+                                                                                                    <option selected="-">-</option>
+                                                                                                    <?php while($rowRowMat=mysqli_fetch_assoc($rawMaterial)){ ?>
+                                                                                                        <option value="<?=$rowRowMat['name'] ?>" data-code="<?=$rowRowMat['product_code'] ?>"><?=$rowRowMat['product_code'] .' - '. $rowRowMat['name'] ?></option>
+                                                                                                    <?php } ?>
+                                                                                                </select>
+                                                                                            </div>
+                                                                                        </div>
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
@@ -2097,6 +2113,8 @@ else{
             $('#addModal').find('#otherRemarks').val("");
             $('#addModal').find('#manualVehicle').prop('checked', false).trigger('change');
             $('#addModal').find('#manualVehicle2').prop('checked', false).trigger('change');
+            $('#addModal').find('#manualProduct').prop('checked', false).trigger('change');
+            $('#addModal').find('#manualRawMaterial').prop('checked', false).trigger('change');
             $('#addModal').find('#grossIncoming').val("");
             grossIncomingDatePicker.clear();
             $('#addModal').find('#tareOutgoing').val("");
@@ -2694,6 +2712,40 @@ else{
             }
         });
 
+        // Manual Product checkbox handler
+        $('#manualProduct').on('change', function(){
+            if($(this).is(':checked')){
+                $(this).val(1);
+                $('#productName').val('-').trigger('change');
+                $('.index-product').hide();
+                $('#productNameTxt').show();
+                $('#productCode').val('');
+            }
+            else{
+                $(this).val(0);
+                $('#productNameTxt').hide();
+                $('#productNameTxt').val('');
+                $('.index-product').show();
+            }
+        });
+
+        // Manual Raw Material checkbox handler
+        $('#manualRawMaterial').on('change', function(){
+            if($(this).is(':checked')){
+                $(this).val(1);
+                $('#rawMaterialName').val('-').trigger('change');
+                $('.index-rawmaterial').hide();
+                $('#rawMaterialNameTxt').show();
+                $('#rawMaterialCode').val('');
+            }
+            else{
+                $(this).val(0);
+                $('#rawMaterialNameTxt').hide();
+                $('#rawMaterialNameTxt').val('');
+                $('.index-rawmaterial').show();
+            }
+        });
+
         $('#vehicleNoTxt2').on('keyup', function(){
             var x = $('#vehicleNoTxt2').val();
             x = x.toUpperCase();
@@ -3176,9 +3228,39 @@ else{
                         if (obj.message.transaction_status == 'Purchase' || obj.message.transaction_status == 'Local'){
                             $('#addModal').find('#supplierName').val(obj.message.supplier_name).trigger('change');
                             $('#addModal').find('#rawMaterialName').val(obj.message.raw_mat_name).trigger('change');
+
+                            // Check if manual raw material was used
+                            if(obj.message.is_manual_raw_material == 'Y'){
+                                $('#addModal').find('#rawMaterialNameTxt').val(obj.message.raw_mat_name);
+                                $('#manualRawMaterial').val(1);
+                                $('#manualRawMaterial').prop("checked", true);
+                                $('.index-rawmaterial').hide();
+                                $('#rawMaterialNameTxt').show();
+                            }
+                            else{
+                                $('#manualRawMaterial').val(0);
+                                $('#manualRawMaterial').prop("checked", false);
+                                $('.index-rawmaterial').show();
+                                $('#rawMaterialNameTxt').hide();
+                            }
                         }else{
                             $('#addModal').find('#customerName').val(obj.message.customer_name).trigger('change');
                             $('#addModal').find('#productName').val(obj.message.product_name).trigger('change');
+
+                            // Check if manual product was used
+                            if(obj.message.is_manual_product == 'Y'){
+                                $('#addModal').find('#productNameTxt').val(obj.message.product_name);
+                                $('#manualProduct').val(1);
+                                $('#manualProduct').prop("checked", true);
+                                $('.index-product').hide();
+                                $('#productNameTxt').show();
+                            }
+                            else{
+                                $('#manualProduct').val(0);
+                                $('#manualProduct').prop("checked", false);
+                                $('.index-product').show();
+                                $('#productNameTxt').hide();
+                            }
                         }
                         $('#addModal').find('#plant').val(obj.message.plant_name).trigger('change');
                         $('#addModal').find('#transporter').val(obj.message.transporter).trigger('change');
@@ -4095,6 +4177,36 @@ else{
                 $('#addModal').find('#rawMaterialName').val(obj.message.raw_mat_name).trigger('change');
                 $('#addModal').find('#productName').val(obj.message.product_name).trigger('change');
                 $('#addModal').find('#productCode').val(obj.message.product_code);
+
+                // Check if manual product was used
+                if(obj.message.is_manual_product == 'Y'){
+                    $('#addModal').find('#productNameTxt').val(obj.message.product_name);
+                    $('#manualProduct').val(1);
+                    $('#manualProduct').prop("checked", true);
+                    $('.index-product').hide();
+                    $('#productNameTxt').show();
+                }
+                else{
+                    $('#manualProduct').val(0);
+                    $('#manualProduct').prop("checked", false);
+                    $('.index-product').show();
+                    $('#productNameTxt').hide();
+                }
+
+                // Check if manual raw material was used
+                if(obj.message.is_manual_raw_material == 'Y'){
+                    $('#addModal').find('#rawMaterialNameTxt').val(obj.message.raw_mat_name);
+                    $('#manualRawMaterial').val(1);
+                    $('#manualRawMaterial').prop("checked", true);
+                    $('.index-rawmaterial').hide();
+                    $('#rawMaterialNameTxt').show();
+                }
+                else{
+                    $('#manualRawMaterial').val(0);
+                    $('#manualRawMaterial').prop("checked", false);
+                    $('.index-rawmaterial').show();
+                    $('#rawMaterialNameTxt').hide();
+                }
                 $('#addModal').find('#supplierWeight').val(obj.message.supplier_weight);
                 $('#addModal').find('#orderWeight').val(obj.message.order_weight);
                 $('#addModal').find('#destinationCode').val(obj.message.destination_code);
