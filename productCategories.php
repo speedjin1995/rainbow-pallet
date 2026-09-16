@@ -29,6 +29,17 @@
     
     <?php include 'layouts/head-css.php'; ?>
 
+    <style>
+        .select2-container--default .select2-selection--multiple .select2-selection__choice {
+            background-color: #3577f1;
+            border-color: #3577f1;
+            color: #fff;
+        }
+        .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+            color: #fff;
+        }
+    </style>
+
 </head>
 
 <?php include 'layouts/body.php'; ?>
@@ -109,7 +120,24 @@
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
-                                                                            <input type="hidden" class="form-control" id="id" name="id">                                                                        
+                                                                            <div class="col-xxl-12 col-lg-12 mb-3">
+                                                                                <div class="row">
+                                                                                    <label for="postToSql" class="col-sm-4 col-form-label"><?=$languageArray['transaction_status_code'][$language] ?? 'Transaction Status'?> *</label>
+                                                                                    <div class="col-sm-8">
+                                                                                        <select id="transactionStatus" name="transactionStatus[]" class="form-select select2" multiple="multiple" required>
+                                                                                            <option value="Sales"><?=$languageArray['dispatch_code'][$language]?></option>
+                                                                                            <option value="Purchase"><?=$languageArray['receiving_code'][$language]?></option>
+                                                                                            <!-- <option value="Local"><?=$languageArray['internal_transfer_code'][$language]?></option> -->
+                                                                                            <option value="Port"><?=$languageArray['trx_to_port_code'][$language]?></option>
+                                                                                            <option value="Misc"><?=$languageArray['miscellaneous_code'][$language]?></option>
+                                                                                        </select>  
+                                                                                        <div class="invalid-feedback">
+                                                                                            <?=$languageArray['please_fill_in_the_field_code'][$language] ?? 'Please fill in the field'?>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <input type="hidden" class="form-control" id="id" name="id">
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -219,6 +247,11 @@
                                                                     <th><input type="checkbox" id="selectAllCheckbox" class="selectAllCheckbox"></th>
                                                                     <th><?=$languageArray['category_name_code'][$language] ?? 'Category Name'?></th>
                                                                     <th><?=$languageArray['post_to_sql_code'][$language] ?? 'Post to SQL'?></th>
+                                                                    <th><?=$languageArray['dispatch_code'][$language] ?? 'Sales'?></th>
+                                                                    <th><?=$languageArray['receiving_code'][$language] ?? 'Purchase'?></th>
+                                                                    <!-- <th><?=$languageArray['local_code'][$language] ?? 'Local'?></th> -->
+                                                                    <th><?=$languageArray['trx_to_port_code'][$language] ?? 'Transfer to Port'?></th>
+                                                                    <th><?=$languageArray['miscellaneous_code'][$language] ?? 'Misc'?></th>
                                                                     <th><?=$languageArray['status_code'][$language] ?? 'Status'?></th>
                                                                     <th><?=$languageArray['action_code'][$language] ?? 'Action'?></th>
                                                                 </tr>
@@ -279,6 +312,25 @@ var permissions = <?= json_encode($_SESSION['permissions'] ?? []) ?>;
 var isSADMIN = <?= json_encode($_SESSION['roles'] == 'SADMIN') ?>;
 
 $(function () {
+    // Initialize all Select2 elements in the modal
+    $('.select2').select2({
+        allowClear: true,
+        placeholder: "Please Select",
+        dropdownParent: $('#addModal') // Ensures dropdown is not cut off
+    });
+
+    // Apply custom styling to Select2 elements in addModal
+    $('.select2-container .select2-selection--single').css({
+        'padding-top': '4px',
+        'padding-bottom': '4px',
+        'height': 'auto'
+    });
+
+    $('.select2-container .select2-selection__arrow').css({
+        'padding-top': '33px',
+        'height': 'auto'
+    });
+
     $('#selectAllCheckbox').on('change', function() {
         var checkboxes = $('#productCategoryTable tbody input[type="checkbox"]');
         checkboxes.prop('checked', $(this).prop('checked')).trigger('change');
@@ -305,6 +357,11 @@ $(function () {
             },
             { data: 'category_name' },
             { data: 'post_to_sql' },
+            { data: 'is_sales' },
+            { data: 'is_purchase' },
+            // { data: 'is_local' },
+            { data: 'is_port' },
+            { data: 'is_misc' },
             {
                 data: 'id',
                 render: function ( data, type, row ) {
@@ -384,6 +441,7 @@ $(function () {
         $('#addModal').find('#id').val("");
         $('#addModal').find('#categoryName').val("");
         $('#addModal').find('#postToSql').val("");
+        $('#addModal').find('#transactionStatus').val(null).trigger('change');
 
         // Remove Validation Error Message
         $('#addModal .is-invalid').removeClass('is-invalid');
@@ -543,6 +601,15 @@ function edit(id){
             $('#addModal').find('#id').val(obj.data.id);
             $('#addModal').find('#categoryName').val(obj.data.category_name);
             $('#addModal').find('#postToSql').val(obj.data.post_to_sql);
+
+            // Set transaction status multiselect
+            var transactionStatus = [];
+            if (obj.data.is_sales === 'Y') transactionStatus.push('Sales');
+            if (obj.data.is_purchase === 'Y') transactionStatus.push('Purchase');
+            if (obj.data.is_local === 'Y') transactionStatus.push('Local');
+            if (obj.data.is_port === 'Y') transactionStatus.push('Port');
+            if (obj.data.is_misc === 'Y') transactionStatus.push('Misc');
+            $('#addModal').find('#transactionStatus').val(transactionStatus).trigger('change');
 
             // Remove Validation Error Message
             $('#addModal .is-invalid').removeClass('is-invalid');

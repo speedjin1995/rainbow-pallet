@@ -26,7 +26,7 @@ class ItemService extends BaseService {
         // Search filter
         $searchQuery = "";
         if ($searchValue != '') {
-            $searchQuery = " AND (p.product_code LIKE '%{$searchValue}%' OR p.name LIKE '%{$searchValue}%' OR p.description LIKE '%{$searchValue}%' OR c.category_name LIKE '%{$searchValue}%' OR p.entity_type LIKE '%{$searchValue}%')";
+            $searchQuery = " AND (p.product_code LIKE '%{$searchValue}%' OR p.name LIKE '%{$searchValue}%' OR p.description LIKE '%{$searchValue}%' OR c.category_name LIKE '%{$searchValue}%')";
         }
         
         // Filtered records
@@ -35,7 +35,7 @@ class ItemService extends BaseService {
         $totalFiltered = $filteredResult->fetch_assoc()['total'];
         
         // Data - order by is_manual DESC first to show manual items at top
-        $dataQuery = "SELECT p.id, p.product_code, p.name, p.description, p.status, p.entity_type, IFNULL(p.is_manual, 'N') as is_manual, IFNULL(c.category_name, '') as category_name FROM {$this->table} p LEFT JOIN Product_Categories c ON p.category = c.id WHERE p.status = 0 {$searchQuery} ORDER BY p.is_manual DESC, {$columnName} {$columnSortOrder} LIMIT {$start}, {$length}";
+        $dataQuery = "SELECT p.id, p.product_code, p.name, p.description, p.status, IFNULL(p.is_manual, 'N') as is_manual, IFNULL(c.category_name, '') as category_name FROM {$this->table} p LEFT JOIN Product_Categories c ON p.category = c.id WHERE p.status = 0 {$searchQuery} ORDER BY p.is_manual DESC, {$columnName} {$columnSortOrder} LIMIT {$start}, {$length}";
         $dataResult = $this->db->query($dataQuery);
         
         $data = [];
@@ -59,7 +59,6 @@ class ItemService extends BaseService {
         $productName = trim($post['productName']);
         $categoryId = $post['categoryId'];
         $uom = $post['uom'];
-        $entityType = $post['entityType'];
         $description = $post['description'] ?? null;
         $varianceType = $post['varianceType'] ?? null;
         $high = $post['high'] ?? 0;
@@ -72,12 +71,12 @@ class ItemService extends BaseService {
         
         $this->db->begin_transaction();
         
-        $stmt = $this->db->prepare("INSERT INTO {$this->table} (product_code, name, category, uom, entity_type, description, variance, high, low, created_by, modified_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt = $this->db->prepare("INSERT INTO {$this->table} (product_code, name, category, uom, description, variance, high, low, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
         if (!$stmt) {
             throw new Exception($this->db->error);
         }
         
-        $stmt->bind_param('ssiisssddss', $productCode, $productName, $categoryId, $uom, $entityType, $description, $varianceType, $high, $low, $this->username, $this->username);
+        $stmt->bind_param('sssssssss', $productCode, $productName, $categoryId, $uom, $description, $varianceType, $high, $low, $this->username);
         
         if (!$stmt->execute()) {
             throw new Exception($stmt->error);
@@ -103,7 +102,6 @@ class ItemService extends BaseService {
         $productName = trim($post['productName']);
         $categoryId = $post['categoryId'];
         $uom = $post['uom'];
-        $entityType = $post['entityType'];
         $description = $post['description'] ?? null;
         $varianceType = $post['varianceType'] ?? null;
         $high = $post['high'] ?? 0;
@@ -116,12 +114,12 @@ class ItemService extends BaseService {
         
         $this->db->begin_transaction();
         
-        $stmt = $this->db->prepare("UPDATE {$this->table} SET product_code=?, name=?, category=?, uom=?, entity_type=?, description=?, variance=?, high=?, low=?, modified_by=? WHERE id=?");
+        $stmt = $this->db->prepare("UPDATE {$this->table} SET product_code=?, name=?, category=?, uom=?, description=?, variance=?, high=?, low=?, modified_by=? WHERE id=?");
         if (!$stmt) {
             throw new Exception($this->db->error);
         }
         
-        $stmt->bind_param('ssiisssddsi', $productCode, $productName, $categoryId, $uom, $entityType, $description, $varianceType, $high, $low, $this->username, $id);
+        $stmt->bind_param('ssssssssss', $productCode, $productName, $categoryId, $uom, $description, $varianceType, $high, $low, $this->username, $id);
         
         if (!$stmt->execute()) {
             throw new Exception($stmt->error);

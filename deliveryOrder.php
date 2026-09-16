@@ -16,8 +16,8 @@ $vehicles = $db->query("SELECT DISTINCT veh_number FROM Vehicle WHERE status = '
 $vehicles2 = $db->query("SELECT * FROM Vehicle WHERE status = '0' ORDER BY veh_number ASC");
 $customer = $db->query("SELECT * FROM Customer WHERE status = '0' ORDER BY name ASC");
 $customer2 = $db->query("SELECT * FROM Customer WHERE status = '0' ORDER BY name ASC");
-$product = $db->query("SELECT * FROM Product WHERE status = '0' AND entity_type = 'Customer' ORDER BY name ASC");
-$product2 = $db->query("SELECT * FROM Product WHERE status = '0' AND entity_type = 'Customer' ORDER BY name ASC");
+$product = $db->query("SELECT p.*, IFNULL(c.is_sales, 'Y') as is_sales, IFNULL(c.is_purchase, 'Y') as is_purchase, IFNULL(c.is_local, 'Y') as is_local, IFNULL(c.is_port, 'Y') as is_port, IFNULL(c.is_misc, 'Y') as is_misc FROM Product p LEFT JOIN Product_Categories c ON p.category = c.id WHERE p.status = '0' ORDER BY p.name ASC");
+$product2 = $db->query("SELECT p.*, IFNULL(c.is_sales, 'Y') as is_sales, IFNULL(c.is_purchase, 'Y') as is_purchase, IFNULL(c.is_local, 'Y') as is_local, IFNULL(c.is_port, 'Y') as is_port, IFNULL(c.is_misc, 'Y') as is_misc FROM Product p LEFT JOIN Product_Categories c ON p.category = c.id WHERE p.status = '0' ORDER BY p.name ASC");
 
 $plantName = '-';
 $plantCode = '-';
@@ -144,7 +144,7 @@ else{
                                                             <select id="productSearch" class="form-select select2" >
                                                                 <option selected>-</option>
                                                                 <?php while($rowProductF=mysqli_fetch_assoc($product2)){ ?>
-                                                                    <option value="<?=$rowProductF['product_code'] ?>"><?=$rowProductF['name'] ?></option>
+                                                                    <option value="<?=$rowProductF['product_code'] ?>" data-is-sales="<?=$rowProductF['is_sales'] ?>" data-is-purchase="<?=$rowProductF['is_purchase'] ?>" data-is-port="<?=$rowProductF['is_port'] ?>" data-is-misc="<?=$rowProductF['is_misc'] ?>"><?=$rowProductF['name'] ?></option>
                                                                 <?php } ?>
                                                             </select>
                                                         </div>
@@ -296,6 +296,8 @@ else{
     var table = null;
     var permissions = <?= json_encode($_SESSION['permissions']) ?>;
     var isSADMIN = <?= json_encode($_SESSION['roles'] == 'SADMIN') ?>;
+    var allProductOptions = null;
+    var allProductSearchOptions = null;
 
     $(function () {
         const today = new Date();
@@ -498,7 +500,34 @@ else{
                 "&customer="+customerNoI+"&product="+productI+"&plant="+plantI+"&deliveryNo="+deliveryNoI+"&transactionId="+transactionIdI);
             }     
         });
+
+        filterDropdownByTransactionStatus('#productSearch', 'allProductOptions', 'Sales');
     });
+
+    // Filter dropdown options based on transaction status
+    function filterDropdownByTransactionStatus(selector, allOptionsVar, status) {
+        if (!window[allOptionsVar]) {
+            window[allOptionsVar] = $(selector + ' option').clone(true);
+        }
+
+        var dataAttr = 'is-sales';
+        if (status === 'Sales') dataAttr = 'is-sales';
+        else if (status === 'Purchase') dataAttr = 'is-purchase';
+        else if (status === 'Port') dataAttr = 'is-port';
+        else if (status === 'Misc') dataAttr = 'is-misc';
+
+        $(selector).empty();
+        window[allOptionsVar].each(function() {
+            var $option = $(this).clone(true);
+            if ($option.val() === '-' || $option.val() === '') {
+                $(selector).append($option);
+            } else if ($option.data(dataAttr) === 'Y') {
+                $(selector).append($option);
+            }
+        });
+
+        $(selector).val('-').trigger('change');
+    }
 
     function renderTable() {
         var fromDateI = $('#fromDateSearch').val();

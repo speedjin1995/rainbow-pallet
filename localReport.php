@@ -11,7 +11,7 @@ $company = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name AS
 $supplier = $db->query("SELECT * FROM Supplier WHERE status = '0' ORDER BY name ASC");
 $transporter = $db->query("SELECT * FROM Transporter WHERE status = '0'");
 $destination = $db->query("SELECT * FROM Destination WHERE status = '0'");
-$rawMaterial = $db->query("SELECT * FROM Product WHERE status = '0' AND entity_type = 'Supplier' ORDER BY name ASC");
+$rawMaterial = $db->query("SELECT p.*, IFNULL(c.is_sales, 'Y') as is_sales, IFNULL(c.is_purchase, 'Y') as is_purchase, IFNULL(c.is_local, 'Y') as is_local, IFNULL(c.is_port, 'Y') as is_port, IFNULL(c.is_misc, 'Y') as is_misc FROM Product p LEFT JOIN Product_Categories c ON p.category = c.id WHERE p.status = '0' ORDER BY p.name ASC");
 
 $plantName = '-';
 $plantCode = '-';
@@ -172,7 +172,7 @@ else{
                                                             <select id="rawMatSearch" class="form-select select2">
                                                                 <option selected>-</option>
                                                                 <?php while($rowRawMatF=mysqli_fetch_assoc($rawMaterial)){ ?>
-                                                                    <option value="<?=$rowRawMatF['product_code'] ?>"><?=$rowRawMatF['name'] ?></option>
+                                                                    <option value="<?=$rowRawMatF['product_code'] ?>" data-is-sales="<?=$rowRawMatF['is_sales'] ?>" data-is-purchase="<?=$rowRawMatF['is_purchase'] ?>" data-is-port="<?=$rowRawMatF['is_port'] ?>" data-is-misc="<?=$rowRawMatF['is_misc'] ?>"><?=$rowRawMatF['name'] ?></option>
                                                                 <?php } ?>
                                                             </select>
                                                         </div>
@@ -497,6 +497,7 @@ else{
     var table = null;
     var permissions = <?= json_encode($_SESSION['permissions'] ?? []) ?>;
     var isSADMIN = <?= json_encode($_SESSION['roles'] == 'SADMIN') ?>;
+    var allRawMatSearchOptions = null;
 
     $(function () {
         const today = new Date();
@@ -781,7 +782,34 @@ else{
                 });
             }
         });
+
+        filterDropdownByTransactionStatus('#rawMatSearch', 'allRawMatSearchOptions', 'Local');
     });
+
+    // Filter dropdown options based on transaction status
+    function filterDropdownByTransactionStatus(selector, allOptionsVar, status) {
+        if (!window[allOptionsVar]) {
+            window[allOptionsVar] = $(selector + ' option').clone(true);
+        }
+
+        var dataAttr = 'is-sales';
+        if (status === 'Sales') dataAttr = 'is-sales';
+        else if (status === 'Purchase') dataAttr = 'is-purchase';
+        else if (status === 'Port') dataAttr = 'is-port';
+        else if (status === 'Misc') dataAttr = 'is-misc';
+
+        $(selector).empty();
+        window[allOptionsVar].each(function() {
+            var $option = $(this).clone(true);
+            if ($option.val() === '-' || $option.val() === '') {
+                $(selector).append($option);
+            } else if ($option.data(dataAttr) === 'Y') {
+                $(selector).append($option);
+            }
+        });
+
+        $(selector).val('-').trigger('change');
+    }
 
     function renderTable() {
         var fromDateI = $('#fromDateSearch').val();

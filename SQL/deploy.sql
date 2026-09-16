@@ -3177,3 +3177,75 @@ SET @sqlstmt := IF(@exist > 0, 'ALTER TABLE Sawn_Timber_Header DROP INDEX uniq_s
 PREPARE stmt FROM @sqlstmt;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
+
+-- 16/09/2026 (Part 02) -- 
+ALTER TABLE `Product_Categories` ADD `is_sales` VARCHAR(1) NOT NULL DEFAULT 'Y' AFTER `post_to_sql`, ADD `is_purchase` VARCHAR(1) NOT NULL DEFAULT 'Y' AFTER `is_sales`, ADD `is_local` VARCHAR(1) NOT NULL DEFAULT 'Y' AFTER `is_purchase`, ADD `is_port` VARCHAR(1) NOT NULL DEFAULT 'Y' AFTER `is_local`, ADD `is_misc` VARCHAR(1) NOT NULL DEFAULT 'Y' AFTER `is_port`;
+
+ALTER TABLE `Product_Categories_Log` ADD `is_sales` VARCHAR(1) NOT NULL DEFAULT 'Y' AFTER `post_to_sql`, ADD `is_purchase` VARCHAR(1) NOT NULL DEFAULT 'Y' AFTER `is_sales`, ADD `is_local` VARCHAR(1) NOT NULL DEFAULT 'Y' AFTER `is_purchase`, ADD `is_port` VARCHAR(1) NOT NULL DEFAULT 'Y' AFTER `is_local`, ADD `is_misc` VARCHAR(1) NOT NULL DEFAULT 'Y' AFTER `is_port`;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_PROD_CAT` AFTER INSERT ON `Product_Categories` FOR EACH ROW INSERT INTO Product_Categories_Log (
+    category_id, category_name, post_to_sql, is_sales, is_purchase, is_local, is_port, is_misc, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.category_name, NEW.post_to_sql, NEW.is_sales, NEW.is_purchase, NEW.is_local, NEW.is_port, NEW.is_misc, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_PROD_CAT` BEFORE UPDATE ON `Product_Categories` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Check if status = 1, set action_id to 3, otherwise set to 2
+    IF NEW.status = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Product_Categories_Log table
+    INSERT INTO Product_Categories_Log (
+        category_id, category_name, post_to_sql, is_sales, is_purchase, is_local, is_port, is_misc, action_id, action_by, event_date
+    ) 
+    VALUES (
+        NEW.id, NEW.category_name, NEW.post_to_sql, NEW.is_sales, NEW.is_purchase, NEW.is_local, NEW.is_port, NEW.is_misc, action_value, NEW.modified_by, NEW.modified_date
+    );
+END
+$$
+DELIMITER ;
+
+ALTER TABLE `Product` DROP `entity_type`;
+ALTER TABLE `Product_log` DROP `entity_type`;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_PRODUCT` AFTER INSERT ON `Product` FOR EACH ROW 
+INSERT INTO Product_Log (
+    product_id, product_code, name, description, variance, high, low, category, uom, is_manual, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.product_code, NEW.name, NEW.description, NEW.variance, NEW.high, NEW.low, NEW.category, NEW.uom, NEW.is_manual, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_PRODUCT` BEFORE UPDATE ON `Product` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Check if status = 1, set action_id to 3, otherwise set to 2
+    IF NEW.status = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Product_Log table
+    INSERT INTO Product_Log (
+    product_id, product_code, name, description, variance, high, low, category, uom, is_manual, action_id, action_by, event_date
+    ) 
+    VALUES (
+        NEW.id, NEW.product_code, NEW.name, NEW.description, NEW.variance, NEW.high, NEW.low, NEW.category, NEW.uom, NEW.is_manual, action_value, NEW.modified_by, NEW.modified_date
+    );
+END
+$$
+DELIMITER ;
+

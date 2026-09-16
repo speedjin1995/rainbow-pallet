@@ -38,7 +38,10 @@ class ProductCategoryController extends BaseController {
         $totalFiltered = $filteredResult->fetch_assoc()['total'];
         
         // Data
-        $dataQuery = "SELECT id, category_name, CASE WHEN post_to_sql = 'Y' THEN 'Yes' ELSE 'No' END AS post_to_sql, status FROM {$this->table} WHERE status = 0 {$searchQuery} ORDER BY {$columnName} {$columnSortOrder} LIMIT {$start}, {$length}";
+        $dataQuery = "SELECT id, category_name, 
+            CASE WHEN post_to_sql = 'Y' THEN 'Yes' ELSE 'No' END AS post_to_sql, 
+            is_sales, is_purchase, is_local, is_port, is_misc, status 
+            FROM {$this->table} WHERE status = 0 {$searchQuery} ORDER BY {$columnName} {$columnSortOrder} LIMIT {$start}, {$length}";
         $dataResult = $this->db->query($dataQuery);
         
         $data = [];
@@ -61,6 +64,13 @@ class ProductCategoryController extends BaseController {
     public function create() {
         $categoryName = $this->getRequiredPost('categoryName');
         $postToSql = $this->getRequiredPost('postToSql');
+        $transactionStatus = isset($_POST['transactionStatus']) ? $_POST['transactionStatus'] : [];
+        
+        $isSales = in_array('Sales', $transactionStatus) ? 'Y' : 'N';
+        $isPurchase = in_array('Purchase', $transactionStatus) ? 'Y' : 'N';
+        $isLocal = in_array('Local', $transactionStatus) ? 'Y' : 'N';
+        $isPort = in_array('Port', $transactionStatus) ? 'Y' : 'N';
+        $isMisc = in_array('Misc', $transactionStatus) ? 'Y' : 'N';
         
         // Check duplicate
         if ($this->isDuplicate('category_name', $categoryName)) {
@@ -70,12 +80,12 @@ class ProductCategoryController extends BaseController {
         try {
             $this->db->begin_transaction();
             
-            $stmt = $this->db->prepare("INSERT INTO {$this->table} (category_name, post_to_sql, created_by, modified_by) VALUES (?, ?, ?, ?)");
+            $stmt = $this->db->prepare("INSERT INTO {$this->table} (category_name, post_to_sql, is_sales, is_purchase, is_local, is_port, is_misc, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
             if (!$stmt) {
                 throw new Exception($this->db->error);
             }
             
-            $stmt->bind_param('ssss', $categoryName, $postToSql, $this->username, $this->username);
+            $stmt->bind_param('ssssssss', $categoryName, $postToSql, $isSales, $isPurchase, $isLocal, $isPort, $isMisc, $this->username);
             
             if (!$stmt->execute()) {
                 throw new Exception($stmt->error);
@@ -100,6 +110,13 @@ class ProductCategoryController extends BaseController {
         $id = $this->getRequiredPost('id');
         $categoryName = $this->getRequiredPost('categoryName');
         $postToSql = $this->getRequiredPost('postToSql');
+        $transactionStatus = isset($_POST['transactionStatus']) ? $_POST['transactionStatus'] : [];
+        
+        $isSales = in_array('Sales', $transactionStatus) ? 'Y' : 'N';
+        $isPurchase = in_array('Purchase', $transactionStatus) ? 'Y' : 'N';
+        $isLocal = in_array('Local', $transactionStatus) ? 'Y' : 'N';
+        $isPort = in_array('Port', $transactionStatus) ? 'Y' : 'N';
+        $isMisc = in_array('Misc', $transactionStatus) ? 'Y' : 'N';
         
         // Check duplicate (exclude current record)
         if ($this->isDuplicate('category_name', $categoryName, $id)) {
@@ -109,12 +126,12 @@ class ProductCategoryController extends BaseController {
         try {
             $this->db->begin_transaction();
             
-            $stmt = $this->db->prepare("UPDATE {$this->table} SET category_name=?, post_to_sql=?, modified_by=? WHERE id=?");
+            $stmt = $this->db->prepare("UPDATE {$this->table} SET category_name=?, post_to_sql=?, is_sales=?, is_purchase=?, is_local=?, is_port=?, is_misc=?, modified_by=? WHERE id=?");
             if (!$stmt) {
                 throw new Exception($this->db->error);
             }
             
-            $stmt->bind_param('sssi', $categoryName, $postToSql, $this->username, $id);
+            $stmt->bind_param('ssssssssi', $categoryName, $postToSql, $isSales, $isPurchase, $isLocal, $isPort, $isMisc, $this->username, $id);
             
             if (!$stmt->execute()) {
                 throw new Exception($stmt->error);
