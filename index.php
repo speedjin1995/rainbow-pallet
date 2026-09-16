@@ -55,16 +55,16 @@ $vehicles = $db->query("SELECT * FROM Vehicle WHERE status = '0' ORDER BY veh_nu
 $vehicles2 = $db->query("SELECT * FROM Vehicle WHERE status = '0' ORDER BY veh_number ASC");
 $customer = $db->query("SELECT * FROM Customer WHERE status = '0' ORDER BY name ASC");
 $customer2 = $db->query("SELECT * FROM Customer WHERE status = '0' ORDER BY name ASC");
-$product = $db->query("SELECT * FROM Product WHERE status = '0' AND entity_type = 'Customer' ORDER BY name ASC");
-$product2 = $db->query("SELECT * FROM Product WHERE status = '0' AND entity_type = 'Customer' ORDER BY name ASC");
+$product = $db->query("SELECT p.*, IFNULL(c.is_sales, 'Y') as is_sales, IFNULL(c.is_purchase, 'Y') as is_purchase, IFNULL(c.is_local, 'Y') as is_local, IFNULL(c.is_port, 'Y') as is_port, IFNULL(c.is_misc, 'Y') as is_misc FROM Product p LEFT JOIN Product_Categories c ON p.category = c.id WHERE p.status = '0' ORDER BY p.name ASC");
+$product2 = $db->query("SELECT p.*, IFNULL(c.is_sales, 'Y') as is_sales, IFNULL(c.is_purchase, 'Y') as is_purchase, IFNULL(c.is_local, 'Y') as is_local, IFNULL(c.is_port, 'Y') as is_port, IFNULL(c.is_misc, 'Y') as is_misc FROM Product p LEFT JOIN Product_Categories c ON p.category = c.id WHERE p.status = '0' ORDER BY p.name ASC");
+$rawMaterial = $db->query("SELECT p.*, IFNULL(c.is_sales, 'Y') as is_sales, IFNULL(c.is_purchase, 'Y') as is_purchase, IFNULL(c.is_local, 'Y') as is_local, IFNULL(c.is_port, 'Y') as is_port, IFNULL(c.is_misc, 'Y') as is_misc FROM Product p LEFT JOIN Product_Categories c ON p.category = c.id WHERE p.status = '0' ORDER BY p.name ASC");
+$rawMaterial2 = $db->query("SELECT p.*, IFNULL(c.is_sales, 'Y') as is_sales, IFNULL(c.is_purchase, 'Y') as is_purchase, IFNULL(c.is_local, 'Y') as is_local, IFNULL(c.is_port, 'Y') as is_port, IFNULL(c.is_misc, 'Y') as is_misc FROM Product p LEFT JOIN Product_Categories c ON p.category = c.id WHERE p.status = '0' ORDER BY p.name ASC");
 $transporter = $db->query("SELECT * FROM Transporter WHERE status = '0' ORDER BY name ASC");
 $destination = $db->query("SELECT * FROM Destination WHERE status = '0' ORDER BY name ASC");
 $supplier = $db->query("SELECT * FROM Supplier WHERE status = '0' ORDER BY name ASC");
 $supplier2 = $db->query("SELECT * FROM Supplier WHERE status = '0' ORDER BY name ASC");
 $purchaseOrder = $db->query("SELECT * FROM Purchase_Order WHERE status = 'Open' AND deleted = '0' ORDER BY po_no ASC");
 $salesOrder = $db->query("SELECT * FROM Sales_Order WHERE status = 'Open' AND deleted = '0' ORDER BY order_no ASC");
-$rawMaterial = $db->query("SELECT * FROM Product WHERE status = '0' AND entity_type = 'Supplier' ORDER BY name ASC");
-$rawMaterial2 = $db->query("SELECT * FROM Product WHERE status = '0' AND entity_type = 'Supplier' ORDER BY name ASC");
 $container = $db->query("SELECT * FROM Weight_Container WHERE status = '0' AND is_complete = 'Y' AND is_cancel = 'N'");
 
 $plantName = '-';
@@ -283,7 +283,7 @@ else{
                                                             <select id="productSearch" class="form-select select2" >
                                                                 <option selected>-</option>
                                                                 <?php while($rowProductF=mysqli_fetch_assoc($product2)){ ?>
-                                                                    <option value="<?=$rowProductF['product_code'] ?>"><?=$rowProductF['name'] ?></option>
+                                                                    <option value="<?=$rowProductF['product_code'] ?>" data-is-sales="<?=$rowProductF['is_sales'] ?>" data-is-purchase="<?=$rowProductF['is_purchase'] ?>" data-is-port="<?=$rowProductF['is_port'] ?>" data-is-misc="<?=$rowProductF['is_misc'] ?>"><?=$rowProductF['name'] ?></option>
                                                                 <?php } ?>
                                                             </select>
                                                         </div>
@@ -294,7 +294,7 @@ else{
                                                             <select id="rawMatSearch" class="form-select select2" >
                                                                 <option selected>-</option>
                                                                 <?php while($rowRawMatF=mysqli_fetch_assoc($rawMaterial2)){ ?>
-                                                                    <option value="<?=$rowRawMatF['product_code'] ?>"><?=$rowRawMatF['name'] ?></option>
+                                                                    <option value="<?=$rowRawMatF['product_code'] ?>" data-is-sales="<?=$rowRawMatF['is_sales'] ?>" data-is-purchase="<?=$rowRawMatF['is_purchase'] ?>" data-is-port="<?=$rowRawMatF['is_port'] ?>" data-is-misc="<?=$rowRawMatF['is_misc'] ?>"><?=$rowRawMatF['name'] ?></option>
                                                                 <?php } ?>
                                                             </select>
                                                         </div>
@@ -624,7 +624,11 @@ else{
                                                                                                             data-high="<?=$rowProduct['high'] ?>" 
                                                                                                             data-low="<?=$rowProduct['low'] ?>" 
                                                                                                             data-variance="<?=$rowProduct['variance'] ?>" 
-                                                                                                            data-description="<?=$rowProduct['description'] ?>">
+                                                                                                            data-description="<?=$rowProduct['description'] ?>"
+                                                                                                            data-is-sales="<?=$rowProduct['is_sales'] ?>"
+                                                                                                            data-is-purchase="<?=$rowProduct['is_purchase'] ?>"
+                                                                                                            data-is-port="<?=$rowProduct['is_port'] ?>"
+                                                                                                            data-is-misc="<?=$rowProduct['is_misc'] ?>">
                                                                                                             <?=$rowProduct['product_code'] .' - '. $rowProduct['name']?>
                                                                                                         </option>
                                                                                                     <?php } ?>
@@ -645,7 +649,7 @@ else{
                                                                                                 <select class="form-select select2" id="rawMaterialName" name="rawMaterialName" required>
                                                                                                     <option selected="-">-</option>
                                                                                                     <?php while($rowRowMat=mysqli_fetch_assoc($rawMaterial)){ ?>
-                                                                                                        <option value="<?=$rowRowMat['name'] ?>" data-code="<?=$rowRowMat['product_code'] ?>"><?=$rowRowMat['product_code'] .' - '. $rowRowMat['name'] ?></option>
+                                                                                                        <option value="<?=$rowRowMat['name'] ?>" data-code="<?=$rowRowMat['product_code'] ?>" data-is-sales="<?=$rowRowMat['is_sales'] ?>" data-is-purchase="<?=$rowRowMat['is_purchase'] ?>" data-is-port="<?=$rowRowMat['is_port'] ?>" data-is-misc="<?=$rowRowMat['is_misc'] ?>"><?=$rowRowMat['product_code'] .' - '. $rowRowMat['name'] ?></option>
                                                                                                     <?php } ?>
                                                                                                 </select>
                                                                                             </div>
@@ -1624,6 +1628,10 @@ else{
     <script type="text/javascript">
     var table = null;
     var emptyContainerTable = null;
+    var allProductOptions = null;
+    var allRawMatOptions = null;
+    var allProductSearchOptions = null;
+    var allRawMatSearchOptions = null;
     let clickTimer = null;
 
     var fromDateSearchPicker;
@@ -1830,6 +1838,8 @@ else{
 
         $('#statusSearch').on('change', function(){
             var status = $(this).val();
+            filterDropdownByTransactionStatus('#productSearch', 'allProductSearchOptions', status);
+            filterDropdownByTransactionStatus('#rawMatSearch', 'allRawMatSearchOptions', status);
 
             if (status == 'Purchase' || status == 'Local'){
                 // Hide & reset customer then show supplier
@@ -3122,6 +3132,10 @@ else{
             var customerType = $('#addModal').find('#customerType').val();
             var weightType = $('#addModal').find('#weightType').val();
 
+            // Filter products based on transaction status
+            filterDropdownByTransactionStatus('#productName', 'allProductOptions', $(this).val());
+            filterDropdownByTransactionStatus('#rawMaterialName', 'allRawMatOptions', $(this).val());
+
             if(weightType == 'Container'){
                 $.post('php/modules/weighing/index.php', {action: 'getContainers', userID: $(this).val()}, function (data){
                     var obj = JSON.parse(data);
@@ -3608,6 +3622,31 @@ else{
                 }
             });
         }
+    }
+
+    // Filter dropdown options based on transaction status
+    function filterDropdownByTransactionStatus(selector, allOptionsVar, status) {
+        if (!window[allOptionsVar]) {
+            window[allOptionsVar] = $(selector + ' option').clone(true);
+        }
+
+        var dataAttr = 'is-sales';
+        if (status === 'Sales') dataAttr = 'is-sales';
+        else if (status === 'Purchase') dataAttr = 'is-purchase';
+        else if (status === 'Port') dataAttr = 'is-port';
+        else if (status === 'Misc') dataAttr = 'is-misc';
+
+        $(selector).empty();
+        window[allOptionsVar].each(function() {
+            var $option = $(this).clone(true);
+            if ($option.val() === '-' || $option.val() === '') {
+                $(selector).append($option);
+            } else if ($option.data(dataAttr) === 'Y') {
+                $(selector).append($option);
+            }
+        });
+
+        $(selector).val('-').trigger('change');
     }
 
     function renderTable() {
