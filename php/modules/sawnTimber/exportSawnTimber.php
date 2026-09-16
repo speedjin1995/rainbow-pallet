@@ -11,7 +11,7 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 $template = isset($_GET['template']) && $_GET['template'] == '1';
 $filename = $template ? 'Sawn_Timber_Template.xlsx' : 'Sawn_Timber_Export.xlsx';
 
-$headers = array('Company', 'Plant', 'TransactionID', 'TransactionDate', 'Supplier', 'Lot', 'Bundle', 'Species', 'Thick', 'Width', 'Length', 'Pieces', 'Tons', 'Remarks');
+$headers = array('Record Date', 'Transaction ID', 'Transaction Date', 'Company', 'Plant', 'Customer/Supplier', 'DO No', 'Vehicle No', 'Destination', 'Species', 'Lot', 'Bundle', 'Thick', 'Width', 'Length', 'Pieces', 'Tons', 'KD Charges', 'Bundling Charges', 'Grader Fees', 'Remarks');
 
 function getOptionList($db, $sql, $columns) {
     $items = array();
@@ -52,7 +52,7 @@ foreach ($headers as $header) {
     $column++;
 }
 
-$sheet->getStyle('A1:N1')->getFont()->setBold(true);
+$sheet->getStyle('A1:U1')->getFont()->setBold(true);
 
 if (!$template) {
     $where = " WHERE h.status='0'";
@@ -62,7 +62,7 @@ if (!$template) {
     if (!empty($_GET['fromDate'])) {
         $dateTime = DateTime::createFromFormat('d-m-Y', $_GET['fromDate']);
         if ($dateTime) {
-            $where .= " AND h.transaction_date >= ?";
+            $where .= " AND h.record_date >= ?";
             $params[] = $dateTime->format('Y-m-d 00:00:00');
             $types .= 's';
         }
@@ -71,53 +71,45 @@ if (!$template) {
     if (!empty($_GET['toDate'])) {
         $dateTime = DateTime::createFromFormat('d-m-Y', $_GET['toDate']);
         if ($dateTime) {
-            $where .= " AND h.transaction_date <= ?";
+            $where .= " AND h.record_date <= ?";
             $params[] = $dateTime->format('Y-m-d 23:59:59');
             $types .= 's';
         }
     }
 
-    if ($_GET['company'] != null && $_GET['company'] != '' && $_GET['company'] != '-') {
+    if (!empty($_GET['company']) && $_GET['company'] != '-') {
         $where .= " AND h.company_id = ?";
         $params[] = $_GET['company'];
         $types .= 'i';
     }
 
-    if ($_GET['plant'] != null && $_GET['plant'] != '' && $_GET['plant'] != '-') {
-        $where .= " AND h.plant_id = ?";
+    if (!empty($_GET['plant']) && $_GET['plant'] != '-') {
+        $where .= " AND p.plant_code = ?";
         $params[] = $_GET['plant'];
-        $types .= 'i';
+        $types .= 's';
     }
 
-    if ($_GET['transactionId'] != null && $_GET['transactionId'] != '') {
-        $where .= " AND h.transaction_id LIKE ?";
+    if (!empty($_GET['transactionId'])) {
+        $where .= " AND w.transaction_id LIKE ?";
         $params[] = '%'.$_GET['transactionId'].'%';
         $types .= 's';
     }
 
-    if ($_GET['supplier'] != null && $_GET['supplier'] != '' && $_GET['supplier'] != '-') {
-        $where .= " AND h.supplier = ?";
-        $params[] = $_GET['supplier'];
-        $types .= 's';
-    }
-
-    if ($_GET['lot'] != null && $_GET['lot'] != '') {
-        $where .= " AND h.lot LIKE ?";
-        $params[] = '%'.$_GET['lot'].'%';
-        $types .= 's';
-    }
-
-    if ($_GET['species'] != null && $_GET['species'] != '' && $_GET['species'] != '-') {
-        $where .= " AND d.species = ?";
-        $params[] = $_GET['species'];
-        $types .= 's';
-    }
-
-    $sql = "SELECT h.company_id, h.plant_id, h.transaction_id, h.transaction_date, h.supplier, h.lot, h.bundle, d.species, d.thick, d.width, d.length, d.pieces, d.tons, h.remarks
+    $sql = "SELECT h.record_date, w.transaction_id, w.transaction_date, c.name AS company_name, 
+            CONCAT(p.plant_code, ' - ', p.name) AS plant_name, 
+            COALESCE(cust.name, sup.name) AS customer_supplier,
+            w.delivery_no, w.lorry_plate_no1, w.destination,
+            d.species, d.lot, d.bundle, d.thick, d.width, d.length, d.pieces, d.tons,
+            d.kd_charges, d.bundling_charges, d.grader_fees, h.remarks
             FROM Sawn_Timber_Header h
-            INNER JOIN Sawn_Timber_Detail d ON d.header_id = h.id
+            LEFT JOIN Sawn_Timber_Detail d ON d.header_id = h.id
+            LEFT JOIN Weight w ON h.weight_id = w.id
+            LEFT JOIN Company c ON h.company_id = c.id
+            LEFT JOIN Plant p ON h.plant_id = p.id
+            LEFT JOIN Customer cust ON w.customer_code = cust.customer_code
+            LEFT JOIN Supplier sup ON w.supplier_code = sup.supplier_code
             $where
-            ORDER BY h.transaction_date DESC, h.transaction_id DESC, d.id ASC";
+            ORDER BY h.record_date DESC, w.transaction_id DESC, d.id ASC";
 
     $stmt = $db->prepare($sql);
     if (!$stmt) {
@@ -134,20 +126,27 @@ if (!$template) {
 
     $rowNumber = 2;
     while ($row = $result->fetch_assoc()) {
-        $sheet->setCellValue([1, $rowNumber], searchCompanyById($row['company_id'], $db)['name'] ?? '');
-        $sheet->setCellValue([2, $rowNumber], searchPlantNameById($row['plant_id'], $db) ?? '');
-        $sheet->setCellValue([3, $rowNumber], $row['transaction_id']);
-        $sheet->setCellValue([4, $rowNumber], $row['transaction_date']);
-        $sheet->setCellValue([5, $rowNumber], searchSupplierNameById($row['supplier'], $db) ?? '');
-        $sheet->setCellValue([6, $rowNumber], $row['lot']);
-        $sheet->setCellValue([7, $rowNumber], $row['bundle']);
-        $sheet->setCellValue([8, $rowNumber], searchSawnTimberSpeciesNameById($row['species'], $db) ?? '');
-        $sheet->setCellValue([9, $rowNumber], $row['thick']);
-        $sheet->setCellValue([10, $rowNumber], $row['width']);
-        $sheet->setCellValue([11, $rowNumber], $row['length']);
-        $sheet->setCellValue([12, $rowNumber], $row['pieces']);
-        $sheet->setCellValue([13, $rowNumber], $row['tons']);
-        $sheet->setCellValue([14, $rowNumber], $row['remarks']);
+        $sheet->setCellValue([1, $rowNumber], $row['record_date']);
+        $sheet->setCellValue([2, $rowNumber], $row['transaction_id']);
+        $sheet->setCellValue([3, $rowNumber], $row['transaction_date']);
+        $sheet->setCellValue([4, $rowNumber], $row['company_name']);
+        $sheet->setCellValue([5, $rowNumber], $row['plant_name']);
+        $sheet->setCellValue([6, $rowNumber], $row['customer_supplier']);
+        $sheet->setCellValue([7, $rowNumber], $row['delivery_no']);
+        $sheet->setCellValue([8, $rowNumber], $row['lorry_plate_no1']);
+        $sheet->setCellValue([9, $rowNumber], $row['destination']);
+        $sheet->setCellValue([10, $rowNumber], $row['species']);
+        $sheet->setCellValue([11, $rowNumber], $row['lot']);
+        $sheet->setCellValue([12, $rowNumber], $row['bundle']);
+        $sheet->setCellValue([13, $rowNumber], $row['thick']);
+        $sheet->setCellValue([14, $rowNumber], $row['width']);
+        $sheet->setCellValue([15, $rowNumber], $row['length']);
+        $sheet->setCellValue([16, $rowNumber], $row['pieces']);
+        $sheet->setCellValue([17, $rowNumber], $row['tons']);
+        $sheet->setCellValue([18, $rowNumber], $row['kd_charges']);
+        $sheet->setCellValue([19, $rowNumber], $row['bundling_charges']);
+        $sheet->setCellValue([20, $rowNumber], $row['grader_fees']);
+        $sheet->setCellValue([21, $rowNumber], $row['remarks']);
         $rowNumber++;
     }
 
