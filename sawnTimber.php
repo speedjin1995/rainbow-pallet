@@ -388,7 +388,7 @@ else{
                                                                 <?php endif; ?>
 
                                                                 <!-- <?php if(hasModulePermission('Sawn Timber', 'Sawn Timber', ['download_template'])): ?>
-                                                                <a href="php/modules/sawnTimber/exportSawnTimber.php?template=1" download>
+                                                                <a href="php/modules/sawnTimber/index.php?action=export&template=1" download>
                                                                     <button type="button" class="btn btn-info waves-effect waves-light">
                                                                         <i class="mdi mdi-file-import-outline align-middle me-1"></i>
                                                                         <?=$languageArray['download_template_code'][$language]?>
@@ -633,7 +633,7 @@ else{
                 return;
             }
             if (confirm('Are you sure you want to deactivate ' + selectedIds.length + ' record(s)?')) {
-                $.post('php/modules/sawnTimber/deleteSawnTimber.php', {
+                $.post('php/modules/sawnTimber/index.php?action=delete', {
                     userID: selectedIds,
                     type: 'MULTI'
                 }, function(data) {
@@ -780,7 +780,7 @@ else{
                 row.child.hide();
                 tr.removeClass('shown');
             } else {
-                $.post('php/modules/sawnTimber/getSawnTimberDetails.php', { id: row.data().id }, function (data) {
+                $.post('php/modules/sawnTimber/index.php?action=getDetails', { id: row.data().id }, function (data) {
                     var obj = JSON.parse(data);
                     if (obj.status === 'success') {
                         row.child(format(obj.message)).show();
@@ -799,12 +799,12 @@ else{
                 plant: $('#plantSearch').val(),
                 transactionId: $('#transactionIdSearch').val()
             });
-            window.location = 'php/modules/sawnTimber/exportSawnTimber.php?' + params;
+            window.location = 'php/modules/sawnTimber/index.php?action=export&' + params;
         });
 
         $('#saveSawnTimber').on('click', function() {
             $('#detailTable tbody tr').each(function() { calculateTons($(this)); });
-            $.post('php/modules/sawnTimber/sawnTimber.php', $('#sawnTimberForm').serialize(), function(data) {
+            $.post('php/modules/sawnTimber/index.php?action=save', $('#sawnTimberForm').serialize(), function(data) {
                 var obj = JSON.parse(data);
                 if (obj.status === 'success') {
                     $('#addModal').modal('hide');
@@ -925,7 +925,7 @@ else{
             'searching': false,
             'serverMethod': 'post',
             'ajax': {
-                'url': 'php/modules/sawnTimber/loadSawnTimber.php',
+                'url': 'php/modules/sawnTimber/index.php?action=list',
                 'data': {
                     fromDate: fromDateI,
                     toDate: toDateI,
@@ -1073,7 +1073,7 @@ else{
     }
 
     function loadSawnTimberWeighing() {
-        $.get('php/modules/sawnTimber/getSawnTimberWeighing.php', function(data) {
+        $.get('php/modules/sawnTimber/index.php?action=getWeighing', function(data) {
             var obj = JSON.parse(data);
             if (obj.status === 'success') {
                 var options = '<option value="">-</option>';
@@ -1100,7 +1100,7 @@ else{
 
     function editRecord(id) {
         $('#spinnerLoading').show();
-        $.post('php/modules/sawnTimber/getSawnTimber.php', {id: id}, function(data) {
+        $.post('php/modules/sawnTimber/index.php?action=get', {id: id}, function(data) {
             $('#spinnerLoading').hide();
             var obj = JSON.parse(data);
             if (obj.status === 'success') {
@@ -1217,7 +1217,7 @@ else{
             return;
         }
 
-        $.post('php/modules/sawnTimber/deleteSawnTimber.php', {userID: id}, function(data) {
+        $.post('php/modules/sawnTimber/index.php?action=delete', {userID: id}, function(data) {
             var obj = JSON.parse(data);
             if (obj.status === 'success') {
                 table.ajax.reload();

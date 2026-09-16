@@ -3157,3 +3157,23 @@ INSERT INTO Sawn_Timber_Detail_Log (
 )
 $$
 DELIMITER ;
+
+-- Drop unique key on Sawn_Timber_Species if exists
+SET @exist := (SELECT COUNT(*) FROM information_schema.statistics 
+               WHERE table_schema = DATABASE() 
+               AND table_name = 'Sawn_Timber_Species' 
+               AND index_name = 'uniq_sawn_timber_species_name');
+SET @sqlstmt := IF(@exist > 0, 'ALTER TABLE Sawn_Timber_Species DROP INDEX uniq_sawn_timber_species_name', 'SELECT "Index does not exist"');
+PREPARE stmt FROM @sqlstmt;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- Drop unique key on Sawn_Timber_Header if exists
+SET @exist := (SELECT COUNT(*) FROM information_schema.statistics 
+               WHERE table_schema = DATABASE() 
+               AND table_name = 'Sawn_Timber_Header' 
+               AND index_name = 'uniq_sawn_timber_transaction_id');
+SET @sqlstmt := IF(@exist > 0, 'ALTER TABLE Sawn_Timber_Header DROP INDEX uniq_sawn_timber_transaction_id', 'SELECT "Index does not exist"');
+PREPARE stmt FROM @sqlstmt;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
