@@ -3215,7 +3215,7 @@ $$
 DELIMITER ;
 
 ALTER TABLE `Product` DROP `entity_type`;
-ALTER TABLE `Product_log` DROP `entity_type`;
+ALTER TABLE `Product_Log` DROP `entity_type`;
 
 DELIMITER $$
 CREATE OR REPLACE TRIGGER `TRG_INS_PRODUCT` AFTER INSERT ON `Product` FOR EACH ROW 
