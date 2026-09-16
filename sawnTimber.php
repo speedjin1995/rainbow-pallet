@@ -768,26 +768,23 @@ else{
 
         // Add event listener for opening and closing details on row click
         $('#sawnTimberTable tbody').on('click', 'tr', function (e) {
-            var tr = $(this); // The row that was clicked
+            var tr = $(this);
             var row = table.row(tr);
-            var fromDateI = $('#fromDateSearch').val();
-            var toDateI = $('#toDateSearch').val();
 
             // Exclude specific td elements by checking the event target
-            if ($(e.target).closest('td').hasClass('select-checkbox') || $(e.target).closest('td').hasClass('action-button')) {
+            if ($(e.target).closest('td').hasClass('select-checkbox') || $(e.target).closest('td').hasClass('sawn-action-cell')) {
                 return;
             }
 
             if (row.child.isShown()) {
-                // This row is already open - close it
                 row.child.hide();
                 tr.removeClass('shown');
             } else {
-                $.post('php/getWeight.php', { userID: row.data().id, fromDate: fromDateI, toDate: toDateI, format: 'EXPANDABLE', acctType: 'GR' }, function (data) {
+                $.post('php/modules/sawnTimber/getSawnTimberDetails.php', { id: row.data().id }, function (data) {
                     var obj = JSON.parse(data);
                     if (obj.status === 'success') {
                         row.child(format(obj.message)).show();
-                        tr.addClass("shown");
+                        tr.addClass('shown');
                     }
                 });
             }
@@ -963,80 +960,115 @@ else{
 
     function format(row) {
         var returnString = `
-        <!-- Weighing Section -->
-        <div class="row">
-            <p><span><strong style="font-size:120%; text-decoration: underline;"><?=$languageArray['goods_received_information_code'][$language]?></strong></span><br>
-            <div class="col-4">
-                <p><strong class="text-uppercase"><?=$languageArray['total_received_amount_code'][$language]?>:</strong> ${parseFloat(row.total_final_weight)/1000} MT</p>
-            </div>`;
-
-            if (isSADMIN) {
-                returnString += `
-                    <div class="col-4">
-                        <p><strong class="text-uppercase"><?=$languageArray['unit_price_code'][$language]?>:</strong> RM ${row.weights[0].unit_price}</p>
-                    </div>
-                    <div class="col-4">
-                        <p><strong class="text-uppercase"><?=$languageArray['total_price_code'][$language]?>:</strong> RM ${parseFloat(parseFloat(row.weights[0].unit_price) * (parseFloat(row.total_final_weight)/1000)).toFixed(2)}</p>
-                    </div>
-                `;
-            }
-
-            returnString += `
-        </div>
-        <hr>
-        <div class="row">
-            <table class="table table-bordered nowrap table-striped align-middle" style="width:100%">
-                <thead>
+        <div class="p-3">
+            <!-- Header Info Row 1 -->
+            <div class="row mb-2">
+                <div class="col-md-4">
+                    <small class="text-muted"><?=$languageArray['record_date_code'][$language]?></small>
+                    <div class="fw-bold">${row.record_date || '-'}</div>
+                </div>
+                <div class="col-md-4">
+                    <small class="text-muted"><?=$languageArray['transaction_id_code'][$language]?></small>
+                    <div class="fw-bold">${row.transaction_id || '-'}</div>
+                </div>
+                <div class="col-md-4">
+                    <small class="text-muted"><?=$languageArray['do_no_code'][$language]?></small>
+                    <div class="fw-bold">${row.delivery_no || '-'}</div>
+                </div>
+            </div>
+            <!-- Header Info Row 2 -->
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <small class="text-muted"><?=$languageArray['vehicle_no_code'][$language]?></small>
+                    <div class="fw-bold">${row.lorry_plate_no1 || '-'}</div>
+                </div>
+                <div class="col-md-4">
+                    <small class="text-muted"><?=$languageArray['destination_code'][$language]?></small>
+                    <div class="fw-bold">${row.destination || '-'}</div>
+                </div>
+                <div class="col-md-4">
+                    <small class="text-muted"><?=$languageArray['remarks_code'][$language]?></small>
+                    <div class="fw-bold">${row.remarks || '-'}</div>
+                </div>
+            </div>
+            
+            <!-- Details Table -->
+            <div class="row mb-2">
+                <div class="col-12">
+                    <strong class="text-primary"><i class="ri-stack-line me-1"></i><?=$languageArray['details_code'][$language]?></strong>
+                </div>
+            </div>
+            <table class="table table-sm table-bordered table-striped mb-0" style="font-size:12px;">
+                <thead style="background-color:#405189; color:#fff;">
                     <tr>
-                        <th><?=$languageArray['transaction_id_code'][$language]?></th>
-                        <th><?=$languageArray['po_no_code'][$language]?></th>
-                        <th><?=$languageArray['vehicle_no_code'][$language]?></th>
-                        <th><?=$languageArray['transporter_code'][$language]?></th>
-                        <th><?=$languageArray['destination_code'][$language]?></th>
-                        <th><?=$languageArray['gross_incoming_code'][$language]?></th>
-                        <th><?=$languageArray['incoming_date_code'][$language]?></th>
-                        <th><?=$languageArray['tare_outgoing_code'][$language]?></th>
-                        <th><?=$languageArray['outgoing_date_code'][$language]?></th>
-                        <th><?=$languageArray['nett_weight_code'][$language]?></th>`;
-                        // if (isSADMIN) {
-                        //     returnString += `<th>Action</th>`;
-                        // }
-
-                        returnString += `</tr>
+                        <th>#</th>
+                        <th><?=$languageArray['species_code'][$language]?></th>
+                        <th><?=$languageArray['lot_code'][$language]?></th>
+                        <th><?=$languageArray['bundle_code'][$language]?></th>
+                        <th><?=$languageArray['thick_code'][$language]?></th>
+                        <th><?=$languageArray['width_code'][$language]?></th>
+                        <th><?=$languageArray['length_code'][$language]?></th>
+                        <th><?=$languageArray['pieces_code'][$language]?></th>
+                        <th><?=$languageArray['tons_code'][$language]?></th>
+                        <th><?=$languageArray['kd_charges_code'][$language]?></th>
+                        <th><?=$languageArray['bundling_charges_code'][$language]?></th>
+                        <th><?=$languageArray['grader_fees_code'][$language]?></th>
+                    </tr>
                 </thead>
                 <tbody>`;
 
-                for (var i = 0; i < row.weights.length; i++) {
-                    var weights = row.weights; 
-                    
-                    returnString += `
-                        <tr>
-                            <td>${weights[i].transaction_id}</td>
-                            <td>${weights[i].delivery_no}</td>
-                            <td>${weights[i].lorry_plate_no1}</td>
-                            <td>${weights[i].transporter}</td>
-                            <td>${weights[i].destination}</td>
-                            <td>${parseFloat(weights[i].gross_weight1)/1000} MT</td>
-                            <td>${weights[i].gross_weight1_date}</td>
-                            <td>${parseFloat(weights[i].tare_weight1)/1000} MT</td>
-                            <td>${weights[i].tare_weight1_date}</td>
-                            <td>${parseFloat(weights[i].nett_weight1)/1000} MT</td>`
-                            // if (isSADMIN) {
-                            //     returnString += `
-                            //     <td>
-                            //         <button title="Edit" type="button" id="edit${weights[i].id}" onclick="edit(${weights[i].id})" class="btn btn-warning btn-sm">
-                            //             <i class="fas fa-pen"></i>
-                            //         </button>
-                            //     </td>`;
-                            // }
-                        returnString += `</tr>`;
-                }
+        var totalPieces = 0, totalTons = 0, totalKd = 0, totalBundling = 0, totalGrader = 0;
 
-                returnString += `</tbody>
+        if (row.details && row.details.length > 0) {
+            for (var i = 0; i < row.details.length; i++) {
+                var d = row.details[i];
+                var pieces = parseFloat(d.pieces) || 0;
+                var tons = parseFloat(d.tons) || 0;
+                var kd = parseFloat(d.kd_charges) || 0;
+                var bundling = parseFloat(d.bundling_charges) || 0;
+                var grader = parseFloat(d.grader_fees) || 0;
+                
+                totalPieces += pieces;
+                totalTons += tons;
+                totalKd += kd;
+                totalBundling += bundling;
+                totalGrader += grader;
+
+                returnString += `
+                    <tr>
+                        <td>${i + 1}</td>
+                        <td>${d.species || '-'}</td>
+                        <td>${d.lot || '-'}</td>
+                        <td>${d.bundle || '-'}</td>
+                        <td>${d.thick || '-'}</td>
+                        <td>${d.width || '-'}</td>
+                        <td>${d.length || '-'}</td>
+                        <td>${d.pieces || '-'}</td>
+                        <td class="text-success fw-bold">${tons.toFixed(4)}</td>
+                        <td>${kd > 0 ? kd.toFixed(2) : '-'}</td>
+                        <td>${bundling > 0 ? bundling.toFixed(2) : '-'}</td>
+                        <td>${grader > 0 ? grader.toFixed(2) : '-'}</td>
+                    </tr>`;
+            }
+        } else {
+            returnString += `<tr><td colspan="12" class="text-center text-muted">No details found</td></tr>`;
+        }
+
+        returnString += `
+                </tbody>
+                <tfoot style="background-color:#405189; color:#fff; font-weight:bold;">
+                    <tr>
+                        <td colspan="7" class="text-end"><?=$languageArray['total_code'][$language]?>:</td>
+                        <td>${totalPieces}</td>
+                        <td style="color:#5eff5e;">${totalTons.toFixed(4)}</td>
+                        <td style="color:#ffeb3b;">${totalKd > 0 ? totalKd.toFixed(2) : '-'}</td>
+                        <td style="color:#ffeb3b;">${totalBundling > 0 ? totalBundling.toFixed(2) : '-'}</td>
+                        <td style="color:#ffeb3b;">${totalGrader > 0 ? totalGrader.toFixed(2) : '-'}</td>
+                    </tr>
+                </tfoot>
             </table>
-        </div>
-        `;
-        
+        </div>`;
+
         return returnString;
     }
 
