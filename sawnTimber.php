@@ -17,22 +17,21 @@ $supplier = $db->query("SELECT * FROM Supplier WHERE status = '0' ORDER BY name 
 $supplier2 = $db->query("SELECT * FROM Supplier WHERE status = '0' ORDER BY name ASC");
 $species = $db->query("SELECT * FROM Sawn_Timber_Species WHERE status = '0' ORDER BY name ASC");
 $species2 = $db->query("SELECT * FROM Sawn_Timber_Species WHERE status = '0' ORDER BY name ASC");
-$plant2 = $db->query("SELECT * FROM Plant WHERE status = '0' ORDER BY name ASC");
 
-$plantName = '-';
-$plantCode = '-';
-if (!hasModulePermission('Accounting', 'Sawn Timber', ['view_all_plants'])){
+// $plantName = '-';
+// $plantCode = '-';
+if (!hasModulePermission('Sawn Timber', 'Sawn Timber', ['view_all_plants'])){
     $plant = searchPlantById($selectedPlantId, $db);
 
-    $stmt2 = $db->prepare("SELECT * from Plant WHERE id = ?");
-    $stmt2->bind_param('s', $selectedPlantId);
-    $stmt2->execute();
-    $result2 = $stmt2->get_result();
+    // $stmt2 = $db->prepare("SELECT * from Plant WHERE id = ?");
+    // $stmt2->bind_param('s', $selectedPlantId);
+    // $stmt2->execute();
+    // $result2 = $stmt2->get_result();
         
-    if(($row2 = $result2->fetch_assoc()) !== null){
-        $plantName = $row2['name'];
-        $plantCode = $row2['plant_code'];
-    }
+    // if(($row2 = $result2->fetch_assoc()) !== null){
+    //     $plantName = $row2['name'];
+    //     $plantCode = $row2['plant_code'];
+    // }
 }
 else{
     $plant = $db->query("SELECT * FROM Plant WHERE status = '0'");
@@ -160,7 +159,7 @@ else{
                                                             <select id="plantSearch" class="form-select select2">
                                                                 <option selected>-</option>
                                                                 <?php while($rowPlantF=mysqli_fetch_assoc($plant)){ ?>
-                                                                    <option value="<?=$rowPlantF['plant_code'] ?>" <?= ($rowPlantF['plant_code'] == $plantCode) ? 'selected' : '' ?>><?=$rowPlantF['name'] ?></option>
+                                                                    <option value="<?=$rowPlantF['id'] ?>" <?= ($rowPlantF['id'] == $selectedPlantId) ? 'selected' : '' ?>><?=$rowPlantF['name'] ?></option>
                                                                 <?php } ?>
                                                             </select>
                                                         </div>
@@ -951,8 +950,14 @@ else{
                 { data: 'total_pieces' },
                 { data: 'total_tons' },
                 { data: 'id', orderable: false, className: 'sawn-action-cell', render: function(data) {
-                    return '<button class="btn btn-sm btn-warning me-1" onclick="editRecord(\'' + data + '\')"><i class="ri-edit-line"></i></button>' +
-                        '<button class="btn btn-sm btn-danger" onclick="deleteRecord(\'' + data + '\')"><i class="ri-delete-bin-line"></i></button>';
+                    var buttons = '';
+                    <?php if(hasModulePermission('Sawn Timber', 'Sawn Timber', ['edit'])): ?>
+                    buttons += '<button class="btn btn-sm btn-warning me-1" onclick="editRecord(\'' + data + '\')"><i class="ri-edit-line"></i></button>';
+                    <?php endif; ?>
+                    <?php if(hasModulePermission('Sawn Timber', 'Sawn Timber', ['cancelled'])): ?>
+                    buttons += '<button class="btn btn-sm btn-danger" onclick="deleteRecord(\'' + data + '\')"><i class="ri-delete-bin-line"></i></button>';
+                    <?php endif; ?>
+                    return buttons;
                 }}
             ]
         });

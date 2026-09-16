@@ -362,9 +362,9 @@ class SawnTimberService extends BaseService {
         }
 
         if (!empty($params['plant']) && $params['plant'] != '-') {
-            $where .= " AND p.plant_code = ?";
+            $where .= " AND h.plant_id = ?";
             $bindParams[] = $params['plant'];
-            $types .= 's';
+            $types .= 'i';
         }
 
         if (!empty($params['transactionId'])) {
