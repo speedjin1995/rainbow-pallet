@@ -3516,13 +3516,13 @@ else{
             if (transStatus == 'Sales' || transStatus == 'Port' || transStatus == 'Misc') {
                 // Sales | Port | Misc: incoming < outgoing
                 if (incoming >= outgoing) {
-                    alert('For ' + transStatusLabel + ', Incoming must be less than Outgoing.');
+                    alert('For ' + transStatusLabel + ' transaction, outgoing weight must be greater than incoming weight.');
                     return;
                 }
             } else if (transStatus == 'Purchase' || transStatus == 'Local') {
                 // Purchase | Local: outgoing < incoming
                 if (outgoing >= incoming) {
-                    alert('For ' + transStatusLabel + ', Outgoing must be less than Incoming.');
+                    alert('For ' + transStatusLabel + ' transaction, outgoing weight must be lesser than incoming weight.');
                     return;
                 }
             }
@@ -3533,13 +3533,13 @@ else{
             if (transStatus == 'Sales' || transStatus == 'Port' || transStatus == 'Misc') {
                 // Sales | Port | Misc: incoming < outgoing
                 if (incoming >= outgoing) {
-                    alert('For ' + transStatusLabel + ', Incoming 2 must be less than Outgoing.');
+                    alert('For ' + transStatusLabel + ' transaction, outgoing 2 weight must be greater than incoming 2 weight.');
                     return;
                 }
             } else if (transStatus == 'Purchase' || transStatus == 'Local') {
                 // Purchase | Local: outgoing < incoming
                 if (outgoing >= incoming) {
-                    alert('For ' + transStatusLabel + ', Outgoing 2 must be less than Incoming.');
+                    alert('For ' + transStatusLabel + ' transaction, outgoing 2 weight must be lesser than incoming 2 weight.');
                     return;
                 }
             }
