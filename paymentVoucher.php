@@ -539,7 +539,7 @@ $pvItem2 = $db->query("SELECT * FROM Pv_Items WHERE status = 0 ORDER BY item_nam
                                                         <!-- Actions -->
                                                         <div class="hstack gap-2 justify-content-end pt-3 border-top">
                                                             <button type="button" class="btn btn-light" data-bs-dismiss="modal"><?=$languageArray['close_code'][$language]?></button>
-                                                            <button type="submit" class="btn btn-primary"><?=$languageArray['submit_code'][$language]?></button>
+                                                            <button type="submit" class="btn btn-success"><?=$languageArray['submit_code'][$language]?></button>
                                                         </div>
                                                     </form>
                                                 </div>
@@ -649,7 +649,7 @@ $pvItem2 = $db->query("SELECT * FROM Pv_Items WHERE status = 0 ORDER BY item_nam
                                                     </div>
                                                     <div class="modal-footer">
                                                         <button type="button" class="btn btn-light" data-bs-dismiss="modal"><?=$languageArray['close_code'][$language]?></button>
-                                                        <button type="submit" class="btn btn-primary"><?=$languageArray['approve_code'][$language] ?? 'Approve'?></button>
+                                                        <button type="submit" class="btn btn-success"><?=$languageArray['approve_code'][$language] ?? 'Approve'?></button>
                                                     </div>
                                                 </form>
                                             </div>
