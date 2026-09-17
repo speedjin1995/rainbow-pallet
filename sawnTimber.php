@@ -260,8 +260,9 @@ else{
                                                                 <h6 class="mb-0 text-white small">
                                                                     <i class="ri-stack-line me-1"></i> <?=$languageArray['details_code'][$language]?>
                                                                 </h6>
-                                                                <button type="button" class="btn btn-light btn-sm" id="addDetail">
-                                                                    <i class="ri-add-line me-1"></i><?=$languageArray['add_new_code'][$language]?>
+                                                                <button type="button" class="btn btn-success btn-sm" id="addDetail">
+                                                                    <i class="ri-add-circle-line align-middle me-1"></i>
+                                                                    <?=$languageArray['add_new_code'][$language]?>
                                                                 </button>
                                                             </div>
                                                             <div class="card-body bg-light p-3" id="detailCardsContainer">
@@ -314,11 +315,11 @@ else{
                                                     </form>
                                                 </div>
                                                 <div class="modal-footer">
-                                                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-                                                        <i class="ri-close-line me-1"></i><?=$languageArray['close_code'][$language]?>
+                                                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                                                        <?=$languageArray['close_code'][$language]?>
                                                     </button>
-                                                    <button type="button" class="btn btn-primary" id="saveSawnTimber">
-                                                        <i class="ri-save-line me-1"></i><?=$languageArray['submit_code'][$language]?>
+                                                    <button type="button" class="btn btn-success" id="saveSawnTimber">
+                                                        <?=$languageArray['submit_code'][$language]?>
                                                     </button>
                                                 </div>
                                             </div>
@@ -403,7 +404,7 @@ else{
                                                                 <?php endif; ?> -->
 
                                                                 <?php if(hasModulePermission('Sawn Timber', 'Sawn Timber', ['cancelled'])): ?>
-                                                                <button type="button" id="multiDeactivate" class="btn btn-danger waves-effect waves-light">
+                                                                <button type="button" id="multiDeactivate" class="btn btn-warning waves-effect waves-light">
                                                                     <i class="ri-delete-bin-fill align-middle me-1"></i>
                                                                     <?=$languageArray['delete_code'][$language]?>
                                                                 </button>
@@ -952,10 +953,10 @@ else{
                 { data: 'id', orderable: false, className: 'sawn-action-cell', render: function(data) {
                     var buttons = '';
                     <?php if(hasModulePermission('Sawn Timber', 'Sawn Timber', ['edit'])): ?>
-                    buttons += '<button class="btn btn-sm btn-warning me-1" onclick="editRecord(\'' + data + '\')"><i class="ri-edit-line"></i></button>';
+                    buttons += '<button class="btn btn-sm btn-warning me-1" onclick="editRecord(\'' + data + '\')"><i class="fas fa-pen"></i></button>';
                     <?php endif; ?>
                     <?php if(hasModulePermission('Sawn Timber', 'Sawn Timber', ['cancelled'])): ?>
-                    buttons += '<button class="btn btn-sm btn-danger" onclick="deleteRecord(\'' + data + '\')"><i class="ri-delete-bin-line"></i></button>';
+                    buttons += '<button class="btn btn-sm btn-danger" onclick="deleteRecord(\'' + data + '\')"><i class="fa fa-times"></i></button>';
                     <?php endif; ?>
                     return buttons;
                 }}
