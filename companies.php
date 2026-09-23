@@ -88,7 +88,7 @@
                                                                         <div class="row">
                                                                             <div class="col-xxl-12 col-lg-12 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="companyCode" class="col-sm-4 col-form-label"><?=$languageArray['company_code_code'][$language]?></label>
+                                                                                    <label for="companyCode" class="col-sm-4 col-form-label"><?=$languageArray['company_code_code'][$language]?> <span class="text-danger">*</span></label>
                                                                                     <div class="col-sm-8">
                                                                                         <input type="text" class="form-control" id="companyCode" name="companyCode" placeholder="<?=$languageArray['company_code_code'][$language]?>" required>
                                                                                         <div class="invalid-feedback">
@@ -121,7 +121,7 @@
                                                                             </div>
                                                                             <div class="col-xxl-12 col-lg-12 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="companyName" class="col-sm-4 col-form-label"><?=$languageArray['company_name_code'][$language]?></label>
+                                                                                    <label for="companyName" class="col-sm-4 col-form-label"><?=$languageArray['company_name_code'][$language]?> <span class="text-danger">*</span></label>
                                                                                     <div class="col-sm-8">
                                                                                         <input type="text" class="form-control" id="companyName" name="companyName" placeholder="<?=$languageArray['company_name_code'][$language]?>" required>
                                                                                         <div class="invalid-feedback">

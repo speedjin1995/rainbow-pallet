@@ -91,7 +91,7 @@
                                                                         <div class="row">
                                                                             <div class="col-xxl-12 col-lg-12 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="locationCode" class="col-sm-4 col-form-label"><?=$languageArray['location_code_code'][$language]?> *</label>
+                                                                                    <label for="locationCode" class="col-sm-4 col-form-label"><?=$languageArray['location_code_code'][$language]?> <span class="text-danger">*</span></label>
                                                                                     <div class="col-sm-8">
                                                                                         <input type="text" class="form-control" id="locationCode" name="locationCode" placeholder="Location Code" required>
                                                                                         <div class="invalid-feedback">
@@ -102,7 +102,7 @@
                                                                             </div>
                                                                             <div class="col-xxl-12 col-lg-12 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="locationName" class="col-sm-4 col-form-label"><?=$languageArray['location_name_code'][$language]?> *</label>
+                                                                                    <label for="locationName" class="col-sm-4 col-form-label"><?=$languageArray['location_name_code'][$language]?> <span class="text-danger">*</span></label>
                                                                                     <div class="col-sm-8">
                                                                                         <input type="text" class="form-control" id="locationName" name="locationName" placeholder="Location Name" required>
                                                                                         <div class="invalid-feedback">
@@ -113,7 +113,7 @@
                                                                             </div>
                                                                             <div class="col-xxl-12 col-lg-12 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="plant" class="col-sm-4 col-form-label"><?=$languageArray['plant_code'][$language]?> *</label>
+                                                                                    <label for="plant" class="col-sm-4 col-form-label"><?=$languageArray['plant_code'][$language]?> <span class="text-danger">*</span></label>
                                                                                     <div class="col-sm-8">
                                                                                         <select id="plant" name="plant" class="form-select select2" required>
                                                                                             <?php while($rowPlant=mysqli_fetch_assoc($plant)){ ?>
@@ -125,7 +125,7 @@
                                                                             </div>
                                                                             <div class="col-xxl-12 col-lg-12 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="weighingCount" class="col-sm-4 col-form-label"><?=$languageArray['weighing_count_code'][$language]?> *</label>
+                                                                                    <label for="weighingCount" class="col-sm-4 col-form-label"><?=$languageArray['weighing_count_code'][$language]?> <span class="text-danger">*</span></label>
                                                                                     <div class="col-sm-8">
                                                                                         <select class="form-control" id="weighingCount" name="weighingCount" required>
                                                                                             <option value="1">1</option>
@@ -363,8 +363,6 @@ var permissions = <?= json_encode($_SESSION['permissions'] ?? []) ?>;
 var isSADMIN = <?= json_encode($_SESSION['roles'] == 'SADMIN') ?>;
 
 $(function () {
-    debugger;
-
     $.post('http://127.0.0.1:5002/getcomport', function(data){
         var decoded = JSON.parse(data);
         var options = '';

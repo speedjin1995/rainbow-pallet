@@ -97,7 +97,7 @@
                                                                         <div class="row">
                                                                             <div class="col-xxl-12 col-lg-12 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="company" class="col-sm-4 col-form-label"><?=$languageArray['company_code'][$language]?> *</label>
+                                                                                    <label for="company" class="col-sm-4 col-form-label"><?=$languageArray['company_code'][$language]?> <span class="text-danger">*</span></label>
                                                                                     <div class="col-sm-8">
                                                                                         <select class="form-select select2" id="company" name="company" required>
                                                                                             <?php while($rowCompany=mysqli_fetch_assoc($companies)){ ?>
@@ -112,7 +112,7 @@
                                                                             </div>
                                                                             <div class="col-xxl-12 col-lg-12 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="categoryName" class="col-sm-4 col-form-label"><?=$languageArray['category_name_code'][$language] ?? 'Category Name'?> *</label>
+                                                                                    <label for="categoryName" class="col-sm-4 col-form-label"><?=$languageArray['category_name_code'][$language] ?? 'Category Name'?> <span class="text-danger">*</span></label>
                                                                                     <div class="col-sm-8">
                                                                                         <input type="text" class="form-control" id="categoryName" name="categoryName" placeholder="<?=$languageArray['category_name_code'][$language] ?? 'Category Name'?>" required>
                                                                                         <div class="invalid-feedback">
@@ -123,7 +123,7 @@
                                                                             </div>
                                                                             <div class="col-xxl-12 col-lg-12 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="postToSql" class="col-sm-4 col-form-label"><?=$languageArray['post_to_sql_code'][$language] ?? 'Post to SQL'?> *</label>
+                                                                                    <label for="postToSql" class="col-sm-4 col-form-label"><?=$languageArray['post_to_sql_code'][$language] ?? 'Post to SQL'?> <span class="text-danger">*</span></label>
                                                                                     <div class="col-sm-8">
                                                                                         <select class="form-select" id="postToSql" name="postToSql" required>
                                                                                             <option value=""><?=$languageArray['please_select_code'][$language] ?? 'Please Select'?></option>
@@ -138,7 +138,7 @@
                                                                             </div>
                                                                             <div class="col-xxl-12 col-lg-12 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="postToSql" class="col-sm-4 col-form-label"><?=$languageArray['transaction_status_code'][$language] ?? 'Transaction Status'?> *</label>
+                                                                                    <label for="postToSql" class="col-sm-4 col-form-label"><?=$languageArray['transaction_status_code'][$language] ?? 'Transaction Status'?> <span class="text-danger">*</span></label>
                                                                                     <div class="col-sm-8">
                                                                                         <select id="transactionStatus" name="transactionStatus[]" class="form-select select2" multiple="multiple" required>
                                                                                             <option value="Sales"><?=$languageArray['dispatch_code'][$language]?></option>

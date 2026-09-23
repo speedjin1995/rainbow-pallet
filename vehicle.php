@@ -92,7 +92,7 @@
                                                                         <div class="row">
                                                                             <div class="col-xxl-12 col-lg-12 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="vehicleNo" class="col-sm-4 col-form-label"><?=$languageArray['vehicle_no_code'][$language]?> *</label>
+                                                                                    <label for="vehicleNo" class="col-sm-4 col-form-label"><?=$languageArray['vehicle_no_code'][$language]?> <span class="text-danger">*</span></label>
                                                                                     <div class="col-sm-8">
                                                                                         <input type="text" class="form-control" id="vehicleNo" name="vehicleNo" placeholder="<?=$languageArray['vehicle_no_code'][$language]?>" required>
                                                                                         <div class="invalid-feedback">
@@ -104,7 +104,7 @@
 
                                                                             <div class="col-xxl-12 col-lg-12 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="vehicleWeight" class="col-sm-4 col-form-label"><?=$languageArray['vehicle_weight_code'][$language]?> *</label>
+                                                                                    <label for="vehicleWeight" class="col-sm-4 col-form-label"><?=$languageArray['vehicle_weight_code'][$language]?> <span class="text-danger">*</span></label>
                                                                                     <div class="col-sm-8">
                                                                                         <input type="number" class="form-control" id="vehicleWeight" name="vehicleWeight" placeholder="<?=$languageArray['vehicle_weight_code'][$language]?>" required>
                                                                                         <div class="invalid-feedback">

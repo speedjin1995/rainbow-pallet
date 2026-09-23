@@ -98,7 +98,19 @@
                                                                         <div class="row">
                                                                             <div class="col-xxl-12 col-lg-12 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="projectCode" class="col-sm-4 col-form-label"><?=$languageArray['project_code_code'][$language] ?? 'Project Code'?> *</label>
+                                                                                    <label for="company" class="col-sm-4 col-form-label"><?=$languageArray['company_code'][$language]?> <span class="text-danger">*</span></label>
+                                                                                    <div class="col-sm-8">
+                                                                                        <select class="form-select select2" id="company" name="company" required>
+                                                                                            <?php while($rowCompany=mysqli_fetch_assoc($company)){ ?>
+                                                                                                <option value="<?=$rowCompany['id'] ?>"><?=$rowCompany['name'] ?></option>
+                                                                                            <?php } ?>
+                                                                                        </select>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="col-xxl-12 col-lg-12 mb-3">
+                                                                                <div class="row">
+                                                                                    <label for="projectCode" class="col-sm-4 col-form-label"><?=$languageArray['project_code_code'][$language] ?? 'Project Code'?> <span class="text-danger">*</span></label>
                                                                                     <div class="col-sm-8">
                                                                                         <input type="text" class="form-control" id="projectCode" name="projectCode" placeholder="<?=$languageArray['project_code_code'][$language] ?? 'Project Code'?>" required>
                                                                                         <div class="invalid-feedback">
@@ -112,18 +124,6 @@
                                                                                     <label for="projectDescription" class="col-sm-4 col-form-label"><?=$languageArray['description_code'][$language] ?? 'Description'?></label>
                                                                                     <div class="col-sm-8">
                                                                                         <input type="text" class="form-control" id="projectDescription" name="projectDescription" placeholder="<?=$languageArray['description_code'][$language] ?? 'Description'?>">
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-xxl-12 col-lg-12 mb-3">
-                                                                                <div class="row">
-                                                                                    <label for="company" class="col-sm-4 col-form-label"><?=$languageArray['company_code'][$language]?></label>
-                                                                                    <div class="col-sm-8">
-                                                                                        <select class="form-select select2" id="company" name="company" required>
-                                                                                            <?php while($rowCompany=mysqli_fetch_assoc($company)){ ?>
-                                                                                                <option value="<?=$rowCompany['id'] ?>"><?=$rowCompany['name'] ?></option>
-                                                                                            <?php } ?>
-                                                                                        </select>
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
