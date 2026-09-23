@@ -250,7 +250,7 @@
                                                     </div>
                                                     <div class="modal-footer justify-content-between bg-gray-dark color-palette">
                                                         <button type="button" class="btn btn-primary" data-bs-dismiss="modal"><?=$languageArray['close_code'][$language]?></button>
-                                                        <button type="button" class="btn btn-success" id="submitWeights"><?=$languageArray['submit_code'][$language]?></button>
+                                                        <button type="button" class="btn btn-success" id="uploadCustomers"><?=$languageArray['submit_code'][$language]?></button>
                                                     </div>
                                                 </form>
                                             </div>
@@ -513,8 +513,6 @@ $(function () {
         ]       
     });
     
-    // $.validator.setDefaults({
-    //     submitHandler: function() {
     $('#submitCustomer').on('click', function(){
         if($('#customerForm').valid()){
             $('#spinnerLoading').show();
@@ -538,10 +536,9 @@ $(function () {
                 }
             });
         }
-        // }
     });
 
-    $('#submitWeights').on('click', function(){
+    $('#uploadCustomers').on('click', function(){
         $('#spinnerLoading').show();
         var formData = $('#uploadForm').serializeArray();
         var data = [];
