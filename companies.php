@@ -371,7 +371,7 @@ $(function () {
         'serverSide': true,
         'serverMethod': 'post',
         'ajax': {
-            'url':'php/modules/company/loadCompanies.php'
+            'url':'php/modules/company/index.php?action=getAll'
         },
         'columns': [
             {
@@ -449,7 +449,7 @@ $(function () {
     $('#submitCompany').on('click', function(){
         if($('#companyForm').valid()){
             $('#spinnerLoading').show();
-            $.post('php/modules/company/companies.php', $('#companyForm').serialize(), function(data){
+            $.post('php/modules/company/index.php', $('#companyForm').serialize() + '&action=' + ($('#addModal').find('#id').val() ? 'update' : 'create'), function(data){
                 var obj = JSON.parse(data);
                 if(obj.status === 'success') {
                     table.ajax.reload();
@@ -522,7 +522,7 @@ $(function () {
 
         // Send the JSON array to the server
         $.ajax({
-            url: 'php/modules/company/uploadCompany.php',
+            url: 'php/modules/company/index.php?action=upload',
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(data),
@@ -603,7 +603,7 @@ $(function () {
 
         if (selectedIds.length > 0) {
             if (confirm('Are you sure you want to delete these companies?')) {
-                $.post('php/modules/company/deleteCompany.php', {userID: selectedIds, type: 'MULTI'}, function(data){
+                $.post('php/modules/company/index.php', {action: 'delete', id: selectedIds, type: 'MULTI'}, function(data){
                     var obj = JSON.parse(data);
                     
                     if(obj.status === 'success'){
@@ -634,7 +634,7 @@ $(function () {
 
 function edit(id){
     $('#spinnerLoading').show();
-    $.post('php/modules/company/getCompany.php', {userID: id}, function(data)
+    $.post('php/modules/company/index.php', {action: 'get', id: id}, function(data)
     {
         var obj = JSON.parse(data);
         if(obj.status === 'success'){
@@ -685,7 +685,7 @@ function edit(id){
 function deactivate(id){
     $('#spinnerLoading').show();
     if (confirm('Are you sure you want to delete this company?')) {
-        $.post('php/modules/company/deleteCompany.php', {userID: id}, function(data){
+        $.post('php/modules/company/index.php', {action: 'delete', id: id}, function(data){
             var obj = JSON.parse(data);
 
             if(obj.status === 'success'){

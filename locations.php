@@ -389,7 +389,7 @@ $(function () {
         'serverSide': true,
         'serverMethod': 'post',
         'ajax': {
-            'url':'php/modules/locations/loadLocations.php'
+            'url':'php/modules/locations/index.php?action=getAll'
         },
         'columns': [
             // {
@@ -455,7 +455,7 @@ $(function () {
     $('#submitLocation').on('click', function(){
         if($('#locationForm').valid()){
             $('#spinnerLoading').show();
-            $.post('php/modules/locations/locations.php', $('#locationForm').serialize(), function(data){
+            $.post('php/modules/locations/index.php', $('#locationForm').serialize() + '&action=' + ($('#addModal').find('#id').val() ? 'update' : 'create'), function(data){
                 var obj = JSON.parse(data); 
                 if(obj.status === 'success'){
                     table.ajax.reload();
@@ -480,7 +480,7 @@ $(function () {
 
     $('#submitPortSetup').on('click', function(){
         $('#spinnerLoading').show();
-        $.post('php/modules/locations/savePortSetup.php', $('#portSetupForm').serialize(), function(data){
+        $.post('php/modules/locations/index.php', $('#portSetupForm').serialize() + '&action=savePortSetup', function(data){
             var obj = JSON.parse(data);
             if(obj.status === 'success'){
                 table.ajax.reload();
@@ -527,7 +527,7 @@ $(function () {
 
 function edit(id){
     $('#spinnerLoading').show();
-    $.post('php/modules/locations/getLocation.php', {userID: id}, function(data)
+    $.post('php/modules/locations/index.php', {action: 'get', id: id}, function(data)
     {
         var obj = JSON.parse(data);
         if(obj.status === 'success'){
@@ -557,7 +557,7 @@ function edit(id){
 
 function openPortSetup(id){
     $('#spinnerLoading').show();
-    $.post('php/modules/locations/getLocation.php', {userID: id, port: 'Y'}, function(data)
+    $.post('php/modules/locations/index.php', {action: 'get', id: id, port: 'Y'}, function(data)
     {
         var obj = JSON.parse(data);
         if(obj.status === 'success'){
@@ -581,7 +581,7 @@ function openPortSetup(id){
 function deactivate(id){
     $('#spinnerLoading').show();
     if (confirm('Are you sure you want to cancel this item?')) {
-        $.post('php/modules/locations/deleteLocation.php', {userID: id}, function(data){
+        $.post('php/modules/locations/index.php', {action: 'delete', id: id}, function(data){
             var obj = JSON.parse(data);
             
             if(obj.status === 'success'){
