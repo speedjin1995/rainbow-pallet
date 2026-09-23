@@ -205,11 +205,11 @@
                             </li>
                             <?php endif; ?> -->
 
-                            <?php if(hasModulePermission('Master Data', 'PV Items', ['view', 'create', 'edit'])): ?>                
+                            <!-- <?php if(hasModulePermission('Master Data', 'PV Items', ['view', 'create', 'edit'])): ?>                
                             <li class="nav-item">
                                 <a href="pvItems.php" class="nav-link"><?=$languageArray['pv_items_code'][$language]?></a>
                             </li>
-                            <?php endif; ?>
+                            <?php endif; ?> -->
                         </ul>
                     </div>
                 </li>
