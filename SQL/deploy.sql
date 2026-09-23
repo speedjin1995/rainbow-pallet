@@ -3564,4 +3564,64 @@ DELIMITER ;
 
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('no_timber_details_code', 'No timber details added yet.', '尚未添加木材详情。', 'Tiada butiran kayu ditambah lagi.', 'இன்னும் மர விவரங்கள் சேர்க்கப்படவில்லை.');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('click_add_timber_code', 'Click "Add New" to add timber details.', '点击"新增"添加木材详情。', 'Klik "Tambah Baru" untuk menambah butiran kayu.', '"புதியதைச் சேர்" என்பதைக் கிளிக் செய்து மர விவரங்களைச் சேர்க்கவும்.');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('project_code', 'Project', '项目', 'Projek', 'திட்டம்');
 
+INSERT INTO `Log_Action` (`id`, `description`) VALUES (NULL, 'Reset Password');
+
+DROP TABLE IF EXISTS `Users_Log`;
+
+CREATE TABLE `Users_Log` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `employee_code` varchar(50) NOT NULL,
+  `username` varchar(100) NOT NULL,
+  `name` varchar(255) DEFAULT NULL,
+  `useremail` varchar(255) DEFAULT NULL,
+  `role` varchar(30) NOT NULL DEFAULT 'NORMAL',
+  `plant_id` text DEFAULT NULL,
+  `languages` varchar(5) NOT NULL DEFAULT 'en',
+  `action_id` int(11) NOT NULL,
+  `action_by` varchar(50) NOT NULL,
+  `event_date` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE `Users_Log` ADD PRIMARY KEY (`id`);
+
+ALTER TABLE `Users_Log` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_USER` AFTER INSERT ON `Users` FOR EACH ROW 
+INSERT INTO Users_Log (
+    user_id, employee_code, username, name, useremail, role, plant_id, languages, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.employee_code, NEW.username, NEW.name, NEW.useremail, NEW.role, NEW.plant_id, NEW.languages, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_USER` BEFORE UPDATE ON `Users` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Skip trigger if session variable is set
+    IF @skip_user_trigger = 1 THEN
+        SET @skip_user_trigger = NULL;
+    ELSE
+        -- Check if status = 1, set action_id to 3, otherwise set to 2
+        IF NEW.status = 1 THEN
+            SET action_value = 3;
+        ELSE
+            SET action_value = 2;
+        END IF;
+
+        -- Insert into Users_Log table
+        INSERT INTO Users_Log (
+            user_id, employee_code, username, name, useremail, role, plant_id, languages, action_id, action_by, event_date
+        ) 
+        VALUES (
+            NEW.id, NEW.employee_code, NEW.username, NEW.name, NEW.useremail, NEW.role, NEW.plant_id, NEW.languages, action_value, NEW.modified_by, NEW.modified_date
+        );
+    END IF;
+END
+$$
+DELIMITER ;

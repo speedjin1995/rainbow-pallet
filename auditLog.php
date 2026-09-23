@@ -81,42 +81,37 @@
                                                 <div class="col-3">
                                                     <div class="mb-3">
                                                         <label for="reportType" class="form-label"><?=$languageArray['data_category_code'][$language]?></label>
-                                                        <select id="reportType" name="reportType" class="form-select" data-choices data-choices-sorting="true" >
-                                                            <option value="Customer" selected><?=$languageArray['customer_code'][$language]?></option>
-                                                            <option value="Destination"><?=$languageArray['destination_code'][$language]?></option>
+                                                        <select id="reportType" name="reportType" class="form-select">
+                                                            <option value="Company" selected><?=$languageArray['company_code'][$language]?></option>
+                                                            <option value="Customer"><?=$languageArray['customer_code'][$language]?></option>
+                                                            <option value="Supplier"><?=$languageArray['supplier_code'][$language]?></option>
+                                                            <option value="Product Category"><?=$languageArray['product_category_code'][$language]?></option>
+                                                            <option value="Unit"><?=$languageArray['units_code'][$language]?></option>
                                                             <option value="Product"><?=$languageArray['product_code'][$language]?></option>
                                                             <!-- <option value="Raw Materials"><?=$languageArray['raw_material_code'][$language]?></option> -->
-                                                            <option value="Supplier"><?=$languageArray['supplier_code'][$language]?></option>
+                                                            <option value="Destination"><?=$languageArray['destination_code'][$language]?></option>
+                                                            <option value="Location"><?=$languageArray['locations_code'][$language]?></option>
                                                             <option value="Vehicle"><?=$languageArray['vehicle_code'][$language]?></option>
-                                                            <option value="Transporter"><?=$languageArray['transporter_code'][$language]?></option>
+                                                            <option value="Project"><?=$languageArray['project_code'][$language]?></option>
+                                                            <!-- <option value="Transporter"><?=$languageArray['transporter_code'][$language]?></option> -->
+                                                            <!-- <option value="Plant"><?=$languageArray['plant_code'][$language]?></option> -->
                                                             <option value="User"><?=$languageArray['staff_code'][$language]?></option>
                                                             <option value="Weight"><?=$languageArray['weighing_code'][$language]?></option>
-                                                            <option value="Plant"><?=$languageArray['plant_code'][$language]?></option>
+                                                            <option value="Empty Container"><?=$languageArray['empty_container_code'][$language]?></option>
+                                                            <option value="Sawn Timber"><?=$languageArray['sawn_timber_code'][$language]?></option>
                                                         </select>
                                                     </div>
                                                 </div>
-                                                <div class="col-3 inputCode customerInput">
+                                                <div class="col-3 inputCode companyInput">
+                                                    <div class="mb-3">
+                                                        <label for="companyCode" class="form-label"><?=$languageArray['company_code_code'][$language]?></label>
+                                                        <input type="text" class="form-control" placeholder="<?=$languageArray['company_code_code'][$language]?>" name="companyCode" id="companyCode">
+                                                    </div>
+                                                </div>
+                                                <div class="col-3 inputCode customerInput" style="display:none">
                                                     <div class="mb-3">
                                                         <label for="customerCode" class="form-label"><?=$languageArray['customer_code_code'][$language]?></label>
                                                         <input type="text" class="form-control" placeholder="<?=$languageArray['customer_code_code'][$language]?>" name="customerCode" id="customerCode">
-                                                    </div>
-                                                </div>
-                                                <div class="col-3 inputCode destinationInput" style="display:none">
-                                                    <div class="mb-3">
-                                                        <label for="destinationCode" class="form-label"><?=$languageArray['destination_code_code'][$language]?></label>
-                                                        <input type="text" class="form-control" placeholder="<?=$languageArray['destination_code_code'][$language]?>" name="destinationCode" id="destinationCode">
-                                                    </div>
-                                                </div>
-                                                <div class="col-3 inputCode productInput" style="display:none">
-                                                    <div class="mb-3">
-                                                        <label for="productCode" class="form-label"><?=$languageArray['product_code_code'][$language]?></label>
-                                                        <input type="text" class="form-control" placeholder="<?=$languageArray['product_code_code'][$language]?>" name="productCode" id="productCode">
-                                                    </div>
-                                                </div>
-                                                <div class="col-3 inputCode rawMatInput" style="display:none">
-                                                    <div class="mb-3">
-                                                        <label for="rawMatCode" class="form-label"><?=$languageArray['raw_material_code_code'][$language]?></label>
-                                                        <input type="text" class="form-control" placeholder="<?=$languageArray['raw_material_code_code'][$language]?>" name="rawMatCode" id="rawMatCode">
                                                     </div>
                                                 </div>
                                                 <div class="col-3 inputCode supplierInput" style="display:none">
@@ -125,28 +120,84 @@
                                                         <input type="text" class="form-control" placeholder="<?=$languageArray['supplier_code_code'][$language]?>" name="supplierCode" id="supplierCode">
                                                     </div>
                                                 </div>
+                                                <div class="col-3 inputCode productCategoryInput" style="display:none">
+                                                    <div class="mb-3">
+                                                        <label for="categoryName" class="form-label"><?=$languageArray['category_name_code'][$language]?></label>
+                                                        <input type="text" class="form-control" placeholder="<?=$languageArray['category_name_code'][$language]?>" name="categoryName" id="categoryName">
+                                                    </div>
+                                                </div>
+                                                <div class="col-3 inputCode unitInput" style="display:none">
+                                                    <div class="mb-3">
+                                                        <label for="unit" class="form-label"><?=$languageArray['unit_code'][$language]?></label>
+                                                        <input type="text" class="form-control" placeholder="<?=$languageArray['unit_code'][$language]?>" name="unit" id="unit">
+                                                    </div>
+                                                </div>
+                                                <div class="col-3 inputCode productInput" style="display:none">
+                                                    <div class="mb-3">
+                                                        <label for="productCode" class="form-label"><?=$languageArray['item_code_code'][$language]?></label>
+                                                        <input type="text" class="form-control" placeholder="<?=$languageArray['item_code_code'][$language]?>" name="productCode" id="productCode">
+                                                    </div>
+                                                </div>
+                                                <div class="col-3 inputCode destinationInput" style="display:none">
+                                                    <div class="mb-3">
+                                                        <label for="destinationCode" class="form-label"><?=$languageArray['destination_code_code'][$language]?></label>
+                                                        <input type="text" class="form-control" placeholder="<?=$languageArray['destination_code_code'][$language]?>" name="destinationCode" id="destinationCode">
+                                                    </div>
+                                                </div>
+                                                <div class="col-3 inputCode locationInput" style="display:none">
+                                                    <div class="mb-3">
+                                                        <label for="locationCode" class="form-label"><?=$languageArray['location_code_code'][$language]?></label>
+                                                        <input type="text" class="form-control" placeholder="<?=$languageArray['location_code_code'][$language]?>" name="locationCode" id="locationCode">
+                                                    </div>
+                                                </div>
                                                 <div class="col-3 inputCode vehicleInput" style="display:none">
                                                     <div class="mb-3">
                                                         <label for="vehicleNo" class="form-label"><?=$languageArray['vehicle_no_code'][$language]?></label>
                                                         <input type="text" class="form-control" placeholder="<?=$languageArray['vehicle_no_code'][$language]?>" name="vehicleNo" id="vehicleNo">
                                                     </div>
                                                 </div>
-                                                <div class="col-3 inputCode transporterInput" style="display:none">
+                                                <div class="col-3 inputCode projectInput" style="display:none">
                                                     <div class="mb-3">
-                                                        <label for="transporterCode" class="form-label"><?=$languageArray['transporter_code_code'][$language]?></label>
-                                                        <input type="text" class="form-control" placeholder="<?=$languageArray['transporter_code_code'][$language]?>" name="transporterCode" id="transporterCode">
-                                                    </div>
-                                                </div>
-                                                <div class="col-3 inputCode unitInput" style="display:none">
-                                                    <div class="mb-3">
-                                                        <label for="unit" class="form-label">Unit</label>
-                                                        <input type="text" class="form-control" placeholder="Unit" name="unit" id="unit">
+                                                        <label for="projectCode" class="form-label"><?=$languageArray['project_code_code'][$language]?></label>
+                                                        <input type="text" class="form-control" placeholder="<?=$languageArray['project_code_code'][$language]?>" name="projectCode" id="projectCode">
                                                     </div>
                                                 </div>
                                                 <div class="col-3 inputCode userInput" style="display:none">
                                                     <div class="mb-3">
                                                         <label for="userCode" class="form-label"><?=$languageArray['username_code'][$language]?></label>
                                                         <input type="text" class="form-control" placeholder="<?=$languageArray['username_code'][$language]?>" name="userCode" id="userCode">
+                                                    </div>
+                                                </div>
+                                                <div class="col-3 inputCode weightInput" style="display:none">
+                                                    <div class="mb-3">
+                                                        <label for="weight" class="form-label"><?=$languageArray['transaction_id_code'][$language]?></label>
+                                                        <input type="text" class="form-control" placeholder="<?=$languageArray['transaction_id_code'][$language]?>" name="weight" id="weight">
+                                                    </div>
+                                                </div>
+                                                <div class="col-3 inputCode emptyContainerInput" style="display:none">
+                                                    <div class="mb-3">
+                                                        <label for="emptyContainer" class="form-label"><?=$languageArray['transaction_id_code'][$language]?></label>
+                                                        <input type="text" class="form-control" placeholder="<?=$languageArray['transaction_id_code'][$language]?>" name="emptyContainer" id="emptyContainer">
+                                                    </div>
+                                                </div>
+                                                <div class="col-3 inputCode sawnTimberInput" style="display:none">
+                                                    <div class="mb-3">
+                                                        <label for="sawnTimber" class="form-label"><?=$languageArray['transaction_id_code'][$language]?></label>
+                                                        <input type="text" class="form-control" placeholder="<?=$languageArray['transaction_id_code'][$language]?>" name="sawnTimber" id="sawnTimber">
+                                                    </div>
+                                                </div>
+
+                                                <!-- Hidden Log -->
+                                                <div class="col-3 inputCode rawMatInput" style="display:none">
+                                                    <div class="mb-3">
+                                                        <label for="rawMatCode" class="form-label"><?=$languageArray['raw_material_code_code'][$language]?></label>
+                                                        <input type="text" class="form-control" placeholder="<?=$languageArray['raw_material_code_code'][$language]?>" name="rawMatCode" id="rawMatCode">
+                                                    </div>
+                                                </div>
+                                                <div class="col-3 inputCode transporterInput" style="display:none">
+                                                    <div class="mb-3">
+                                                        <label for="transporterCode" class="form-label"><?=$languageArray['transporter_code_code'][$language]?></label>
+                                                        <input type="text" class="form-control" placeholder="<?=$languageArray['transporter_code_code'][$language]?>" name="transporterCode" id="transporterCode">
                                                     </div>
                                                 </div>
                                                 <div class="col-3 inputCode plantInput" style="display:none">
@@ -159,12 +210,6 @@
                                                     <div class="mb-3">
                                                         <label for="siteCode" class="form-label">Site Code</label>
                                                         <input type="text" class="form-control" placeholder="Site Code" name="siteCode" id="siteCode">
-                                                    </div>
-                                                </div>
-                                                <div class="col-3 inputCode weightInput" style="display:none">
-                                                    <div class="mb-3">
-                                                        <label for="weight" class="form-label"><?=$languageArray['transaction_id_code'][$language]?></label>
-                                                        <input type="text" class="form-control" placeholder="<?=$languageArray['transaction_id_code'][$language]?>" name="weight" id="weight">
                                                     </div>
                                                 </div>
                                                 <div class="col-3 inputCode soInput" style="display:none">
@@ -402,15 +447,30 @@ var table;
 
 $(function () {
     $('#reportType').on('change', function(){
-        if($(this).val() == "Customer")
+        if($(this).val() == "Company")
+        {
+            $('.inputCode').hide();
+            $('.companyInput').show();
+        }
+        else if($(this).val() == "Customer")
         {
             $('.inputCode').hide();
             $('.customerInput').show();
         }
-        else if($(this).val() == "Destination")
+        else if($(this).val() == "Supplier")
         {
             $('.inputCode').hide();
-            $('.destinationInput').show();
+            $('.supplierInput').show();
+        }
+        else if($(this).val() == "Product Category")
+        {
+            $('.inputCode').hide();
+            $('.productCategoryInput').show();
+        }
+        else if($(this).val() == "Unit")
+        {
+            $('.inputCode').hide();
+            $('.unitInput').show();
         }
         else if($(this).val() == "Product")
         {
@@ -422,25 +482,30 @@ $(function () {
         //     $('.inputCode').hide();
         //     $('.rawMatInput').show();
         // }
-        else if($(this).val() == "Supplier")
+        else if($(this).val() == "Destination")
         {
             $('.inputCode').hide();
-            $('.supplierInput').show();
+            $('.destinationInput').show();
+        }
+        else if($(this).val() == "Location")
+        {
+            $('.inputCode').hide();
+            $('.locationInput').show();
         }
         else if($(this).val() == "Vehicle")
         {
             $('.inputCode').hide();
             $('.vehicleInput').show();
         }
+        else if($(this).val() == "Project")
+        {
+            $('.inputCode').hide();
+            $('.projectInput').show();
+        }
         else if($(this).val() == "Transporter")
         {
             $('.inputCode').hide();
             $('.transporterInput').show();
-        }
-        else if($(this).val() == "Unit")
-        {
-            $('.inputCode').hide();
-            $('.unitInput').show();
         }
         else if($(this).val() == "User")
         {
@@ -461,6 +526,16 @@ $(function () {
         {
             $('.inputCode').hide();
             $('.weightInput').show();
+        }
+        else if($(this).val() == "Empty Container")
+        {
+            $('.inputCode').hide();
+            $('.emptyContainerInput').show();
+        }
+        else if($(this).val() == "Sawn Timber")
+        {
+            $('.inputCode').hide();
+            $('.sawnTimberInput').show();
         }
         else if($(this).val() == "SO")
         {
@@ -524,66 +599,6 @@ $(function () {
 
     // Function to update the DataTable
     function updateDataTable(selectedValue) {
-        // $.ajax({
-        //     url: "php/filterAuditLog.php",
-        //     type: "POST",
-        //     data: { 
-        //         selectedValue: selectedValue,
-        //         fromDateSearch: $('#fromDateSearch').val(),
-        //         toDateSearch: $('#toDateSearch').val(),
-        //         customerCode: $('#customerCode').val(),
-        //         destinationCode: $('#destinationCode').val(),
-        //         productCode: $('#productCode').val(),
-        //         rawMatCode: $('#rawMatCode').val(),
-        //         supplierCode: $('#supplierCode').val(),
-        //         vehicleNo: $('#vehicleNo').val(),
-        //         transporterCode: $('#transporterCode').val(),
-        //         unit: $('#unit').val(),
-        //         userCode: $('#userCode').val(),
-        //         plantCode: $('#plantCode').val(),
-        //         siteCode: $('#siteCode').val(),
-        //         weight: $('#weight').val(),
-        //         custPoNo: $('#custPoNo').val(),
-        //         poNo: $('#poNo').val(),
-        //     },
-        //     success: function(data) {
-
-        //         if (table) {
-        //             table.destroy();
-        //         }
-        //         // Once you receive the updated DataTable from the server, update the HTML table
-        //         var dataTable = data.dataTable;
-        //         var columnNames = data.columnNames;
-
-        //         var headerRow = $("#headerRow");
-        //         headerRow.empty();
-
-        //         // Update the column names
-        //         $.each(columnNames, function(index, columnName) {
-        //         var th = $("<th>").text(columnName);
-        //         headerRow.append(th);
-        //         });
-
-        //         var tableBody = $("#dataTable tbody");
-        //         tableBody.empty();
-
-        //         $.each(dataTable, function(index, item) {
-        //         var row = $("<tr>");
-        //         $.each(columnNames, function(index, columnName) {
-        //             var cell = $("<td>").text(item[columnName]);
-        //             row.append(cell);
-        //         });
-        //         tableBody.append(row);
-        //         });
-
-        //         // table.draw();
-        //         table = $("#dataTable").DataTable();
-        //     },
-        //     error: function(error) {
-        //         console.log("Error occurred while fetching the updated DataTable.");
-        //     }
-        // });
-
         $.ajax({
             url: "php/filterAuditLog.php",
             type: "POST",
@@ -591,6 +606,7 @@ $(function () {
                 selectedValue: selectedValue,
                 fromDateSearch: $('#fromDateSearch').val(),
                 toDateSearch: $('#toDateSearch').val(),
+                companyCode: $('#companyCode').val(),
                 customerCode: $('#customerCode').val(),
                 destinationCode: $('#destinationCode').val(),
                 productCode: $('#productCode').val(),
@@ -599,10 +615,15 @@ $(function () {
                 vehicleNo: $('#vehicleNo').val(),
                 transporterCode: $('#transporterCode').val(),
                 unit: $('#unit').val(),
+                productCategory: $('#categoryName').val(),
+                locationCode: $('#locationCode').val(),
+                projectCode: $('#projectCode').val(),
                 userCode: $('#userCode').val(),
                 plantCode: $('#plantCode').val(),
                 siteCode: $('#siteCode').val(),
                 weight: $('#weight').val(),
+                emptyContainer: $('#emptyContainer').val(),
+                sawnTimber: $('#sawnTimber').val(),
                 custPoNo: $('#custPoNo').val(),
                 poNo: $('#poNo').val(),
             },
@@ -611,6 +632,10 @@ $(function () {
                 if ($.fn.DataTable.isDataTable("#dataTable")) {
                     $("#dataTable").DataTable().destroy();
                 }
+                
+                // Clear table headers and body
+                $('#dataTable thead tr').empty();
+                $('#dataTable tbody').empty();
 
                 // Generate column definitions dynamically
                 let columns = response.columnNames.map(column => ({

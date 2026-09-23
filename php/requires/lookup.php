@@ -389,6 +389,38 @@ function searchItemCategoryIdByName($value, $db) {
     return $id;
 }
 
+function searchItemCategoryById($value, $db) {
+    $row = null;
+
+    if ($select_stmt = $db->prepare("SELECT * FROM Product_Categories WHERE id=?")) {
+        $select_stmt->bind_param('s', $value);
+        $select_stmt->execute();
+        $result = $select_stmt->get_result();
+        if ($r = $result->fetch_assoc()) {
+            $row = $r;
+        }
+        $select_stmt->close();
+    }
+
+    return $row;
+}
+
+function searchUnitById($value, $db) {
+    $row = null;
+
+    if ($select_stmt = $db->prepare("SELECT * FROM Units WHERE id=?")) {
+        $select_stmt->bind_param('s', $value);
+        $select_stmt->execute();
+        $result = $select_stmt->get_result();
+        if ($r = $result->fetch_assoc()) {
+            $row = $r;
+        }
+        $select_stmt->close();
+    }
+
+    return $row;
+}
+
 function searchUnitIdByName($value, $db) {
     $id = null;
     $value = strtoupper(trim($value));
