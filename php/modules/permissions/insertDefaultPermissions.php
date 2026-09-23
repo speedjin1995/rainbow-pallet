@@ -199,9 +199,9 @@ $defaultPermissions = [
         ['Miscellaneous', 'Reports'],
         ['Sawn Timber', 'Sawn Timber'],
     ]],
-    ['name' => 'approval', 'modules' => [
-        // ['Payment Voucher', 'Accounting']
-    ]],
+    // ['name' => 'approval', 'modules' => [
+    //     ['Payment Voucher', 'Accounting']
+    // ]],
     ['name' => 'post_to_sql', 'modules' => [
         // ['Payment Voucher', 'Accounting'], 
         ['Delivery Order', 'Accounting'], 

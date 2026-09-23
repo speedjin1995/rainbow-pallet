@@ -177,7 +177,7 @@
                             
                             <?php if(hasModulePermission('Master Data', 'Projects', ['view', 'create', 'edit'])): ?>
                             <li class="nav-item">
-                                <a href="projectCodes.php" class="nav-link"><?=$languageArray['project_codes_code'][$language]?></a>
+                                <a href="projects.php" class="nav-link"><?=$languageArray['projects_code'][$language]?></a>
                             </li>
                             <?php endif; ?>
                             

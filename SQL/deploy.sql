@@ -3263,9 +3263,9 @@ CREATE TABLE `Project` (
   `project_description` varchar(100) DEFAULT NULL,
   `company` int(11) NOT NULL,
   `status` int(1) NOT NULL DEFAULT 0,
-  `created_date` datetime DEFAULT NULL,
+  `created_date` datetime DEFAULT current_timestamp(),
   `created_by` varchar(50) DEFAULT NULL,
-  `modified_date` datetime DEFAULT NULL,
+  `modified_date` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `modified_by` varchar(50) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
