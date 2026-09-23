@@ -3561,3 +3561,7 @@ CREATE OR REPLACE TRIGGER `TRG_UPD_PRODUCT` BEFORE UPDATE ON `Product` FOR EACH 
 END
 $$
 DELIMITER ;
+
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('no_timber_details_code', 'No timber details added yet.', '尚未添加木材详情。', 'Tiada butiran kayu ditambah lagi.', 'இன்னும் மர விவரங்கள் சேர்க்கப்படவில்லை.');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('click_add_timber_code', 'Click "Add New" to add timber details.', '点击"新增"添加木材详情。', 'Klik "Tambah Baru" untuk menambah butiran kayu.', '"புதியதைச் சேர்" என்பதைக் கிளிக் செய்து மர விவரங்களைச் சேர்க்கவும்.');
+
