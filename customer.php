@@ -5,6 +5,7 @@
         header('Location: no-permission.php');
         exit;
     }
+    $companies = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
 ?>
 
 <head>
@@ -88,7 +89,22 @@
                                                                         <div class="row">
                                                                             <div class="col-xxl-12 col-lg-12 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="customerCode" class="col-sm-4 col-form-label"><?=$languageArray['customer_code_code'][$language]?></label>
+                                                                                    <label for="company" class="col-sm-4 col-form-label"><?=$languageArray['company_code'][$language]?> *</label>
+                                                                                    <div class="col-sm-8">
+                                                                                        <select class="form-select select2" id="company" name="company" required>
+                                                                                            <?php while($rowCompany=mysqli_fetch_assoc($companies)){ ?>
+                                                                                                <option value="<?=$rowCompany['id'] ?>"><?=$rowCompany['name'] ?></option>
+                                                                                            <?php } ?>
+                                                                                        </select>
+                                                                                        <div class="invalid-feedback">
+                                                                                            <?=$languageArray['please_fill_in_the_field_code'][$language]?>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="col-xxl-12 col-lg-12 mb-3">
+                                                                                <div class="row">
+                                                                                    <label for="customerCode" class="col-sm-4 col-form-label"><?=$languageArray['customer_code_code'][$language]?> *</label>
                                                                                     <div class="col-sm-8">
                                                                                         <input type="text" class="form-control" id="customerCode" name="customerCode" placeholder="<?=$languageArray['customer_code_code'][$language]?>" required>
                                                                                         <div class="invalid-feedback">
@@ -122,7 +138,7 @@
                                                                             </div>
                                                                             <div class="col-xxl-12 col-lg-12 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="companyName" class="col-sm-4 col-form-label"><?=$languageArray['customer_name_code'][$language]?></label>
+                                                                                    <label for="companyName" class="col-sm-4 col-form-label"><?=$languageArray['customer_name_code'][$language]?> *</label>
                                                                                     <div class="col-sm-8">
                                                                                         <input type="text" class="form-control" id="companyName" name="companyName" placeholder="<?=$languageArray['customer_name_code'][$language]?>">
                                                                                     </div>
@@ -310,6 +326,7 @@
                                                             <thead>
                                                                 <tr>
                                                                     <th><input type="checkbox" id="selectAllCheckbox" class="selectAllCheckbox"></th>
+                                                                    <th><?=$languageArray['company_code'][$language]?></th>
                                                                     <th><?=$languageArray['customer_code_code'][$language]?></th>
                                                                     <th><?=$languageArray['reg_no_code'][$language]?></th>
                                                                     <th><?=$languageArray['new_reg_no_code'][$language]?></th>
@@ -431,6 +448,7 @@ $(function () {
                     return '<input type="checkbox" class="select-checkbox" id="checkbox_' + data + '" value="'+data+'"/>';
                 }
             },
+            { data: 'company_name' },
             { data: 'customer_code' },
             { data: 'company_reg_no' },
             { data: 'new_reg_no' },
@@ -580,6 +598,7 @@ $(function () {
 
     $('#addCustomers').on('click', function(){
         $('#addModal').find('#id').val("");
+        $('#addModal').find('#company').val(1).trigger('change');
         $('#addModal').find('#customerCode').val("");
         $('#addModal').find('#companyName').val("");
         $('#addModal').find('#companyRegNo').val("");
@@ -696,6 +715,7 @@ function edit(id){
         var obj = JSON.parse(data);
         if(obj.status === 'success'){
             $('#addModal').find('#id').val(obj.message.id);
+            $('#addModal').find('#company').val(obj.message.company).trigger('change');
             $('#addModal').find('#customerCode').val(obj.message.customer_code);
             $('#addModal').find('#companyName').val(obj.message.name);
             $('#addModal').find('#companyRegNo').val(obj.message.company_reg_no);
@@ -778,9 +798,9 @@ function displayPreview(data) {
     // Get the headers
     var headers = jsonData[0];
 
-    // Ensure we handle cases where there may be less than 15 columns
-    while (headers.length < 12) {
-        headers.push(''); // Adding empty headers to reach 15 columns
+    // Ensure we handle cases where there may be less than 13 columns
+    while (headers.length < 13) {
+        headers.push(''); // Adding empty headers to reach 13 columns
     }
 
     // Create HTML table headers
@@ -795,12 +815,12 @@ function displayPreview(data) {
         htmlTable += '<tr>';
         var rowData = jsonData[i];
 
-        // Ensure we handle cases where there may be less than 15 cells in a row
-        while (rowData.length < 12) {
-            rowData.push(''); // Adding empty cells to reach 15 columns
+        // Ensure we handle cases where there may be less than 13 cells in a row
+        while (rowData.length < 13) {
+            rowData.push(''); // Adding empty cells to reach 13 columns
         }
 
-        for (var j = 0; j < 12; j++) {
+        for (var j = 0; j < 13; j++) {
             var cellData = rowData[j];
             var formattedData = cellData;
 

@@ -34,6 +34,7 @@ class CustomerController extends BaseController {
         }
         $f = [
             'customerId'   => $this->getPost('id'),
+            'company'      => $this->getPost('company'),
             'customerCode' => $this->getPost('customerCode'),
             'companyRegNo' => $this->getPost('companyRegNo'),
             'newRegNo'     => $this->getPost('newRegNo'),
