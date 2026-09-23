@@ -3249,3 +3249,8 @@ END
 $$
 DELIMITER ;
 
+-- 23/09/2026 --
+UPDATE message_resource SET en = 'Item Category', zh = '物品类别', my = 'Kategori Item', ne = 'வகை பொருள்' WHERE message_key_code = 'product_category_code';
+
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('empty_container_code', 'Empty Container', '空柜', 'Kontena Kosong', 'காலி கொள்கலன்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('enter_remarks_message_code', 'Enter remarks (optional)', '输入备注（可选）', 'Masukkan catatan (pilihan)', 'குறிப்புகளை உள்ளிடவும் (விரும்பினால்)');

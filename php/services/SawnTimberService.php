@@ -70,7 +70,7 @@ class SawnTimberService extends BaseService {
             $customerSupplier = $row['customer_name'] ?? $row['supplier_name'] ?? '';
             $data[] = [
                 "id" => $row['id'],
-                "record_date" => $row['record_date'],
+                "record_date" => $row['record_date'] ? date('d-m-Y', strtotime($row['record_date'])) : '',
                 "transaction_id" => $row['transaction_id'],
                 "company" => searchCompanyById($row['company_id'], $this->db)['name'],
                 "plant" => searchPlantNameById($row['plant_id'], $this->db),

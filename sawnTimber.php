@@ -242,9 +242,9 @@ else{
                                                                         <label class="form-label small mb-1"><?=$languageArray['plant_code'][$language]?></label>
                                                                         <input type="text" class="form-control readonly-field" id="plantDisplay" readonly>
                                                                     </div>
-                                                                    <div class="col-md-9">
+                                                                    <div class="col-md-12">
                                                                         <label class="form-label small mb-1"><?=$languageArray['remarks_code'][$language]?></label>
-                                                                        <input type="text" class="form-control" id="remarks" name="remarks" placeholder="Enter remarks (optional)">
+                                                                        <textarea class="form-control" id="remarks" name="remarks" rows="3" placeholder="<?=$languageArray['enter_remarks_message_code'][$language]?>"></textarea>
                                                                     </div>
                                                                 </div>
                                                                 <input type="hidden" id="id" name="id">
