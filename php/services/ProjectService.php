@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/BaseService.php';
+require_once __DIR__ . '/../requires/lookup.php';
 
 class ProjectService extends BaseService {
     
@@ -218,14 +219,11 @@ class ProjectService extends BaseService {
             
             // Lookup company_id by name
             if (!empty($companyName)) {
-                $companyStmt = $this->db->prepare("SELECT id FROM Company WHERE name = ? LIMIT 1");
-                $companyStmt->bind_param('s', $companyName);
-                $companyStmt->execute();
-                $companyResult = $companyStmt->get_result();
-                if ($companyRow = $companyResult->fetch_assoc()) {
-                    $companyId = $companyRow['id'];
+                $companyId = searchCompanyIdByName($companyName, $this->db);
+                if (empty($companyId)) {
+                    $errors[] = "Row {$rowNum}: Company '{$companyName}' not found.";
+                    continue;
                 }
-                $companyStmt->close();
             }
             
             // Check duplicate
