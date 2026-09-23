@@ -6,6 +6,7 @@
         exit;
     }
 
+    $companies = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
     $categories = $db->query("SELECT * FROM Product_Categories WHERE status = '0' ORDER BY category_name ASC");
     $units = $db->query("SELECT * FROM Units WHERE status = '0' ORDER BY unit ASC");
     $units2 = $db->query("SELECT * FROM Units WHERE status = '0' ORDER BY unit ASC");
@@ -88,6 +89,19 @@
                                                                 <div class="card bg-light">
                                                                     <div class="card-body">
                                                                         <div class="row">
+                                                                            <div class="col-xxl-12 col-lg-12 mb-3">
+                                                                                <div class="row">
+                                                                                    <label for="company" class="col-sm-4 col-form-label"><?=$languageArray['company_code'][$language] ?? 'Company'?> <span class="text-danger">*</span></label>
+                                                                                    <div class="col-sm-8">
+                                                                                        <select class="form-control select2" style="width: 100%;" id="company" name="company">
+                                                                                            <option value="">Please Select</option>
+                                                                                            <?php while ($comp = $companies->fetch_assoc()): ?>
+                                                                                            <option value="<?=$comp['id']?>"><?=$comp['name']?></option>
+                                                                                            <?php endwhile; ?>
+                                                                                        </select>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
                                                                             <div class="col-xxl-12 col-lg-12 mb-3">
                                                                                 <div class="row">
                                                                                     <label for="productCode" class="col-sm-4 col-form-label"><?=$languageArray['item_code_code'][$language]?> <span class="text-danger">*</span></label>
@@ -275,7 +289,7 @@
                                                             </div>
                                                             <div class="flex-shrink-0">
                                                                 <?php if(hasModulePermission('Master Data', 'Items', ['download_template'])): ?>
-                                                                <a href="template/Product_Template.xlsx" download>
+                                                                <a href="template/Item_Template.xlsx" download>
                                                                     <button type="button" class="btn btn-info waves-effect waves-light">
                                                                         <i class="mdi mdi-file-import-outline align-middle me-1"></i>
                                                                         <?=$languageArray['download_template_code'][$language]?>
@@ -311,6 +325,7 @@
                                                             <thead>
                                                                 <tr>
                                                                     <th><input type="checkbox" id="selectAllCheckbox" class="selectAllCheckbox"></th>
+                                                                    <th><?=$languageArray['company_code'][$language] ?? 'Company'?></th>
                                                                     <th><?=$languageArray['manual_code'][$language] ?? 'Manual'?></th>
                                                                     <th><?=$languageArray['item_code_code'][$language] ?? 'Item Code'?></th>
                                                                     <th><?=$languageArray['item_name_code'][$language] ?? 'Item Name'?></th>
@@ -443,6 +458,7 @@
                             return '<input type="checkbox" class="select-checkbox" id="checkbox_' + data + '" value="'+data+'"/>';
                         }
                     },
+                    { data: 'company_name' },
                     { 
                         data: 'is_manual',
                         render: function (data, type, row) {
@@ -615,6 +631,7 @@
 
             $('#addProduct').on('click', function(){
                 $('#addModal').find('#id').val("");
+                $('#addModal').find('#company').val(1).trigger('change');
                 $('#addModal').find('#productCode').val("");
                 $('#addModal').find('#productName').val("");
                 $('#addModal').find('#categoryId').val("").trigger('change');
@@ -780,6 +797,7 @@
                 var obj = JSON.parse(data);
                 if(obj.status === 'success'){
                     $('#addModal').find('#id').val(obj.data.id);
+                    $('#addModal').find('#company').val(obj.data.company).trigger('change');
                     $('#addModal').find('#productCode').val(obj.data.product_code);
                     $('#addModal').find('#productName').val(obj.data.name);
                     $('#addModal').find('#categoryId').val(obj.data.category).trigger('change');
@@ -905,9 +923,9 @@
             // Get the headers
             var headers = jsonData[0];
 
-            // Ensure we handle cases where there may be less than 3 columns
-            while (headers.length < 3) {
-                headers.push(''); // Adding empty headers to reach 3 columns
+            // Ensure we handle cases where there may be less than 6 columns
+            while (headers.length < 6) {
+                headers.push(''); // Adding empty headers to reach 6 columns
             }
 
             // Create HTML table headers
@@ -922,12 +940,12 @@
                 htmlTable += '<tr>';
                 var rowData = jsonData[i];
 
-                // Ensure we handle cases where there may be less than 3 cells in a row
-                while (rowData.length < 3) {
-                    rowData.push(''); // Adding empty cells to reach 3 columns
+                // Ensure we handle cases where there may be less than 6 cells in a row
+                while (rowData.length < 6) {
+                    rowData.push(''); // Adding empty cells to reach 6 columns
                 }
 
-                for (var j = 0; j < 3; j++) {
+                for (var j = 0; j < 6; j++) {
                     var cellData = rowData[j];
                     var formattedData = cellData;
 
