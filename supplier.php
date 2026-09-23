@@ -5,6 +5,7 @@
         header('Location: no-permission.php');
         exit;
     }
+    $companies = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
 ?>
 
 <head>
@@ -88,7 +89,22 @@
                                                                         <div class="row">
                                                                             <div class="col-xxl-12 col-lg-12 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="supplierCode" class="col-sm-4 col-form-label"><?=$languageArray['supplier_code_code'][$language]?></label>
+                                                                                    <label for="company" class="col-sm-4 col-form-label"><?=$languageArray['company_code'][$language]?> *</label>
+                                                                                    <div class="col-sm-8">
+                                                                                        <select class="form-select select2" id="company" name="company" required>
+                                                                                            <?php while($rowCompany=mysqli_fetch_assoc($companies)){ ?>
+                                                                                                <option value="<?=$rowCompany['id'] ?>"><?=$rowCompany['name'] ?></option>
+                                                                                            <?php } ?>
+                                                                                        </select>
+                                                                                        <div class="invalid-feedback">
+                                                                                            <?=$languageArray['please_fill_in_the_field_code'][$language]?>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="col-xxl-12 col-lg-12 mb-3">
+                                                                                <div class="row">
+                                                                                    <label for="supplierCode" class="col-sm-4 col-form-label"><?=$languageArray['supplier_code_code'][$language]?> *</label>
                                                                                     <div class="col-sm-8">
                                                                                         <input type="text" class="form-control" id="supplierCode" name="supplierCode" placeholder="<?=$languageArray['supplier_code_code'][$language]?>" required>
                                                                                         <div class="invalid-feedback">
@@ -122,7 +138,7 @@
                                                                             </div>
                                                                             <div class="col-xxl-12 col-lg-12 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="companyName" class="col-sm-4 col-form-label"><?=$languageArray['company_name_code'][$language]?></label>
+                                                                                    <label for="companyName" class="col-sm-4 col-form-label"><?=$languageArray['company_name_code'][$language]?> *</label>
                                                                                     <div class="col-sm-8">
                                                                                         <input type="text" class="form-control" id="companyName" name="companyName" placeholder="<?=$languageArray['company_name_code'][$language]?>" required>
                                                                                         <div class="invalid-feedback">
@@ -246,7 +262,7 @@
                                                         <div class="col-lg-12">
                                                             <div class="hstack gap-2 justify-content-end">
                                                                 <button type="button" class="btn btn-light" data-bs-dismiss="modal"><?=$languageArray['close_code'][$language]?></button>
-                                                                <button type="button" class="btn btn-success" id="submitCustomer"><?=$languageArray['submit_code'][$language]?></button>
+                                                                <button type="button" class="btn btn-success" id="submitSupplier"><?=$languageArray['submit_code'][$language]?></button>
                                                             </div>
                                                         </div><!--end col-->                                                               
                                                     </form>
@@ -270,7 +286,7 @@
                                                     </div>
                                                     <div class="modal-footer justify-content-between bg-gray-dark color-palette">
                                                         <button type="button" class="btn btn-primary" data-bs-dismiss="modal"><?=$languageArray['close_code'][$language]?></button>
-                                                        <button type="button" class="btn btn-success" id="submitWeights"><?=$languageArray['submit_code'][$language]?></button>
+                                                        <button type="button" class="btn btn-success" id="uploadSuppliers"><?=$languageArray['submit_code'][$language]?></button>
                                                     </div>
                                                 </form>
                                             </div>
@@ -346,6 +362,7 @@
                                                             <thead>
                                                                 <tr>
                                                                     <th><input type="checkbox" id="selectAllCheckbox" class="selectAllCheckbox"></th>
+                                                                    <th><?=$languageArray['company_code'][$language]?></th>
                                                                     <th><?=$languageArray['supplier_code_code'][$language]?></th>
                                                                     <th><?=$languageArray['company_reg_no_code'][$language]?></th>
                                                                     <th><?=$languageArray['new_reg_no_code'][$language]?></th>
@@ -421,6 +438,30 @@ var permissions = <?= json_encode($_SESSION['permissions'] ?? []) ?>;
 var isSADMIN = <?= json_encode($_SESSION['roles'] == 'SADMIN') ?>;
 
 $(function () {
+    $('#selectAllCheckbox').on('change', function() {
+        var checkboxes = $('#customerTable tbody input[type="checkbox"]');
+        checkboxes.prop('checked', $(this).prop('checked')).trigger('change');
+    });
+
+    // Initialize all Select2 elements in the modal
+    $('#addModal .select2').select2({
+        allowClear: true,
+        placeholder: "Please Select",
+        dropdownParent: $('#addModal') // Ensures dropdown is not cut off
+    });
+
+    // Apply custom styling to Select2 elements in addModal
+    $('#addModal .select2-container .select2-selection--single').css({
+        'padding-top': '4px',
+        'padding-bottom': '4px',
+        'height': 'auto'
+    });
+
+    $('#addModal .select2-container .select2-selection__arrow').css({
+        'padding-top': '33px',
+        'height': 'auto'
+    });
+
     table = $("#supplierTable").DataTable({
         "responsive": true,
         "autoWidth": false,
@@ -446,6 +487,7 @@ $(function () {
                     return '<input type="checkbox" class="select-checkbox" id="checkbox_' + data + '" value="'+data+'"/>';
                 }
             },
+            { data: 'company_name' },
             { data: 'supplier_code' },
             { data: 'company_reg_no' },
             { data: 'new_reg_no' },
@@ -513,29 +555,27 @@ $(function () {
         ]       
     });
     
-    // $.validator.setDefaults({
-    //     submitHandler: function () {
-        $('#submitCustomer').on('click', function(){
-            if($('#supplierForm').valid()){
-                $('#spinnerLoading').show();
-                $.post('php/modules/supplier/index.php', $('#supplierForm').serialize() + '&action=save', function(data){
-                    var obj = JSON.parse(data);
-                    if(obj.status === 'success'){
-                        table.ajax.reload();
-                        $('#spinnerLoading').hide();
-                        $('#addModal').modal('hide');
-                        toastr["success"](obj.message, "Success:");
-                    }
-                    else if(obj.status === 'failed'){
-                        $('#spinnerLoading').hide();
-                        toastr["error"](obj.message, "Failed:");
-                    }
-                    else{}
-                });
-            }
-        });
+    $('#submitSupplier').on('click', function(){
+        if($('#supplierForm').valid()){
+            $('#spinnerLoading').show();
+            $.post('php/modules/supplier/index.php', $('#supplierForm').serialize() + '&action=save', function(data){
+                var obj = JSON.parse(data);
+                if(obj.status === 'success'){
+                    table.ajax.reload();
+                    $('#spinnerLoading').hide();
+                    $('#addModal').modal('hide');
+                    toastr["success"](obj.message, "Success:");
+                }
+                else if(obj.status === 'failed'){
+                    $('#spinnerLoading').hide();
+                    toastr["error"](obj.message, "Failed:");
+                }
+                else{}
+            });
+        }
+    });
 
-    $('#submitWeights').on('click', function(){
+    $('#uploadSuppliers').on('click', function(){
         $('#spinnerLoading').show();
         var formData = $('#uploadForm').serializeArray();
         var data = [];
@@ -592,6 +632,7 @@ $(function () {
 
     $('#addSupplier').on('click', function(){
         $('#addModal').find('#id').val("");
+        $('#addModal').find('#company').val(1).trigger('change');
         $('#addModal').find('#supplierCode').val("");
         $('#addModal').find('#companyName').val("");
         $('#addModal').find('#companyRegNo').val("");
@@ -741,9 +782,9 @@ function displayPreview(data) {
     // Get the headers
     var headers = jsonData[0];
 
-    // Ensure we handle cases where there may be less than 15 columns
-    while (headers.length < 12) {
-        headers.push(''); // Adding empty headers to reach 15 columns
+    // Ensure we handle cases where there may be less than 13 columns
+    while (headers.length < 13) {
+        headers.push(''); // Adding empty headers to reach 13 columns
     }
 
     // Create HTML table headers
@@ -758,12 +799,12 @@ function displayPreview(data) {
         htmlTable += '<tr>';
         var rowData = jsonData[i];
 
-        // Ensure we handle cases where there may be less than 15 cells in a row
-        while (rowData.length < 12) {
-            rowData.push(''); // Adding empty cells to reach 15 columns
+        // Ensure we handle cases where there may be less than 13 cells in a row
+        while (rowData.length < 13) {
+            rowData.push(''); // Adding empty cells to reach 13 columns
         }
 
-        for (var j = 0; j < 12; j++) {
+        for (var j = 0; j < 13; j++) {
             var cellData = rowData[j];
             var formattedData = cellData;
 
@@ -790,6 +831,7 @@ function edit(id){
         
         if(obj.status === 'success'){
             $('#addModal').find('#id').val(obj.message.id);
+            $('#addModal').find('#company').val(obj.message.company).trigger('change');
             $('#addModal').find('#supplierCode').val(obj.message.supplier_code);
             $('#addModal').find('#companyName').val(obj.message.name);
             $('#addModal').find('#companyRegNo').val(obj.message.company_reg_no);

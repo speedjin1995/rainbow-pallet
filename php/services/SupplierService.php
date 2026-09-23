@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/BaseService.php';
 require_once __DIR__ . '/../requires/functions.php';
+require_once __DIR__ . '/../requires/lookup.php';
 
 class SupplierService extends BaseService {
 
@@ -27,8 +28,11 @@ class SupplierService extends BaseService {
 
         $data = [];
         while ($row = $result->fetch_assoc()) {
+            $company = searchCompanyById($row['company'], $this->db);
             $data[] = [
                 'id'                  => $row['id'],
+                'company'             => $row['company'],
+                'company_name'        => $company ? $company['name'] : '',
                 'supplier_code'       => $row['supplier_code'],
                 'name'                => $row['name'],
                 'company_reg_no'      => $row['company_reg_no'],
@@ -75,9 +79,9 @@ class SupplierService extends BaseService {
         if (!empty($f['supplierId'])) {
             $old = $this->get($f['supplierId']);
             
-            $stmt = $this->db->prepare("UPDATE Supplier SET supplier_code=?, company_reg_no=?, new_reg_no=?, name=?, address_line_1=?, address_line_2=?, address_line_3=?, phone_no=?, fax_no=?, contact_name=?, ic_no=?, tin_no=?, payment_term=?, payment_term_period=?, account_no=?, is_manual='N', modified_by=? WHERE id=?");
+            $stmt = $this->db->prepare("UPDATE Supplier SET company=?, supplier_code=?, company_reg_no=?, new_reg_no=?, name=?, address_line_1=?, address_line_2=?, address_line_3=?, phone_no=?, fax_no=?, contact_name=?, ic_no=?, tin_no=?, payment_term=?, payment_term_period=?, account_no=?, is_manual='N', modified_by=? WHERE id=?");
             if (!$stmt) throw new Exception($this->db->error);
-            $stmt->bind_param('sssssssssssssssss', $f['supplierCode'], $f['companyRegNo'], $f['newRegNo'], $f['companyName'], $f['addressLine1'], $f['addressLine2'], $f['addressLine3'], $f['phoneNo'], $f['faxNo'], $f['contactName'], $f['icNo'], $f['tinNo'], $f['paymentTerm'], $f['paymentTermPeriod'], $f['accountNo'], $this->username, $f['supplierId']);
+            $stmt->bind_param('ssssssssssssssssss', $f['company'], $f['supplierCode'], $f['companyRegNo'], $f['newRegNo'], $f['companyName'], $f['addressLine1'], $f['addressLine2'], $f['addressLine3'], $f['phoneNo'], $f['faxNo'], $f['contactName'], $f['icNo'], $f['tinNo'], $f['paymentTerm'], $f['paymentTermPeriod'], $f['accountNo'], $this->username, $f['supplierId']);
             if (!$stmt->execute()) throw new Exception($stmt->error);
             $stmt->close();
 
@@ -88,9 +92,9 @@ class SupplierService extends BaseService {
                 updateMasterDataNameValue($this->db, $old['name'], $f['companyName'], 'Supplier');
             }
         } else {
-            $stmt = $this->db->prepare("INSERT INTO Supplier (supplier_code, company_reg_no, new_reg_no, name, address_line_1, address_line_2, address_line_3, phone_no, fax_no, contact_name, ic_no, tin_no, payment_term, payment_term_period, account_no, created_by, modified_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt = $this->db->prepare("INSERT INTO Supplier (company, supplier_code, company_reg_no, new_reg_no, name, address_line_1, address_line_2, address_line_3, phone_no, fax_no, contact_name, ic_no, tin_no, payment_term, payment_term_period, account_no, created_by, modified_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             if (!$stmt) throw new Exception($this->db->error);
-            $stmt->bind_param('sssssssssssssssss', $f['supplierCode'], $f['companyRegNo'], $f['newRegNo'], $f['companyName'], $f['addressLine1'], $f['addressLine2'], $f['addressLine3'], $f['phoneNo'], $f['faxNo'], $f['contactName'], $f['icNo'], $f['tinNo'], $f['paymentTerm'], $f['paymentTermPeriod'], $f['accountNo'], $this->username, $this->username);
+            $stmt->bind_param('ssssssssssssssssss', $f['company'], $f['supplierCode'], $f['companyRegNo'], $f['newRegNo'], $f['companyName'], $f['addressLine1'], $f['addressLine2'], $f['addressLine3'], $f['phoneNo'], $f['faxNo'], $f['contactName'], $f['icNo'], $f['tinNo'], $f['paymentTerm'], $f['paymentTermPeriod'], $f['accountNo'], $this->username, $this->username);
             if (!$stmt->execute()) throw new Exception($stmt->error);
             $stmt->close();
         }
@@ -113,7 +117,8 @@ class SupplierService extends BaseService {
         $errors = [];
         $status = '0';
 
-        foreach ($data as $row) {
+        foreach ($data as $index => $row) {
+            $companyName = !empty($row['Company']) ? trim($row['Company']) : '';
             $code      = !empty($row['Code']) ? trim($row['Code']) : '';
             $name      = !empty($row['Name']) ? trim($row['Name']) : '';
             $regNo     = !empty($row['RegNo']) ? trim($row['RegNo']) : '';
@@ -127,24 +132,41 @@ class SupplierService extends BaseService {
             $contact   = !empty($row['ContactName']) ? $row['ContactName'] : '';
             $icNo      = !empty($row['ICNo']) ? $row['ICNo'] : '';
             $tinNo     = !empty($row['TinNo']) ? $row['TinNo'] : '';
+            $accountNo = !empty($row['AccountNo']) ? $row['AccountNo'] : '';
+            $paymentTerm = !empty($row['PaymentTerm']) ? $row['PaymentTerm'] : '';
+            $paymentTermPeriod = !empty($row['PaymentTermPeriod']) ? $row['PaymentTermPeriod'] : '';
 
-            if (!empty($code)) {
-                $chk = $this->db->prepare("SELECT id FROM Supplier WHERE supplier_code=? AND status=?");
-                $chk->bind_param('ss', $code, $status);
-                $chk->execute();
-                $exists = $chk->get_result()->fetch_assoc();
-                $chk->close();
+            $rowNum = $index + 2;
 
-                if (!empty($exists)) {
-                    $errors[] = "Supplier: {$name} already exist in master data.";
+            if (empty($code)) {
+                continue;
+            }
+
+            // Lookup company by name
+            $company = null;
+            if (!empty($companyName)) {
+                $company = searchCompanyIdByName($companyName, $this->db);
+                if (empty($company)) {
+                    $errors[] = "Row {$rowNum}: Company '{$companyName}' not found.";
                     continue;
                 }
-
-                $stmt = $this->db->prepare("INSERT INTO Supplier (supplier_code, company_reg_no, new_reg_no, name, address_line_1, address_line_2, address_line_3, address_line_4, phone_no, fax_no, contact_name, ic_no, tin_no, created_by, modified_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                $stmt->bind_param('sssssssssssssss', $code, $regNo, $newRegNo, $name, $addr1, $addr2, $addr3, $addr4, $phone, $fax, $contact, $icNo, $tinNo, $this->username, $this->username);
-                $stmt->execute();
-                $stmt->close();
             }
+
+            $chk = $this->db->prepare("SELECT id FROM Supplier WHERE supplier_code=? AND status=?");
+            $chk->bind_param('ss', $code, $status);
+            $chk->execute();
+            $exists = $chk->get_result()->fetch_assoc();
+            $chk->close();
+
+            if (!empty($exists)) {
+                $errors[] = "Row {$rowNum}: Supplier '{$name}' already exist in master data.";
+                continue;
+            }
+
+            $stmt = $this->db->prepare("INSERT INTO Supplier (company, supplier_code, company_reg_no, new_reg_no, name, address_line_1, address_line_2, address_line_3, address_line_4, phone_no, fax_no, contact_name, ic_no, tin_no, account_no, payment_term, payment_term_period, created_by, modified_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param('sssssssssssssssssss', $company, $code, $regNo, $newRegNo, $name, $addr1, $addr2, $addr3, $addr4, $phone, $fax, $contact, $icNo, $tinNo, $accountNo, $paymentTerm, $paymentTermPeriod, $this->username, $this->username);
+            $stmt->execute();
+            $stmt->close();
         }
 
         return $errors;
