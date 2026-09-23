@@ -93,7 +93,7 @@
                                                                                 <div class="row">
                                                                                     <label for="company" class="col-sm-4 col-form-label"><?=$languageArray['company_code'][$language] ?? 'Company'?> <span class="text-danger">*</span></label>
                                                                                     <div class="col-sm-8">
-                                                                                        <select class="form-control select2" style="width: 100%;" id="company" name="company">
+                                                                                        <select class="form-control select2" style="width: 100%;" id="company" name="company" required>
                                                                                             <option value="">Please Select</option>
                                                                                             <?php while ($comp = $companies->fetch_assoc()): ?>
                                                                                             <option value="<?=$comp['id']?>"><?=$comp['name']?></option>

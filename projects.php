@@ -105,6 +105,9 @@
                                                                                                 <option value="<?=$rowCompany['id'] ?>"><?=$rowCompany['name'] ?></option>
                                                                                             <?php } ?>
                                                                                         </select>
+                                                                                        <div class="invalid-feedback">
+                                                                                            <?=$languageArray['please_fill_in_the_field_code'][$language] ?? 'Please fill in the field'?>
+                                                                                        </div>
                                                                                     </div>
                                                                                 </div>
                                                                             </div>

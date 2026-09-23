@@ -125,10 +125,7 @@
                                                                                                 <div class="row">
                                                                                                     <label for="newRegNo" class="col-sm-4 col-form-label"><?=$languageArray['new_reg_no_code'][$language]?></label>
                                                                                                     <div class="col-sm-8">
-                                                                                                        <input type="text" class="form-control" id="newRegNo" name="newRegNo" required>
-                                                                                                        <div class="invalid-feedback">
-                                                                                                            <?=$languageArray['please_fill_in_the_field_code'][$language]?>
-                                                                                                        </div>
+                                                                                                        <input type="text" class="form-control" id="newRegNo" name="newRegNo">
                                                                                                     </div>
                                                                                                 </div>
                                                                                             </div>

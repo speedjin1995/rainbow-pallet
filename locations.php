@@ -120,6 +120,9 @@
                                                                                                 <option value="<?=$rowPlant['id'] ?>"><?=$rowPlant['name'] ?></option>
                                                                                             <?php } ?>
                                                                                         </select>
+                                                                                        <div class="invalid-feedback">
+                                                                                            <?=$languageArray['please_fill_in_the_field_code'][$language]?>
+                                                                                        </div>
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
@@ -472,9 +475,6 @@ $(function () {
                     $("#failBtn").click();
                 }
             });
-        }
-        else{
-            alert('Please filled in all the mandatory fields!!!');
         }
     });
 
