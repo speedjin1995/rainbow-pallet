@@ -86,11 +86,11 @@
                             <li class="nav-item">
                                 <a href="purchaseOrder.php" class="nav-link"><?=$lang['t-po']?></a>
                             </li> -->
-                            <?php if(hasModulePermission('Accounting', 'Payment Voucher', ['view', 'create', 'edit'])): ?>
+                            <!-- <?php if(hasModulePermission('Accounting', 'Payment Voucher', ['view', 'create', 'edit'])): ?>
                             <li class="nav-item">
                                 <a href="paymentVoucher.php" class="nav-link"><?=$languageArray['payment_voucher_code'][$language]?></a>
                             </li>
-                            <?php endif; ?>
+                            <?php endif; ?> -->
 
                             <?php if(hasModulePermission('Accounting', 'Delivery Order', ['view', 'create', 'edit'])): ?>
                             <li class="nav-item">
