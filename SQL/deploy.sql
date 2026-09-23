@@ -3254,3 +3254,68 @@ UPDATE message_resource SET en = 'Item Category', zh = '物品类别', my = 'Kat
 
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('empty_container_code', 'Empty Container', '空柜', 'Kontena Kosong', 'காலி கொள்கலன்');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('enter_remarks_message_code', 'Enter remarks (optional)', '输入备注（可选）', 'Masukkan catatan (pilihan)', 'குறிப்புகளை உள்ளிடவும் (விரும்பினால்)');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('projects_code', 'Projects', '项目', 'Projek', 'திட்டங்கள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('project_code_code', 'Project Code', '项目代码', 'Kod Projek', 'திட்டக் குறியீடு');
+
+CREATE TABLE `Project` (
+  `id` int(11) NOT NULL,
+  `project_code` varchar(50) NOT NULL,
+  `project_description` varchar(100) DEFAULT NULL,
+  `company` int(11) NOT NULL,
+  `status` int(1) NOT NULL DEFAULT 0,
+  `created_date` datetime DEFAULT NULL,
+  `created_by` varchar(50) DEFAULT NULL,
+  `modified_date` datetime DEFAULT NULL,
+  `modified_by` varchar(50) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+ALTER TABLE `Project` ADD PRIMARY KEY (`id`);
+
+ALTER TABLE `Project` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+CREATE TABLE `Project_Log` (
+  `id` int(11) NOT NULL,
+  `project_id` int(11) NOT NULL,
+  `project_code` varchar(50) NOT NULL,
+  `project_description` varchar(100) DEFAULT NULL,
+  `company` int(11) NOT NULL,
+  `action_id` int(11) NOT NULL,
+  `action_by` varchar(50) NOT NULL,
+  `event_date` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+ALTER TABLE `Project_Log` ADD PRIMARY KEY (`id`);
+
+ALTER TABLE `Project_Log` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_PROJECT` AFTER INSERT ON `Project` FOR EACH ROW 
+INSERT INTO Project_Log (
+    project_id, project_code, project_description, company, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.project_code, NEW.project_description, NEW.company, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_PROJECT` BEFORE UPDATE ON `Project` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Check if status = 1, set action_id to 3, otherwise set to 2
+    IF NEW.status = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Project_Log table
+    INSERT INTO Project_Log (
+        project_id, project_code, project_description, company, action_id, action_by, event_date
+    ) 
+    VALUES (
+        NEW.id, NEW.project_code, NEW.project_description, NEW.company, action_value, NEW.modified_by, NEW.modified_date
+    );
+END
+$$
+DELIMITER ;

@@ -14,7 +14,7 @@ while ($row = $result->fetch_assoc()) {
 $defaultPermissions = [
     ['name' => 'view', 'modules' => ['All']],
     ['name' => 'create', 'modules' => [
-        ['Payment Voucher', 'Accounting'],
+        // ['Payment Voucher', 'Accounting'],
         ['Companies', 'Master Data'], 
         ['Customer', 'Master Data'], 
         ['Destination', 'Master Data'],
@@ -30,6 +30,7 @@ $defaultPermissions = [
         ['Translation', 'Master Data'],
         ['PV Items', 'Master Data'],
         // ['Sawn Timber Species', 'Master Data'],
+        ['Projects', 'Master Data'],
         ['Modules', 'User Management'], 
         ['Permission', 'User Management'], 
         ['Role', 'User Management'], 
@@ -45,7 +46,7 @@ $defaultPermissions = [
         ['Sawn Timber', 'Sawn Timber'],
     ]],
     ['name' => 'edit', 'modules' => [
-        ['Payment Voucher', 'Accounting'],
+        // ['Payment Voucher', 'Accounting'],
         ['Companies', 'Master Data'], 
         ['Customer', 'Master Data'], 
         ['Destination', 'Master Data'],
@@ -61,6 +62,7 @@ $defaultPermissions = [
         ['Translation', 'Master Data'],
         ['PV Items', 'Master Data'],
         // ['Sawn Timber Species', 'Master Data'],
+        ['Projects', 'Master Data'],
         ['Modules', 'User Management'], 
         ['Permission', 'User Management'], 
         ['Role', 'User Management'], 
@@ -91,6 +93,7 @@ $defaultPermissions = [
         ['Translation', 'Master Data'],
         ['PV Items', 'Master Data'],
         // ['Sawn Timber Species', 'Master Data'],
+        ['Projects', 'Master Data'],
         ['Modules', 'User Management'], 
         ['Permission', 'User Management'], 
         ['Role', 'User Management'], 
@@ -124,7 +127,7 @@ $defaultPermissions = [
         ['Miscellaneous', 'Weighing']
     ]],
     ['name' => 'print', 'modules' => [
-        ['Payment Voucher', 'Accounting'],
+        // ['Payment Voucher', 'Accounting'],
         ['Sales', 'Reports'], 
         ['Purchase', 'Reports'], 
         ['Port', 'Reports'], 
@@ -162,6 +165,7 @@ $defaultPermissions = [
         ['Locations', 'Master Data'],
         ['PV Items', 'Master Data'],
         // ['Sawn Timber Species', 'Master Data'],
+        ['Projects', 'Master Data'],
         ['User Setup', 'User Management'],
         // ['Sawn Timber', 'Sawn Timber'],
     ]],
@@ -180,6 +184,7 @@ $defaultPermissions = [
         ['Locations', 'Master Data'],
         ['PV Items', 'Master Data'],
         // ['Sawn Timber Species', 'Master Data'],
+        ['Projects', 'Master Data'],
         ['User Setup', 'User Management'],
         // ['Sawn Timber', 'Sawn Timber'],
     ]],
@@ -195,10 +200,10 @@ $defaultPermissions = [
         ['Sawn Timber', 'Sawn Timber'],
     ]],
     ['name' => 'approval', 'modules' => [
-        ['Payment Voucher', 'Accounting']
+        // ['Payment Voucher', 'Accounting']
     ]],
     ['name' => 'post_to_sql', 'modules' => [
-        ['Payment Voucher', 'Accounting'], 
+        // ['Payment Voucher', 'Accounting'], 
         ['Delivery Order', 'Accounting'], 
         ['Goods Received', 'Accounting'], 
     ]],
