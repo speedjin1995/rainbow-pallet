@@ -5,6 +5,7 @@
         header('Location: no-permission.php');
         exit;
     }
+    $companies = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
 ?>
 
 <head>
@@ -94,6 +95,21 @@
                                                                 <div class="card bg-light">
                                                                     <div class="card-body">
                                                                         <div class="row">
+                                                                            <div class="col-xxl-12 col-lg-12 mb-3">
+                                                                                <div class="row">
+                                                                                    <label for="company" class="col-sm-4 col-form-label"><?=$languageArray['company_code'][$language]?> *</label>
+                                                                                    <div class="col-sm-8">
+                                                                                        <select class="form-select select2" id="company" name="company" required>
+                                                                                            <?php while($rowCompany=mysqli_fetch_assoc($companies)){ ?>
+                                                                                                <option value="<?=$rowCompany['id'] ?>"><?=$rowCompany['name'] ?></option>
+                                                                                            <?php } ?>
+                                                                                        </select>
+                                                                                        <div class="invalid-feedback">
+                                                                                            <?=$languageArray['please_fill_in_the_field_code'][$language] ?? 'Please fill in the field'?>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
                                                                             <div class="col-xxl-12 col-lg-12 mb-3">
                                                                                 <div class="row">
                                                                                     <label for="categoryName" class="col-sm-4 col-form-label"><?=$languageArray['category_name_code'][$language] ?? 'Category Name'?> *</label>
@@ -245,6 +261,7 @@
                                                             <thead>
                                                                 <tr>
                                                                     <th><input type="checkbox" id="selectAllCheckbox" class="selectAllCheckbox"></th>
+                                                                    <th><?=$languageArray['company_code'][$language]?></th>
                                                                     <th><?=$languageArray['category_name_code'][$language] ?? 'Category Name'?></th>
                                                                     <th><?=$languageArray['post_to_sql_code'][$language] ?? 'Post to SQL'?></th>
                                                                     <th><?=$languageArray['dispatch_code'][$language] ?? 'Sales'?></th>
@@ -355,6 +372,7 @@ $(function () {
                     return '<input type="checkbox" class="select-checkbox" id="checkbox_' + data + '" value="'+data+'"/>';
                 }
             },
+            { data: 'company_name' },
             { data: 'category_name' },
             { data: 'post_to_sql' },
             { data: 'is_sales' },
@@ -439,6 +457,7 @@ $(function () {
 
     $('#addProductCategory').on('click', function(){
         $('#addModal').find('#id').val("");
+        $('#addModal').find('#company').val(1).trigger('change');
         $('#addModal').find('#categoryName').val("");
         $('#addModal').find('#postToSql').val("");
         $('#addModal').find('#transactionStatus').val(null).trigger('change');
@@ -599,6 +618,7 @@ function edit(id){
         var obj = JSON.parse(data);
         if(obj.status === 'success'){
             $('#addModal').find('#id').val(obj.data.id);
+            $('#addModal').find('#company').val(obj.data.company).trigger('change');
             $('#addModal').find('#categoryName').val(obj.data.category_name);
             $('#addModal').find('#postToSql').val(obj.data.post_to_sql);
 
@@ -680,8 +700,8 @@ function displayPreview(data) {
     // Get the headers
     var headers = jsonData[0];
 
-    // Ensure we handle cases where there may be less than 2 column
-    while (headers.length < 2) {
+    // Ensure we handle cases where there may be less than 3 column
+    while (headers.length < 3) {
         headers.push('');
     }
 
@@ -697,12 +717,12 @@ function displayPreview(data) {
         htmlTable += '<tr>';
         var rowData = jsonData[i];
 
-        // Ensure we handle cases where there may be less than 2 cell in a row
-        while (rowData.length < 2) {
+        // Ensure we handle cases where there may be less than 3 cell in a row
+        while (rowData.length < 3) {
             rowData.push('');
         }
 
-        for (var j = 0; j < 2; j++) {
+        for (var j = 0; j < 3; j++) {
             var cellData = rowData[j];
             var formattedData = cellData;
 

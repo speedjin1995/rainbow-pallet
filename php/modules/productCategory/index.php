@@ -12,13 +12,27 @@ $action = $_POST['action'] ?? $_GET['action'] ?? '';
 $controller = new ProductCategoryController($db);
 
 switch ($action) {
-    case 'create':    $controller->create(); break;
-    case 'update':    $controller->update(); break;
-    case 'delete':    $controller->delete(); break;
-    case 'get':       $controller->get(); break;
-    case 'getAll':    $controller->getAll(); break;
-    case 'reactivate': $controller->reactivate(); break;
-    case 'upload':    $controller->upload(); break;
+    case 'filter':
+    case 'getAll':
+        $controller->handleFilter();
+        break;
+    case 'get':
+        $controller->handleGet();
+        break;
+    case 'create':
+    case 'update':
+    case 'save':
+        $controller->handleSave();
+        break;
+    case 'delete':
+        $controller->handleDelete();
+        break;
+    case 'reactivate':
+        $controller->handleReactivate();
+        break;
+    case 'upload':
+        $controller->handleUpload();
+        break;
     default:
         echo json_encode(['status' => 'failed', 'message' => 'Invalid action']);
 }

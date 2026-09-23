@@ -3492,3 +3492,37 @@ CREATE OR REPLACE TRIGGER `TRG_UPD_SUPPLIER` BEFORE UPDATE ON `Supplier` FOR EAC
 END
 $$
 DELIMITER ;
+
+ALTER TABLE `Product_Categories` ADD `company` INT(11) NULL AFTER `is_misc`;
+ALTER TABLE `Product_Categories_Log` ADD `company` INT(11) NULL AFTER `is_misc`;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_PROD_CAT` AFTER INSERT ON `Product_Categories` FOR EACH ROW INSERT INTO Product_Categories_Log (
+    category_id, category_name, post_to_sql, is_sales, is_purchase, is_local, is_port, is_misc, company, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.category_name, NEW.post_to_sql, NEW.is_sales, NEW.is_purchase, NEW.is_local, NEW.is_port, NEW.is_misc, NEW.company, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_PROD_CAT` BEFORE UPDATE ON `Product_Categories` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Check if status = 1, set action_id to 3, otherwise set to 2
+    IF NEW.status = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Product_Categories_Log table
+    INSERT INTO Product_Categories_Log (
+        category_id, category_name, post_to_sql, is_sales, is_purchase, is_local, is_port, is_misc, company, action_id, action_by, event_date
+    ) 
+    VALUES (
+        NEW.id, NEW.category_name, NEW.post_to_sql, NEW.is_sales, NEW.is_purchase, NEW.is_local, NEW.is_port, NEW.is_misc, NEW.company, action_value, NEW.modified_by, NEW.modified_date
+    );
+END
+$$
+DELIMITER ;
