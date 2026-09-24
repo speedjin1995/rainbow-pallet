@@ -3629,3 +3629,43 @@ DELIMITER ;
 -- 24/09/2026 --
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('profile_info_code', 'Profile Information', '个人资料信息', 'Maklumat Profil', 'प्रोफाइल जानकारी');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('update_profile_code', 'Update Profile', '更新个人资料', 'Kemas Kini Profil', 'प्रोफाइल अपडेट गर्नुहोस्');
+
+ALTER TABLE `Users` ADD `company_id` TEXT NULL AFTER `plant_id`;
+ALTER TABLE `Users_Log` ADD `company_id` TEXT NULL AFTER `plant_id`;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_USER` AFTER INSERT ON `Users` FOR EACH ROW 
+INSERT INTO Users_Log (
+    user_id, employee_code, username, name, useremail, role, plant_id, company_id, languages, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.employee_code, NEW.username, NEW.name, NEW.useremail, NEW.role, NEW.plant_id, NEW.company_id, NEW.languages, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_USER` BEFORE UPDATE ON `Users` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Skip trigger if session variable is set
+    IF @skip_user_trigger = 1 THEN
+        SET @skip_user_trigger = NULL;
+    ELSE
+        -- Check if status = 1, set action_id to 3, otherwise set to 2
+        IF NEW.status = 1 THEN
+            SET action_value = 3;
+        ELSE
+            SET action_value = 2;
+        END IF;
+
+        -- Insert into Users_Log table
+        INSERT INTO Users_Log (
+            user_id, employee_code, username, name, useremail, role, plant_id, company_id, languages, action_id, action_by, event_date
+        ) 
+        VALUES (
+            NEW.id, NEW.employee_code, NEW.username, NEW.name, NEW.useremail, NEW.role, NEW.plant_id, NEW.company_id, NEW.languages, action_value, NEW.modified_by, NEW.modified_date
+        );
+    END IF;
+END
+$$
+DELIMITER ;
