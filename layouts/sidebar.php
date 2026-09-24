@@ -321,10 +321,7 @@
                                 </li>  -->
                                 <li class="nav-item">
                                     <a href="myProfile.php" class="nav-link"><?=$languageArray['profile_code'][$language]?></a>
-                                </li> 
-                                <li class="nav-item">
-                                    <a href="ChangePassword.php" class="nav-link"><?=$languageArray['change_password_code'][$language]?></a>
-                                </li>                                 
+                                </li>
                             </li>
                         </ul>
                     </div>

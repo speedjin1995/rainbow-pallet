@@ -18,7 +18,9 @@ switch ($action) {
     case 'get':           $controller->get(); break;
     case 'getAll':        $controller->getAll(); break;
     case 'upload':        $controller->upload(); break;
-    case 'resetPassword': $controller->resetPassword(); break;
+    case 'resetPassword':   $controller->resetPassword(); break;
+    case 'changePassword':  $controller->changePassword(); break;
+    case 'updateProfile':   $controller->updateProfile(); break;
     default:
         echo json_encode(['status' => 'failed', 'message' => 'Invalid action']);
 }

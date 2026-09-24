@@ -3625,3 +3625,7 @@ CREATE OR REPLACE TRIGGER `TRG_UPD_USER` BEFORE UPDATE ON `Users` FOR EACH ROW B
 END
 $$
 DELIMITER ;
+
+-- 24/09/2026 --
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('profile_info_code', 'Profile Information', '个人资料信息', 'Maklumat Profil', 'प्रोफाइल जानकारी');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('update_profile_code', 'Update Profile', '更新个人资料', 'Kemas Kini Profil', 'प्रोफाइल अपडेट गर्नुहोस्');

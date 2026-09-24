@@ -83,5 +83,25 @@ class UserController extends BaseController {
             $this->failed($e->getMessage());
         }
     }
+    public function changePassword() {
+        $oldPassword = $_POST['oldPassword'] ?? '';
+        $newPassword = $_POST['newPassword'] ?? '';
+        if (!$oldPassword || !$newPassword) { $this->failed('Please fill in all fields'); return; }
+        try {
+            $this->userService->changePassword($_SESSION['id'], $oldPassword, $newPassword);
+            $this->success('Password updated successfully');
+        } catch (Exception $e) {
+            $this->failed($e->getMessage());
+        }
+    }
+
+    public function updateProfile() {
+        try {
+            $this->userService->updateProfile($_SESSION['id'], $_POST);
+            $this->success('Profile updated successfully');
+        } catch (Exception $e) {
+            $this->failed($e->getMessage());
+        }
+    }
 }
 ?>

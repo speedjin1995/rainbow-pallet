@@ -209,6 +209,40 @@ class UserService extends BaseService {
         $this->db->commit();
     }
 
+    public function changePassword($userId, $oldPassword, $newPassword) {
+        $stmt = $this->db->prepare("SELECT password FROM {$this->table} WHERE id=?");
+        if (!$stmt) throw new Exception($this->db->error);
+        $stmt->bind_param('s', $userId);
+        $stmt->execute();
+        $row = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+
+        if (!$row) throw new Exception('User not found');
+        if (!password_verify($oldPassword, $row['password'])) {
+            throw new Exception('Old password is incorrect');
+        }
+
+        $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
+        $stmt = $this->db->prepare("UPDATE {$this->table} SET password=? WHERE id=?");
+        if (!$stmt) throw new Exception($this->db->error);
+        $stmt->bind_param('ss', $hashedPassword, $userId);
+        if (!$stmt->execute()) throw new Exception($stmt->error);
+        $stmt->close();
+    }
+
+    public function updateProfile($userId, $post) {
+        $email    = trim($post['userEmail']);
+        $language = trim($post['language']);
+
+        $stmt = $this->db->prepare("UPDATE {$this->table} SET useremail=?, languages=? WHERE id=?");
+        if (!$stmt) throw new Exception($this->db->error);
+        $stmt->bind_param('sss', $email, $language, $userId);
+        if (!$stmt->execute()) throw new Exception($stmt->error);
+        $stmt->close();
+
+        $_SESSION['language'] = $language;
+    }
+
     private function checkDuplicates($code, $username, $excludeId = null) {
         $conditions = [];
         $params     = [];
