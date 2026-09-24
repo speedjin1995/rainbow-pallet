@@ -88,7 +88,7 @@
                                                                         <div class="row">
                                                                             <div class="col-xxl-12 col-lg-12 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="companyCode" class="col-sm-4 col-form-label"><?=$languageArray['company_code_code'][$language]?></label>
+                                                                                    <label for="companyCode" class="col-sm-4 col-form-label"><?=$languageArray['company_code_code'][$language]?> <span class="text-danger">*</span></label>
                                                                                     <div class="col-sm-8">
                                                                                         <input type="text" class="form-control" id="companyCode" name="companyCode" placeholder="<?=$languageArray['company_code_code'][$language]?>" required>
                                                                                         <div class="invalid-feedback">
@@ -101,10 +101,7 @@
                                                                                 <div class="row">
                                                                                     <label for="companyRegNo" class="col-sm-4 col-form-label"><?=$languageArray['company_reg_no_code'][$language]?></label>
                                                                                     <div class="col-sm-8">
-                                                                                        <input type="text" class="form-control" id="companyRegNo" name="companyRegNo" placeholder="<?=$languageArray['company_reg_no_code'][$language]?>" required>
-                                                                                        <div class="invalid-feedback">
-                                                                                            <?=$languageArray['please_fill_in_the_field_code'][$language]?>
-                                                                                        </div>
+                                                                                        <input type="text" class="form-control" id="companyRegNo" name="companyRegNo" placeholder="<?=$languageArray['company_reg_no_code'][$language]?>">
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
@@ -112,16 +109,13 @@
                                                                                 <div class="row">
                                                                                     <label for="companyNewRegNo" class="col-sm-4 col-form-label"><?=$languageArray['company_new_reg_no_code'][$language]?></label>
                                                                                     <div class="col-sm-8">
-                                                                                        <input type="text" class="form-control" id="companyNewRegNo" name="companyNewRegNo" placeholder="<?=$languageArray['company_new_reg_no_code'][$language]?>" required>
-                                                                                        <div class="invalid-feedback">
-                                                                                            <?=$languageArray['please_fill_in_the_field_code'][$language]?>
-                                                                                        </div>
+                                                                                        <input type="text" class="form-control" id="companyNewRegNo" name="companyNewRegNo" placeholder="<?=$languageArray['company_new_reg_no_code'][$language]?>">
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
                                                                             <div class="col-xxl-12 col-lg-12 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="companyName" class="col-sm-4 col-form-label"><?=$languageArray['company_name_code'][$language]?></label>
+                                                                                    <label for="companyName" class="col-sm-4 col-form-label"><?=$languageArray['company_name_code'][$language]?> <span class="text-danger">*</span></label>
                                                                                     <div class="col-sm-8">
                                                                                         <input type="text" class="form-control" id="companyName" name="companyName" placeholder="<?=$languageArray['company_name_code'][$language]?>" required>
                                                                                         <div class="invalid-feedback">
@@ -377,7 +371,7 @@ $(function () {
         'serverSide': true,
         'serverMethod': 'post',
         'ajax': {
-            'url':'php/modules/company/loadCompanies.php'
+            'url':'php/modules/company/index.php?action=getAll'
         },
         'columns': [
             {
@@ -455,7 +449,7 @@ $(function () {
     $('#submitCompany').on('click', function(){
         if($('#companyForm').valid()){
             $('#spinnerLoading').show();
-            $.post('php/modules/company/companies.php', $('#companyForm').serialize(), function(data){
+            $.post('php/modules/company/index.php', $('#companyForm').serialize() + '&action=' + ($('#addModal').find('#id').val() ? 'update' : 'create'), function(data){
                 var obj = JSON.parse(data);
                 if(obj.status === 'success') {
                     table.ajax.reload();
@@ -528,7 +522,7 @@ $(function () {
 
         // Send the JSON array to the server
         $.ajax({
-            url: 'php/modules/company/uploadCompany.php',
+            url: 'php/modules/company/index.php?action=upload',
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(data),
@@ -609,7 +603,7 @@ $(function () {
 
         if (selectedIds.length > 0) {
             if (confirm('Are you sure you want to delete these companies?')) {
-                $.post('php/modules/company/deleteCompany.php', {userID: selectedIds, type: 'MULTI'}, function(data){
+                $.post('php/modules/company/index.php', {action: 'delete', id: selectedIds, type: 'MULTI'}, function(data){
                     var obj = JSON.parse(data);
                     
                     if(obj.status === 'success'){
@@ -640,7 +634,7 @@ $(function () {
 
 function edit(id){
     $('#spinnerLoading').show();
-    $.post('php/modules/company/getCompany.php', {userID: id}, function(data)
+    $.post('php/modules/company/index.php', {action: 'get', id: id}, function(data)
     {
         var obj = JSON.parse(data);
         if(obj.status === 'success'){
@@ -691,7 +685,7 @@ function edit(id){
 function deactivate(id){
     $('#spinnerLoading').show();
     if (confirm('Are you sure you want to delete this company?')) {
-        $.post('php/modules/company/deleteCompany.php', {userID: id}, function(data){
+        $.post('php/modules/company/index.php', {action: 'delete', id: id}, function(data){
             var obj = JSON.parse(data);
 
             if(obj.status === 'success'){

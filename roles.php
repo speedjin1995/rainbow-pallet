@@ -277,7 +277,7 @@ $(function () {
                 orderable: false,
                 render: function (data, type, row) {
                     var perms = (permissions['User Management'] && permissions['User Management']['Role']) || [];                    
-                    if (isSADMIN || ['edit', 'cancelled'].some(p => perms.includes(p))) {
+                    if (isSADMIN || ['edit', 'cancelled', 'assign_permissions'].some(p => perms.includes(p))) {
                         var buttons = `
                             <div class="dropdown d-inline-block">
                                 <button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">

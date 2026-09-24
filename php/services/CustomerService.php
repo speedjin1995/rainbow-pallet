@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/BaseService.php';
 require_once __DIR__ . '/../requires/functions.php';
+require_once __DIR__ . '/../requires/lookup.php';
 
 class CustomerService extends BaseService {
 
@@ -27,8 +28,11 @@ class CustomerService extends BaseService {
 
         $data = [];
         while ($row = $result->fetch_assoc()) {
+            $company = searchCompanyById($row['company'], $this->db);
             $data[] = [
                 'id'             => $row['id'],
+                'company'        => $row['company'],
+                'company_name'   => $company ? $company['name'] : '',
                 'customer_code'  => $row['customer_code'],
                 'name'           => $row['name'],
                 'company_reg_no' => $row['company_reg_no'],
@@ -72,9 +76,9 @@ class CustomerService extends BaseService {
         if (!empty($f['customerId'])) {
             $old = $this->get($f['customerId']);
             
-            $stmt = $this->db->prepare("UPDATE Customer SET customer_code=?, company_reg_no=?, new_reg_no=?, name=?, address_line_1=?, address_line_2=?, address_line_3=?, phone_no=?, fax_no=?, contact_name=?, ic_no=?, tin_no=?, is_manual='N', modified_by=? WHERE id=?");
+            $stmt = $this->db->prepare("UPDATE Customer SET company=?, customer_code=?, company_reg_no=?, new_reg_no=?, name=?, address_line_1=?, address_line_2=?, address_line_3=?, phone_no=?, fax_no=?, contact_name=?, ic_no=?, tin_no=?, is_manual='N', modified_by=? WHERE id=?");
             if (!$stmt) throw new Exception($this->db->error);
-            $stmt->bind_param('ssssssssssssss', $f['customerCode'], $f['companyRegNo'], $f['newRegNo'], $f['companyName'], $f['addressLine1'], $f['addressLine2'], $f['addressLine3'], $f['phoneNo'], $f['faxNo'], $f['contactName'], $f['icNo'], $f['tinNo'], $this->username, $f['customerId']);
+            $stmt->bind_param('sssssssssssssss', $f['company'], $f['customerCode'], $f['companyRegNo'], $f['newRegNo'], $f['companyName'], $f['addressLine1'], $f['addressLine2'], $f['addressLine3'], $f['phoneNo'], $f['faxNo'], $f['contactName'], $f['icNo'], $f['tinNo'], $this->username, $f['customerId']);
             if (!$stmt->execute()) throw new Exception($stmt->error);
             $stmt->close();
 
@@ -85,9 +89,9 @@ class CustomerService extends BaseService {
                 updateMasterDataNameValue($this->db, $old['name'], $f['companyName'], 'Customer');
             }
         } else {
-            $stmt = $this->db->prepare("INSERT INTO Customer (customer_code, company_reg_no, new_reg_no, name, address_line_1, address_line_2, address_line_3, phone_no, fax_no, contact_name, ic_no, tin_no, created_by, modified_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt = $this->db->prepare("INSERT INTO Customer (company, customer_code, company_reg_no, new_reg_no, name, address_line_1, address_line_2, address_line_3, phone_no, fax_no, contact_name, ic_no, tin_no, created_by, modified_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             if (!$stmt) throw new Exception($this->db->error);
-            $stmt->bind_param('ssssssssssssss', $f['customerCode'], $f['companyRegNo'], $f['newRegNo'], $f['companyName'], $f['addressLine1'], $f['addressLine2'], $f['addressLine3'], $f['phoneNo'], $f['faxNo'], $f['contactName'], $f['icNo'], $f['tinNo'], $this->username, $this->username);
+            $stmt->bind_param('sssssssssssssss', $f['company'], $f['customerCode'], $f['companyRegNo'], $f['newRegNo'], $f['companyName'], $f['addressLine1'], $f['addressLine2'], $f['addressLine3'], $f['phoneNo'], $f['faxNo'], $f['contactName'], $f['icNo'], $f['tinNo'], $this->username, $this->username);
             if (!$stmt->execute()) throw new Exception($stmt->error);
             $stmt->close();
         }
@@ -110,7 +114,8 @@ class CustomerService extends BaseService {
         $errors = [];
         $status = '0';
 
-        foreach ($data as $row) {
+        foreach ($data as $index => $row) {
+            $companyName = !empty($row['Company']) ? trim($row['Company']) : '';
             $code      = !empty($row['Code']) ? trim($row['Code']) : '';
             $name      = !empty($row['Name']) ? trim($row['Name']) : '';
             $regNo     = !empty($row['RegNo']) ? trim($row['RegNo']) : '';
@@ -124,23 +129,37 @@ class CustomerService extends BaseService {
             $icNo      = !empty($row['ICNo']) ? $row['ICNo'] : '';
             $tinNo     = !empty($row['TinNo']) ? $row['TinNo'] : '';
 
-            if (!empty($code)) {
-                $chk = $this->db->prepare("SELECT id FROM Customer WHERE customer_code=? AND status=?");
-                $chk->bind_param('ss', $code, $status);
-                $chk->execute();
-                $exists = $chk->get_result()->fetch_assoc();
-                $chk->close();
+            $rowNum = $index + 2;
 
-                if (!empty($exists)) {
-                    $errors[] = "Customer: {$name} already exist in master data.";
+            if (empty($code)) {
+                continue;
+            }
+
+            // Lookup company by name
+            $company = null;
+            if (!empty($companyName)) {
+                $company = searchCompanyIdByName($companyName, $this->db);
+                if (empty($company)) {
+                    $errors[] = "Row {$rowNum}: Company '{$companyName}' not found.";
                     continue;
                 }
-
-                $stmt = $this->db->prepare("INSERT INTO Customer (customer_code, company_reg_no, new_reg_no, name, address_line_1, address_line_2, address_line_3, phone_no, fax_no, contact_name, ic_no, tin_no, created_by, modified_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                $stmt->bind_param('ssssssssssssss', $code, $regNo, $newRegNo, $name, $addr1, $addr2, $addr3, $phone, $fax, $contact, $icNo, $tinNo, $this->username, $this->username);
-                $stmt->execute();
-                $stmt->close();
             }
+
+            $chk = $this->db->prepare("SELECT id FROM Customer WHERE customer_code=? AND status=?");
+            $chk->bind_param('ss', $code, $status);
+            $chk->execute();
+            $exists = $chk->get_result()->fetch_assoc();
+            $chk->close();
+
+            if (!empty($exists)) {
+                $errors[] = "Row {$rowNum}: Customer '{$name}' already exist in master data.";
+                continue;
+            }
+
+            $stmt = $this->db->prepare("INSERT INTO Customer (company, customer_code, company_reg_no, new_reg_no, name, address_line_1, address_line_2, address_line_3, phone_no, fax_no, contact_name, ic_no, tin_no, created_by, modified_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param('sssssssssssssss', $company, $code, $regNo, $newRegNo, $name, $addr1, $addr2, $addr3, $phone, $fax, $contact, $icNo, $tinNo, $this->username, $this->username);
+            $stmt->execute();
+            $stmt->close();
         }
 
         return $errors;

@@ -70,7 +70,7 @@
                                                                         <div class="row">
                                                                             <div class="col-xxl-12 col-lg-12 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="unit" class="col-sm-4 col-form-label"><?=$languageArray['unit_code'][$language] ?? 'Unit'?> *</label>
+                                                                                    <label for="unit" class="col-sm-4 col-form-label"><?=$languageArray['unit_code'][$language] ?? 'Unit'?> <span class="text-danger">*</span></label>
                                                                                     <div class="col-sm-8">
                                                                                         <input type="text" class="form-control" id="unit" name="unit" placeholder="<?=$languageArray['unit_code'][$language] ?? 'Unit'?>" required>
                                                                                         <div class="invalid-feedback">

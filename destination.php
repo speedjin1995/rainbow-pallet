@@ -88,7 +88,7 @@
                                                                         <div class="row">
                                                                             <div class="col-xxl-12 col-lg-12 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="destinationCode" class="col-sm-4 col-form-label"><?=$languageArray['destination_code_code'][$language]?></label>
+                                                                                    <label for="destinationCode" class="col-sm-4 col-form-label"><?=$languageArray['destination_code_code'][$language]?> <span class="text-danger">*</span></label>
                                                                                     <div class="col-sm-8">
                                                                                         <input type="text" class="form-control" id="destinationCode" name="destinationCode" placeholder="Destination Code" required>
                                                                                         <div class="invalid-feedback">
@@ -99,7 +99,7 @@
                                                                             </div>
                                                                             <div class="col-xxl-12 col-lg-12 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="destinationName" class="col-sm-4 col-form-label"><?=$languageArray['destination_name_code'][$language]?></label>
+                                                                                    <label for="destinationName" class="col-sm-4 col-form-label"><?=$languageArray['destination_name_code'][$language]?> <span class="text-danger">*</span></label>
                                                                                     <div class="col-sm-8">
                                                                                         <input type="text" class="form-control" id="destinationName" name="destinationName" placeholder="Destination Name" required>
                                                                                         <div class="invalid-feedback">
@@ -302,7 +302,7 @@ $(function () {
         'serverSide': true,
         'serverMethod': 'post',
         'ajax': {
-            'url':'php/modules/destination/loadDestination.php'
+            'url':'php/modules/destination/index.php?action=getAll'
         },
         'columns': [
             {
@@ -374,7 +374,7 @@ $(function () {
     $('#submitDestination').on('click', function(){
         if($('#destinationForm').valid()){
             $('#spinnerLoading').show();
-            $.post('php/modules/destination/destination.php', $('#destinationForm').serialize(), function(data){
+            $.post('php/modules/destination/index.php', $('#destinationForm').serialize() + '&action=' + ($('#addModal').find('#id').val() ? 'update' : 'create'), function(data){
                 var obj = JSON.parse(data);
                 if(obj.status === 'success') {
                     table.ajax.reload();
@@ -412,7 +412,7 @@ $(function () {
 
         // Send the JSON array to the server
         $.ajax({
-            url: 'php/modules/destination/uploadDestination.php',
+            url: 'php/modules/destination/index.php?action=upload',
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(data),
@@ -519,7 +519,7 @@ $(function () {
 
         if (selectedIds.length > 0) {
             if (confirm('Are you sure you want to delete these destinations?')) {
-                $.post('php/modules/destination/deleteDestination.php', {userID: selectedIds, type: 'MULTI'}, function(data){
+                $.post('php/modules/destination/index.php', {action: 'delete', id: selectedIds, type: 'MULTI'}, function(data){
                     var obj = JSON.parse(data);
                     
                     if(obj.status === 'success'){
@@ -550,7 +550,7 @@ $(function () {
 
 function edit(id){
     $('#spinnerLoading').show();
-    $.post('php/modules/destination/getDestination.php', {userID: id}, function(data)
+    $.post('php/modules/destination/index.php', {action: 'get', id: id}, function(data)
     {
         var obj = JSON.parse(data);
         if(obj.status === 'success'){
@@ -593,7 +593,7 @@ function edit(id){
 function deactivate(id){
     $('#spinnerLoading').show();
     if (confirm('Are you sure you want to delete this destination?')) {
-        $.post('php/modules/destination/deleteDestination.php', {userID: id}, function(data){
+        $.post('php/modules/destination/index.php', {action: 'delete', id: id}, function(data){
             var obj = JSON.parse(data);
 
             if(obj.status === 'success'){

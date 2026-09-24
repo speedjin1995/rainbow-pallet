@@ -86,11 +86,11 @@
                             <li class="nav-item">
                                 <a href="purchaseOrder.php" class="nav-link"><?=$lang['t-po']?></a>
                             </li> -->
-                            <?php if(hasModulePermission('Accounting', 'Payment Voucher', ['view', 'create', 'edit'])): ?>
+                            <!-- <?php if(hasModulePermission('Accounting', 'Payment Voucher', ['view', 'create', 'edit'])): ?>
                             <li class="nav-item">
                                 <a href="paymentVoucher.php" class="nav-link"><?=$languageArray['payment_voucher_code'][$language]?></a>
                             </li>
-                            <?php endif; ?>
+                            <?php endif; ?> -->
 
                             <?php if(hasModulePermission('Accounting', 'Delivery Order', ['view', 'create', 'edit'])): ?>
                             <li class="nav-item">
@@ -156,18 +156,6 @@
                                 <a href="items.php" class="nav-link"><?=$languageArray['items_code'][$language]?></a>
                             </li>
                             <?php endif; ?>
-                            
-                            <!-- <?php if(hasModulePermission('Master Data', 'Products', ['view', 'create', 'edit'])): ?>
-                            <li class="nav-item">
-                                <a href="product.php" class="nav-link"><?=$languageArray['product_code'][$language]?></a>
-                            </li>
-                            <?php endif; ?>
-                            
-                            <?php if(hasModulePermission('Master Data', 'Raw Material', ['view', 'create', 'edit'])): ?>
-                            <li class="nav-item">
-                                <a href="rawMaterial.php" class="nav-link"><?=$languageArray['raw_material_code'][$language]?></a>
-                            </li>
-                            <?php endif; ?> -->
 
                             <?php if(hasModulePermission('Master Data', 'Destination', ['view', 'create', 'edit'])): ?>
                             <li class="nav-item">
@@ -187,6 +175,25 @@
                             </li>
                             <?php endif; ?>
                             
+                            <?php if(hasModulePermission('Master Data', 'Projects', ['view', 'create', 'edit'])): ?>
+                            <li class="nav-item">
+                                <a href="projects.php" class="nav-link"><?=$languageArray['projects_code'][$language]?></a>
+                            </li>
+                            <?php endif; ?>
+                            
+                            <!-- Hidden Screens -->
+                            <!-- <?php if(hasModulePermission('Master Data', 'Products', ['view', 'create', 'edit'])): ?>
+                            <li class="nav-item">
+                                <a href="product.php" class="nav-link"><?=$languageArray['product_code'][$language]?></a>
+                            </li>
+                            <?php endif; ?>
+                            
+                            <?php if(hasModulePermission('Master Data', 'Raw Material', ['view', 'create', 'edit'])): ?>
+                            <li class="nav-item">
+                                <a href="rawMaterial.php" class="nav-link"><?=$languageArray['raw_material_code'][$language]?></a>
+                            </li>
+                            <?php endif; ?> -->
+                            
                             <?php if(hasModulePermission('Master Data', 'Transporter', ['view', 'create', 'edit'])): ?>
                             <!--li class="nav-item" style="display:none;">
                                 <a href="transporter.php" class="nav-link"><?=$languageArray['transporter_code'][$language]?></a>
@@ -205,11 +212,11 @@
                             </li>
                             <?php endif; ?> -->
 
-                            <?php if(hasModulePermission('Master Data', 'PV Items', ['view', 'create', 'edit'])): ?>                
+                            <!-- <?php if(hasModulePermission('Master Data', 'PV Items', ['view', 'create', 'edit'])): ?>                
                             <li class="nav-item">
                                 <a href="pvItems.php" class="nav-link"><?=$languageArray['pv_items_code'][$language]?></a>
                             </li>
-                            <?php endif; ?>
+                            <?php endif; ?> -->
                         </ul>
                     </div>
                 </li>

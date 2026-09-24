@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/BaseService.php';
+require_once __DIR__ . '/../requires/lookup.php';
 
 class ItemService extends BaseService {
     
@@ -35,11 +36,13 @@ class ItemService extends BaseService {
         $totalFiltered = $filteredResult->fetch_assoc()['total'];
         
         // Data - order by is_manual DESC first to show manual items at top
-        $dataQuery = "SELECT p.id, p.product_code, p.name, p.description, p.status, IFNULL(p.is_manual, 'N') as is_manual, IFNULL(c.category_name, '') as category_name FROM {$this->table} p LEFT JOIN Product_Categories c ON p.category = c.id WHERE p.status = 0 {$searchQuery} ORDER BY p.is_manual DESC, {$columnName} {$columnSortOrder} LIMIT {$start}, {$length}";
+        $dataQuery = "SELECT p.id, p.company, p.product_code, p.name, p.description, p.status, IFNULL(p.is_manual, 'N') as is_manual, IFNULL(c.category_name, '') as category_name FROM {$this->table} p LEFT JOIN Product_Categories c ON p.category = c.id WHERE p.status = 0 {$searchQuery} ORDER BY p.is_manual DESC, {$columnName} {$columnSortOrder} LIMIT {$start}, {$length}";
         $dataResult = $this->db->query($dataQuery);
         
         $data = [];
         while ($row = $dataResult->fetch_assoc()) {
+            $company = searchCompanyById($row['company'], $this->db);
+            $row['company_name'] = $company ? $company['name'] : '';
             $data[] = $row;
         }
         
@@ -55,6 +58,7 @@ class ItemService extends BaseService {
      * Create new item
      */
     public function create($post) {
+        $company = isset($post['company']) && $post['company'] !== '' ? $post['company'] : null;
         $productCode = trim($post['productCode']);
         $productName = trim($post['productName']);
         $categoryId = $post['categoryId'];
@@ -71,12 +75,12 @@ class ItemService extends BaseService {
         
         $this->db->begin_transaction();
         
-        $stmt = $this->db->prepare("INSERT INTO {$this->table} (product_code, name, category, uom, description, variance, high, low, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt = $this->db->prepare("INSERT INTO {$this->table} (company, product_code, name, category, uom, description, variance, high, low, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         if (!$stmt) {
             throw new Exception($this->db->error);
         }
         
-        $stmt->bind_param('sssssssss', $productCode, $productName, $categoryId, $uom, $description, $varianceType, $high, $low, $this->username);
+        $stmt->bind_param('ssssssssss', $company, $productCode, $productName, $categoryId, $uom, $description, $varianceType, $high, $low, $this->username);
         
         if (!$stmt->execute()) {
             throw new Exception($stmt->error);
@@ -98,6 +102,7 @@ class ItemService extends BaseService {
      */
     public function update($post) {
         $id = $post['id'];
+        $company = isset($post['company']) && $post['company'] !== '' ? $post['company'] : null;
         $productCode = trim($post['productCode']);
         $productName = trim($post['productName']);
         $categoryId = $post['categoryId'];
@@ -114,12 +119,12 @@ class ItemService extends BaseService {
         
         $this->db->begin_transaction();
         
-        $stmt = $this->db->prepare("UPDATE {$this->table} SET product_code=?, name=?, category=?, uom=?, description=?, variance=?, high=?, low=?, modified_by=? WHERE id=?");
+        $stmt = $this->db->prepare("UPDATE {$this->table} SET company=?, product_code=?, name=?, category=?, uom=?, description=?, variance=?, high=?, low=?, modified_by=? WHERE id=?");
         if (!$stmt) {
             throw new Exception($this->db->error);
         }
         
-        $stmt->bind_param('ssssssssss', $productCode, $productName, $categoryId, $uom, $description, $varianceType, $high, $low, $this->username, $id);
+        $stmt->bind_param('sssssssssss', $company, $productCode, $productName, $categoryId, $uom, $description, $varianceType, $high, $low, $this->username, $id);
         
         if (!$stmt->execute()) {
             throw new Exception($stmt->error);
@@ -316,32 +321,65 @@ class ItemService extends BaseService {
         $successCount = 0;
         
         foreach ($data as $index => $row) {
-            $rowNum = $index + 1;
+            $rowNum = $index + 2;
             
-            $productCode = isset($row['ProductCode']) ? trim($row['ProductCode']) : null;
-            $productName = isset($row['ProductName']) ? trim($row['ProductName']) : null;
+            $companyName = isset($row['Company']) ? trim($row['Company']) : '';
+            $productCode = isset($row['ItemCode']) ? trim($row['ItemCode']) : null;
+            $productName = isset($row['ItemName']) ? trim($row['ItemName']) : null;
             $description = isset($row['Description']) ? trim($row['Description']) : null;
+            $categoryName = isset($row['Category']) ? trim($row['Category']) : '';
+            $uomName = isset($row['UOM']) ? trim($row['UOM']) : '';
             
             // Validate required fields
             if (empty($productCode)) {
-                $errors[] = "Row {$rowNum}: Product Code is required";
+                $errors[] = "Row {$rowNum}: Item Code is required";
                 continue;
             }
             
             if (empty($productName)) {
-                $errors[] = "Row {$rowNum}: Product Name is required";
+                $errors[] = "Row {$rowNum}: Item Name is required";
                 continue;
+            }
+            
+            // Lookup company by name
+            $company = null;
+            if (!empty($companyName)) {
+                $company = searchCompanyIdByName($companyName, $this->db);
+                if (empty($company)) {
+                    $errors[] = "Row {$rowNum}: Company '{$companyName}' not found.";
+                    continue;
+                }
+            }
+            
+            // Lookup category by name
+            $category = null;
+            if (!empty($categoryName)) {
+                $category = searchItemCategoryIdByName($categoryName, $this->db);
+                if (empty($category)) {
+                    $errors[] = "Row {$rowNum}: Category '{$categoryName}' not found.";
+                    continue;
+                }
+            }
+            
+            // Lookup UOM by name
+            $uom = null;
+            if (!empty($uomName)) {
+                $uom = searchUnitIdByName($uomName, $this->db);
+                if (empty($uom)) {
+                    $errors[] = "Row {$rowNum}: UOM '{$uomName}' not found.";
+                    continue;
+                }
             }
             
             // Check duplicate
             if ($this->isDuplicate('product_code', $productCode)) {
-                $errors[] = "Row {$rowNum}: Product Code '{$productCode}' already exists";
+                $errors[] = "Row {$rowNum}: Item Code '{$productCode}' already exists";
                 continue;
             }
             
             // Insert
-            $stmt = $this->db->prepare("INSERT INTO {$this->table} (product_code, name, description, created_by, modified_by) VALUES (?, ?, ?, ?, ?)");
-            $stmt->bind_param('sssss', $productCode, $productName, $description, $this->username, $this->username);
+            $stmt = $this->db->prepare("INSERT INTO {$this->table} (company, product_code, name, description, category, uom, created_by, modified_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param('ssssssss', $company, $productCode, $productName, $description, $category, $uom, $this->username, $this->username);
             
             if ($stmt->execute()) {
                 $successCount++;

@@ -34,6 +34,7 @@ class SupplierController extends BaseController {
         }
         $f = [
             'supplierId'        => $this->getPost('id'),
+            'company'           => $this->getPost('company'),
             'supplierCode'      => $this->getPost('supplierCode'),
             'companyRegNo'      => $this->getPost('companyRegNo'),
             'newRegNo'          => $this->getPost('newRegNo'),

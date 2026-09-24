@@ -203,12 +203,18 @@ else{
                                                                     <div class="col-md-3">
                                                                         <label class="form-label small mb-1"><?=$languageArray['record_date_code'][$language]?> <span class="text-danger">*</span></label>
                                                                         <input type="text" class="form-control" data-provider="flatpickr" id="sawnTimberDate" name="sawnTimberDate" required>
+                                                                        <div class="invalid-feedback">
+                                                                            <?=$languageArray['please_fill_in_the_field_code'][$language] ?? 'Please fill in the field'?>
+                                                                        </div>
                                                                     </div>
                                                                     <div class="col-md-3">
                                                                         <label class="form-label small mb-1"><?=$languageArray['transaction_id_code'][$language]?> <span class="text-danger">*</span></label>
                                                                         <select class="form-control select2" id="weightId" name="weightId" required>
                                                                             <option value="">-</option>
                                                                         </select>
+                                                                        <div class="invalid-feedback">
+                                                                            <?=$languageArray['please_fill_in_the_field_code'][$language] ?? 'Please fill in the field'?>
+                                                                        </div>
                                                                     </div>
                                                                     <div class="col-md-3">
                                                                         <label class="form-label small mb-1"><?=$languageArray['transaction_date_code'][$language]?></label>
@@ -242,9 +248,9 @@ else{
                                                                         <label class="form-label small mb-1"><?=$languageArray['plant_code'][$language]?></label>
                                                                         <input type="text" class="form-control readonly-field" id="plantDisplay" readonly>
                                                                     </div>
-                                                                    <div class="col-md-9">
+                                                                    <div class="col-md-12">
                                                                         <label class="form-label small mb-1"><?=$languageArray['remarks_code'][$language]?></label>
-                                                                        <input type="text" class="form-control" id="remarks" name="remarks" placeholder="Enter remarks (optional)">
+                                                                        <textarea class="form-control" id="remarks" name="remarks" rows="3" placeholder="<?=$languageArray['enter_remarks_message_code'][$language]?>"></textarea>
                                                                     </div>
                                                                 </div>
                                                                 <input type="hidden" id="id" name="id">
@@ -260,15 +266,16 @@ else{
                                                                 <h6 class="mb-0 text-white small">
                                                                     <i class="ri-stack-line me-1"></i> <?=$languageArray['details_code'][$language]?>
                                                                 </h6>
-                                                                <button type="button" class="btn btn-light btn-sm" id="addDetail">
-                                                                    <i class="ri-add-line me-1"></i><?=$languageArray['add_new_code'][$language]?>
+                                                                <button type="button" class="btn btn-success btn-sm" id="addDetail">
+                                                                    <i class="ri-add-circle-line align-middle me-1"></i>
+                                                                    <?=$languageArray['add_new_code'][$language]?>
                                                                 </button>
                                                             </div>
                                                             <div class="card-body bg-light p-3" id="detailCardsContainer">
                                                                 <div class="text-center text-muted py-4" id="emptyDetailState">
                                                                     <i class="ri-inbox-line d-block fs-1 mb-2 opacity-50"></i>
-                                                                    <p class="mb-0">No timber details added yet.</p>
-                                                                    <small>Click "Add New" to add timber details.</small>
+                                                                    <p class="mb-0"><?=$languageArray['no_timber_details_code'][$language] ?? 'No timber details added yet.'?></p>
+                                                                    <small><?=$languageArray['click_add_timber_code'][$language] ?? 'Click "Add New" to add timber details.'?></small>
                                                                 </div>
                                                             </div>
                                                             <div class="card-footer py-2 px-3" id="detailTotalsFooter" style="display:none; background-color:#405189;">
@@ -310,15 +317,14 @@ else{
                                                             <!-- Hidden table for form serialization -->
                                                             <table id="detailTable"><tbody></tbody></table>
                                                         </div>
-                                                        
                                                     </form>
                                                 </div>
                                                 <div class="modal-footer">
-                                                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-                                                        <i class="ri-close-line me-1"></i><?=$languageArray['close_code'][$language]?>
+                                                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                                                        <?=$languageArray['close_code'][$language]?>
                                                     </button>
-                                                    <button type="button" class="btn btn-primary" id="saveSawnTimber">
-                                                        <i class="ri-save-line me-1"></i><?=$languageArray['submit_code'][$language]?>
+                                                    <button type="button" class="btn btn-success" id="saveSawnTimber">
+                                                        <?=$languageArray['submit_code'][$language]?>
                                                     </button>
                                                 </div>
                                             </div>
@@ -403,7 +409,7 @@ else{
                                                                 <?php endif; ?> -->
 
                                                                 <?php if(hasModulePermission('Sawn Timber', 'Sawn Timber', ['cancelled'])): ?>
-                                                                <button type="button" id="multiDeactivate" class="btn btn-danger waves-effect waves-light">
+                                                                <button type="button" id="multiDeactivate" class="btn btn-warning waves-effect waves-light">
                                                                     <i class="ri-delete-bin-fill align-middle me-1"></i>
                                                                     <?=$languageArray['delete_code'][$language]?>
                                                                 </button>
@@ -504,7 +510,7 @@ else{
         <div class="card mb-2 detail-card" data-card-index="{INDEX}">
             <div class="card-header py-1 px-2 d-flex justify-content-between align-items-center" style="background-color:#e9ecef; border-left:3px solid #405189;">
                 <span class="fw-semibold text-primary small card-number card-toggle" style="cursor:pointer; flex:1;">
-                    <i class="ri-arrow-down-s-line me-1 collapse-icon"></i>Item #{NUMBER} <span class="card-summary text-muted fw-normal"></span>
+                    <i class="ri-arrow-down-s-line me-1 collapse-icon"></i><?=$languageArray['item_code'][$language]?> #{NUMBER} <span class="card-summary text-muted fw-normal"></span>
                 </span>
                 <button type="button" class="btn btn-outline-danger btn-sm py-0 px-1 remove-card">
                     <i class="ri-delete-bin-line"></i>
@@ -703,6 +709,8 @@ else{
         // Reset form and detailTable when Add button is clicked
         $('#addSawTimber').on('click', function() {
             $('#sawnTimberForm')[0].reset();
+            $('#sawnTimberForm').removeClass('was-validated');
+            $('#sawnTimberForm .is-invalid').removeClass('is-invalid');
             $('#companyDisplay').val('');
             $('#plantDisplay').val('');
             $('#companyId').val('');
@@ -726,6 +734,19 @@ else{
             var today = new Date();
             var formatted = ('0' + today.getDate()).slice(-2) + '-' + ('0' + (today.getMonth()+1)).slice(-2) + '-' + today.getFullYear();
             $('#sawnTimberDate').val(formatted);
+
+            // Initialize form validation
+            $('#sawnTimberForm').validate({
+                errorPlacement: function (error, element) {
+                    // Don't append - use existing invalid-feedback divs
+                },
+                highlight: function (element) {
+                    $(element).addClass('is-invalid');
+                },
+                unhighlight: function (element) {
+                    $(element).removeClass('is-invalid');
+                }
+            });
         });
 
         // Handle weight dropdown change
@@ -802,6 +823,11 @@ else{
         });
 
         $('#saveSawnTimber').on('click', function() {
+            // Validate form
+            if (!$('#sawnTimberForm').valid()) {
+                return;
+            }
+            
             $('#detailTable tbody tr').each(function() { calculateTons($(this)); });
             $.post('php/modules/sawnTimber/index.php?action=save', $('#sawnTimberForm').serialize(), function(data) {
                 var obj = JSON.parse(data);
@@ -952,10 +978,10 @@ else{
                 { data: 'id', orderable: false, className: 'sawn-action-cell', render: function(data) {
                     var buttons = '';
                     <?php if(hasModulePermission('Sawn Timber', 'Sawn Timber', ['edit'])): ?>
-                    buttons += '<button class="btn btn-sm btn-warning me-1" onclick="editRecord(\'' + data + '\')"><i class="ri-edit-line"></i></button>';
+                    buttons += '<button class="btn btn-sm btn-warning me-1" onclick="editRecord(\'' + data + '\')"><i class="fas fa-pen"></i></button>';
                     <?php endif; ?>
                     <?php if(hasModulePermission('Sawn Timber', 'Sawn Timber', ['cancelled'])): ?>
-                    buttons += '<button class="btn btn-sm btn-danger" onclick="deleteRecord(\'' + data + '\')"><i class="ri-delete-bin-line"></i></button>';
+                    buttons += '<button class="btn btn-sm btn-danger" onclick="deleteRecord(\'' + data + '\')"><i class="fa fa-times"></i></button>';
                     <?php endif; ?>
                     return buttons;
                 }}

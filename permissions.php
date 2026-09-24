@@ -138,7 +138,7 @@ while($m = $modules->fetch_assoc()){
                                                 <h6 class="text-muted mb-2"><?=htmlspecialchars($category)?></h6>
                                                 <?php foreach($mods as $mod): 
                                                     $modName = $mod['name'];
-                                                    if ($category == 'Weighing' || $category == 'Reports'){
+                                                    if ($category == 'Weighing' || $category == 'Reports' || $category == 'Master Data'){
                                                         if ($modName == 'Sales') {
                                                             $modName = $languageArray['dispatch_code']['en'];
                                                         } else if ($modName == 'Purchase') {
@@ -149,6 +149,8 @@ while($m = $modules->fetch_assoc()){
                                                             $modName = $languageArray['trx_to_port_code']['en'];
                                                         } else if ($modName == 'Misc') {
                                                             $modName = $languageArray['miscellaneous_code']['en'];
+                                                        } else if ($modName == 'Product Category') {
+                                                            $modName = $languageArray['product_category_code']['en'];
                                                         }
                                                     }
                                                     

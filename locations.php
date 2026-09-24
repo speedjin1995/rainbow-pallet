@@ -91,7 +91,7 @@
                                                                         <div class="row">
                                                                             <div class="col-xxl-12 col-lg-12 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="locationCode" class="col-sm-4 col-form-label"><?=$languageArray['location_code_code'][$language]?> *</label>
+                                                                                    <label for="locationCode" class="col-sm-4 col-form-label"><?=$languageArray['location_code_code'][$language]?> <span class="text-danger">*</span></label>
                                                                                     <div class="col-sm-8">
                                                                                         <input type="text" class="form-control" id="locationCode" name="locationCode" placeholder="Location Code" required>
                                                                                         <div class="invalid-feedback">
@@ -102,7 +102,7 @@
                                                                             </div>
                                                                             <div class="col-xxl-12 col-lg-12 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="locationName" class="col-sm-4 col-form-label"><?=$languageArray['location_name_code'][$language]?> *</label>
+                                                                                    <label for="locationName" class="col-sm-4 col-form-label"><?=$languageArray['location_name_code'][$language]?> <span class="text-danger">*</span></label>
                                                                                     <div class="col-sm-8">
                                                                                         <input type="text" class="form-control" id="locationName" name="locationName" placeholder="Location Name" required>
                                                                                         <div class="invalid-feedback">
@@ -113,19 +113,22 @@
                                                                             </div>
                                                                             <div class="col-xxl-12 col-lg-12 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="plant" class="col-sm-4 col-form-label"><?=$languageArray['plant_code'][$language]?> *</label>
+                                                                                    <label for="plant" class="col-sm-4 col-form-label"><?=$languageArray['plant_code'][$language]?> <span class="text-danger">*</span></label>
                                                                                     <div class="col-sm-8">
                                                                                         <select id="plant" name="plant" class="form-select select2" required>
                                                                                             <?php while($rowPlant=mysqli_fetch_assoc($plant)){ ?>
                                                                                                 <option value="<?=$rowPlant['id'] ?>"><?=$rowPlant['name'] ?></option>
                                                                                             <?php } ?>
                                                                                         </select>
+                                                                                        <div class="invalid-feedback">
+                                                                                            <?=$languageArray['please_fill_in_the_field_code'][$language]?>
+                                                                                        </div>
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
                                                                             <div class="col-xxl-12 col-lg-12 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="weighingCount" class="col-sm-4 col-form-label"><?=$languageArray['weighing_count_code'][$language]?> *</label>
+                                                                                    <label for="weighingCount" class="col-sm-4 col-form-label"><?=$languageArray['weighing_count_code'][$language]?> <span class="text-danger">*</span></label>
                                                                                     <div class="col-sm-8">
                                                                                         <select class="form-control" id="weighingCount" name="weighingCount" required>
                                                                                             <option value="1">1</option>
@@ -363,8 +366,6 @@ var permissions = <?= json_encode($_SESSION['permissions'] ?? []) ?>;
 var isSADMIN = <?= json_encode($_SESSION['roles'] == 'SADMIN') ?>;
 
 $(function () {
-    debugger;
-
     $.post('http://127.0.0.1:5002/getcomport', function(data){
         var decoded = JSON.parse(data);
         var options = '';
@@ -388,7 +389,7 @@ $(function () {
         'serverSide': true,
         'serverMethod': 'post',
         'ajax': {
-            'url':'php/modules/locations/loadLocations.php'
+            'url':'php/modules/locations/index.php?action=getAll'
         },
         'columns': [
             // {
@@ -454,7 +455,7 @@ $(function () {
     $('#submitLocation').on('click', function(){
         if($('#locationForm').valid()){
             $('#spinnerLoading').show();
-            $.post('php/modules/locations/locations.php', $('#locationForm').serialize(), function(data){
+            $.post('php/modules/locations/index.php', $('#locationForm').serialize() + '&action=' + ($('#addModal').find('#id').val() ? 'update' : 'create'), function(data){
                 var obj = JSON.parse(data); 
                 if(obj.status === 'success'){
                     table.ajax.reload();
@@ -475,14 +476,11 @@ $(function () {
                 }
             });
         }
-        else{
-            alert('Please filled in all the mandatory fields!!!');
-        }
     });
 
     $('#submitPortSetup').on('click', function(){
         $('#spinnerLoading').show();
-        $.post('php/modules/locations/savePortSetup.php', $('#portSetupForm').serialize(), function(data){
+        $.post('php/modules/locations/index.php', $('#portSetupForm').serialize() + '&action=savePortSetup', function(data){
             var obj = JSON.parse(data);
             if(obj.status === 'success'){
                 table.ajax.reload();
@@ -529,7 +527,7 @@ $(function () {
 
 function edit(id){
     $('#spinnerLoading').show();
-    $.post('php/modules/locations/getLocation.php', {userID: id}, function(data)
+    $.post('php/modules/locations/index.php', {action: 'get', id: id}, function(data)
     {
         var obj = JSON.parse(data);
         if(obj.status === 'success'){
@@ -559,7 +557,7 @@ function edit(id){
 
 function openPortSetup(id){
     $('#spinnerLoading').show();
-    $.post('php/modules/locations/getLocation.php', {userID: id, port: 'Y'}, function(data)
+    $.post('php/modules/locations/index.php', {action: 'get', id: id, port: 'Y'}, function(data)
     {
         var obj = JSON.parse(data);
         if(obj.status === 'success'){
@@ -583,7 +581,7 @@ function openPortSetup(id){
 function deactivate(id){
     $('#spinnerLoading').show();
     if (confirm('Are you sure you want to cancel this item?')) {
-        $.post('php/modules/locations/deleteLocation.php', {userID: id}, function(data){
+        $.post('php/modules/locations/index.php', {action: 'delete', id: id}, function(data){
             var obj = JSON.parse(data);
             
             if(obj.status === 'success'){

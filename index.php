@@ -66,6 +66,7 @@ $supplier2 = $db->query("SELECT * FROM Supplier WHERE status = '0' ORDER BY name
 $purchaseOrder = $db->query("SELECT * FROM Purchase_Order WHERE status = 'Open' AND deleted = '0' ORDER BY po_no ASC");
 $salesOrder = $db->query("SELECT * FROM Sales_Order WHERE status = 'Open' AND deleted = '0' ORDER BY order_no ASC");
 $container = $db->query("SELECT * FROM Weight_Container WHERE status = '0' AND is_complete = 'Y' AND is_cancel = 'N'");
+$projects = $db->query("SELECT * FROM Project WHERE status = '0' ORDER BY project_code ASC");
 
 $plantName = '-';
 $plantCode = '-';
@@ -773,6 +774,19 @@ else{
                                                                                     <label for="invoiceNo" class="col-sm-4 col-form-label"><?=$languageArray['invoice_no_code'][$language]?></label>
                                                                                     <div class="col-sm-8">
                                                                                         <input type="text" class="form-control" id="invoiceNo" name="invoiceNo" placeholder="<?=$languageArray['invoice_no_code'][$language]?>">
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="col-xxl-4 col-lg-4 mb-3">
+                                                                                <div class="row">
+                                                                                    <label for="project" class="col-sm-4 col-form-label"><?=$languageArray['project_code_code'][$language]?></label>
+                                                                                    <div class="col-sm-8">
+                                                                                        <select class="form-select select2" id="project" name="project">
+                                                                                            <option selected="-">-</option>
+                                                                                            <?php while($rowProject=mysqli_fetch_assoc($projects)){ ?>
+                                                                                                <option value="<?=$rowProject['id'] ?>"><?=$rowProject['project_code'] ?></option>
+                                                                                            <?php } ?>
+                                                                                        </select>
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
@@ -2131,6 +2145,7 @@ else{
             $('#addModal').find('#deliveryNo').val("");
             $('#addModal').find('#transporterCode').val("");
             $('#addModal').find('#transporter').val("-").trigger('change');
+            $('#addModal').find('#project').val("-").trigger('change');
             $('#addModal').find('#destinationCode').val("");
             $('#addModal').find('#plantCode').val("");
             $('#addModal').find('#plant').val("<?=$plantName ?>").trigger('change');
@@ -3281,6 +3296,8 @@ else{
                     var obj = JSON.parse(data);
 
                     if (obj.status == 'success'){ 
+                        $('#addModal').find('#companyId').val(obj.message.company_id).trigger('change');
+                        $('#addModal').find('#project').val(obj.message.project_id).trigger('change');
                         $('#addModal').find('#invoiceNo').val(obj.message.invoice_no);
                         $('#addModal').find('#deliveryNo').val(obj.message.delivery_no);
                         $('#addModal').find('#purchaseOrder').val(obj.message.purchase_order);
@@ -3331,8 +3348,6 @@ else{
                         $('#addModal').find('#plant').val(obj.message.plant_name).trigger('change');
                         $('#addModal').find('#transporter').val(obj.message.transporter).trigger('change');
                         $('#addModal').find('#destination').val(obj.message.destination).trigger('change');
-
-                        
                         $('#addModal').find('#vehiclePlateNo1').val(obj.message.lorry_plate_no1).trigger('change');
                         $('#addModal').find('#grossIncoming').val(obj.message.gross_weight1);
                         grossIncomingDatePicker.setDate(new Date(obj.message.gross_weight1_date)); 
@@ -3516,13 +3531,13 @@ else{
             if (transStatus == 'Sales' || transStatus == 'Port' || transStatus == 'Misc') {
                 // Sales | Port | Misc: incoming < outgoing
                 if (incoming >= outgoing) {
-                    alert('For ' + transStatusLabel + ', Incoming must be less than Outgoing.');
+                    alert('For ' + transStatusLabel + ' transaction, outgoing weight must be greater than incoming weight.');
                     return;
                 }
             } else if (transStatus == 'Purchase' || transStatus == 'Local') {
                 // Purchase | Local: outgoing < incoming
                 if (outgoing >= incoming) {
-                    alert('For ' + transStatusLabel + ', Outgoing must be less than Incoming.');
+                    alert('For ' + transStatusLabel + ' transaction, outgoing weight must be lesser than incoming weight.');
                     return;
                 }
             }
@@ -3533,13 +3548,13 @@ else{
             if (transStatus == 'Sales' || transStatus == 'Port' || transStatus == 'Misc') {
                 // Sales | Port | Misc: incoming < outgoing
                 if (incoming >= outgoing) {
-                    alert('For ' + transStatusLabel + ', Incoming 2 must be less than Outgoing.');
+                    alert('For ' + transStatusLabel + ' transaction, outgoing 2 weight must be greater than incoming 2 weight.');
                     return;
                 }
             } else if (transStatus == 'Purchase' || transStatus == 'Local') {
                 // Purchase | Local: outgoing < incoming
                 if (outgoing >= incoming) {
-                    alert('For ' + transStatusLabel + ', Outgoing 2 must be less than Incoming.');
+                    alert('For ' + transStatusLabel + ' transaction, outgoing 2 weight must be lesser than incoming 2 weight.');
                     return;
                 }
             }
@@ -4023,6 +4038,7 @@ else{
         <div class="row">
             <p><span><strong style="font-size:120%; text-decoration: underline;">Delivery Order Information</strong></span><br>
             <div class="col-6">
+                <p><strong>COMPANY:</strong> ${row.company_name}</p>
                 <p><strong>TRANSPORTER NAME:</strong> ${row.transporter}</p>
                 <p><strong>DESTINATION NAME:</strong> ${row.destination}</p>
                 <p><strong>PLANT NAME:</strong> ${row.plant_name}</p>`;
@@ -4039,6 +4055,7 @@ else{
             </div>
             <div class="col-6">
                 <p><strong>TRANSACTION ID:</strong> ${row.transaction_id}</p>
+                <p><strong>PROJECT:</strong> ${row.project_code}</p>
                 <p><strong>WEIGHT STATUS:</strong> ${transactionStatus}</p>
                 <p><strong>WEIGHT TYPE:</strong> ${weightType}</p>
                 <p><strong>DELIVERY NO:</strong> ${row.delivery_no}</p>
@@ -4260,6 +4277,7 @@ else{
                 $('#addModal').find('#deliveryNo').val(obj.message.delivery_no);
                 $('#addModal').find('#transporterCode').val(obj.message.transporter_code);
                 $('#addModal').find('#transporter').val(obj.message.transporter).trigger('change');
+                $('#addModal').find('#project').val(obj.message.project_id).trigger('change');
                 $('#addModal').find('#customerName').val(obj.message.customer_name).select2('destroy').select2();
                 $('#addModal').find('#customerCode').val(obj.message.customer_code);
                 $('#addModal').find('#supplierName').val(obj.message.supplier_name).select2('destroy').select2();

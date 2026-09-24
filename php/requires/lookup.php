@@ -241,6 +241,38 @@ function searchCompanyById($value, $db) {
     return $id;
 }
 
+function searchCompanyIdByName($value, $db) {
+    $id = null;
+
+    if ($select_stmt = $db->prepare("SELECT * FROM Company WHERE name=? AND status=0")) {
+        $select_stmt->bind_param('s', $value);
+        $select_stmt->execute();
+        $result = $select_stmt->get_result();
+        if ($row = $result->fetch_assoc()) {
+            $id = $row['id'];
+        }
+        $select_stmt->close();
+    }
+
+    return $id;
+}
+
+function searchProjectById($value, $db) {
+    $id = null;
+
+    if ($select_stmt = $db->prepare("SELECT * FROM Project WHERE id=?")) {
+        $select_stmt->bind_param('s', $value);
+        $select_stmt->execute();
+        $result = $select_stmt->get_result();
+        if ($row = $result->fetch_assoc()) {
+            $id = $row;
+        }
+        $select_stmt->close();
+    }
+
+    return $id;
+}
+
 function searchProductIdByCode($value, $db) {
     $id = '';
 
@@ -341,4 +373,68 @@ function getSpeciesIdByName($db, $name) {
     return $id;
 }
 
+function searchItemCategoryIdByName($value, $db) {
+    $id = null;
+
+    if ($select_stmt = $db->prepare("SELECT * FROM Product_Categories WHERE category_name=? AND status=0")) {
+        $select_stmt->bind_param('s', $value);
+        $select_stmt->execute();
+        $result = $select_stmt->get_result();
+        if ($row = $result->fetch_assoc()) {
+            $id = $row['id'];
+        }
+        $select_stmt->close();
+    }
+
+    return $id;
+}
+
+function searchItemCategoryById($value, $db) {
+    $row = null;
+
+    if ($select_stmt = $db->prepare("SELECT * FROM Product_Categories WHERE id=?")) {
+        $select_stmt->bind_param('s', $value);
+        $select_stmt->execute();
+        $result = $select_stmt->get_result();
+        if ($r = $result->fetch_assoc()) {
+            $row = $r;
+        }
+        $select_stmt->close();
+    }
+
+    return $row;
+}
+
+function searchUnitById($value, $db) {
+    $row = null;
+
+    if ($select_stmt = $db->prepare("SELECT * FROM Units WHERE id=?")) {
+        $select_stmt->bind_param('s', $value);
+        $select_stmt->execute();
+        $result = $select_stmt->get_result();
+        if ($r = $result->fetch_assoc()) {
+            $row = $r;
+        }
+        $select_stmt->close();
+    }
+
+    return $row;
+}
+
+function searchUnitIdByName($value, $db) {
+    $id = null;
+    $value = strtoupper(trim($value));
+
+    if ($select_stmt = $db->prepare("SELECT * FROM Units WHERE UPPER(unit)=? AND status=0")) {
+        $select_stmt->bind_param('s', $value);
+        $select_stmt->execute();
+        $result = $select_stmt->get_result();
+        if ($row = $result->fetch_assoc()) {
+            $id = $row['id'];
+        }
+        $select_stmt->close();
+    }
+
+    return $id;
+}
 ?>

@@ -4,6 +4,7 @@ require_once __DIR__ . '/../services/VehicleService.php';
 require_once __DIR__ . '/../services/ItemService.php';
 require_once __DIR__ . '/../services/CustomerService.php';
 require_once __DIR__ . '/../services/SupplierService.php';
+require_once __DIR__ . '/../requires/lookup.php';
 
 class WeightService extends BaseService {
 
@@ -569,19 +570,19 @@ class WeightService extends BaseService {
 
     // ─── SQL Fragments ───────────────────────────────────────────────────────────
     private function normalCols() {
-        return "company_id, transaction_id, transaction_status, weight_type, customer_type, transaction_date, lorry_plate_no1, lorry_plate_no2, supplier_weight, order_weight, customer_code, customer_name, supplier_code, supplier_name, product_code, product_name, raw_mat_code, raw_mat_name, container_no, seal_no, container_no2, seal_no2, invoice_no, purchase_order, delivery_no, transporter_code, transporter, destination_code, destination, remarks, gross_weight1, gross_weight1_date, gross_weight_by1, tare_weight1, tare_weight1_date, tare_weight_by1, nett_weight1, gross_weight2, gross_weight2_date, gross_weight_by2, tare_weight2, tare_weight2_date, tare_weight_by2, nett_weight2, reduce_weight, final_weight, weight_different, weight_different_perc, is_complete, is_cancel, manual_weight, indicator_id, weighbridge_id, created_by, modified_by, indicator_id_2, product_description, unit_price, sub_total, sst, total_price, is_approved, plant_code, plant_name, is_manual_product, is_manual_raw_material, is_manual_customer, is_manual_supplier";
+        return "company_id, transaction_id, transaction_status, weight_type, customer_type, transaction_date, lorry_plate_no1, lorry_plate_no2, supplier_weight, order_weight, customer_code, customer_name, supplier_code, supplier_name, product_code, product_name, raw_mat_code, raw_mat_name, container_no, seal_no, container_no2, seal_no2, invoice_no, purchase_order, delivery_no, transporter_code, transporter, destination_code, destination, remarks, gross_weight1, gross_weight1_date, gross_weight_by1, tare_weight1, tare_weight1_date, tare_weight_by1, nett_weight1, gross_weight2, gross_weight2_date, gross_weight_by2, tare_weight2, tare_weight2_date, tare_weight_by2, nett_weight2, reduce_weight, final_weight, weight_different, weight_different_perc, is_complete, is_cancel, manual_weight, indicator_id, weighbridge_id, created_by, modified_by, indicator_id_2, product_description, unit_price, sub_total, sst, total_price, is_approved, plant_code, plant_name, is_manual_product, is_manual_raw_material, is_manual_customer, is_manual_supplier, project_id";
     }
 
     private function normalSetCols() {
-        return "company_id=?, transaction_id=?, transaction_status=?, weight_type=?, customer_type=?, transaction_date=?, lorry_plate_no1=?, lorry_plate_no2=?, supplier_weight=?, order_weight=?, customer_code=?, customer_name=?, supplier_code=?, supplier_name=?, product_code=?, product_name=?, raw_mat_code=?, raw_mat_name=?, container_no=?, seal_no=?, container_no2=?, seal_no2=?, invoice_no=?, purchase_order=?, delivery_no=?, transporter_code=?, transporter=?, destination_code=?, destination=?, remarks=?, gross_weight1=?, gross_weight1_date=?, gross_weight_by1=?, tare_weight1=?, tare_weight1_date=?, tare_weight_by1=?, nett_weight1=?, gross_weight2=?, gross_weight2_date=?, gross_weight_by2=?, tare_weight2=?, tare_weight2_date=?, tare_weight_by2=?, nett_weight2=?, reduce_weight=?, final_weight=?, weight_different=?, weight_different_perc=?, is_complete=?, is_cancel=?, manual_weight=?, indicator_id=?, weighbridge_id=?, created_by=?, modified_by=?, indicator_id_2=?, product_description=?, unit_price=?, sub_total=?, sst=?, total_price=?, is_approved=?, plant_code=?, plant_name=?, is_manual_product=?, is_manual_raw_material=?, is_manual_customer=?, is_manual_supplier=?";
+        return "company_id=?, transaction_id=?, transaction_status=?, weight_type=?, customer_type=?, transaction_date=?, lorry_plate_no1=?, lorry_plate_no2=?, supplier_weight=?, order_weight=?, customer_code=?, customer_name=?, supplier_code=?, supplier_name=?, product_code=?, product_name=?, raw_mat_code=?, raw_mat_name=?, container_no=?, seal_no=?, container_no2=?, seal_no2=?, invoice_no=?, purchase_order=?, delivery_no=?, transporter_code=?, transporter=?, destination_code=?, destination=?, remarks=?, gross_weight1=?, gross_weight1_date=?, gross_weight_by1=?, tare_weight1=?, tare_weight1_date=?, tare_weight_by1=?, nett_weight1=?, gross_weight2=?, gross_weight2_date=?, gross_weight_by2=?, tare_weight2=?, tare_weight2_date=?, tare_weight_by2=?, nett_weight2=?, reduce_weight=?, final_weight=?, weight_different=?, weight_different_perc=?, is_complete=?, is_cancel=?, manual_weight=?, indicator_id=?, weighbridge_id=?, created_by=?, modified_by=?, indicator_id_2=?, product_description=?, unit_price=?, sub_total=?, sst=?, total_price=?, is_approved=?, plant_code=?, plant_name=?, is_manual_product=?, is_manual_raw_material=?, is_manual_customer=?, is_manual_supplier=?, project_id=?";
     }
 
     private function diffCols() {
-        return "company_id, transaction_id, transaction_status, weight_type, customer_type, transaction_date, lorry_plate_no1, lorry_plate_no2, supplier_weight, order_weight, customer_code, customer_name, supplier_code, supplier_name, product_code, product_name, raw_mat_code, raw_mat_name, container_no, seal_no, container_no2, seal_no2, invoice_no, purchase_order, delivery_no, transporter_code, transporter, destination_code, destination, remarks, gross_weight1, gross_weight1_date, gross_weight_by1, tare_weight1, tare_weight1_date, tare_weight_by1, nett_weight1, lorry_no2_weight, empty_container2_weight, replacement_container, gross_weight2, gross_weight2_date, gross_weight_by2, tare_weight2, tare_weight2_date, tare_weight_by2, nett_weight2, reduce_weight, final_weight, weight_different, weight_different_perc, is_complete, is_cancel, manual_weight, indicator_id, weighbridge_id, created_by, modified_by, indicator_id_2, product_description, unit_price, sub_total, sst, total_price, is_approved, plant_code, plant_name, is_manual_product, is_manual_raw_material, is_manual_customer, is_manual_supplier";
+        return "company_id, transaction_id, transaction_status, weight_type, customer_type, transaction_date, lorry_plate_no1, lorry_plate_no2, supplier_weight, order_weight, customer_code, customer_name, supplier_code, supplier_name, product_code, product_name, raw_mat_code, raw_mat_name, container_no, seal_no, container_no2, seal_no2, invoice_no, purchase_order, delivery_no, transporter_code, transporter, destination_code, destination, remarks, gross_weight1, gross_weight1_date, gross_weight_by1, tare_weight1, tare_weight1_date, tare_weight_by1, nett_weight1, lorry_no2_weight, empty_container2_weight, replacement_container, gross_weight2, gross_weight2_date, gross_weight_by2, tare_weight2, tare_weight2_date, tare_weight_by2, nett_weight2, reduce_weight, final_weight, weight_different, weight_different_perc, is_complete, is_cancel, manual_weight, indicator_id, weighbridge_id, created_by, modified_by, indicator_id_2, product_description, unit_price, sub_total, sst, total_price, is_approved, plant_code, plant_name, is_manual_product, is_manual_raw_material, is_manual_customer, is_manual_supplier, project_id";
     }
 
     private function diffSetCols() {
-        return "company_id=?, transaction_id=?, transaction_status=?, weight_type=?, customer_type=?, transaction_date=?, lorry_plate_no1=?, lorry_plate_no2=?, supplier_weight=?, order_weight=?, customer_code=?, customer_name=?, supplier_code=?, supplier_name=?, product_code=?, product_name=?, raw_mat_code=?, raw_mat_name=?, container_no=?, seal_no=?, container_no2=?, seal_no2=?, invoice_no=?, purchase_order=?, delivery_no=?, transporter_code=?, transporter=?, destination_code=?, destination=?, remarks=?, gross_weight1=?, gross_weight1_date=?, gross_weight_by1=?, tare_weight1=?, tare_weight1_date=?, tare_weight_by1=?, nett_weight1=?, lorry_no2_weight=?, empty_container2_weight=?, replacement_container=?, gross_weight2=?, gross_weight2_date=?, gross_weight_by2=?, tare_weight2=?, tare_weight2_date=?, tare_weight_by2=?, nett_weight2=?, reduce_weight=?, final_weight=?, weight_different=?, weight_different_perc=?, is_complete=?, is_cancel=?, manual_weight=?, indicator_id=?, weighbridge_id=?, created_by=?, modified_by=?, indicator_id_2=?, product_description=?, unit_price=?, sub_total=?, sst=?, total_price=?, is_approved=?, plant_code=?, plant_name=?, is_manual_product=?, is_manual_raw_material=?, is_manual_customer=?, is_manual_supplier=?";
+        return "company_id=?, transaction_id=?, transaction_status=?, weight_type=?, customer_type=?, transaction_date=?, lorry_plate_no1=?, lorry_plate_no2=?, supplier_weight=?, order_weight=?, customer_code=?, customer_name=?, supplier_code=?, supplier_name=?, product_code=?, product_name=?, raw_mat_code=?, raw_mat_name=?, container_no=?, seal_no=?, container_no2=?, seal_no2=?, invoice_no=?, purchase_order=?, delivery_no=?, transporter_code=?, transporter=?, destination_code=?, destination=?, remarks=?, gross_weight1=?, gross_weight1_date=?, gross_weight_by1=?, tare_weight1=?, tare_weight1_date=?, tare_weight_by1=?, nett_weight1=?, lorry_no2_weight=?, empty_container2_weight=?, replacement_container=?, gross_weight2=?, gross_weight2_date=?, gross_weight_by2=?, tare_weight2=?, tare_weight2_date=?, tare_weight_by2=?, nett_weight2=?, reduce_weight=?, final_weight=?, weight_different=?, weight_different_perc=?, is_complete=?, is_cancel=?, manual_weight=?, indicator_id=?, weighbridge_id=?, created_by=?, modified_by=?, indicator_id_2=?, product_description=?, unit_price=?, sub_total=?, sst=?, total_price=?, is_approved=?, plant_code=?, plant_name=?, is_manual_product=?, is_manual_raw_material=?, is_manual_customer=?, is_manual_supplier=?, project_id=?";
     }
 
     // ─── Param Builders ──────────────────────────────────────────────────────────
@@ -608,7 +609,8 @@ class WeightService extends BaseService {
             $this->username, $this->username, $f['indicatorId2'],
             $f['productDescription'], $f['unitPrice'], $f['subTotalPrice'], $f['sstPrice'], $f['totalPrice'],
             $f['isApproved'], $f['plantCode'], $f['plant'],
-            $isManualProduct, $isManualRawMaterial, $isManualCustomer, $isManualSupplier
+            $isManualProduct, $isManualRawMaterial, $isManualCustomer, $isManualSupplier,
+            $f['project']
         ];
     }
 
@@ -636,7 +638,8 @@ class WeightService extends BaseService {
             $this->username, $this->username, $f['indicatorId2'],
             $f['productDescription'], $f['unitPrice'], $f['subTotalPrice'], $f['sstPrice'], $f['totalPrice'],
             $f['isApproved'], $f['plantCode'], $f['plant'],
-            $isManualProduct, $isManualRawMaterial, $isManualCustomer, $isManualSupplier
+            $isManualProduct, $isManualRawMaterial, $isManualCustomer, $isManualSupplier,
+            $f['project']
         ];
     }
 
@@ -722,10 +725,14 @@ class WeightService extends BaseService {
         }
         $msg = array_merge($msg, $party);
 
-        $fields = ['company_id','transporter','destination','plant_name','lorry_plate_no1','transaction_id','transaction_status','weight_type','invoice_no','delivery_no','container_no','seal_no','container_no2','seal_no2','purchase_order','gross_weight1','tare_weight1','nett_weight1','lorry_plate_no2','gross_weight2','tare_weight2','nett_weight2','reduce_weight','final_weight','customer_side_company','customer_side_removal_pass_no','customer_side_license_no','customer_side_moisture_content','customer_side_officer_name','customer_side_rainbow_driver','cust_side_do_no','cust_side_mc','cust_side_first_weight','cust_side_second_weight','cust_side_nett_weight','weight_difference'];
+        $fields = ['transporter','destination','plant_name','lorry_plate_no1','transaction_id','transaction_status','weight_type','invoice_no','delivery_no','container_no','seal_no','container_no2','seal_no2','purchase_order','gross_weight1','tare_weight1','nett_weight1','lorry_plate_no2','gross_weight2','tare_weight2','nett_weight2','reduce_weight','final_weight','customer_side_company','customer_side_removal_pass_no','customer_side_license_no','customer_side_moisture_content','customer_side_officer_name','customer_side_rainbow_driver','cust_side_do_no','cust_side_mc','cust_side_first_weight','cust_side_second_weight','cust_side_nett_weight','weight_difference'];
         foreach ($fields as $f) {
             $msg[$f] = $row[$f] ?? '';
         }
+        $company = searchCompanyById($row['company_id'], $this->db);
+        $msg['company_name'] = $company ? $company['name'] : '';
+        $project = searchProjectById($row['project_id'], $this->db);
+        $msg['project_code'] = $project ? $project['project_code'] : '';
 
         $dateFields = ['gross_weight1_date','tare_weight1_date','gross_weight2_date','tare_weight2_date','created_date'];
         foreach ($dateFields as $f) {

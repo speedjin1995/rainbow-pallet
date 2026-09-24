@@ -259,7 +259,7 @@ $(function () {
         'order': [[ 1, 'asc' ]],
         'columnDefs': [ { orderable: false, targets: [0] }],
         'ajax': {
-            'url':'php/modules/message/loadMessages.php'
+            'url':'php/modules/message/index.php?action=getAll'
         },
         'columns': [
             { data: 'counter' },
@@ -315,7 +315,7 @@ $(function () {
     $('#submitMessage').on('click', function(){
         if($('#messageForm').valid()){
             $('#spinnerLoading').show();
-            $.post('php/modules/message/message.php', $('#messageForm').serialize(), function(data){
+            $.post('php/modules/message/index.php', $('#messageForm').serialize() + '&action=' + ($('#messageModal').find('#keyId').val() ? 'update' : 'create'), function(data){
                 var obj = JSON.parse(data);
                 if(obj.status === 'success') {
                     table.ajax.reload();
@@ -364,7 +364,7 @@ $(function () {
 
 function edit(id){
     $('#spinnerLoading').show();
-    $.post('php/modules/message/getMessage.php', {messageId: id}, function(data) {
+    $.post('php/modules/message/index.php', {action: 'get', id: id}, function(data) {
         var decode = JSON.parse(data);
 
         if(decode.status === 'success'){
@@ -395,7 +395,7 @@ function edit(id){
 function deactivate(id){
     $('#spinnerLoading').show();
     if (confirm('Are you sure you want to delete this message resource?')) {
-        $.post('php/modules/message/deleteMessage.php', {messageId: id}, function(data){
+        $.post('php/modules/message/index.php', {action: 'delete', id: id}, function(data){
             var obj = JSON.parse(data);
 
             if(obj.status === 'success'){
