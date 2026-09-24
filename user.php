@@ -517,6 +517,7 @@ if (!hasModulePermission('User Management', 'User Setup', ['view_all_companies']
             $('#addModal').find('#useremail').val("");
             $('#addModal').find('#roles').val("");
             $('#addModal').find('#plantId').val('').trigger('change');
+            $('#addModal').find('#company').val('').trigger('change');
 
             // Remove Validation Error Message
             $('#addModal .is-invalid').removeClass('is-invalid');
@@ -689,6 +690,7 @@ if (!hasModulePermission('User Management', 'User Setup', ['view_all_companies']
                 $('#addModal').find('#useremail').val(obj.message.useremail);
                 $('#addModal').find('#roles').val(obj.message.role).trigger("change");
                 $("#addModal").find("#plantId").val(JSON.parse(obj.message.plant_id)).trigger("change");
+                $("#addModal").find("#company").val(JSON.parse(obj.message.company_id)).trigger("change");
 
                 // Remove Validation Error Message
                 $('#addModal .is-invalid').removeClass('is-invalid');

@@ -145,7 +145,7 @@ class UserService extends BaseService {
     }
 
     public function get($id) {
-        $stmt = $this->db->prepare("SELECT id, employee_code, username, name, useremail, role, plant_id FROM {$this->table} WHERE id=?");
+        $stmt = $this->db->prepare("SELECT id, employee_code, username, name, useremail, role, plant_id, company_id FROM {$this->table} WHERE id=?");
         if (!$stmt) throw new Exception($this->db->error);
         $stmt->bind_param('s', $id);
         $stmt->execute();
