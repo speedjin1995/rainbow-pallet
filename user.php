@@ -372,7 +372,7 @@ mysqli_stmt_bind_result($stmt4, $pcode, $pname);
             'serverSide': true,
             'serverMethod': 'post',
             'ajax': {
-                'url':'php/modules/user/loadMembers.php'
+                'url':'php/modules/user/index.php?action=getAll'
             },
             'columns': [
                 {
@@ -473,7 +473,7 @@ mysqli_stmt_bind_result($stmt4, $pcode, $pname);
             });
             if($('#memberForm').valid()){
                 $('#spinnerLoading').show();
-                $.post('php/modules/user/users.php', $('#memberForm').serialize(), function(data){
+                $.post('php/modules/user/index.php', $('#memberForm').serialize() + '&action=' + ($('#memberForm').find('#id').val() ? 'update' : 'create'), function(data){
                     var obj = JSON.parse(data);
                     if(obj.status === 'success') {
                         table.ajax.reload();
@@ -550,7 +550,7 @@ mysqli_stmt_bind_result($stmt4, $pcode, $pname);
 
             // Send the JSON array to the server
             $.ajax({
-                url: 'php/modules/user/uploadUser.php',
+                url: 'php/modules/user/index.php?action=upload',
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify(data),
@@ -631,7 +631,7 @@ mysqli_stmt_bind_result($stmt4, $pcode, $pname);
 
             if (selectedIds.length > 0) {
                 if (confirm('Are you sure you want to delete these users?')) {
-                    $.post('php/modules/user/deleteUser.php', {userID: selectedIds, type: 'MULTI'}, function(data){
+                    $.post('php/modules/user/index.php', {action: 'delete', userID: selectedIds, type: 'MULTI'}, function(data){
                         var obj = JSON.parse(data);
                         
                         if(obj.status === 'success'){
@@ -662,7 +662,7 @@ mysqli_stmt_bind_result($stmt4, $pcode, $pname);
 
     function edit(id){
         $('#spinnerLoading').show();
-        $.post('php/modules/user/getUser.php', {userID: id}, function(data){
+        $.post('php/modules/user/index.php', {action: 'get', userID: id}, function(data){
             var obj = JSON.parse(data);
             
             if(obj.status === 'success'){
@@ -671,8 +671,8 @@ mysqli_stmt_bind_result($stmt4, $pcode, $pname);
                 $('#addModal').find('#username').val(obj.message.username);
                 $('#addModal').find('#name').val(obj.message.name);
                 $('#addModal').find('#useremail').val(obj.message.useremail);
-                $('#addModal').find('#roles').val(obj.message.role_code).trigger("change");
-                $("#addModal").find("#plantId").val(JSON.parse(obj.message.plant)).trigger("change");
+                $('#addModal').find('#roles').val(obj.message.role).trigger("change");
+                $("#addModal").find("#plantId").val(JSON.parse(obj.message.plant_id)).trigger("change");
 
                 // Remove Validation Error Message
                 $('#addModal .is-invalid').removeClass('is-invalid');
@@ -706,7 +706,7 @@ mysqli_stmt_bind_result($stmt4, $pcode, $pname);
     function deactivate(id){
         $('#spinnerLoading').show();
         if (confirm('Are you sure you want to delete this user?')) {
-        $.post('php/modules/user/deleteUser.php', {userID: id}, function(data){
+        $.post('php/modules/user/index.php', {action: 'delete', userID: id}, function(data){
                 var obj = JSON.parse(data);
 
                 if(obj.status === 'success'){
@@ -812,7 +812,7 @@ mysqli_stmt_bind_result($stmt4, $pcode, $pname);
     function resetPassword(id) {
         if (!confirm('<?=$languageArray['confirm_reset_password_code'][$language] ?? 'Are you sure you want to reset this user password to 123456?'?>')) return;
         $('#spinnerLoading').show();
-        $.post('php/modules/user/resetPassword.php', {userID: id}, function(data) {
+        $.post('php/modules/user/index.php', {action: 'resetPassword', userID: id}, function(data) {
             var obj = JSON.parse(data);
             if (obj.status === 'success') {
                 toastr["success"](obj.message, "Success:");

@@ -259,7 +259,7 @@ $(function () {
         'processing': true,
         'serverSide': true,
         'serverMethod': 'post',
-        'ajax': { 'url':'php/modules/roles/loadRoles.php' },
+        'ajax': { 'url':'php/modules/roles/index.php?action=getAll' },
         'columns': [
             {
                 data: 'id',
@@ -329,7 +329,7 @@ $(function () {
     $('#submitRole').on('click', function(){
         if($('#roleForm').valid()){
             $('#spinnerLoading').show();
-            $.post('php/modules/roles/role.php', $('#roleForm').serialize(), function(data){
+            $.post('php/modules/roles/index.php', $('#roleForm').serialize() + '&action=' + ($('#roleForm').find('#roleId').val() ? 'update' : 'create'), function(data){
                 var obj = JSON.parse(data);
                 if(obj.status === 'success'){
                     table.ajax.reload();
@@ -347,7 +347,7 @@ $(function () {
     // Submit Permissions
     $('#submitPermissions').on('click', function(){
         $('#spinnerLoading').show();
-        $.post('php/modules/roles/rolePermission.php', $('#permForm').serialize(), function(data){
+        $.post('php/modules/roles/index.php', $('#permForm').serialize() + '&action=saveRolePermissions', function(data){
             var obj = JSON.parse(data);
             if(obj.status === 'success'){
                 window.location.reload();
@@ -393,7 +393,7 @@ $(function () {
 
         if (selectedIds.length > 0) {
             if (confirm('<?=$languageArray['multi_roles_delete_confirmation_code'][$language]?>')) {
-                $.post('php/modules/roles/deleteRole.php', {roleID: selectedIds, type: 'MULTI'}, function(data){
+                $.post('php/modules/roles/index.php', {action: 'delete', roleID: selectedIds, type: 'MULTI'}, function(data){
                     var obj = JSON.parse(data);
                     
                     if(obj.status === 'success'){
@@ -424,7 +424,7 @@ $(function () {
 
 function edit(id){
     $('#spinnerLoading').show();
-    $.post('php/modules/roles/getRole.php', {id: id}, function(data)
+    $.post('php/modules/roles/index.php', {action: 'get', id: id}, function(data)
     {
         var obj = JSON.parse(data);
         if(obj.status === 'success'){
@@ -468,7 +468,7 @@ function managePermissions(id, roleName) {
     $('#permForm .perm-check').prop('checked', false);
 
     $('#spinnerLoading').show();
-    $.post('php/modules/roles/getRolePermissions.php', { id: id }, function(data) {
+    $.post('php/modules/roles/index.php', { action: 'getRolePermissions', id: id }, function(data) {
         var obj = JSON.parse(data);
         if (obj.status === 'success') {
             obj.message.forEach(function(p) {
@@ -483,7 +483,7 @@ function managePermissions(id, roleName) {
 function deactivate(id){
     if (confirm('<?=$languageArray['roles_delete_confirmation_code'][$language]?>?')) {
         $('#spinnerLoading').show();
-        $.post('php/modules/roles/deleteRole.php', {roleID: id}, function(data){
+        $.post('php/modules/roles/index.php', {action: 'delete', roleID: id}, function(data){
             var obj = JSON.parse(data);
             if(obj.status === 'success'){
                 table.ajax.reload();
