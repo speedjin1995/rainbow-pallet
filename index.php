@@ -3528,13 +3528,15 @@ else{
             var incoming = parseFloat($('#grossIncoming').val()) || 0;
             var outgoing = parseFloat($('#tareOutgoing').val()) || 0;
 
-            if (transStatus == 'Sales' || transStatus == 'Port' || transStatus == 'Misc') {
+            // if (transStatus == 'Sales' || transStatus == 'Port' || transStatus == 'Misc') {
+            if (transStatus == 'Sales') {
                 // Sales | Port | Misc: incoming < outgoing
                 if (incoming >= outgoing) {
                     alert('For ' + transStatusLabel + ' transaction, outgoing weight must be greater than incoming weight.');
                     return;
                 }
-            } else if (transStatus == 'Purchase' || transStatus == 'Local') {
+            // } else if (transStatus == 'Purchase' || transStatus == 'Local') {
+            } else if (transStatus == 'Purchase') {
                 // Purchase | Local: outgoing < incoming
                 if (outgoing >= incoming) {
                     alert('For ' + transStatusLabel + ' transaction, outgoing weight must be lesser than incoming weight.');
@@ -3545,13 +3547,15 @@ else{
             var incoming = parseFloat($('#grossIncoming2').val()) || 0;
             var outgoing = parseFloat($('#tareOutgoing2').val()) || 0;
 
-            if (transStatus == 'Sales' || transStatus == 'Port' || transStatus == 'Misc') {
+            // if (transStatus == 'Sales' || transStatus == 'Port' || transStatus == 'Misc') {
+            if (transStatus == 'Sales') {
                 // Sales | Port | Misc: incoming < outgoing
                 if (incoming >= outgoing) {
                     alert('For ' + transStatusLabel + ' transaction, outgoing 2 weight must be greater than incoming 2 weight.');
                     return;
                 }
-            } else if (transStatus == 'Purchase' || transStatus == 'Local') {
+            // } else if (transStatus == 'Purchase' || transStatus == 'Local') {
+            } else if (transStatus == 'Purchase') {
                 // Purchase | Local: outgoing < incoming
                 if (outgoing >= incoming) {
                     alert('For ' + transStatusLabel + ' transaction, outgoing 2 weight must be lesser than incoming 2 weight.');
