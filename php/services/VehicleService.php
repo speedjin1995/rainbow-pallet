@@ -13,7 +13,6 @@ class VehicleService extends BaseService {
         $search      = mysqli_real_escape_string($this->db, $post['search']['value']);
         $companyId   = isset($post['companyId']) ? intval($post['companyId']) : 0;
         $vehicleNo   = isset($post['vehicleNo']) ? mysqli_real_escape_string($this->db, $post['vehicleNo']) : '';
-        $customerName = isset($post['customerName']) ? mysqli_real_escape_string($this->db, $post['customerName']) : '';
 
         $q = '';
         if ($search !== '') {
@@ -24,9 +23,6 @@ class VehicleService extends BaseService {
         }
         if ($vehicleNo !== '') {
             $q .= " AND veh_number LIKE '%{$vehicleNo}%'";
-        }
-        if ($customerName !== '') {
-            $q .= " AND customer_name LIKE '%{$customerName}%'";
         }
 
         $totalRes = $this->db->query("SELECT COUNT(*) as c FROM Vehicle");
