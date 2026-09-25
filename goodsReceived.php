@@ -69,6 +69,16 @@ else{
         .modal-header {
             padding: var(1rem, 1rem) !important;
         }
+
+        .number-spinner::-webkit-inner-spin-button,
+        .number-spinner::-webkit-outer-spin-button {
+            -webkit-appearance: auto;
+            opacity: 1;
+        }
+
+        .number-spinner {
+            -moz-appearance: number-input;
+        }
     </style>
 </head>
 
@@ -127,6 +137,22 @@ else{
                                                             </select>           
                                                         </div>
                                                     </div><!--end col-->
+                                                    <div class="col-3">
+                                                        <div class="mb-3">
+                                                            <label for="paymentTermSearch" class="form-label"><?=$languageArray['payment_term_code'][$language]?></label>
+                                                            <select id="paymentTermSearch" class="form-select select2">
+                                                                <option selected>-</option>
+                                                                <option value="Cash"><?=$languageArray['cash_code'][$language]?></option>
+                                                                <option value="Term"><?=$languageArray['term_code'][$language]?></option>
+                                                            </select>
+                                                        </div>
+                                                    </div><!--end col-->
+                                                    <div class="col-3">
+                                                        <div class="mb-3">
+                                                            <label for="paymentTermPeriodSearch" class="form-label"><?=$languageArray['payment_term_period_code'][$language]?></label>
+                                                            <input type="number" class="form-control number-spinner" id="paymentTermPeriodSearch" name="paymentTermPeriodSearch" min="0" step="1" placeholder="<?=$languageArray['payment_term_period_code'][$language]?>">
+                                                        </div>
+                                                    </div><!--end col-->
 
                                                     <div class="col-3" id="supplierSearchDisplay">
                                                         <div class="mb-3">
@@ -134,7 +160,7 @@ else{
                                                             <select id="supplierSearch" class="form-select select2">
                                                                 <option selected>-</option>
                                                                 <?php while($rowSF=mysqli_fetch_assoc($supplier2)){ ?>
-                                                                    <option value="<?=$rowSF['supplier_code'] ?>"><?=$rowSF['name'] ?></option>
+                                                                    <option value="<?=$rowSF['supplier_code'] ?>" data-payment-term="<?=$rowSF['payment_term'] ?>"><?=$rowSF['name'] ?></option>
                                                                 <?php } ?>
                                                             </select>
                                                         </div>
@@ -282,6 +308,7 @@ else{
     var permissions = <?= json_encode($_SESSION['permissions']) ?>;
     var isSADMIN = <?= json_encode($_SESSION['roles'] == 'SADMIN') ?>;
     var allRawMatSearchOptions = null;
+    var allSupplierSearchOptions = null;
 
     $(function () {
         const today = new Date();
@@ -345,6 +372,10 @@ else{
             renderTable();
         });
 
+        $('#paymentTermSearch').on('change', function () {
+            filterSupplierDropdown();
+        });
+
         // Add event listener for opening and closing details on row click
         $('#weightTable tbody').on('click', 'tr', function (e) {
             var tr = $(this); // The row that was clicked
@@ -374,10 +405,11 @@ else{
 
         // Post to SQL Handling
         $('#postSQL').on('click', function () {
-            $('#spinnerLoading').show();
             var fromDateI = $('#fromDateSearch').val();
             var toDateI = $('#toDateSearch').val();
             var companyI = $('#companySearch').val() || '';
+            var paymentTermI = $('#paymentTermSearch').val() || '';
+            var paymentTermPeriodI = $('#paymentTermPeriodSearch').val() || '';
             var supplierNoI = $('#supplierSearch').val() || '';
             var rawMatI = $('#rawMatSearch').val() || '';
             var plantI = $('#plantSearch').val() || '';
@@ -393,10 +425,13 @@ else{
 
             if (selectedIds.length > 0) {
                 if (confirm('Are you sure you want to post to SQL these items?')) {
+                    $('#spinnerLoading').show();
                     $.post('php/modules/goodsReceived/postGr.php', {
                         fromDate: fromDateI,
                         toDate: toDateI,
                         company: companyI,
+                        paymentTerm: paymentTermI,
+                        paymentTermPeriod: paymentTermPeriodI,
                         supplier: supplierNoI,
                         rawMat: rawMatI,
                         plant: plantI,
@@ -422,15 +457,16 @@ else{
                         }
                     });
                 }
-
-                //$('#spinnerLoading').hide();
             } 
             else {
                 if (confirm('Are you sure you want to post to SQL?')) {
+                    $('#spinnerLoading').show();
                     $.post('php/modules/goodsReceived/postGr.php', {
                         fromDate: fromDateI,
                         toDate: toDateI,
                         company: companyI,
+                        paymentTerm: paymentTermI,
+                        paymentTermPeriod: paymentTermPeriodI,
                         supplier: supplierNoI,
                         rawMat: rawMatI,
                         plant: plantI,
@@ -455,8 +491,6 @@ else{
                         }
                     });
                 }
-
-                //$('#spinnerLoading').hide();
             }     
         });
 
@@ -465,6 +499,8 @@ else{
             var fromDateI = $('#fromDateSearch').val();
             var toDateI = $('#toDateSearch').val();
             var companyI = $('#companySearch').val() || '';
+            var paymentTermI = $('#paymentTermSearch').val() || '';
+            var paymentTermPeriodI = $('#paymentTermPeriodSearch').val() || '';
             var supplierNoI = $('#supplierSearch').val() || '';
             var rawMatI = $('#rawMatSearch').val() || '';
             var plantI = $('#plantSearch').val() || '';
@@ -480,15 +516,36 @@ else{
 
             if (selectedIds.length > 0) {
                 window.open("php/modules/goodsReceived/exportExcel.php?&isMulti=Y&fromDate="+fromDateI+"&toDate="+toDateI+"&company="+companyI+"&supplier="+supplierNoI+
-                "&rawMaterial="+rawMatI+"&plant="+plantI+"&purchaseOrder="+poI+"&transactionId="+transactionIdI+"&id="+selectedIds);
+                "&paymentTerm="+paymentTermI+"&paymentTermPeriod="+paymentTermPeriodI+"&rawMaterial="+rawMatI+"&plant="+plantI+"&purchaseOrder="+poI+"&transactionId="+transactionIdI+"&id="+selectedIds);
             } 
             else {
-                window.open("php/modules/goodsReceived/exportExcel.php?&isMulti=N&fromDate="+fromDateI+"&toDate="+toDateI+"&company="+companyI+"&supplier="+supplierNoI+"&rawMaterial="+rawMatI+"&plant="+plantI+"&purchaseOrder="+poI+"&transactionId="+transactionIdI);
+                window.open("php/modules/goodsReceived/exportExcel.php?&isMulti=N&fromDate="+fromDateI+"&toDate="+toDateI+"&company="+companyI+"&supplier="+supplierNoI+"&paymentTerm="+paymentTermI+"&paymentTermPeriod="+paymentTermPeriodI+"&rawMaterial="+rawMatI+"&plant="+plantI+"&purchaseOrder="+poI+"&transactionId="+transactionIdI);
             }     
         });
 
         filterDropdownByTransactionStatus('#rawMatSearch', 'allRawMatSearchOptions', 'Purchase');
+        filterSupplierDropdown();
     });
+
+    function filterSupplierDropdown() {
+        if (!allSupplierSearchOptions) {
+            allSupplierSearchOptions = $('#supplierSearch option').clone(true);
+        }
+
+        var paymentTerm = $('#paymentTermSearch').val() || '-';
+        $('#supplierSearch').empty();
+
+        allSupplierSearchOptions.each(function() {
+            var $option = $(this).clone(true);
+            if ($option.val() === '-' || $option.val() === '') {
+                $('#supplierSearch').append($option);
+            } else if (paymentTerm === '-' || $option.data('payment-term') == paymentTerm) {
+                $('#supplierSearch').append($option);
+            }
+        });
+
+        $('#supplierSearch').val('-').trigger('change');
+    }
 
     // Filter dropdown options based on transaction status
     function filterDropdownByTransactionStatus(selector, allOptionsVar, status) {
@@ -519,6 +576,8 @@ else{
         var fromDateI = $('#fromDateSearch').val();
         var toDateI = $('#toDateSearch').val();
         var companyI = $('#companySearch').val() || '';
+        var paymentTermI = $('#paymentTermSearch').val() || '';
+        var paymentTermPeriodI = $('#paymentTermPeriodSearch').val() || '';
         var supplierNoI = $('#supplierSearch').val() || '';
         var rawMatI = $('#rawMatSearch').val() || '';
         var plantI = $('#plantSearch').val() || '';
@@ -544,6 +603,8 @@ else{
                     fromDate: fromDateI,
                     toDate: toDateI,
                     company: companyI,
+                    paymentTerm: paymentTermI,
+                    paymentTermPeriod: paymentTermPeriodI,
                     supplier: supplierNoI,
                     rawMaterial: rawMatI,
                     plant: plantI,

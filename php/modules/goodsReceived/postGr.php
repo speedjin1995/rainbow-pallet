@@ -31,6 +31,14 @@ if(!empty($_POST['company']) && $_POST['company'] != null && $_POST['company'] !
 	$searchQuery .= " and company_id = '".$_POST['company']."'";
 }
 
+if(!empty($_POST['paymentTerm']) && $_POST['paymentTerm'] != null && $_POST['paymentTerm'] != '' && $_POST['paymentTerm'] != '-'){
+	$searchQuery .= " and supplier_code IN (SELECT supplier_code FROM Supplier WHERE payment_term = '".mysqli_real_escape_string($db, $_POST['paymentTerm'])."')";
+}
+
+if(!empty($_POST['paymentTermPeriod']) && $_POST['paymentTermPeriod'] != null && $_POST['paymentTermPeriod'] != '' && $_POST['paymentTermPeriod'] != '-'){
+	$searchQuery .= " and supplier_code IN (SELECT supplier_code FROM Supplier WHERE payment_term_period = '".mysqli_real_escape_string($db, $_POST['paymentTermPeriod'])."')";
+}
+
 if(!empty($_POST['supplier']) && $_POST['supplier'] != null && $_POST['supplier'] != '' && $_POST['supplier'] != '-'){
 	$searchQuery .= " and supplier_code = '".$_POST['supplier']."'";
 }

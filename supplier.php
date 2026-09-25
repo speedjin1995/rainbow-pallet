@@ -29,6 +29,17 @@
     <script src="plugins/jquery-validation/jquery.validate.min.js"></script>
     
     <?php include 'layouts/head-css.php'; ?>
+    <style>
+        .number-spinner::-webkit-inner-spin-button,
+        .number-spinner::-webkit-outer-spin-button {
+            -webkit-appearance: auto;
+            opacity: 1;
+        }
+
+        .number-spinner {
+            -moz-appearance: number-input;
+        }
+    </style>
 
 </head>
 
@@ -239,12 +250,7 @@
                                                                                 <div class="row">
                                                                                     <label for="paymentTermPeriod" class="col-sm-4 col-form-label"><?=$languageArray['payment_term_period_code'][$language]?></label>
                                                                                     <div class="col-sm-8">
-                                                                                        <select class="form-control select2" style="width: 100%;" id="paymentTermPeriod" name="paymentTermPeriod">
-                                                                                            <option value="Daily"><?=$languageArray['daily_code'][$language]?></option>
-                                                                                            <option value="Weekly"><?=$languageArray['weekly_code'][$language]?></option>
-                                                                                            <option value="Bi-Weekly"><?=$languageArray['bi_weekly_code'][$language]?></option>
-                                                                                            <option value="Monthly"><?=$languageArray['monthly_code'][$language]?></option>
-                                                                                        </select>
+                                                                                        <input type="number" class="form-control number-spinner" id="paymentTermPeriod" name="paymentTermPeriod" min="0" step="1" placeholder="<?=$languageArray['payment_term_period_code'][$language]?>">
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
@@ -644,7 +650,7 @@ $(function () {
         $('#addModal').find('#tinNo').val("");
         $('#addModal').find('#accountNo').val("");
         $('#addModal').find('#paymentTerm').val("Cash").trigger('change');
-        $('#addModal').find('#paymentTermPeriod').val("Daily");
+        $('#addModal').find('#paymentTermPeriod').val("");
 
         // Remove Validation Error Message
         $('#addModal .is-invalid').removeClass('is-invalid');

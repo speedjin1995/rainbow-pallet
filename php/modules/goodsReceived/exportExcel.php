@@ -29,6 +29,14 @@ if($_GET['company'] != null && $_GET['company'] != '' && $_GET['company'] != '-'
 	$searchQuery .= " and company_id = '".$_GET['company']."'";
 }
 
+if($_GET['paymentTerm'] != null && $_GET['paymentTerm'] != '' && $_GET['paymentTerm'] != '-'){
+	$searchQuery .= " and supplier_code IN (SELECT supplier_code FROM Supplier WHERE payment_term = '".mysqli_real_escape_string($db, $_GET['paymentTerm'])."')";
+}
+
+if($_GET['paymentTermPeriod'] != null && $_GET['paymentTermPeriod'] != '' && $_GET['paymentTermPeriod'] != '-'){
+	$searchQuery .= " and supplier_code IN (SELECT supplier_code FROM Supplier WHERE payment_term_period = '".mysqli_real_escape_string($db, $_GET['paymentTermPeriod'])."')";
+}
+
 if($_GET['supplier'] != null && $_GET['supplier'] != '' && $_GET['supplier'] != '-'){
 	$searchQuery .= " and supplier_code = '".$_GET['supplier']."'";
 }

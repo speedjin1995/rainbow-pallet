@@ -35,10 +35,10 @@ class SawnTimberService extends BaseService {
             $searchQuery .= " AND h.plant_id = '" . mysqli_real_escape_string($this->db, $params['plant']) . "'";
         }
         if (!empty($params['transactionId'])) {
-            $searchQuery .= " AND w.transaction_id LIKE '%" . mysqli_real_escape_string($this->db, $params['transactionId']) . "%'";
+            $searchQuery .= " AND COALESCE(h.transaction_id, w.transaction_id) LIKE '%" . mysqli_real_escape_string($this->db, $params['transactionId']) . "%'";
         }
         if ($searchValue != '') {
-            $searchQuery = " AND (w.transaction_id LIKE '%" . $searchValue . "%' OR w.lorry_plate_no1 LIKE '%" . $searchValue . "%')";
+            $searchQuery = " AND (COALESCE(h.transaction_id, w.transaction_id) LIKE '%" . $searchValue . "%' OR w.lorry_plate_no1 LIKE '%" . $searchValue . "%')";
         }
 
         // Total records
@@ -50,14 +50,15 @@ class SawnTimberService extends BaseService {
         $totalRecordwithFilter = mysqli_fetch_assoc($sel)['allcount'];
 
         // Fetch records
-        $sql = "SELECT h.id, h.company_id, h.plant_id, h.weight_id, w.transaction_id, h.record_date, 
-            c.name AS customer_name, s.name AS supplier_name, h.remarks, h.status, 
+        $sql = "SELECT h.id, h.company_id, h.plant_id, h.weight_id, COALESCE(h.transaction_id, w.transaction_id) AS transaction_id, h.record_date, 
+            c.name AS customer_name, COALESCE(sh.name, s.name) AS supplier_name, h.remarks, h.status, 
             COALESCE(SUM(d.pieces),0) AS total_pieces, COALESCE(SUM(d.tons),0) AS total_tons 
             FROM Sawn_Timber_Header h 
             LEFT JOIN Sawn_Timber_Detail d ON h.id=d.header_id 
             LEFT JOIN Weight w ON h.weight_id=w.id 
             LEFT JOIN Customer c ON w.customer_code=c.customer_code 
             LEFT JOIN Supplier s ON w.supplier_code=s.supplier_code 
+            LEFT JOIN Supplier sh ON h.supplier_code=sh.supplier_code 
             WHERE h.status = 0" . $searchQuery . " 
             GROUP BY h.id 
             ORDER BY " . $columnName . " " . $columnSortOrder . " 
@@ -93,12 +94,14 @@ class SawnTimberService extends BaseService {
     // ─── Get Single Record ───────────────────────────────────────────────────────
     public function getById($id) {
         $stmt = $this->db->prepare("SELECT h.*, c.name AS company_name, CONCAT(pl.plant_code, ' - ', pl.name) AS plant_display, 
-            w.transaction_id, w.transaction_status, w.transaction_date, w.customer_name, w.supplier_name, 
+            w.transaction_status, w.transaction_date, w.customer_name, 
+            COALESCE(h.transaction_id, w.transaction_id) AS transaction_id, COALESCE(sh.name, w.supplier_name) AS supplier_name,
             w.destination, w.lorry_plate_no1, w.delivery_no 
             FROM Sawn_Timber_Header h 
             LEFT JOIN Company c ON h.company_id = c.id 
             LEFT JOIN Plant pl ON h.plant_id = pl.id 
             LEFT JOIN Weight w ON h.weight_id = w.id 
+            LEFT JOIN Supplier sh ON h.supplier_code = sh.supplier_code 
             WHERE h.id=?");
         $stmt->bind_param('i', $id);
         $stmt->execute();
@@ -120,7 +123,7 @@ class SawnTimberService extends BaseService {
 
     // ─── Get Details For Row Expansion ───────────────────────────────────────────
     public function getDetailsForExpansion($id) {
-        $stmt = $this->db->prepare("SELECT h.record_date, h.remarks, w.transaction_id, w.delivery_no, w.lorry_plate_no1, w.destination 
+        $stmt = $this->db->prepare("SELECT h.record_date, h.remarks, COALESCE(h.transaction_id, w.transaction_id) AS transaction_id, w.delivery_no, w.lorry_plate_no1, w.destination 
             FROM Sawn_Timber_Header h 
             LEFT JOIN Weight w ON h.weight_id = w.id 
             WHERE h.id = ?");
@@ -210,10 +213,18 @@ class SawnTimberService extends BaseService {
         $id = $data['id'] ?? null;
         $companyId = $data['companyId'] ?? null;
         $plantId = $data['plantId'] ?? null;
-        $weightId = $data['weightId'] ?? null;
+        $weightId = !empty($data['weightId']) ? $data['weightId'] : null;
         $transactionId = $data['transactionId'] ?? null;
+        $supplierCode = $data['supplierCode'] ?? null;
+        $headerLot = $data['lot'] ?? null;
         $sawnTimberDate = !empty($data['sawnTimberDate']) ? DateTime::createFromFormat('d-m-Y', $data['sawnTimberDate'])->format('Y-m-d H:i:s') : null;
         $remarks = $data['remarks'] ?? null;
+
+        if (empty($plantId)) {
+            $plantRes = $this->db->query("SELECT id FROM Plant WHERE status='0' ORDER BY id ASC LIMIT 1");
+            $plantRow = $plantRes ? $plantRes->fetch_assoc() : null;
+            $plantId = $plantRow['id'] ?? null;
+        }
 
         $speciesArr = $data['species'] ?? [];
         $lotArr = $data['lot'] ?? [];
@@ -227,7 +238,7 @@ class SawnTimberService extends BaseService {
         $bundlingChargesArr = $data['bundlingCharges'] ?? [];
         $graderFeesArr = $data['graderFees'] ?? [];
 
-        if (!$companyId || !$plantId || !$weightId || !$transactionId || !$sawnTimberDate || empty($speciesArr)) {
+        if (!$companyId || !$plantId || !$transactionId || !$supplierCode || !$headerLot || !$sawnTimberDate || empty($speciesArr)) {
             throw new Exception("Please fill in all the fields");
         }
 
@@ -258,8 +269,8 @@ class SawnTimberService extends BaseService {
 
             if (!empty($id)) {
                 // Update
-                $stmt = $this->db->prepare("UPDATE Sawn_Timber_Header SET company_id=?, plant_id=?, weight_id=?, transaction_id=?, record_date=?, remarks=?, modified_by=? WHERE id=?");
-                $stmt->bind_param('iiissssi', $companyId, $plantId, $weightId, $transactionId, $sawnTimberDate, $remarks, $this->username, $id);
+                $stmt = $this->db->prepare("UPDATE Sawn_Timber_Header SET company_id=?, plant_id=?, weight_id=?, transaction_id=?, supplier_code=?, lot=?, record_date=?, remarks=?, modified_by=? WHERE id=?");
+                $stmt->bind_param('iiissssssi', $companyId, $plantId, $weightId, $transactionId, $supplierCode, $headerLot, $sawnTimberDate, $remarks, $this->username, $id);
                 $stmt->execute();
                 $stmt->close();
 
@@ -270,8 +281,8 @@ class SawnTimberService extends BaseService {
                 $deleteStmt->close();
             } else {
                 // Insert
-                $stmt = $this->db->prepare("INSERT INTO Sawn_Timber_Header (company_id, plant_id, weight_id, transaction_id, record_date, remarks, created_by, modified_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-                $stmt->bind_param('iiisssss', $companyId, $plantId, $weightId, $transactionId, $sawnTimberDate, $remarks, $this->username, $this->username);
+                $stmt = $this->db->prepare("INSERT INTO Sawn_Timber_Header (company_id, plant_id, weight_id, transaction_id, supplier_code, lot, record_date, remarks, created_by, modified_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt->bind_param('iiisssssss', $companyId, $plantId, $weightId, $transactionId, $supplierCode, $headerLot, $sawnTimberDate, $remarks, $this->username, $this->username);
                 $stmt->execute();
                 $id = $stmt->insert_id;
                 $stmt->close();
@@ -281,11 +292,11 @@ class SawnTimberService extends BaseService {
             $detailStmt = $this->db->prepare("INSERT INTO Sawn_Timber_Detail (header_id, species, lot, bundle, thick, width, length, pieces, tons, kd_charges, bundling_charges, grader_fees) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
             foreach ($speciesArr as $index => $species) {
-                $lot = $lotArr[$index] ?? null;
+                $lot = $headerLot;
                 $bundle = $bundleArr[$index] ?? null;
-                $thick = $thickArr[$index] ?? 0;
-                $width = $widthArr[$index] ?? 0;
-                $length = $lengthArr[$index] ?? 0;
+                $thick = $this->parseDimension($thickArr[$index] ?? 0);
+                $width = $this->parseDimension($widthArr[$index] ?? 0);
+                $length = $this->parseDimension($lengthArr[$index] ?? 0);
                 $pieces = $piecesArr[$index] ?? 0;
                 $tons = $tonsArr[$index] ?? 0;
                 $kdCharges = !empty($kdChargesArr[$index]) ? $kdChargesArr[$index] : null;
@@ -368,14 +379,14 @@ class SawnTimberService extends BaseService {
         }
 
         if (!empty($params['transactionId'])) {
-            $where .= " AND w.transaction_id LIKE ?";
+            $where .= " AND COALESCE(h.transaction_id, w.transaction_id) LIKE ?";
             $bindParams[] = '%' . $params['transactionId'] . '%';
             $types .= 's';
         }
 
-        $sql = "SELECT h.record_date, w.transaction_id, w.transaction_date, c.name AS company_name, 
+        $sql = "SELECT h.record_date, COALESCE(h.transaction_id, w.transaction_id) AS transaction_id, h.record_date AS transaction_date, c.name AS company_name, 
                 CONCAT(p.plant_code, ' - ', p.name) AS plant_name, 
-                COALESCE(cust.name, sup.name) AS customer_supplier,
+                COALESCE(cust.name, sh.name, sup.name) AS customer_supplier,
                 w.delivery_no, w.lorry_plate_no1, w.destination,
                 d.species, d.lot, d.bundle, d.thick, d.width, d.length, d.pieces, d.tons,
                 d.kd_charges, d.bundling_charges, d.grader_fees, h.remarks
@@ -386,8 +397,9 @@ class SawnTimberService extends BaseService {
                 LEFT JOIN Plant p ON h.plant_id = p.id
                 LEFT JOIN Customer cust ON w.customer_code = cust.customer_code
                 LEFT JOIN Supplier sup ON w.supplier_code = sup.supplier_code
+                LEFT JOIN Supplier sh ON h.supplier_code = sh.supplier_code
                 $where
-                ORDER BY h.record_date DESC, w.transaction_id DESC, d.id ASC";
+                ORDER BY h.record_date DESC, transaction_id DESC, d.id ASC";
 
         $stmt = $this->db->prepare($sql);
         if (!empty($bindParams)) {
@@ -434,6 +446,30 @@ class SawnTimberService extends BaseService {
         }
 
         return $lists;
+    }
+
+    private function parseDimension($value) {
+        $value = trim((string)$value);
+
+        if ($value === '') {
+            return 0;
+        }
+
+        $parts = preg_split('/\s+/', $value);
+        $total = 0;
+
+        foreach ($parts as $part) {
+            if (strpos($part, '/') !== false) {
+                $fraction = explode('/', $part);
+                $numerator = isset($fraction[0]) ? (float)$fraction[0] : 0;
+                $denominator = isset($fraction[1]) ? (float)$fraction[1] : 0;
+                $total += $denominator > 0 ? $numerator / $denominator : 0;
+            } else {
+                $total += (float)$part;
+            }
+        }
+
+        return $total;
     }
 }
 ?>

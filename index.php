@@ -275,6 +275,7 @@ else{
                                                             <select id="batchNoSearch" class="form-select select2">
                                                                 <option value="N" selected><?=$languageArray['pending_code'][$language]?></option>
                                                                 <option value="Y"><?=$languageArray['complete_code'][$language]?></option>
+                                                                <option value="Cancelled">Cancelled</option>
                                                             </select>
                                                         </div>
                                                     </div><!--end col-->                                                
@@ -2251,6 +2252,8 @@ else{
                 batchNoI = 'Pending';
             }else if (batchNoI == 'Y'){
                 batchNoI = 'Complete';
+            }else if (batchNoI == 'Cancelled'){
+                batchNoI = 'Cancelled';
             }
 
             var selectedIds = []; // An array to store the selected 'id' values
@@ -2359,6 +2362,8 @@ else{
                 batchNoI = 'Pending';
             }else if (batchNoI == 'Y'){
                 batchNoI = 'Complete';
+            }else if (batchNoI == 'Cancelled'){
+                batchNoI = 'Cancelled';
             }
 
             var selectedIds = []; // An array to store the selected 'id' values
@@ -3761,47 +3766,50 @@ else{
                         }
 
                         var buttons = `<div class="row g-1 d-flex">`;
+                        var isSynced = row.synced == 'Y';
 
-                        if (isSADMIN || (permissions['Weighing'] && permissions['Weighing'][transactionKey] && permissions['Weighing'][transactionKey].includes('edit'))) {
-                            if (row.weight_type == 'Primer Mover + Container'){
-                                buttons += `
-                                <div class="col-auto">
-                                    <button title="Edit" type="button" id="edit${data}" onclick="edit(${data}, 'Y')" class="btn btn-warning btn-sm">
-                                        <i class="fas fa-pen"></i>
-                                    </button>
-                                </div>`;
-                            }else{
-                                buttons += `
-                                <div class="col-auto">
-                                    <button title="Edit" type="button" id="edit${data}" onclick="edit(${data}, 'N')" class="btn btn-warning btn-sm">
-                                        <i class="fas fa-pen"></i>
-                                    </button>
-                                </div>`;
-                            }
-                        }else {
-                            if (row.is_complete != 'Y' ){
-                                if (isSADMIN || (permissions['Weighing'] && permissions['Weighing'][transactionKey] && permissions['Weighing'][transactionKey].includes('weight_out'))) {
-                                    if (row.weight_type == 'Primer Mover + Container'){
-                                        buttons += `
-                                        <div class="col-auto">
-                                            <button title="Weight Out" type="button" id="edit${data}" onclick="edit(${data}, 'Y')" class="btn btn-warning btn-sm">
-                                                <i class="fa-solid fa-weight-hanging"></i>
-                                            </button>
-                                        </div>`;    
-                                    }else{
-                                        buttons += `
-                                        <div class="col-auto">
-                                            <button title="Weight Out" type="button" id="edit${data}" onclick="edit(${data}, 'N')" class="btn btn-warning btn-sm">
-                                                <i class="fa-solid fa-weight-hanging"></i>
-                                            </button>
-                                        </div>`;  
+                        if (!isSynced) {
+                            if (isSADMIN || (permissions['Weighing'] && permissions['Weighing'][transactionKey] && permissions['Weighing'][transactionKey].includes('edit'))) {
+                                if (row.weight_type == 'Primer Mover + Container'){
+                                    buttons += `
+                                    <div class="col-auto">
+                                        <button title="Edit" type="button" id="edit${data}" onclick="edit(${data}, 'Y')" class="btn btn-warning btn-sm">
+                                            <i class="fas fa-pen"></i>
+                                        </button>
+                                    </div>`;
+                                }else{
+                                    buttons += `
+                                    <div class="col-auto">
+                                        <button title="Edit" type="button" id="edit${data}" onclick="edit(${data}, 'N')" class="btn btn-warning btn-sm">
+                                            <i class="fas fa-pen"></i>
+                                        </button>
+                                    </div>`;
+                                }
+                            }else {
+                                if (row.is_complete != 'Y' ){
+                                    if (isSADMIN || (permissions['Weighing'] && permissions['Weighing'][transactionKey] && permissions['Weighing'][transactionKey].includes('weight_out'))) {
+                                        if (row.weight_type == 'Primer Mover + Container'){
+                                            buttons += `
+                                            <div class="col-auto">
+                                                <button title="Weight Out" type="button" id="edit${data}" onclick="edit(${data}, 'Y')" class="btn btn-warning btn-sm">
+                                                    <i class="fa-solid fa-weight-hanging"></i>
+                                                </button>
+                                            </div>`;    
+                                        }else{
+                                            buttons += `
+                                            <div class="col-auto">
+                                                <button title="Weight Out" type="button" id="edit${data}" onclick="edit(${data}, 'N')" class="btn btn-warning btn-sm">
+                                                    <i class="fa-solid fa-weight-hanging"></i>
+                                                </button>
+                                            </div>`;  
+                                        }
                                     }
                                 }
                             }
                         }
 
                         if (row.weight_type != 'Primer Mover + Container'){
-                            if (isSADMIN || (permissions['Weighing'] && permissions['Weighing'][transactionKey] && permissions['Weighing'][transactionKey].includes('edit'))) {
+                            if (!isSynced && (isSADMIN || (permissions['Weighing'] && permissions['Weighing'][transactionKey] && permissions['Weighing'][transactionKey].includes('edit')))) {
                                 if (row.transaction_status != 'Purchase' && row.transaction_status != 'Local'){
                                     buttons += `
                                     <div class="col-auto">
@@ -3822,7 +3830,7 @@ else{
                             }
                         }
 
-                        if (isSADMIN || (permissions['Weighing'] && permissions['Weighing'][transactionKey] && permissions['Weighing'][transactionKey].includes('cancelled'))) {
+                        if (!isSynced && (isSADMIN || (permissions['Weighing'] && permissions['Weighing'][transactionKey] && permissions['Weighing'][transactionKey].includes('cancelled')))) {
                             if (row.weight_type == 'Primer Mover + Container'){
                                 buttons += `
                                 <div class="col-auto">
