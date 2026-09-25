@@ -39,6 +39,7 @@ class VehicleController extends BaseController {
         }
         $f = [
             'vehicleId'      => $this->getPost('id'),
+            'company'        => $this->getPost('company'),
             'vehicleNo'      => $this->getPost('vehicleNo'),
             'vehicleWeight'  => $this->getPost('vehicleWeight', 0),
             'transporter'    => $this->getPost('transporter'),
@@ -84,7 +85,24 @@ class VehicleController extends BaseController {
         if (empty($data)) {
             $this->failed('Please fill in all the fields');
         }
-        $errors = $this->service->upload($data);
+
+        // Determine company on the backend - never trust frontend value for restricted users
+        if (hasModulePermission('Master Data', 'Vehicles', ['view_all_companies'])) {
+            $companyId = isset($_GET['company']) ? intval($_GET['company']) : 0;
+        } else {
+            $companyId = isset($_SESSION['company_id']) ? intval($_SESSION['company_id']) : 0;
+        }
+
+        if ($companyId <= 0) {
+            $this->failed('Please select a company');
+        }
+
+        $company = searchCompanyById($companyId, $this->db);
+        if (empty($company) || $company['status'] != '0') {
+            $this->failed('Company not found');
+        }
+
+        $errors = $this->service->upload($data, $companyId);
         if (!empty($errors)) {
             echo json_encode(['status' => 'error', 'message' => $errors]);
         } else {

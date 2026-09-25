@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/BaseService.php';
+require_once __DIR__ . '/../requires/lookup.php';
 
 class VehicleService extends BaseService {
 
@@ -10,10 +11,22 @@ class VehicleService extends BaseService {
         $columnName  = $post['columns'][$post['order'][0]['column']]['data'] ?? 'veh_number';
         $sortOrder   = $post['order'][0]['dir'] ?? 'asc';
         $search      = mysqli_real_escape_string($this->db, $post['search']['value']);
+        $companyId   = isset($post['companyId']) ? intval($post['companyId']) : 0;
+        $vehicleNo   = isset($post['vehicleNo']) ? mysqli_real_escape_string($this->db, $post['vehicleNo']) : '';
+        $customerName = isset($post['customerName']) ? mysqli_real_escape_string($this->db, $post['customerName']) : '';
 
         $q = '';
         if ($search !== '') {
             $q = " AND (veh_number LIKE '%{$search}%' OR vehicle_weight LIKE '%{$search}%' OR transporter_code LIKE '%{$search}%' OR customer_name LIKE '%{$search}%' OR supplier_name LIKE '%{$search}%')";
+        }
+        if ($companyId > 0) {
+            $q .= " AND company={$companyId}";
+        }
+        if ($vehicleNo !== '') {
+            $q .= " AND veh_number LIKE '%{$vehicleNo}%'";
+        }
+        if ($customerName !== '') {
+            $q .= " AND customer_name LIKE '%{$customerName}%'";
         }
 
         $totalRes = $this->db->query("SELECT COUNT(*) as c FROM Vehicle");
@@ -26,8 +39,11 @@ class VehicleService extends BaseService {
 
         $data = [];
         while ($row = $result->fetch_assoc()) {
+            $company = searchCompanyById($row['company'], $this->db);
             $data[] = [
                 'id'               => $row['id'],
+                'company'          => $row['company'],
+                'company_name'     => $company ? $company['name'] : '',
                 'veh_number'       => $row['veh_number'],
                 'vehicle_weight'   => $row['vehicle_weight'],
                 'transporter_name' => $row['transporter_name'],
@@ -74,17 +90,17 @@ class VehicleService extends BaseService {
     }
 
     public function save($f) {
-        $stmt = $this->db->prepare("INSERT INTO Vehicle (veh_number, vehicle_weight, transporter_code, transporter_name, customer_code, customer_name, supplier_code, supplier_name, created_by, modified_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt = $this->db->prepare("INSERT INTO Vehicle (company, veh_number, vehicle_weight, transporter_code, transporter_name, customer_code, customer_name, supplier_code, supplier_name, created_by, modified_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         if (!$stmt) throw new Exception($this->db->error);
-        $stmt->bind_param('ssssssssss', $f['vehicleNo'], $f['vehicleWeight'], $f['transporterCode'], $f['transporter'], $f['customerCode'], $f['customer'], $f['supplierCode'], $f['supplier'], $this->username, $this->username);
+        $stmt->bind_param('sssssssssss', $f['company'], $f['vehicleNo'], $f['vehicleWeight'], $f['transporterCode'], $f['transporter'], $f['customerCode'], $f['customer'], $f['supplierCode'], $f['supplier'], $this->username, $this->username);
         if (!$stmt->execute()) throw new Exception($stmt->error);
         $stmt->close();
     }
 
     public function update($f) {
-        $stmt = $this->db->prepare("UPDATE Vehicle SET veh_number=?, vehicle_weight=?, transporter_code=?, transporter_name=?, customer_code=?, customer_name=?, supplier_code=?, supplier_name=?, is_manual='N', created_by=?, modified_by=? WHERE id=?");
+        $stmt = $this->db->prepare("UPDATE Vehicle SET company=?, veh_number=?, vehicle_weight=?, transporter_code=?, transporter_name=?, customer_code=?, customer_name=?, supplier_code=?, supplier_name=?, is_manual='N', created_by=?, modified_by=? WHERE id=?");
         if (!$stmt) throw new Exception($this->db->error);
-        $stmt->bind_param('sssssssssss', $f['vehicleNo'], $f['vehicleWeight'], $f['transporterCode'], $f['transporter'], $f['customerCode'], $f['customer'], $f['supplierCode'], $f['supplier'], $this->username, $this->username, $f['vehicleId']);
+        $stmt->bind_param('ssssssssssss', $f['company'], $f['vehicleNo'], $f['vehicleWeight'], $f['transporterCode'], $f['transporter'], $f['customerCode'], $f['customer'], $f['supplierCode'], $f['supplier'], $this->username, $this->username, $f['vehicleId']);
         if (!$stmt->execute()) throw new Exception($stmt->error);
         $stmt->close();
     }
@@ -105,9 +121,10 @@ class VehicleService extends BaseService {
         }
     }
 
-    public function upload($data) {
+    public function upload($data, $companyId) {
         $errors = [];
         $status = '0';
+        $company = $companyId;
 
         foreach ($data as $row) {
             $vehicleNo    = !empty($row['VehicleNo'])        ? trim($row['VehicleNo'])        : '';
@@ -142,8 +159,8 @@ class VehicleService extends BaseService {
             }
 
             if (!empty($vehicleNo)) {
-                $chk = $this->db->prepare("SELECT id FROM Vehicle WHERE veh_number=? AND status=?");
-                $chk->bind_param('ss', $vehicleNo, $status);
+                $chk = $this->db->prepare("SELECT id FROM Vehicle WHERE veh_number=? AND company <=> ? AND status=?");
+                $chk->bind_param('sss', $vehicleNo, $company, $status);
                 $chk->execute();
                 $exists = $chk->get_result()->fetch_assoc();
                 $chk->close();
@@ -151,8 +168,8 @@ class VehicleService extends BaseService {
                     $errors[] = "Vehicle: {$vehicleNo} already exists in master data.";
                     continue;
                 }
-                $stmt = $this->db->prepare("INSERT INTO Vehicle (veh_number, vehicle_weight, customer_code, customer_name, supplier_code, supplier_name, status, created_by, modified_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                $stmt->bind_param('sssssssss', $vehicleNo, $vehicleWeight, $customerCode, $customerName, $supplierCode, $supplierName, $status, $this->username, $this->username);
+                $stmt = $this->db->prepare("INSERT INTO Vehicle (company, veh_number, vehicle_weight, customer_code, customer_name, supplier_code, supplier_name, status, created_by, modified_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt->bind_param('ssssssssss', $company, $vehicleNo, $vehicleWeight, $customerCode, $customerName, $supplierCode, $supplierName, $status, $this->username, $this->username);
                 $stmt->execute();
                 $stmt->close();
             }
@@ -205,6 +222,7 @@ class VehicleService extends BaseService {
     private function mapRow($row) {
         return [
             'id'               => $row['id'],
+            'company'          => $row['company'],
             'veh_number'       => $row['veh_number'],
             'vehicle_weight'   => $row['vehicle_weight'],
             'transporter_name' => $row['transporter_name'],
