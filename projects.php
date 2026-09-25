@@ -303,9 +303,9 @@
                                                             <thead>
                                                                 <tr>
                                                                     <th><input type="checkbox" id="selectAllCheckbox" class="selectAllCheckbox"></th>
+                                                                    <th><?=$languageArray['company_code'][$language] ?? 'Company'?></th>
                                                                     <th><?=$languageArray['project_code_code'][$language] ?? 'Project Code'?></th>
                                                                     <th><?=$languageArray['description_code'][$language] ?? 'Description'?></th>
-                                                                    <th><?=$languageArray['company_code'][$language] ?? 'Company'?></th>
                                                                     <th><?=$languageArray['status_code'][$language] ?? 'Status'?></th>
                                                                     <th><?=$languageArray['action_code'][$language] ?? 'Action'?></th>
                                                                 </tr>
@@ -621,9 +621,9 @@
                             return '<input type="checkbox" class="select-checkbox" id="checkbox_' + data + '" value="'+data+'"/>';
                         }
                     },
+                    { data: 'company_name' },
                     { data: 'project_code' },
                     { data: 'project_description' },
-                    { data: 'company_name' },
                     {
                         data: 'id',
                         render: function ( data, type, row ) {
