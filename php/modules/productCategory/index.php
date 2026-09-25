@@ -27,6 +27,9 @@ switch ($action) {
     case 'delete':
         $controller->handleDelete();
         break;
+    case 'checkItems':
+        $controller->handleCheckItems();
+        break;
     case 'reactivate':
         $controller->handleReactivate();
         break;

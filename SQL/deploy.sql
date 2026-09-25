@@ -3875,3 +3875,9 @@ CREATE OR REPLACE TRIGGER `TRG_UPD_COMPANY` BEFORE UPDATE ON `Company` FOR EACH 
 END
 $$
 DELIMITER ;
+
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('reassign_category_code', 'Reassign Category', '重新分配类别', 'Tetapkan Semula Kategori', 'வகையை மறுஒதுக்கீடு செய்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('reassign_category_desc_code', 'The categories below are still assigned to items. Please select a new category for these items before deleting.', '以下类别仍被物品使用。删除前请为这些物品选择新的类别。', 'Kategori di bawah masih ditetapkan kepada item. Sila pilih kategori baharu untuk item ini sebelum memadam.', 'கீழே உள்ள வகைகள் இன்னும் பொருட்களுக்கு ஒதுக்கப்பட்டுள்ளன. நீக்குவதற்கு முன் இந்தப் பொருட்களுக்கு புதிய வகையைத் தேர்ந்தெடுக்கவும்.');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('new_category_code', 'New Category', '新类别', 'Kategori Baharu', 'புதிய வகை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('please_select_new_category_code', 'Please select a new category for all tied items.', '请为所有相关物品选择新的类别。', 'Sila pilih kategori baharu untuk semua item berkaitan.', 'தொடர்புடைய அனைத்து பொருட்களுக்கும் புதிய வகையைத் தேர்ந்தெடுக்கவும்.');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('no_other_category_code', 'No other category available for this company. Please create one first.', '该公司没有其他可用类别，请先创建一个。', 'Tiada kategori lain untuk syarikat ini. Sila cipta satu dahulu.', 'இந்த நிறுவனத்திற்கு வேறு வகை இல்லை. முதலில் ஒன்றை உருவாக்கவும்.');

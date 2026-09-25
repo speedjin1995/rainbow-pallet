@@ -283,6 +283,33 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <div class="modal fade" id="reassignModal" tabindex="-1" role="dialog" aria-labelledby="reassignModalTitle" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-scrollable modal-lg">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="reassignModalTitle"><?=$languageArray['reassign_category_code'][$language] ?? 'Reassign Category'?></h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p class="text-muted"><?=$languageArray['reassign_category_desc_code'][$language] ?? 'The categories below are still assigned to items. Please select a new category for these items before deleting.'?></p>
+                                                    <table class="table table-bordered align-middle mb-0">
+                                                        <thead class="table-light">
+                                                            <tr>
+                                                                <th style="width:25%"><?=$languageArray['category_code'][$language] ?? 'Category'?></th>
+                                                                <th style="width:40%"><?=$languageArray['items_code'][$language] ?? 'Items'?></th>
+                                                                <th style="width:35%"><?=$languageArray['new_category_code'][$language] ?? 'New Category'?> <span class="text-danger">*</span></th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="reassignTableBody"></tbody>
+                                                    </table>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-light" data-bs-dismiss="modal"><?=$languageArray['close_code'][$language] ?? 'Close'?></button>
+                                                    <button type="button" class="btn btn-danger" id="confirmReassignDelete"><i class="ri-delete-bin-fill align-middle me-1"></i> <?=$languageArray['delete_code'][$language] ?? 'Delete'?></button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div> <!-- end row-->
 
@@ -405,6 +432,13 @@ var permissions = <?= json_encode($_SESSION['permissions'] ?? []) ?>;
 var isSADMIN = <?= json_encode($_SESSION['roles'] == 'SADMIN') ?>;
 var sessionCompanyId = <?= intval($_SESSION['company_id'] ?? 0) ?>;
 var companySawnTimberMap = <?= json_encode($companySawnTimberMap ?? []) ?>;
+var pendingDeleteIds = null;
+var pendingDeleteType = null;
+var reassignLang = {
+    pleaseSelect: <?= json_encode($languageArray['please_select_code'][$language] ?? 'Please Select') ?>,
+    selectNewCategory: <?= json_encode($languageArray['please_select_new_category_code'][$language] ?? 'Please select a new category for all tied items.') ?>,
+    noOtherCategory: <?= json_encode($languageArray['no_other_category_code'][$language] ?? 'No other category available for this company. Please create one first.') ?>
+};
 
 $(function () {
     // Initialize all Select2 elements in the modal
@@ -617,28 +651,31 @@ $(function () {
         });
 
         if (selectedIds.length > 0) {
-            if (confirm('Are you sure you want to delete these product categories?')) {
-                $.post('php/modules/productCategory/index.php', {action: 'delete', id: selectedIds, type: 'MULTI'}, function(data){
-                    var obj = JSON.parse(data);
-                    
-                    if(obj.status === 'success'){
-                        table.ajax.reload();
-                        toastr["success"](obj.message, "Success:");
-                        $('#spinnerLoading').hide();
-                    }
-                    else if(obj.status === 'failed'){
-                        toastr["error"](obj.message, "Failed:");
-                        $('#spinnerLoading').hide();
-                    }
-                    else{
-                        toastr["error"]("Something wrong when activate", "Failed:");
-                        $('#spinnerLoading').hide();
-                    }
-                });
-            }
+            // Ask user to reassign tied items first, otherwise continue with normal delete
+            checkTiedItems(selectedIds, 'MULTI', function(){
+                if (confirm('Are you sure you want to delete these product categories?')) {
+                    $.post('php/modules/productCategory/index.php', {action: 'delete', id: selectedIds, type: 'MULTI'}, function(data){
+                        var obj = JSON.parse(data);
 
-            $('#spinnerLoading').hide();
-        } 
+                        if(obj.status === 'success'){
+                            table.ajax.reload();
+                            toastr["success"](obj.message, "Success:");
+                            $('#spinnerLoading').hide();
+                        }
+                        else if(obj.status === 'failed'){
+                            toastr["error"](obj.message, "Failed:");
+                            $('#spinnerLoading').hide();
+                        }
+                        else{
+                            toastr["error"]("Something wrong when activate", "Failed:");
+                            $('#spinnerLoading').hide();
+                        }
+                    });
+                }
+
+                $('#spinnerLoading').hide();
+            });
+        }
         else {
             alert("Please select at least one product categories to delete.");
             $('#spinnerLoading').hide();
@@ -792,27 +829,146 @@ function edit(id){
 
 function deactivate(id){
     $('#spinnerLoading').show();
-    if (confirm('Are you sure you want to delete this category?')) {
-        $.post('php/modules/productCategory/index.php', {action: 'delete', id: id}, function(data){
-            var obj = JSON.parse(data);
+    // Ask user to reassign tied items first, otherwise continue with normal delete
+    checkTiedItems(id, null, function(){
+        if (confirm('Are you sure you want to delete this category?')) {
+            $.post('php/modules/productCategory/index.php', {action: 'delete', id: id}, function(data){
+                var obj = JSON.parse(data);
 
-            if(obj.status === 'success'){
-                table.ajax.reload();
-                $('#spinnerLoading').hide();
-                toastr["success"](obj.message, "Success:");
-            }
-            else if(obj.status === 'failed'){
-                $('#spinnerLoading').hide();
-                toastr["error"](obj.message, "Failed:");
-            }
-            else{
-                $('#spinnerLoading').hide();
-                toastr["error"](obj.message, "Failed:");
-            }
-        });
-    }
-    $('#spinnerLoading').hide();
+                if(obj.status === 'success'){
+                    table.ajax.reload();
+                    $('#spinnerLoading').hide();
+                    toastr["success"](obj.message, "Success:");
+                }
+                else if(obj.status === 'failed'){
+                    $('#spinnerLoading').hide();
+                    toastr["error"](obj.message, "Failed:");
+                }
+                else{
+                    $('#spinnerLoading').hide();
+                    toastr["error"](obj.message, "Failed:");
+                }
+            });
+        }
+        $('#spinnerLoading').hide();
+    });
 }
+
+function checkTiedItems(ids, type, onNoItems){
+    $('#spinnerLoading').show();
+    $.post('php/modules/productCategory/index.php', {action: 'checkItems', id: ids}, function(data){
+        var obj = JSON.parse(data);
+        $('#spinnerLoading').hide();
+
+        if(obj.status === 'success'){
+            if (obj.data.length > 0) {
+                openReassignModal(ids, type, obj.data);
+            } else {
+                onNoItems();
+            }
+        }
+        else{
+            toastr["error"](obj.message, "Failed:");
+        }
+    }).fail(function(){
+        $('#spinnerLoading').hide();
+        toastr["error"]("Something went wrong!", "Failed:");
+    });
+}
+
+function openReassignModal(ids, type, categories){
+    pendingDeleteIds = ids;
+    pendingDeleteType = type;
+
+    var tbody = $('#reassignTableBody').empty();
+    var maxPreview = 10;
+
+    categories.forEach(function(category){
+        // Item preview, text() is used so names are escaped
+        var itemCell = $('<td>');
+        itemCell.append($('<span class="badge bg-primary me-1">').text(category.items.length));
+        var itemNames = category.items.slice(0, maxPreview).map(function(item){
+            return item.product_code + ' - ' + item.name;
+        });
+        if (category.items.length > maxPreview) {
+            itemNames.push('... (+' + (category.items.length - maxPreview) + ')');
+        }
+        itemCell.append($('<div class="small text-muted mt-1">').text(itemNames.join(', ')));
+
+        var select = $('<select class="form-select select2 reassign-select">').attr('data-category-id', category.id);
+        select.append($('<option value="">').text(reassignLang.pleaseSelect));
+        category.options.forEach(function(option){
+            select.append($('<option>').val(option.id).text(option.category_name));
+        });
+
+        var selectCell = $('<td>').append(select);
+        if (category.options.length === 0) {
+            selectCell.append($('<div class="small text-danger mt-1">').text(reassignLang.noOtherCategory));
+        }
+
+        tbody.append($('<tr>').append($('<td>').text(category.category_name), itemCell, selectCell));
+    });
+
+    $('#reassignModal .reassign-select').select2({
+        placeholder: reassignLang.pleaseSelect,
+        dropdownParent: $('#reassignModal')
+    });
+
+    $('#reassignModal .select2-container .select2-selection--single').css({
+        'padding-top': '4px',
+        'padding-bottom': '4px',
+        'height': 'auto'
+    });
+
+    $('#reassignModal').modal('show');
+}
+
+$(document).on('click', '#confirmReassignDelete', function(){
+    var reassign = {};
+    var isValid = true;
+
+    $('#reassignModal .reassign-select').each(function(){
+        var newCategory = $(this).val();
+        if (!newCategory) {
+            isValid = false;
+        }
+        reassign[$(this).attr('data-category-id')] = newCategory;
+    });
+
+    if (!isValid) {
+        toastr["error"](reassignLang.selectNewCategory, "Failed:");
+        return;
+    }
+
+    var btn = $(this);
+    btn.prop('disabled', true);
+    $('#spinnerLoading').show();
+
+    var postData = {action: 'delete', id: pendingDeleteIds, reassign: reassign};
+    if (pendingDeleteType) {
+        postData.type = pendingDeleteType;
+    }
+
+    $.post('php/modules/productCategory/index.php', postData, function(data){
+        var obj = JSON.parse(data);
+        $('#spinnerLoading').hide();
+        btn.prop('disabled', false);
+
+        if(obj.status === 'success'){
+            $('#reassignModal').modal('hide');
+            $('#selectAllCheckbox').prop('checked', false);
+            table.ajax.reload();
+            toastr["success"](obj.message, "Success:");
+        }
+        else{
+            toastr["error"](obj.message, "Failed:");
+        }
+    }).fail(function(){
+        $('#spinnerLoading').hide();
+        btn.prop('disabled', false);
+        toastr["error"]("Something went wrong!", "Failed:");
+    });
+});
 
 function displayPreview(data) {
     // Parse the Excel data

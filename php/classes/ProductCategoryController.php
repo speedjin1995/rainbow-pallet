@@ -58,14 +58,28 @@ class ProductCategoryController extends BaseController {
         if (!$id) {
             $this->failed('Please fill in all the fields');
         }
+        $reassign = $_POST['reassign'] ?? [];
         try {
             $this->db->begin_transaction();
-            $this->service->delete($id, $type);
+            $this->service->delete($id, $type, $reassign);
             $this->db->commit();
             $this->success('Deleted Successfully!!');
         } catch (Exception $e) {
             $this->db->rollback();
             $this->failed($e->getMessage());
+        }
+    }
+
+    public function handleCheckItems() {
+        $id = $_POST['id'] ?? null;
+        if (!$id) {
+            $this->failed('Missing Attribute');
+        }
+        try {
+            $data = $this->service->getTiedItems($id);
+            echo json_encode(['status' => 'success', 'data' => $data]);
+        } catch (Exception $e) {
+            $this->failed('Something went wrong');
         }
     }
 

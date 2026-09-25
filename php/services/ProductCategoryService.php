@@ -118,7 +118,87 @@ class ProductCategoryService extends BaseService {
         }
     }
 
-    public function delete($id, $type = null) {
+    /**
+     * Get active items still tied to the given categories, grouped by category,
+     * together with the replacement categories (same company, excluding the ones being deleted)
+     */
+    public function getTiedItems($ids) {
+        $ids = array_values(array_filter(array_map('intval', (array)$ids)));
+        if (empty($ids)) return [];
+
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $stmt = $this->db->prepare("SELECT c.id, c.company, c.category_name, p.product_code, p.name
+            FROM {$this->table} c
+            JOIN Product p ON p.category = c.id AND p.status = '0'
+            WHERE c.id IN ($placeholders)
+            ORDER BY c.category_name, p.product_code");
+        if (!$stmt) throw new Exception($this->db->error);
+        $stmt->bind_param(str_repeat('i', count($ids)), ...$ids);
+        if (!$stmt->execute()) throw new Exception($stmt->error);
+        $result = $stmt->get_result();
+
+        $categories = [];
+        while ($row = $result->fetch_assoc()) {
+            if (!isset($categories[$row['id']])) {
+                $categories[$row['id']] = [
+                    'id'            => $row['id'],
+                    'company'       => $row['company'],
+                    'category_name' => $row['category_name'],
+                    'items'         => [],
+                ];
+            }
+            $categories[$row['id']]['items'][] = ['product_code' => $row['product_code'], 'name' => $row['name']];
+        }
+        $stmt->close();
+
+        // Replacement options per company, excluding categories being deleted
+        $optionsByCompany = [];
+        foreach ($categories as $catId => $category) {
+            $companyId = intval($category['company']);
+            if (!isset($optionsByCompany[$companyId])) {
+                $optionsByCompany[$companyId] = array_values(array_filter($this->getListByCompany($companyId), function ($option) use ($ids) {
+                    return !in_array(intval($option['id']), $ids);
+                }));
+            }
+            $categories[$catId]['options'] = $optionsByCompany[$companyId];
+        }
+
+        return array_values($categories);
+    }
+
+    /**
+     * Move active items from the deleted categories to their selected replacement category
+     */
+    private function reassignItems($ids, $reassign) {
+        $ids = array_values(array_filter(array_map('intval', (array)$ids)));
+        $reassign = is_array($reassign) ? $reassign : [];
+
+        foreach ($this->getTiedItems($ids) as $category) {
+            $newId = intval($reassign[$category['id']] ?? 0);
+            if ($newId <= 0) {
+                throw new Exception("Please select a new category for items under '{$category['category_name']}'");
+            }
+
+            // Replacement must be active, in the same company and not one of the categories being deleted
+            $newCategory = $this->get($newId);
+            if (empty($newCategory) || $newCategory['status'] != '0' || in_array($newId, $ids)
+                || $newCategory['company'] != $category['company']) {
+                throw new Exception("Invalid new category selected for '{$category['category_name']}'");
+            }
+
+            $stmt = $this->db->prepare("UPDATE Product SET category=?, modified_by=? WHERE category=? AND status='0'");
+            if (!$stmt) throw new Exception($this->db->error);
+            $categoryId = intval($category['id']);
+            $stmt->bind_param('isi', $newId, $this->username, $categoryId);
+            if (!$stmt->execute()) throw new Exception($stmt->error);
+            $stmt->close();
+        }
+    }
+
+    public function delete($id, $type = null, $reassign = []) {
+        // Items tied to the categories must be moved to another category before deleting
+        $this->reassignItems($id, $reassign);
+
         if ($type === 'MULTI' && is_array($id)) {
             $placeholders = implode(',', array_fill(0, count($id), '?'));
             $stmt = $this->db->prepare("UPDATE {$this->table} SET status=1, modified_by=? WHERE id IN ($placeholders)");
