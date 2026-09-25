@@ -34,6 +34,7 @@ class UnitController extends BaseController {
     public function handleSave() {
         $f = [
             'id' => $this->getPost('id'),
+            'company' => $this->getPost('company'),
             'unit' => $this->getRequiredPost('unit')
         ];
         
@@ -71,19 +72,33 @@ class UnitController extends BaseController {
     
     public function handleUpload() {
         $data = json_decode(file_get_contents('php://input'), true);
-        
+
         if (empty($data)) {
             $this->failed('No data provided');
         }
-        
+
+        // Determine company on the backend - never trust frontend value for restricted users
+        if (hasModulePermission('Master Data', 'Units', ['view_all_companies'])) {
+            $companyId = isset($_GET['company']) ? intval($_GET['company']) : 0;
+        } else {
+            $companyId = isset($_SESSION['company_id']) ? intval($_SESSION['company_id']) : 0;
+        }
+
+        if ($companyId <= 0) {
+            $this->failed('Please select a company');
+        }
+
+        $company = searchCompanyById($companyId, $this->db);
+        if (empty($company) || $company['status'] != '0') {
+            $this->failed('Company not found');
+        }
+
         try {
-            $result = $this->service->upload($data);
-            
-            if (count($result['errors']) > 0 && $result['successCount'] > 0) {
+            $result = $this->service->upload($data, $companyId);
+
+            if (count($result['errors']) > 0) {
                 echo json_encode(['status' => 'error', 'message' => $result['errors']]);
                 exit();
-            } elseif (count($result['errors']) > 0) {
-                $this->failed(implode(', ', $result['errors']));
             } else {
                 $this->success("{$result['successCount']} records imported successfully");
             }
