@@ -3669,3 +3669,141 @@ CREATE OR REPLACE TRIGGER `TRG_UPD_USER` BEFORE UPDATE ON `Users` FOR EACH ROW B
 END
 $$
 DELIMITER ;
+
+ALTER TABLE `Destination` ADD `company` INT(11) NULL AFTER `description`;
+ALTER TABLE `Destination_Log` ADD `company` INT(11) NULL AFTER `description`;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_DESTINATION` AFTER INSERT ON `Destination` FOR EACH ROW 
+INSERT INTO Destination_Log (
+    destination_id, destination_code, name, description, company, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.destination_code, NEW.name, NEW.description, NEW.company, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_DESTINATION` BEFORE UPDATE ON `Destination` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Check if status = 1, set action_id to 3, otherwise set to 2
+    IF NEW.status = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Destination_Log table
+    INSERT INTO Destination_Log (
+        destination_id, destination_code, name, description, company, action_id, action_by, event_date
+    ) 
+    VALUES (
+        NEW.id, NEW.destination_code, NEW.name, NEW.description, NEW.company, action_value, NEW.modified_by, NEW.modified_date
+    );
+END
+$$
+DELIMITER ;
+
+ALTER TABLE `Units` ADD `company` INT(11) NULL AFTER `unit`;
+ALTER TABLE `Units_Log` ADD `company` INT(11) NULL AFTER `unit`;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_UNITS` AFTER INSERT ON `Units` FOR EACH ROW INSERT INTO Units_Log (
+    unit_id, unit, company, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.unit, NEW.company, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_UNITS` BEFORE UPDATE ON `Units` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Check if status = 1, set action_id to 3, otherwise set to 2
+    IF NEW.status = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Units_Log table
+    INSERT INTO Units_Log (
+        unit_id, unit, company, action_id, action_by, event_date
+    ) 
+    VALUES (
+        NEW.id, NEW.unit, NEW.company, action_value, NEW.modified_by, NEW.modified_date
+    );
+END
+$$
+DELIMITER ;
+
+ALTER TABLE `Vehicle` ADD `company` INT(11) NULL AFTER `is_manual`;
+ALTER TABLE `Vehicle_Log` ADD `company` INT(11) NULL AFTER `is_manual`;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_VEH` AFTER INSERT ON `Vehicle` FOR EACH ROW 
+INSERT INTO Vehicle_Log (
+    vehicle_id, veh_number, vehicle_weight, transporter_code, transporter_name, customer_code, customer_name, supplier_code, supplier_name, is_manual, company, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.veh_number, NEW.vehicle_weight, NEW.transporter_code, NEW.transporter_name, NEW.customer_code, NEW.customer_name, NEW.supplier_code, NEW.supplier_name, NEW.is_manual, NEW.company, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_VEH` BEFORE UPDATE ON `Vehicle` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Check if status = 1, set action_id to 3, otherwise set to 2
+    IF NEW.status = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Vehicle_Log table
+    INSERT INTO Vehicle_Log (
+        vehicle_id, veh_number, vehicle_weight, transporter_code, transporter_name, customer_code, customer_name, supplier_code, supplier_name, is_manual, company, action_id, action_by, event_date
+    ) 
+    VALUES (
+        NEW.id, NEW.veh_number, NEW.vehicle_weight, NEW.transporter_code, NEW.transporter_name, NEW.customer_code, NEW.customer_name, NEW.supplier_code, NEW.supplier_name, NEW.is_manual, NEW.company, action_value, NEW.modified_by, NEW.modified_date
+    );
+END
+$$
+DELIMITER ;
+
+ALTER TABLE `Location` ADD `company` INT(11) NULL AFTER `plant_id`;
+ALTER TABLE `Location_Log` ADD `company` INT(11) NULL AFTER `plant_id`;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_LOCATION` AFTER INSERT ON `Location` FOR EACH ROW INSERT INTO Location_Log (
+    location_id, location_code, location_name, port_id, weighing_count, plant_id, company, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.location_code, NEW.location_name, NEW.port_id, NEW.weighing_count, NEW.plant_id, NEW.company, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_LOCATION` BEFORE UPDATE ON `Location` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Check if status = 1, set action_id to 3, otherwise set to 2
+    IF NEW.status = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Location_Log table
+    INSERT INTO Location_Log (
+        location_id, location_code, location_name, port_id, weighing_count, plant_id, company, action_id, action_by, event_date
+    ) 
+    VALUES (
+        NEW.id, NEW.location_code, NEW.location_name, NEW.port_id, NEW.weighing_count, NEW.plant_id, NEW.company, action_value, NEW.modified_by, NEW.modified_date
+    );
+END
+$$
+DELIMITER ;
