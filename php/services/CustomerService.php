@@ -82,6 +82,20 @@ class CustomerService extends BaseService {
         return $row;
     }
 
+    public function getListByCompany($companyId) {
+        $stmt = $this->db->prepare("SELECT customer_code, name FROM Customer WHERE company = ? AND status = '0' ORDER BY name");
+        if (!$stmt) throw new Exception($this->db->error);
+        $stmt->bind_param('i', $companyId);
+        if (!$stmt->execute()) throw new Exception($stmt->error);
+        $result = $stmt->get_result();
+        $list = [];
+        while ($row = $result->fetch_assoc()) {
+            $list[] = $row;
+        }
+        $stmt->close();
+        return $list;
+    }
+
     public function save($f) {
         if ($this->isDuplicateCode($f['customerCode'], $f['company'], $f['customerId'])) {
             throw new Exception('Customer code already exists');

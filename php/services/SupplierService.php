@@ -85,6 +85,20 @@ class SupplierService extends BaseService {
         return $row;
     }
 
+    public function getListByCompany($companyId) {
+        $stmt = $this->db->prepare("SELECT supplier_code, name FROM Supplier WHERE company = ? AND status = '0' ORDER BY name");
+        if (!$stmt) throw new Exception($this->db->error);
+        $stmt->bind_param('i', $companyId);
+        if (!$stmt->execute()) throw new Exception($stmt->error);
+        $result = $stmt->get_result();
+        $list = [];
+        while ($row = $result->fetch_assoc()) {
+            $list[] = $row;
+        }
+        $stmt->close();
+        return $list;
+    }
+
     public function save($f) {
         if ($this->isDuplicateCode($f['supplierCode'], $f['company'], $f['supplierId'])) {
             throw new Exception('Supplier code already exists');

@@ -13,15 +13,17 @@
         $companies = $db->query("SELECT * FROM Company WHERE status = 0 AND id IN ($company_ids) ORDER BY name");
         $companies2 = $db->query("SELECT * FROM Company WHERE status = 0 AND id IN ($company_ids) ORDER BY name");
         $companies3 = $db->query("SELECT * FROM Company WHERE status = 0 AND id IN ($company_ids) ORDER BY name");
+        $customer = $db->query("SELECT * FROM Customer WHERE status = '0' AND company IN ($companyId) ORDER BY name");
+        $supplier = $db->query("SELECT * FROM Supplier WHERE status = '0' AND company IN ($companyId) ORDER BY name");
     }else{
         $companies = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
         $companies2 = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
         $companies3 = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
+        $customer = $db->query("SELECT * FROM Customer WHERE status = '0' ORDER BY name");
+        $supplier = $db->query("SELECT * FROM Supplier WHERE status = '0' ORDER BY name");
     }
 
-    $customer = $db->query("SELECT * FROM Customer WHERE status = '0'");
-    $supplier = $db->query("SELECT * FROM Supplier WHERE status = '0'");
-    $transporter = $db->query("SELECT * FROM Transporter WHERE status = '0'");
+    $transporter = $db->query("SELECT * FROM Transporter WHERE status = '0' ORDER BY name");
 ?>
 
 <head>
@@ -489,12 +491,13 @@ $(function () {
         $('#addModal').find('#company').val(sessionCompanyId).trigger('change');
         $('#addModal').find('#vehicleNo').val("");
         $('#addModal').find('#vehicleWeight').val("");
-        $('#addModal').find('#customer').val("").trigger('change');
-        $('#addModal').find('#customerCode').val("");
-        $('#addModal').find('#supplier').val("").trigger('change');
-        $('#addModal').find('#supplierCode').val("");
+        // Customer/supplier will be loaded by company change event
         // Remove Validation Error Message
         $('#addModal .is-invalid').removeClass('is-invalid');
+
+        // Load customers/suppliers for initial company
+        loadCustomersByCompany(sessionCompanyId);
+        loadSuppliersByCompany(sessionCompanyId);
 
         $('#addModal').modal('show');
         
@@ -527,6 +530,13 @@ $(function () {
     //supplier
     $('#supplier').on('change', function(){
         $('#supplierCode').val($('#supplier :selected').data('code'));
+    });
+
+    // Filter customer/supplier by company
+    $('#company').on('change', function(){
+        var companyId = $(this).val();
+        loadCustomersByCompany(companyId);
+        loadSuppliersByCompany(companyId);
     });
 
     $('#uploadVehicle').on('click', function(){
@@ -759,12 +769,15 @@ function edit(id){
     {
         var obj = JSON.parse(data);
         if(obj.status === 'success'){
-            $('#addModal').find('#id').val(obj.message.id);
-            $('#addModal').find('#company').val(obj.message.company).trigger('change');
-            $('#addModal').find('#vehicleNo').val(obj.message.veh_number);
-            $('#addModal').find('#vehicleWeight').val(obj.message.vehicle_weight);
-            $('#addModal').find('#customer').val(obj.message.customer_name).trigger('change');
-            $('#addModal').find('#supplier').val(obj.message.supplier_name).trigger('change');
+            var vehicleData = obj.message;
+            $('#addModal').find('#id').val(vehicleData.id);
+            $('#addModal').find('#company').val(vehicleData.company).trigger('change');
+            $('#addModal').find('#vehicleNo').val(vehicleData.veh_number);
+            $('#addModal').find('#vehicleWeight').val(vehicleData.vehicle_weight);
+
+            // Load customers/suppliers for the vehicle's company, then set selected values
+            loadCustomersByCompany(vehicleData.company, vehicleData.customer_name);
+            loadSuppliersByCompany(vehicleData.company, vehicleData.supplier_name);
 
             // Remove Validation Error Message
             $('#addModal .is-invalid').removeClass('is-invalid');
@@ -902,6 +915,44 @@ function reactivate(id) {
   }
 
   $('#spinnerLoading').hide();
+}
+
+function loadCustomersByCompany(companyId, selectedValue) {
+    $.post('php/modules/customer/index.php', { action: 'list', company: companyId }, function(data) {
+        var obj = JSON.parse(data);
+        var $customer = $('#customer');
+        $customer.empty().append('<option selected>-</option>');
+        if (obj.status === 'success') {
+            $.each(obj.data, function(i, item) {
+                $customer.append('<option value="' + item.name + '" data-code="' + item.customer_code + '">' + item.name + '</option>');
+            });
+        }
+        if (selectedValue) {
+            $customer.val(selectedValue).trigger('change');
+        } else {
+            $customer.trigger('change');
+            $('#customerCode').val('');
+        }
+    });
+}
+
+function loadSuppliersByCompany(companyId, selectedValue) {
+    $.post('php/modules/supplier/index.php', { action: 'list', company: companyId }, function(data) {
+        var obj = JSON.parse(data);
+        var $supplier = $('#supplier');
+        $supplier.empty().append('<option selected>-</option>');
+        if (obj.status === 'success') {
+            $.each(obj.data, function(i, item) {
+                $supplier.append('<option value="' + item.name + '" data-code="' + item.supplier_code + '">' + item.name + '</option>');
+            });
+        }
+        if (selectedValue) {
+            $supplier.val(selectedValue).trigger('change');
+        } else {
+            $supplier.trigger('change');
+            $('#supplierCode').val('');
+        }
+    });
 }
 </script>
     </body>
