@@ -100,15 +100,29 @@ class ProjectController extends BaseController {
      */
     public function upload() {
         $data = json_decode(file_get_contents('php://input'), true);
-        
+
+        // Determine company on the backend - never trust frontend value for restricted users
+        if (hasModulePermission('Master Data', 'Projects', ['view_all_companies'])) {
+            $companyId = isset($_GET['company']) ? intval($_GET['company']) : 0;
+        } else {
+            $companyId = isset($_SESSION['company_id']) ? intval($_SESSION['company_id']) : 0;
+        }
+
+        if ($companyId <= 0) {
+            $this->failed('Please select a company');
+        }
+
+        $company = searchCompanyById($companyId, $this->db);
+        if (empty($company) || $company['status'] != '0') {
+            $this->failed('Company not found');
+        }
+
         try {
-            $result = $this->projectService->upload($data);
+            $result = $this->projectService->upload($data, $companyId);
             
-            if (count($result['errors']) > 0 && $result['successCount'] > 0) {
+            if (count($result['errors']) > 0) {
                 echo json_encode(['status' => 'error', 'message' => $result['errors']]);
                 exit();
-            } elseif (count($result['errors']) > 0) {
-                $this->failed(implode(', ', $result['errors']));
             } else {
                 $this->success("{$result['successCount']} records imported successfully");
             }
