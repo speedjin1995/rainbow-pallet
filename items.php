@@ -1,15 +1,32 @@
 <?php include 'layouts/session.php'; ?>
 <?php include 'layouts/head-main.php'; ?>
 <?php
+    $companyId = $_SESSION['company_id'];
     if (!hasModulePermission('Master Data', 'Items', ['view'])){
         header('Location: no-permission.php');
         exit;
     }
 
-    $companies = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
-    $categories = $db->query("SELECT * FROM Product_Categories WHERE status = '0' ORDER BY category_name ASC");
-    $units = $db->query("SELECT * FROM Units WHERE status = '0' ORDER BY unit ASC");
-    $units2 = $db->query("SELECT * FROM Units WHERE status = '0' ORDER BY unit ASC");
+    if (!hasModulePermission('Master Data', 'Items', ['view_all_companies'])){
+        // Get companies
+        $company_ids = implode(',', array_map('intval', $_SESSION['company_ids']));
+        $companies = $db->query("SELECT * FROM Company WHERE status = 0 AND id IN ($company_ids) ORDER BY name");
+        $companies2 = $db->query("SELECT * FROM Company WHERE status = 0 AND id IN ($company_ids) ORDER BY name");
+        $companies3 = $db->query("SELECT * FROM Company WHERE status = 0 AND id IN ($company_ids) ORDER BY name");
+        $companies4 = $db->query("SELECT * FROM Company WHERE status = 0 AND id IN ($company_ids) ORDER BY name");
+        $categories = $db->query("SELECT * FROM Product_Categories WHERE status = '0' AND company IN ($companyId) ORDER BY category_name ASC");
+        $units = $db->query("SELECT * FROM Units WHERE status = '0' AND company IN ($companyId) ORDER BY unit ASC");
+        $units2 = $db->query("SELECT * FROM Units WHERE status = '0' AND company IN ($companyId) ORDER BY unit ASC");
+
+    }else{
+        $companies = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
+        $companies2 = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
+        $companies3 = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
+        $companies4 = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
+        $categories = $db->query("SELECT * FROM Product_Categories WHERE status = '0' ORDER BY category_name ASC");
+        $units = $db->query("SELECT * FROM Units WHERE status = '0' ORDER BY unit ASC");
+        $units2 = $db->query("SELECT * FROM Units WHERE status = '0' ORDER BY unit ASC");
+    }
 ?>
 
 <head>
@@ -71,6 +88,50 @@
                             </div>
                             <!--end row-->
 
+                            <div class="col-xxl-12 col-lg-12">
+                                <div class="card">
+                                    <div class="card-header fs-5 text-white" href="#collapseSearch" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="collapseSearch" style="background-color: #405189; cursor:pointer;">
+                                        <i class="mdi mdi-chevron-down pull-right"></i>
+                                        <?=$languageArray['search_records_code'][$language] ?? 'Search Records'?>
+                                    </div>
+                                    <div id="collapseSearch" class="collapse" aria-labelledby="collapseSearch">
+                                        <div class="card-body">
+                                            <form action="javascript:void(0);">
+                                                <div class="row">
+                                                    <div class="col-3" <?= !hasModulePermission('Master Data', 'Items', ['view_all_companies']) ? "style='display:none'" : '' ?>>
+                                                        <div class="mb-3">
+                                                            <label class="form-label"><?=$languageArray['company_code'][$language] ?? 'Company'?></label>
+                                                            <select class="form-select select2" id="companySearch" name="companySearch" required>
+                                                                <?php while($rowCompany=mysqli_fetch_assoc($companies2)){ ?>
+                                                                    <option value="<?=$rowCompany['id'] ?>" <?=($rowCompany['id'] == $companyId) ? 'selected' : ''?>><?=$rowCompany['name'] ?></option>
+                                                                <?php } ?>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-3">
+                                                        <div class="mb-3">
+                                                            <label class="form-label"><?=$languageArray['item_code_code'][$language]?></label>
+                                                            <input type="text" class="form-control" id="itemCodeSearch" placeholder="<?=$languageArray['item_code_code'][$language]?>">
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-3">
+                                                        <div class="mb-3">
+                                                            <label class="form-label"><?=$languageArray['item_name_code'][$language]?></label>
+                                                            <input type="text" class="form-control" id="itemNameSearch" placeholder="<?=$languageArray['item_name_code'][$language]?>">
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-lg-12">
+                                                        <div class="text-end">
+                                                            <button type="submit" class="btn btn-success" id="filterSearch"><i class="bx bx-search-alt"></i> <?=$languageArray['search_code'][$language] ?? 'Search'?></button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="row">
                                 <div class="col-xl-3 col-md-6 add-new-weight">
 
@@ -89,7 +150,7 @@
                                                                 <div class="card bg-light">
                                                                     <div class="card-body">
                                                                         <div class="row">
-                                                                            <div class="col-xxl-12 col-lg-12 mb-3">
+                                                                            <div class="col-xxl-12 col-lg-12 mb-3" <?= !hasModulePermission('Master Data', 'Items', ['view_all_companies']) ? "style='display:none'" : '' ?>>
                                                                                 <div class="row">
                                                                                     <label for="company" class="col-sm-4 col-form-label"><?=$languageArray['company_code'][$language] ?? 'Company'?> <span class="text-danger">*</span></label>
                                                                                     <div class="col-sm-8">
@@ -243,6 +304,16 @@
                                                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                     </div>
                                                     <div class="modal-body">
+                                                        <div class="row mb-3" <?= !hasModulePermission('Master Data', 'Items', ['view_all_companies']) ? "style='display:none'" : '' ?>>
+                                                            <label for="uploadCompany" class="col-sm-2 col-form-label"><?=$languageArray['company_code'][$language] ?? 'Company'?> <span class="text-danger">*</span></label>
+                                                            <div class="col-sm-4">
+                                                                <select class="form-select select2" id="uploadCompany" name="uploadCompany" required>
+                                                                    <?php while($rowCompany=mysqli_fetch_assoc($companies3)){ ?>
+                                                                        <option value="<?=$rowCompany['id'] ?>" <?=($rowCompany['id'] == $companyId) ? 'selected' : ''?>><?=$rowCompany['name'] ?></option>
+                                                                    <?php } ?>
+                                                                </select>
+                                                            </div>
+                                                        </div>
                                                         <input type="file" id="fileInput">
                                                         <button type="button" id="previewButton"><?=$languageArray['preview_data_code'][$language]?></button>
                                                         <div id="previewTable" style="overflow: auto;"></div>
@@ -272,6 +343,30 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <div class="modal fade" id="downloadTemplateModal" style="display:none">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title"><?=$languageArray['company_code'][$language] ?? 'Company'?></h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <div class="mb-3">
+                                                        <label for="downloadTemplateCompany" class="form-label"><?=$languageArray['company_code'][$language] ?? 'Company'?> <span class="text-danger">*</span></label>
+                                                        <select class="form-select select2" id="downloadTemplateCompany" name="downloadTemplateCompany">
+                                                            <?php while($rowCompany=mysqli_fetch_assoc($companies4)){ ?>
+                                                                <option value="<?=$rowCompany['id'] ?>"><?=$rowCompany['name'] ?></option>
+                                                            <?php } ?>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-light" data-bs-dismiss="modal"><?=$languageArray['close_code'][$language]?></button>
+                                                    <button type="button" class="btn btn-info" id="confirmDownloadTemplate"><?=$languageArray['download_template_code'][$language]?></button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div> <!-- end row-->
 
@@ -289,12 +384,10 @@
                                                             </div>
                                                             <div class="flex-shrink-0">
                                                                 <?php if(hasModulePermission('Master Data', 'Items', ['download_template'])): ?>
-                                                                <a href="template/Item_Template.xlsx" download>
-                                                                    <button type="button" class="btn btn-info waves-effect waves-light">
-                                                                        <i class="mdi mdi-file-import-outline align-middle me-1"></i>
-                                                                        <?=$languageArray['download_template_code'][$language]?>
-                                                                    </button>
-                                                                </a>
+                                                                <button type="button" id="downloadTemplate" class="btn btn-info waves-effect waves-light">
+                                                                    <i class="mdi mdi-file-import-outline align-middle me-1"></i>
+                                                                    <?=$languageArray['download_template_code'][$language]?>
+                                                                </button>
                                                                 <?php endif; ?>
 
                                                                 <?php if(hasModulePermission('Master Data', 'Items', ['upload_excel'])): ?>
@@ -412,11 +505,20 @@
         var isSADMIN = <?= json_encode($_SESSION['roles'] == 'SADMIN') ?>;
         var uomRowCount = $("#uomTable").find(".details").length;
         var uomNoCount = 1;
+        var sessionCompanyId = <?= intval($_SESSION['company_id'] ?? 0) ?>;
+        var canViewAllCompanies = <?= json_encode(hasModulePermission('Master Data', 'Items', ['view_all_companies'])) ?>;
 
         $(function () {
             $('#selectAllCheckbox').on('change', function() {
                 var checkboxes = $('#productTable tbody input[type="checkbox"]');
                 checkboxes.prop('checked', $(this).prop('checked')).trigger('change');
+            });
+
+            // Initialize all Select2 elements in the modal
+            $('#collapseSearch .select2').select2({
+                allowClear: true,
+                placeholder: "Please Select",
+                dropdownParent: $('#collapseSearch') // Ensures dropdown is not cut off
             });
 
             // Initialize all Select2 elements in the modal
@@ -426,106 +528,38 @@
                 dropdownParent: $('#addModal') // Ensures dropdown is not cut off
             });
 
+            // Initialize all Select2 elements in the upload modal
+            $('#uploadModal .select2').select2({
+                allowClear: true,
+                placeholder: "Please Select",
+                dropdownParent: $('#uploadModal') // Ensures dropdown is not cut off
+            });
+
+            // Initialize all Select2 elements in the download template modal
+            $('#downloadTemplateModal .select2').select2({
+                allowClear: true,
+                placeholder: "Please Select",
+                dropdownParent: $('#downloadTemplateModal') // Ensures dropdown is not cut off
+            });
+
             // Apply custom styling to Select2 elements in addModal
-            $('#addModal .select2-container .select2-selection--single').css({
+            $('.select2-container .select2-selection--single').css({
                 'padding-top': '4px',
                 'padding-bottom': '4px',
                 'height': 'auto'
             });
 
-            $('#addModal .select2-container .select2-selection__arrow').css({
+            $('.select2-container .select2-selection__arrow').css({
                 'padding-top': '33px',
                 'height': 'auto'
             });
 
-            table = $("#productTable").DataTable({
-                "responsive": true,
-                "autoWidth": false,
-                'processing': true,
-                'serverSide': true,
-                'serverMethod': 'post',
-                'ajax': {
-                    'url':'php/modules/item/index.php',
-                    'data': { action: 'getAll' }
-                },
-                'columns': [
-                    {
-                        // Add a checkbox with a unique ID for each row
-                        data: 'id', // Assuming 'serialNo' is a unique identifier for each row
-                        className: 'select-checkbox',
-                        orderable: false,
-                        render: function (data, type, row) {
-                            return '<input type="checkbox" class="select-checkbox" id="checkbox_' + data + '" value="'+data+'"/>';
-                        }
-                    },
-                    { data: 'company_name' },
-                    { 
-                        data: 'is_manual',
-                        render: function (data, type, row) {
-                            return data === 'Y' ? '<span class="badge bg-danger">Yes</span>' : '<span class="badge bg-secondary">No</span>';
-                        }
-                    },
-                    { data: 'product_code' },
-                    { data: 'name' },
-                    { data: 'category_name' },
-                    { data: 'description' },
-                    { 
-                        data: 'id',
-                        render: function ( data, type, row ) {
-                            if (row.status == '1'){
-                                return '<button title="Reactivate" type="button" id="reactivate'+data+'" onclick="reactivate('+data+')" class="btn btn-warning btn-sm">Reactivate</button>';
-                            }else{
-                                return 'Active';
-                            }
-                        }
-                    },
-                    { 
-                        data: 'id',
-                        render: function ( data, type, row ) {
-                            if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Items'] && ['edit', 'cancelled'].some(p => permissions['Master Data']['Items'].includes(p)))) {
-                                var buttons = `
-                                    <div class="dropdown d-inline-block">
-                                        <button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                            <i class="ri-more-fill align-middle"></i>
-                                        </button>
-                                        <ul class="dropdown-menu dropdown-menu-end">`;
+            renderTable();
 
-                                if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Items'] && permissions['Master Data']['Items'].includes('edit'))) {
-                                    buttons += `
-                                            <li>
-                                                <a class="dropdown-item edit-item-btn" id="edit${data}" onclick="edit(${data})">
-                                                    <i class="ri-pencil-fill align-bottom me-2 text-muted"></i> <?=$languageArray['edit_code'][$language]?>
-                                                </a>
-                                            </li>`;
-                                }
-
-                                if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Items'] && permissions['Master Data']['Items'].includes('cancelled'))) {
-                                    buttons += `
-                                            <li>
-                                                <a class="dropdown-item remove-item-btn" id="deactivate${data}" onclick="deactivate(${data})">
-                                                    <i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i> <?=$languageArray['delete_code'][$language]?>
-                                                </a>
-                                            </li>`;
-                                }
-
-                                buttons += `
-                                        </ul>
-                                    </div>`;
-
-                                return buttons;
-                            }
-
-                            return '';
-                        }
-                    }
-                ],
-                'rowCallback': function(row, data) {
-                    if (data.is_manual === 'Y') {
-                        $(row).css('background-color', '#ffcccc');
-                    }
-                }       
+            $('#filterSearch').on('click', function() {
+                renderTable();
             });
-            
+
             $('#submitProduct').on('click', function(){
                 // custom validation for select2
                 $('#addModal .select2[required]').each(function () {
@@ -592,9 +626,12 @@
                 }
                 });
 
+                // Company is only used for users with view_all_companies; backend enforces session company otherwise
+                var uploadCompany = $('#uploadModal').find('#uploadCompany').val() || '';
+
                 // Send the JSON array to the server
                 $.ajax({
-                    url: 'php/modules/item/index.php?action=upload',
+                    url: 'php/modules/item/index.php?action=upload&company=' + encodeURIComponent(uploadCompany),
                     type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify(data),
@@ -631,7 +668,7 @@
 
             $('#addProduct').on('click', function(){
                 $('#addModal').find('#id').val("");
-                $('#addModal').find('#company').val(1).trigger('change');
+                $('#addModal').find('#company').val(sessionCompanyId).trigger('change');
                 $('#addModal').find('#productCode').val("");
                 $('#addModal').find('#productName').val("");
                 $('#addModal').find('#categoryId').val("").trigger('change');
@@ -671,9 +708,29 @@
                 });
             });
 
+            $('#downloadTemplate').on('click', function(){
+                if (canViewAllCompanies) {
+                    $('#downloadTemplateModal').find('#downloadTemplateCompany').val(sessionCompanyId).trigger('change');
+                    $('#downloadTemplateModal').modal('show');
+                } else {
+                    window.location = 'php/modules/item/index.php?action=downloadTemplate';
+                }
+            });
+
+            $('#confirmDownloadTemplate').on('click', function(){
+                var companyId = $('#downloadTemplateModal').find('#downloadTemplateCompany').val();
+                if (!companyId) {
+                    toastr["error"]("Please select a company", "Failed:");
+                    return;
+                }
+                window.location = 'php/modules/item/index.php?action=downloadTemplate&company=' + encodeURIComponent(companyId);
+                $('#downloadTemplateModal').modal('hide');
+            });
+
             $('#uploadExcel').on('click', function(){
                 $('#previewTable').html('');
                 $('#fileInput').val('');
+                $('#uploadModal').find('#uploadCompany').val(sessionCompanyId).trigger('change');
                 $('#uploadModal').modal('show');
 
                 $('#uploadForm').validate({
@@ -789,6 +846,105 @@
                 uomNoCount++;
             });
         });
+
+        function renderTable(){
+            var companyId = $('#companySearch').val() || '';
+            var itemCode = $('#itemCodeSearch').val() || '';
+            var itemName = $('#itemNameSearch').val() || '';
+
+            // Destroy old DataTables if exist
+            if ($.fn.DataTable.isDataTable('#productTable')) {
+                $("#productTable").DataTable().clear().destroy();
+            }
+
+            table = $("#productTable").DataTable({
+                "responsive": true,
+                "autoWidth": false,
+                'processing': true,
+                'serverSide': true,
+                'serverMethod': 'post',
+                'ajax': {
+                    'url':'php/modules/item/index.php',
+                    'data': { action: 'getAll', companyId: companyId, itemCode: itemCode, itemName: itemName }
+                },
+                'columns': [
+                    {
+                        // Add a checkbox with a unique ID for each row
+                        data: 'id', // Assuming 'serialNo' is a unique identifier for each row
+                        className: 'select-checkbox',
+                        orderable: false,
+                        render: function (data, type, row) {
+                            return '<input type="checkbox" class="select-checkbox" id="checkbox_' + data + '" value="'+data+'"/>';
+                        }
+                    },
+                    { data: 'company_name' },
+                    {
+                        data: 'is_manual',
+                        render: function (data, type, row) {
+                            return data === 'Y' ? '<span class="badge bg-danger">Yes</span>' : '<span class="badge bg-secondary">No</span>';
+                        }
+                    },
+                    { data: 'product_code' },
+                    { data: 'name' },
+                    { data: 'category_name' },
+                    { data: 'description' },
+                    {
+                        data: 'id',
+                        render: function ( data, type, row ) {
+                            if (row.status == '1'){
+                                return '<button title="Reactivate" type="button" id="reactivate'+data+'" onclick="reactivate('+data+')" class="btn btn-warning btn-sm">Reactivate</button>';
+                            }else{
+                                return 'Active';
+                            }
+                        }
+                    },
+                    {
+                        data: 'id',
+                        render: function ( data, type, row ) {
+                            if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Items'] && ['edit', 'cancelled'].some(p => permissions['Master Data']['Items'].includes(p)))) {
+                                var buttons = `
+                                    <div class="dropdown d-inline-block">
+                                        <button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="ri-more-fill align-middle"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">`;
+
+                                if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Items'] && permissions['Master Data']['Items'].includes('edit'))) {
+                                    buttons += `
+                                            <li>
+                                                <a class="dropdown-item edit-item-btn" id="edit${data}" onclick="edit(${data})">
+                                                    <i class="ri-pencil-fill align-bottom me-2 text-muted"></i> <?=$languageArray['edit_code'][$language]?>
+                                                </a>
+                                            </li>`;
+                                }
+
+                                if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Items'] && permissions['Master Data']['Items'].includes('cancelled'))) {
+                                    buttons += `
+                                            <li>
+                                                <a class="dropdown-item remove-item-btn" id="deactivate${data}" onclick="deactivate(${data})">
+                                                    <i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i> <?=$languageArray['delete_code'][$language]?>
+                                                </a>
+                                            </li>`;
+                                }
+
+                                buttons += `
+                                        </ul>
+                                    </div>`;
+
+                                return buttons;
+                            }
+
+                            return '';
+                        }
+                    }
+                ],
+                'rowCallback': function(row, data) {
+                    if (data.is_manual === 'Y') {
+                        $(row).css('background-color', '#ffcccc');
+                    }
+                }
+            });
+        }
 
         function edit(id){
             $('#spinnerLoading').show();
@@ -923,9 +1079,9 @@
             // Get the headers
             var headers = jsonData[0];
 
-            // Ensure we handle cases where there may be less than 6 columns
-            while (headers.length < 6) {
-                headers.push(''); // Adding empty headers to reach 6 columns
+            // Ensure we handle cases where there may be less than 5 columns
+            while (headers.length < 5) {
+                headers.push(''); // Adding empty headers to reach 5 columns
             }
 
             // Create HTML table headers
@@ -940,12 +1096,12 @@
                 htmlTable += '<tr>';
                 var rowData = jsonData[i];
 
-                // Ensure we handle cases where there may be less than 6 cells in a row
-                while (rowData.length < 6) {
-                    rowData.push(''); // Adding empty cells to reach 6 columns
+                // Ensure we handle cases where there may be less than 5 cells in a row
+                while (rowData.length < 5) {
+                    rowData.push(''); // Adding empty cells to reach 5 columns
                 }
 
-                for (var j = 0; j < 6; j++) {
+                for (var j = 0; j < 5; j++) {
                     var cellData = rowData[j];
                     var formattedData = cellData;
 
