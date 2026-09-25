@@ -12,10 +12,22 @@ class CustomerService extends BaseService {
         $columnName = $post['columns'][$post['order'][0]['column']]['data'] ?? 'customer_code';
         $sortOrder  = $post['order'][0]['dir'] ?? 'asc';
         $search     = mysqli_real_escape_string($this->db, $post['search']['value']);
+        $companyId  = isset($post['companyId']) ? intval($post['companyId']) : 0;
+        $customerCode = isset($post['customerCode']) ? mysqli_real_escape_string($this->db, $post['customerCode']) : '';
+        $customerName = isset($post['customerName']) ? mysqli_real_escape_string($this->db, $post['customerName']) : '';
 
         $q = '';
         if ($search !== '') {
             $q = " AND (customer_code LIKE '%{$search}%' OR name LIKE '%{$search}%')";
+        }
+        if ($companyId > 0) {
+            $q .= " AND company={$companyId}";
+        }
+        if ($customerCode !== '') {
+            $q .= " AND customer_code LIKE '%{$customerCode}%'";
+        }
+        if ($customerName !== '') {
+            $q .= " AND name LIKE '%{$customerName}%'";
         }
 
         $totalRes = $this->db->query("SELECT COUNT(*) as c FROM Customer");
@@ -69,7 +81,7 @@ class CustomerService extends BaseService {
     }
 
     public function save($f) {
-        if ($this->isDuplicateCode($f['customerCode'], $f['customerId'])) {
+        if ($this->isDuplicateCode($f['customerCode'], $f['company'], $f['customerId'])) {
             throw new Exception('Customer code already exists');
         }
 
@@ -110,13 +122,13 @@ class CustomerService extends BaseService {
         $stmt->close();
     }
 
-    public function upload($data) {
+    public function upload($data, $companyId) {
         $errors = [];
         $status = '0';
+        $company = $companyId;
 
         foreach ($data as $index => $row) {
-            $companyName = !empty($row['Company']) ? trim($row['Company']) : '';
-            $code      = !empty($row['Code']) ? trim($row['Code']) : '';
+            $code     = !empty($row['Code']) ? trim($row['Code']) : '';
             $name      = !empty($row['Name']) ? trim($row['Name']) : '';
             $regNo     = !empty($row['RegNo']) ? trim($row['RegNo']) : '';
             $newRegNo  = !empty($row['NewRegNo']) ? trim($row['NewRegNo']) : '';
@@ -135,18 +147,8 @@ class CustomerService extends BaseService {
                 continue;
             }
 
-            // Lookup company by name
-            $company = null;
-            if (!empty($companyName)) {
-                $company = searchCompanyIdByName($companyName, $this->db);
-                if (empty($company)) {
-                    $errors[] = "Row {$rowNum}: Company '{$companyName}' not found.";
-                    continue;
-                }
-            }
-
-            $chk = $this->db->prepare("SELECT id FROM Customer WHERE customer_code=? AND status=?");
-            $chk->bind_param('ss', $code, $status);
+            $chk = $this->db->prepare("SELECT id FROM Customer WHERE customer_code=? AND company=? AND status=?");
+            $chk->bind_param('sss', $code, $company, $status);
             $chk->execute();
             $exists = $chk->get_result()->fetch_assoc();
             $chk->close();
@@ -194,15 +196,16 @@ class CustomerService extends BaseService {
         return ['customer_code' => $customerCode, 'name' => $customerName];
     }
 
-    private function isDuplicateCode($code, $excludeId = null) {
-        $sql = "SELECT id FROM Customer WHERE customer_code=? AND status='0'";
+    private function isDuplicateCode($code, $company, $excludeId = null) {
+        // Duplicate check is scoped to the same company (<=> is null-safe)
+        $sql = "SELECT id FROM Customer WHERE customer_code=? AND company <=> ? AND status='0'";
         if ($excludeId) {
             $sql .= " AND id != ?";
             $stmt = $this->db->prepare($sql);
-            $stmt->bind_param('si', $code, $excludeId);
+            $stmt->bind_param('ssi', $code, $company, $excludeId);
         } else {
             $stmt = $this->db->prepare($sql);
-            $stmt->bind_param('s', $code);
+            $stmt->bind_param('ss', $code, $company);
         }
         $stmt->execute();
         $stmt->store_result();
