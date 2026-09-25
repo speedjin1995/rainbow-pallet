@@ -69,6 +69,16 @@ class UnitController extends BaseController {
             $this->failed($e->getMessage());
         }
     }
+
+    public function handleList() {
+        $companyId = intval($this->getPost('company'));
+        if ($companyId <= 0) {
+            $this->failed('Invalid company');
+        }
+        $list = $this->service->getListByCompany($companyId);
+        echo json_encode(['status' => 'success', 'data' => $list]);
+        exit();
+    }
     
     public function handleUpload() {
         $data = json_decode(file_get_contents('php://input'), true);

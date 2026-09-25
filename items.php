@@ -671,14 +671,16 @@
                 $('#addModal').find('#company').val(sessionCompanyId).trigger('change');
                 $('#addModal').find('#productCode').val("");
                 $('#addModal').find('#productName').val("");
-                $('#addModal').find('#categoryId').val("").trigger('change');
-                $('#addModal').find('#uom').val("").trigger('change');
                 $('#addModal').find('#description').val("");
                 $('#addModal').find('#varianceType').val("");
                 $('#addModal').find('#high').val("0");
                 $('#addModal').find('#low').val("0");
                 $('#uomTable').html('');
                 uomNoCount = 1;
+
+                // Load categories/units for initial company
+                loadCategoriesByCompany(sessionCompanyId);
+                loadUomsByCompany(sessionCompanyId);
 
                 // Remove Validation Error Message
                 $('#addModal .is-invalid').removeClass('is-invalid');
@@ -706,6 +708,13 @@
                         $(element).removeClass('is-invalid');
                     }
                 });
+            });
+
+            // Filter category/uom by company
+            $('#company').on('change', function(){
+                var companyId = $(this).val();
+                loadCategoriesByCompany(companyId);
+                loadUomsByCompany(companyId);
             });
 
             $('#downloadTemplate').on('click', function(){
@@ -952,16 +961,19 @@
             {
                 var obj = JSON.parse(data);
                 if(obj.status === 'success'){
-                    $('#addModal').find('#id').val(obj.data.id);
-                    $('#addModal').find('#company').val(obj.data.company).trigger('change');
-                    $('#addModal').find('#productCode').val(obj.data.product_code);
-                    $('#addModal').find('#productName').val(obj.data.name);
-                    $('#addModal').find('#categoryId').val(obj.data.category).trigger('change');
-                    $('#addModal').find('#uom').val(obj.data.uom).trigger('change');
-                    $('#addModal').find('#description').val(obj.data.description);
-                    $('#addModal').find('#varianceType').val(obj.data.variance).trigger('change');
-                    $('#addModal').find('#high').val(obj.data.high || 0);
-                    $('#addModal').find('#low').val(obj.data.low || 0);
+                    var itemData = obj.data;
+                    $('#addModal').find('#id').val(itemData.id);
+                    $('#addModal').find('#company').val(itemData.company).trigger('change');
+                    $('#addModal').find('#productCode').val(itemData.product_code);
+                    $('#addModal').find('#productName').val(itemData.name);
+                    $('#addModal').find('#description').val(itemData.description);
+                    $('#addModal').find('#varianceType').val(itemData.variance).trigger('change');
+                    $('#addModal').find('#high').val(itemData.high || 0);
+                    $('#addModal').find('#low').val(itemData.low || 0);
+
+                    // Load categories/units for the item's company, then set selected values
+                    loadCategoriesByCompany(itemData.company, itemData.category);
+                    loadUomsByCompany(itemData.company, itemData.uom);
                     
                     // Remove Validation Error Message
                     $('#addModal .is-invalid').removeClass('is-invalid');
@@ -979,8 +991,8 @@
                     uomRowCount = 0;
                     uomNoCount = 1;
                     
-                    if (obj.data.uom_conversions && obj.data.uom_conversions.length > 0) {
-                        $.each(obj.data.uom_conversions, function(index, uomRow) {
+                    if (itemData.uom_conversions && itemData.uom_conversions.length > 0) {
+                        $.each(itemData.uom_conversions, function(index, uomRow) {
                             var $addContents = $("#uomDetail").clone();
                             $("#uomTable").append($addContents.html());
 
@@ -1146,6 +1158,42 @@
             }
 
             $('#spinnerLoading').hide();
+        }
+
+        function loadCategoriesByCompany(companyId, selectedValue) {
+            $.post('php/modules/productCategory/index.php', { action: 'list', company: companyId }, function(data) {
+                var obj = JSON.parse(data);
+                var $category = $('#categoryId');
+                $category.empty().append('<option value="">Please Select</option>');
+                if (obj.status === 'success') {
+                    $.each(obj.data, function(i, item) {
+                        $category.append('<option value="' + item.id + '">' + item.category_name + '</option>');
+                    });
+                }
+                if (selectedValue) {
+                    $category.val(selectedValue).trigger('change');
+                } else {
+                    $category.trigger('change');
+                }
+            });
+        }
+
+        function loadUomsByCompany(companyId, selectedValue) {
+            $.post('php/modules/unit/index.php', { action: 'list', company: companyId }, function(data) {
+                var obj = JSON.parse(data);
+                var $uom = $('#uom');
+                $uom.empty().append('<option value="">Please Select</option>');
+                if (obj.status === 'success') {
+                    $.each(obj.data, function(i, item) {
+                        $uom.append('<option value="' + item.id + '">' + item.unit + '</option>');
+                    });
+                }
+                if (selectedValue) {
+                    $uom.val(selectedValue).trigger('change');
+                } else {
+                    $uom.trigger('change');
+                }
+            });
         }
     </script>
     </body>
