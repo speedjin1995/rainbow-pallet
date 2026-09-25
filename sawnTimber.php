@@ -13,6 +13,7 @@ $selectedPlantId = $_SESSION['selected_plant_id'] ?? null;
 
 $company = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
 $company2 = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
+$customer = $db->query("SELECT * FROM Customer WHERE status = '0' ORDER BY name ASC");
 $supplier = $db->query("SELECT * FROM Supplier WHERE status = '0' ORDER BY name ASC");
 $supplier2 = $db->query("SELECT * FROM Supplier WHERE status = '0' ORDER BY name ASC");
 $species = $db->query("SELECT * FROM Sawn_Timber_Species WHERE status = '0' ORDER BY name ASC");
@@ -158,6 +159,24 @@ else{
                                                                 <?php while($rowPlantF=mysqli_fetch_assoc($plant)){ ?>
                                                                     <option value="<?=$rowPlantF['id'] ?>" <?= ($rowPlantF['id'] == $selectedPlantId) ? 'selected' : '' ?>><?=$rowPlantF['name'] ?></option>
                                                                 <?php } ?>
+                                                            </select>
+                                                        </div>
+                                                    </div><!--end col-->
+                                                    <div class="col-3">
+                                                        <div class="mb-3">
+                                                            <label for="customerSupplierSearch" class="form-label"><?=$languageArray['customer_supplier_code'][$language]?></label>
+                                                            <select id="customerSupplierSearch" class="form-select select2">
+                                                                <option value="">-</option>
+                                                                <optgroup label="<?=$languageArray['customer_code'][$language]?>">
+                                                                    <?php while($rowCustomer = mysqli_fetch_assoc($customer)){ ?>
+                                                                        <option value="customer:<?=$rowCustomer['customer_code'] ?>"><?=$rowCustomer['name'] ?></option>
+                                                                    <?php } ?>
+                                                                </optgroup>
+                                                                <optgroup label="<?=$languageArray['supplier_code'][$language]?>">
+                                                                    <?php while($rowSupplier = mysqli_fetch_assoc($supplier)){ ?>
+                                                                        <option value="supplier:<?=$rowSupplier['supplier_code'] ?>"><?=$rowSupplier['name'] ?></option>
+                                                                    <?php } ?>
+                                                                </optgroup>
                                                             </select>
                                                         </div>
                                                     </div><!--end col-->
@@ -623,7 +642,8 @@ else{
                 toDate: $('#toDateSearch').val(),
                 company: $('#companySearch').val(),
                 plant: $('#plantSearch').val(),
-                transactionId: $('#transactionIdSearch').val()
+                transactionId: $('#transactionIdSearch').val(),
+                customerSupplier: $('#customerSupplierSearch').val()
             });
             window.location = 'php/modules/sawnTimber/index.php?action=export&' + params;
         });
@@ -746,6 +766,7 @@ else{
         var companyI = $('#companySearch').val() || '';
         var plantI = $('#plantSearch').val() || '';
         var transactionIdI = $('#transactionIdSearch').val() || '';
+        var customerSupplierI = $('#customerSupplierSearch').val() || '';
 
         // Destroy the old Datatable if exists
         if ($.fn.DataTable.isDataTable('#sawnTimberTable')) {
@@ -768,6 +789,7 @@ else{
                     company: companyI,
                     plant: plantI,
                     transactionId: transactionIdI,
+                    customerSupplier: customerSupplierI,
                 }
             },
             'columns': [
@@ -840,7 +862,7 @@ else{
                     <strong class="text-primary"><i class="ri-stack-line me-1"></i><?=$languageArray['details_code'][$language]?></strong>
                 </div>
             </div>
-            <table class="table table-sm table-bordered table-striped mb-0" style="font-size:12px;">
+            <table class="table table-bordered table-striped mb-0">
                 <thead style="background-color:#405189; color:#fff;">
                     <tr>
                         <th>#</th>
@@ -886,7 +908,7 @@ else{
                         <td>${d.width || '-'}</td>
                         <td>${d.length || '-'}</td>
                         <td>${d.pieces || '-'}</td>
-                        <td class="text-success fw-bold">${tons.toFixed(4)}</td>
+                        <td>${tons.toFixed(4)}</td>
                         <td>${kd > 0 ? kd.toFixed(2) : '-'}</td>
                         <td>${bundling > 0 ? bundling.toFixed(2) : '-'}</td>
                         <td>${grader > 0 ? grader.toFixed(2) : '-'}</td>
@@ -902,10 +924,10 @@ else{
                     <tr>
                         <td colspan="7" class="text-end"><?=$languageArray['total_code'][$language]?>:</td>
                         <td>${totalPieces}</td>
-                        <td style="color:#5eff5e;">${totalTons.toFixed(4)}</td>
-                        <td style="color:#ffeb3b;">${totalKd > 0 ? totalKd.toFixed(2) : '-'}</td>
-                        <td style="color:#ffeb3b;">${totalBundling > 0 ? totalBundling.toFixed(2) : '-'}</td>
-                        <td style="color:#ffeb3b;">${totalGrader > 0 ? totalGrader.toFixed(2) : '-'}</td>
+                        <td>${totalTons.toFixed(4)}</td>
+                        <td>${totalKd > 0 ? totalKd.toFixed(2) : '-'}</td>
+                        <td>${totalBundling > 0 ? totalBundling.toFixed(2) : '-'}</td>
+                        <td>${totalGrader > 0 ? totalGrader.toFixed(2) : '-'}</td>
                     </tr>
                 </tfoot>
             </table>
