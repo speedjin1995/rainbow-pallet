@@ -8,7 +8,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 }
 
 // Check if user has plant_id assigned
-if(!isset($_SESSION['plant_id']) || empty($_SESSION['plant_id'])) {
+if((!isset($_SESSION['plant_id']) || empty($_SESSION['plant_id'])) && (!isset($_SESSION['company_ids']) || empty($_SESSION['company_ids']))) {
     // Show error page
     include 'layouts/head-main.php';
     ?>
@@ -50,8 +50,8 @@ if(!isset($_SESSION['plant_id']) || empty($_SESSION['plant_id'])) {
                                 </div>
                                 <div class="mt-4 pt-2">
                                     <h4 class="text-danger">Access Denied</h4>
-                                    <p class="text-muted">No plant has been assigned to your account.</p>
-                                    <p class="text-muted">Please contact your <strong>IT Administrator</strong> to assign a plant to your user account.</p>
+                                    <p class="text-muted">No plant or company has been assigned to your account.</p>
+                                    <p class="text-muted">Please contact your <strong>IT Administrator</strong> to assign a plant or company to your user account.</p>
                                     <div class="mt-4">
                                         <a href="php/logout.php" class="btn btn-danger w-100"><i class="ri-logout-box-line me-1"></i> Logout</a>
                                     </div>
@@ -83,6 +83,11 @@ if(!isset($_SESSION['plant_id']) || empty($_SESSION['plant_id'])) {
     exit;
 }
 
+// Get companies
+$company_ids = implode(',', array_map('intval', $_SESSION['company_ids']));
+$companies = $db->query("SELECT id, company_code, name FROM Company WHERE status = 0 AND id IN ($company_ids) ORDER BY name");
+
+// Get plants
 $plant_ids = implode(',', array_map('intval', $_SESSION['plant_id']));
 $plants = $db->query("SELECT * FROM Plant WHERE status = '0' AND id IN ($plant_ids)");
 
@@ -92,6 +97,7 @@ $locationsByPlant = [];
 while ($loc = $locationsResult->fetch_assoc()) {
     $locationsByPlant[$loc['plant_id']][] = $loc;
 }
+
 ?>
 <?php include 'layouts/head-main.php'; ?>
 <head>
@@ -137,12 +143,24 @@ while ($loc = $locationsResult->fetch_assoc()) {
                                 <?php 
                                     if($_GET['error'] == 'choose_plant') echo 'Please select a plant.';
                                     elseif($_GET['error'] == 'choose_location') echo 'Please select a location.';
+                                    elseif($_GET['error'] == 'choose_company') echo 'Please select a company.';
                                     else echo 'An error occurred. Please try again.';
                                 ?>
                             </div>
                             <?php endif; ?>
                             <div class="p-2 mt-4">
                                 <form method="POST" action="php/modules/locations/select_location_process.php">
+                                    <div class="mb-3">
+                                        <label class="form-label">Company</label>
+                                        <select name="company" id="companySelect" class="form-select" required>
+                                            <option value="">-- Choose Company --</option>
+                                            <?php while($company = $companies->fetch_assoc()): ?>
+                                                <option value="<?= $company['id']; ?>">
+                                                    <?= $company['name']; ?>
+                                                </option>
+                                            <?php endwhile; ?>
+                                        </select>
+                                    </div>
                                     <div class="mb-3">
                                         <label class="form-label">Plant</label>
                                         <select name="plant" id="plantSelect" class="form-select" required>

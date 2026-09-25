@@ -18,6 +18,14 @@ if(!isset($_POST['location_id']) || empty($_POST['location_id'])){
     exit;
 }
 
+if(!isset($_POST['company']) || empty($_POST['company'])){
+    header("location: ../../../selectLocation.php?error=choose_company");
+    exit;
+}
+
+$company_id = intval($_POST['company']);
+$_SESSION['company_id'] = trim($company_id);
+
 $location_id = intval($_POST['location_id']);
 $_SESSION['location_id'] = $location_id;
 

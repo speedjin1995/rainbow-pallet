@@ -187,15 +187,28 @@ while($row2=mysqli_fetch_assoc($weighing2)){
     }
 }
 
-$compids = '1';
-$stmtComp = $db->prepare("SELECT * FROM Company WHERE id=?");
-$stmtComp->bind_param('s', $compids);
-$stmtComp->execute();
-$resultC = $stmtComp->get_result();
+// Get current company name
+$currentCompanyId = $_SESSION['company_id'] ?? '';
 $compname = '';
-        
-if ($rowc = $resultC->fetch_assoc()) {
-    $compname = $rowc['name'];
+if ($currentCompanyId) {
+    $stmtComp = $db->prepare("SELECT name FROM Company WHERE id=?");
+    $stmtComp->bind_param('i', $currentCompanyId);
+    $stmtComp->execute();
+    $resultC = $stmtComp->get_result();
+    if ($rowc = $resultC->fetch_assoc()) {
+        $compname = $rowc['name'];
+    }
+    $stmtComp->close();
+}
+
+// Get user's allowed companies
+$userCompanies = [];
+if (isset($_SESSION['company_ids']) && !empty($_SESSION['company_ids'])) {
+    $company_ids = implode(',', array_map('intval', $_SESSION['company_ids']));
+    $compResult = $db->query("SELECT id, company_code, name FROM Company WHERE status = 0 AND id IN ($company_ids) ORDER BY name");
+    while ($comp = $compResult->fetch_assoc()) {
+        $userCompanies[] = $comp;
+    }
 }
 
 $count = count($salesList) + count($purchaseList) + count($localList) + count($miscList);
@@ -516,25 +529,58 @@ $count2 = count($salesList2) + count($purchaseList2) + count($localList2) + coun
                     <button type="button" class="btn" id="page-header-user-dropdown" data-bs-toggle="dropdown"
                         aria-haspopup="true" aria-expanded="false">
                         <span class="d-flex align-items-center">
-                            <!--img class="rounded-circle header-profile-user" src="assets/images/users/avatar-1.jpg"
-                                alt="Header Avatar"-->
                             <span class="text-start ms-xl-2">
                                 <span class="d-none d-xl-inline-block ms-1 fw-medium user-name-text"><?=$_SESSION["username"] ?></span>
                                 <span class="d-none d-xl-block ms-1 fs-12 text-muted user-name-sub-text"><?=$_SESSION["roles"] ?></span>
                             </span>
                         </span>
                     </button>
-                    <div class="dropdown-menu dropdown-menu-end">
-                        <!-- item-->
-                        <h6 class="dropdown-header">Welcome <?=$_SESSION["username"] ?>!</h6>
-                        <a class="dropdown-item" href="myProfile.php">
-                            <i class="mdi mdi-account-circle text-muted fs-16 align-middle me-1"></i> 
-                            <span class="align-middle">Profile</span>
-                        </a>
-                        <a class="dropdown-item" href="php/logout.php">
-                            <i class="mdi mdi-logout text-muted fs-16 align-middle me-1"></i> 
-                            <span class="align-middle" data-key=t-logout><?=$languageArray['logout_code'][$language]?></span>
-                        </a>
+                    <div class="dropdown-menu dropdown-menu-end" style="min-width: 280px;">
+                        <!-- Current User & Company -->
+                        <div class="px-3 py-2 border-bottom">
+                            <div class="d-flex align-items-center">
+                                <!-- <div class="avatar-sm me-3">
+                                    <span class="avatar-title bg-primary-subtle text-primary rounded-circle fs-18">
+                                        <?= strtoupper(substr($_SESSION["username"], 0, 1)) ?>
+                                    </span>
+                                </div> -->
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-0"><?=$_SESSION["username"] ?></h6>
+                                    <small class="text-muted"><?= $compname ?: 'No Company' ?></small>
+                                </div>
+                            </div>
+                        </div>
+                        <?php if (count($userCompanies) > 1): ?>
+                        <!-- Company List -->
+                        <div class="py-2 border-bottom" style="max-height: 200px; overflow-y: auto;">
+                            <?php foreach ($userCompanies as $comp): ?>
+                            <a class="dropdown-item d-flex align-items-center py-2 <?= ($comp['id'] == $currentCompanyId) ? 'active' : '' ?>" href="javascript:void(0);" onclick="switchCompany('<?= $comp['id'] ?>')">
+                                <div class="avatar-xs me-2">
+                                    <span class="avatar-title bg-soft-secondary text-secondary rounded-circle fs-12">
+                                        <?= strtoupper(substr($comp['name'], 0, 1)) ?>
+                                    </span>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <span><?= htmlspecialchars($comp['name']) ?></span>
+                                </div>
+                                <?php if ($comp['id'] == $currentCompanyId): ?>
+                                <span class="badge bg-soft-success text-success">Current</span>
+                                <?php endif; ?>
+                            </a>
+                            <?php endforeach; ?>
+                        </div>
+                        <?php endif; ?>
+                        <!-- Menu Items -->
+                        <div class="py-2">
+                            <a class="dropdown-item" href="myProfile.php">
+                                <i class="mdi mdi-account-circle text-muted fs-16 align-middle me-1"></i> 
+                                <span class="align-middle">Profile</span>
+                            </a>
+                            <a class="dropdown-item" href="php/logout.php">
+                                <i class="mdi mdi-logout text-muted fs-16 align-middle me-1"></i> 
+                                <span class="align-middle" data-key=t-logout><?=$languageArray['logout_code'][$language]?></span>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -566,3 +612,16 @@ $count2 = count($salesList2) + count($purchaseList2) + count($localList2) + coun
         </div><!-- /.modal-content -->
     </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
+
+<script>
+function switchCompany(companyId) {
+    $.post('php/modules/company/index.php', { action: 'switch', companyId: companyId }, function(data) {
+        var obj = JSON.parse(data);
+        if (obj.status === 'success') {
+            location.reload();
+        } else {
+            toastr["error"](obj.message, "Failed:");
+        }
+    });
+}
+</script>
