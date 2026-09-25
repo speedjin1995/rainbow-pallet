@@ -10,6 +10,8 @@ class VehicleService extends BaseService {
         $draw        = $post['draw'];
         $columnName  = $post['columns'][$post['order'][0]['column']]['data'] ?? 'veh_number';
         $sortOrder   = $post['order'][0]['dir'] ?? 'asc';
+        // company_name is a computed column (not a real DB column), sort by company instead
+        if ($columnName === 'company_name') $columnName = 'company';
         $search      = mysqli_real_escape_string($this->db, $post['search']['value']);
         $companyId   = isset($post['companyId']) ? intval($post['companyId']) : 0;
         $vehicleNo   = isset($post['vehicleNo']) ? mysqli_real_escape_string($this->db, $post['vehicleNo']) : '';

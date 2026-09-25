@@ -17,6 +17,8 @@ class UnitService extends BaseService {
         $columnIndex = $post['order'][0]['column'] ?? 0;
         $columnName = $post['columns'][$columnIndex]['data'] ?? 'id';
         $columnSortOrder = $post['order'][0]['dir'] ?? 'asc';
+        // company_name is a computed column (not a real DB column), sort by company instead
+        if ($columnName === 'company_name') $columnName = 'company';
 
         $totalQuery = "SELECT COUNT(*) as total FROM {$this->table} WHERE status = 0";
         $totalResult = $this->db->query($totalQuery);
