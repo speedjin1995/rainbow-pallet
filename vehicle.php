@@ -450,13 +450,13 @@ $(function () {
     });
 
     // Apply custom styling to Select2 elements in addModal
-    $('#addModal .select2-container .select2-selection--single').css({
+    $('.select2-container .select2-selection--single').css({
         'padding-top': '4px',
         'padding-bottom': '4px',
         'height': 'auto'
     });
 
-    $('#addModal .select2-container .select2-selection__arrow').css({
+    $('.select2-container .select2-selection__arrow').css({
         'padding-top': '33px',
         'height': 'auto'
     });
