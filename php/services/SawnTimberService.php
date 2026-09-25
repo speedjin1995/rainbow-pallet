@@ -169,7 +169,7 @@ class SawnTimberService extends BaseService {
             LEFT JOIN Product_Categories pc ON p.category = pc.id
             LEFT JOIN Company c ON w.company_id = c.id
             LEFT JOIN Plant pl ON w.plant_code = pl.plant_code
-            WHERE pc.category_name = 'Sawn Timber'
+            WHERE pc.is_sawn_timber = 'Y'
             AND w.status = 0
             AND w.is_complete = 'Y'
             AND w.synced = 'N'

@@ -190,13 +190,15 @@ while($row2=mysqli_fetch_assoc($weighing2)){
 // Get current company name
 $currentCompanyId = $_SESSION['company_id'] ?? '';
 $compname = '';
+$currentCompanyHasSawnTimber = 'N';
 if ($currentCompanyId) {
-    $stmtComp = $db->prepare("SELECT name FROM Company WHERE id=?");
+    $stmtComp = $db->prepare("SELECT name, has_sawn_timber FROM Company WHERE id=?");
     $stmtComp->bind_param('i', $currentCompanyId);
     $stmtComp->execute();
     $resultC = $stmtComp->get_result();
     if ($rowc = $resultC->fetch_assoc()) {
         $compname = $rowc['name'];
+        $currentCompanyHasSawnTimber = $rowc['has_sawn_timber'] ?? 'N';
     }
     $stmtComp->close();
 }

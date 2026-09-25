@@ -38,6 +38,7 @@ class ProductCategoryController extends BaseController {
             'categoryName'      => $this->getPost('categoryName'),
             'postToSql'         => $this->getPost('postToSql'),
             'transactionStatus' => isset($_POST['transactionStatus']) ? $_POST['transactionStatus'] : [],
+            'isSawnTimber'      => $this->getPost('isSawnTimber'),
         ];
         try {
             $this->db->begin_transaction();

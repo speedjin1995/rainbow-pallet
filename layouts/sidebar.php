@@ -1,6 +1,7 @@
 <?php
     $hasWeighingView = hasPermission('Weighing', ['view', 'create', 'edit']);
-    $hasSawnTimberView = hasPermission('Sawn Timber', ['view', 'create', 'edit']);
+    $canViewAllCompanies = hasModulePermission('Sawn Timber', 'Sawn Timber', ['view_all_companies']);
+    $hasSawnTimberView = hasPermission('Sawn Timber', ['view', 'create', 'edit']) && ($canViewAllCompanies || (($currentCompanyHasSawnTimber ?? 'N') === 'Y'));
     $hasAccountingView = hasPermission('Accounting', ['view', 'create', 'edit']);
     $hasMasterDataView = hasPermission('Master Data', ['view', 'create', 'edit']);
     $hasReportView = hasPermission('Reports', ['view', 'create', 'edit']);

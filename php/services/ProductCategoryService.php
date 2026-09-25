@@ -43,9 +43,9 @@ class ProductCategoryService extends BaseService {
         $totalFiltered = $filteredResult->fetch_assoc()['total'];
         
         // Data
-        $dataQuery = "SELECT id, company, category_name, 
-            CASE WHEN post_to_sql = 'Y' THEN 'Yes' ELSE 'No' END AS post_to_sql, 
-            is_sales, is_purchase, is_local, is_port, is_misc, status 
+        $dataQuery = "SELECT id, company, category_name,
+            CASE WHEN post_to_sql = 'Y' THEN 'Yes' ELSE 'No' END AS post_to_sql,
+            is_sales, is_purchase, is_local, is_port, is_misc, is_sawn_timber, status
             FROM {$this->table} WHERE status = 0 {$searchQuery} ORDER BY {$columnName} {$columnSortOrder} LIMIT {$start}, {$length}";
         $dataResult = $this->db->query($dataQuery);
         
@@ -98,18 +98,19 @@ class ProductCategoryService extends BaseService {
         $isLocal = in_array('Local', $f['transactionStatus']) ? 'Y' : 'N';
         $isPort = in_array('Port', $f['transactionStatus']) ? 'Y' : 'N';
         $isMisc = in_array('Misc', $f['transactionStatus']) ? 'Y' : 'N';
+        $isSawnTimber = ($f['isSawnTimber'] ?? 'N') === 'Y' ? 'Y' : 'N';
 
         if (!empty($f['id'])) {
-            $stmt = $this->db->prepare("UPDATE {$this->table} SET company=?, category_name=?, post_to_sql=?, is_sales=?, is_purchase=?, is_local=?, is_port=?, is_misc=?, modified_by=? WHERE id=?");
+            $stmt = $this->db->prepare("UPDATE {$this->table} SET company=?, category_name=?, post_to_sql=?, is_sales=?, is_purchase=?, is_local=?, is_port=?, is_misc=?, is_sawn_timber=?, modified_by=? WHERE id=?");
             if (!$stmt) throw new Exception($this->db->error);
-            $stmt->bind_param('sssssssssi', $f['company'], $f['categoryName'], $f['postToSql'], $isSales, $isPurchase, $isLocal, $isPort, $isMisc, $this->username, $f['id']);
+            $stmt->bind_param('ssssssssssi', $f['company'], $f['categoryName'], $f['postToSql'], $isSales, $isPurchase, $isLocal, $isPort, $isMisc, $isSawnTimber, $this->username, $f['id']);
             if (!$stmt->execute()) throw new Exception($stmt->error);
             $stmt->close();
             return ['id' => $f['id']];
         } else {
-            $stmt = $this->db->prepare("INSERT INTO {$this->table} (company, category_name, post_to_sql, is_sales, is_purchase, is_local, is_port, is_misc, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt = $this->db->prepare("INSERT INTO {$this->table} (company, category_name, post_to_sql, is_sales, is_purchase, is_local, is_port, is_misc, is_sawn_timber, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             if (!$stmt) throw new Exception($this->db->error);
-            $stmt->bind_param('sssssssss', $f['company'], $f['categoryName'], $f['postToSql'], $isSales, $isPurchase, $isLocal, $isPort, $isMisc, $this->username);
+            $stmt->bind_param('ssssssssss', $f['company'], $f['categoryName'], $f['postToSql'], $isSales, $isPurchase, $isLocal, $isPort, $isMisc, $isSawnTimber, $this->username);
             if (!$stmt->execute()) throw new Exception($stmt->error);
             $id = $stmt->insert_id;
             $stmt->close();

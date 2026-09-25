@@ -36,6 +36,17 @@ if (!hasModulePermission('Sawn Timber', 'Sawn Timber', ['view_all_plants'])){
 else{
     $plant = $db->query("SELECT * FROM Plant WHERE status = '0'");
 }
+
+// Nudge if the active company has no Product Category flagged for Sawn Timber
+$missingSawnTimberCategory = false;
+$activeCompanyId = $_SESSION['company_id'] ?? null;
+if ($activeCompanyId) {
+    $catCheckStmt = $db->prepare("SELECT id FROM Product_Categories WHERE company = ? AND is_sawn_timber = 'Y' AND status = '0'");
+    $catCheckStmt->bind_param('i', $activeCompanyId);
+    $catCheckStmt->execute();
+    $missingSawnTimberCategory = $catCheckStmt->get_result()->num_rows === 0;
+    $catCheckStmt->close();
+}
 ?>
 
 <head>
@@ -115,6 +126,12 @@ else{
                 <div class="row">
                     <div class="col">
                         <div class="h-100">
+                            <?php if ($missingSawnTimberCategory): ?>
+                            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                                <?=$languageArray['sawn_timber_category_missing_code'][$language] ?? 'No Product Category is flagged for Sawn Timber for this company, so no weighings will show up below. Set it up in Product Categories (tick "Sawn Timber" in Transaction Status).'?>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                            <?php endif; ?>
                             <div class="col-xxl-12 col-lg-12">
                                 <div class="card">
                                     <div class="card-header fs-5 text-white" href="#collapseSearch" data-bs-toggle="collapse" role="button" aria-expanded="true" aria-controls="collapseSearch" style="background-color: #405189;">

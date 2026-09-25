@@ -150,7 +150,11 @@
                                                                                     <label for="company" class="col-sm-4 col-form-label"><?=$languageArray['company_code'][$language]?> <span class="text-danger">*</span></label>
                                                                                     <div class="col-sm-8">
                                                                                         <select class="form-select select2" id="company" name="company" required>
-                                                                                            <?php while($rowCompany=mysqli_fetch_assoc($companies)){ ?>
+                                                                                            <?php
+                                                                                                $companySawnTimberMap = [];
+                                                                                                while($rowCompany=mysqli_fetch_assoc($companies)){
+                                                                                                    $companySawnTimberMap[$rowCompany['id']] = $rowCompany['has_sawn_timber'] ?? 'N';
+                                                                                            ?>
                                                                                                 <option value="<?=$rowCompany['id'] ?>"><?=$rowCompany['name'] ?></option>
                                                                                             <?php } ?>
                                                                                         </select>
@@ -196,10 +200,21 @@
                                                                                             <!-- <option value="Local"><?=$languageArray['internal_transfer_code'][$language]?></option> -->
                                                                                             <option value="Port"><?=$languageArray['trx_to_port_code'][$language]?></option>
                                                                                             <option value="Misc"><?=$languageArray['miscellaneous_code'][$language]?></option>
-                                                                                        </select>  
+                                                                                        </select>
                                                                                         <div class="invalid-feedback">
                                                                                             <?=$languageArray['please_fill_in_the_field_code'][$language] ?? 'Please fill in the field'?>
                                                                                         </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="col-xxl-12 col-lg-12 mb-3" id="isSawnTimberWrapper" style="display:none">
+                                                                                <div class="row">
+                                                                                    <label for="isSawnTimber" class="col-sm-4 col-form-label"><?=$languageArray['sawn_timber_code'][$language] ?? 'Sawn Timber'?></label>
+                                                                                    <div class="col-sm-8">
+                                                                                        <select class="form-select" id="isSawnTimber" name="isSawnTimber">
+                                                                                            <option value="N"><?=$languageArray['no_code'][$language] ?? 'No'?></option>
+                                                                                            <option value="Y"><?=$languageArray['yes_code'][$language] ?? 'Yes'?></option>
+                                                                                        </select>
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
@@ -329,6 +344,7 @@
                                                                     <!-- <th><?=$languageArray['local_code'][$language] ?? 'Local'?></th> -->
                                                                     <th><?=$languageArray['trx_to_port_code'][$language] ?? 'Transfer to Port'?></th>
                                                                     <th><?=$languageArray['miscellaneous_code'][$language] ?? 'Misc'?></th>
+                                                                    <th><?=$languageArray['sawn_timber_code'][$language] ?? 'Sawn Timber'?></th>
                                                                     <th><?=$languageArray['status_code'][$language] ?? 'Status'?></th>
                                                                     <th><?=$languageArray['action_code'][$language] ?? 'Action'?></th>
                                                                 </tr>
@@ -388,6 +404,7 @@ var table;
 var permissions = <?= json_encode($_SESSION['permissions'] ?? []) ?>;
 var isSADMIN = <?= json_encode($_SESSION['roles'] == 'SADMIN') ?>;
 var sessionCompanyId = <?= intval($_SESSION['company_id'] ?? 0) ?>;
+var companySawnTimberMap = <?= json_encode($companySawnTimberMap ?? []) ?>;
 
 $(function () {
     // Initialize all Select2 elements in the modal
@@ -409,6 +426,17 @@ $(function () {
         allowClear: true,
         placeholder: "Please Select",
         dropdownParent: $('#uploadModal') // Ensures dropdown is not cut off
+    });
+
+    // Show the Sawn Timber field only when the selected company has Sawn Timber tied to it
+    $('#addModal').find('#company').on('change', function(){
+        var companyId = $(this).val();
+        if (companySawnTimberMap[companyId] === 'Y') {
+            $('#isSawnTimberWrapper').show();
+        } else {
+            $('#isSawnTimberWrapper').hide();
+            $('#isSawnTimber').val('N');
+        }
     });
 
     // Apply custom styling to Select2 elements in addModal
@@ -463,6 +491,7 @@ $(function () {
         $('#addModal').find('#categoryName').val("");
         $('#addModal').find('#postToSql').val("");
         $('#addModal').find('#transactionStatus').val(null).trigger('change');
+        $('#addModal').find('#isSawnTimber').val("N");
 
         // Remove Validation Error Message
         $('#addModal .is-invalid').removeClass('is-invalid');
@@ -653,6 +682,7 @@ function renderTable(){
             // { data: 'is_local' },
             { data: 'is_port' },
             { data: 'is_misc' },
+            { data: 'is_sawn_timber' },
             {
                 data: 'id',
                 render: function ( data, type, row ) {
@@ -713,7 +743,6 @@ function edit(id){
         var obj = JSON.parse(data);
         if(obj.status === 'success'){
             $('#addModal').find('#id').val(obj.data.id);
-            $('#addModal').find('#company').val(obj.data.company).trigger('change');
             $('#addModal').find('#categoryName').val(obj.data.category_name);
             $('#addModal').find('#postToSql').val(obj.data.post_to_sql);
 
@@ -725,6 +754,10 @@ function edit(id){
             if (obj.data.is_port === 'Y') transactionStatus.push('Port');
             if (obj.data.is_misc === 'Y') transactionStatus.push('Misc');
             $('#addModal').find('#transactionStatus').val(transactionStatus).trigger('change');
+            // Set isSawnTimber before the company change handler runs, so that handler
+            // has the final say on visibility/reset if the company has no Sawn Timber tied
+            $('#addModal').find('#isSawnTimber').val(obj.data.is_sawn_timber === 'Y' ? 'Y' : 'N');
+            $('#addModal').find('#company').val(obj.data.company).trigger('change');
 
             // Remove Validation Error Message
             $('#addModal .is-invalid').removeClass('is-invalid');

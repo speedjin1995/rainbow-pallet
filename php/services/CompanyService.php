@@ -66,18 +66,19 @@ class CompanyService extends BaseService {
         $faxNo = isset($post['faxNo']) && $post['faxNo'] !== '' ? trim($post['faxNo']) : null;
         $tinNo = isset($post['tinNo']) && $post['tinNo'] !== '' ? trim($post['tinNo']) : null;
         $mobileNo = isset($post['mobileNo']) && $post['mobileNo'] !== '' ? trim($post['mobileNo']) : null;
-        
+        $hasSawnTimber = isset($post['hasSawnTimber']) && $post['hasSawnTimber'] === 'Y' ? 'Y' : 'N';
+
         // Check duplicate
         if ($this->isDuplicate('company_code', $companyCode)) {
             throw new Exception('Company code already exists');
         }
-        
-        $stmt = $this->db->prepare("INSERT INTO {$this->table} (company_code, company_reg_no, new_reg_no, name, address_line_1, address_line_2, address_line_3, phone_no, fax_no, tin_no, mobile_no, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+
+        $stmt = $this->db->prepare("INSERT INTO {$this->table} (company_code, company_reg_no, new_reg_no, name, address_line_1, address_line_2, address_line_3, phone_no, fax_no, tin_no, mobile_no, has_sawn_timber, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         if (!$stmt) {
             throw new Exception($this->db->error);
         }
-        
-        $stmt->bind_param('ssssssssssss', $companyCode, $companyRegNo, $companyNewRegNo, $companyName, $addressLine1, $addressLine2, $addressLine3, $phoneNo, $faxNo, $tinNo, $mobileNo, $this->username);
+
+        $stmt->bind_param('sssssssssssss', $companyCode, $companyRegNo, $companyNewRegNo, $companyName, $addressLine1, $addressLine2, $addressLine3, $phoneNo, $faxNo, $tinNo, $mobileNo, $hasSawnTimber, $this->username);
         
         if (!$stmt->execute()) {
             throw new Exception($stmt->error);
@@ -105,18 +106,19 @@ class CompanyService extends BaseService {
         $faxNo = isset($post['faxNo']) && $post['faxNo'] !== '' ? trim($post['faxNo']) : null;
         $tinNo = isset($post['tinNo']) && $post['tinNo'] !== '' ? trim($post['tinNo']) : null;
         $mobileNo = isset($post['mobileNo']) && $post['mobileNo'] !== '' ? trim($post['mobileNo']) : null;
-        
+        $hasSawnTimber = isset($post['hasSawnTimber']) && $post['hasSawnTimber'] === 'Y' ? 'Y' : 'N';
+
         // Check duplicate (exclude current record)
         if ($this->isDuplicate('company_code', $companyCode, $id)) {
             throw new Exception('Company code already exists');
         }
-        
-        $stmt = $this->db->prepare("UPDATE {$this->table} SET company_code=?, company_reg_no=?, new_reg_no=?, name=?, address_line_1=?, address_line_2=?, address_line_3=?, phone_no=?, fax_no=?, tin_no=?, mobile_no=?, modified_by=? WHERE id=?");
+
+        $stmt = $this->db->prepare("UPDATE {$this->table} SET company_code=?, company_reg_no=?, new_reg_no=?, name=?, address_line_1=?, address_line_2=?, address_line_3=?, phone_no=?, fax_no=?, tin_no=?, mobile_no=?, has_sawn_timber=?, modified_by=? WHERE id=?");
         if (!$stmt) {
             throw new Exception($this->db->error);
         }
-        
-        $stmt->bind_param('sssssssssssss', $companyCode, $companyRegNo, $companyNewRegNo, $companyName, $addressLine1, $addressLine2, $addressLine3, $phoneNo, $faxNo, $tinNo, $mobileNo, $this->username, $id);
+
+        $stmt->bind_param('ssssssssssssss', $companyCode, $companyRegNo, $companyNewRegNo, $companyName, $addressLine1, $addressLine2, $addressLine3, $phoneNo, $faxNo, $tinNo, $mobileNo, $hasSawnTimber, $this->username, $id);
         
         if (!$stmt->execute()) {
             throw new Exception($stmt->error);
