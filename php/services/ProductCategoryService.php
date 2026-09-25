@@ -11,22 +11,30 @@ class ProductCategoryService extends BaseService {
         $start = $post['start'] ?? 0;
         $length = $post['length'] ?? 10;
         $searchValue = isset($post['search']['value']) ? mysqli_real_escape_string($this->db, $post['search']['value']) : '';
-        
+        $companyId  = isset($post['companyId']) ? intval($post['companyId']) : 0;
+        $categoryName = isset($post['categoryName']) ? mysqli_real_escape_string($this->db, $post['categoryName']) : '';
+
         $columnIndex = $post['order'][0]['column'] ?? 0;
         $columnName = $post['columns'][$columnIndex]['data'] ?? 'id';
         $columnSortOrder = $post['order'][0]['dir'] ?? 'asc';
-        
+
         // Total records
         $totalQuery = "SELECT COUNT(*) as total FROM {$this->table} WHERE status = 0";
         $totalResult = $this->db->query($totalQuery);
         $totalRecords = $totalResult->fetch_assoc()['total'];
-        
+
         // Search filter
         $searchQuery = "";
         if ($searchValue != '') {
             $searchQuery = " AND (category_name LIKE '%{$searchValue}%' OR post_to_sql LIKE '%{$searchValue}%')";
         }
-        
+        if ($companyId > 0) {
+            $searchQuery .= " AND company={$companyId}";
+        }
+        if ($categoryName !== '') {
+            $searchQuery .= " AND category_name LIKE '%{$categoryName}%'";
+        }
+
         // Filtered records
         $filteredQuery = "SELECT COUNT(*) as total FROM {$this->table} WHERE status = 0 {$searchQuery}";
         $filteredResult = $this->db->query($filteredQuery);
@@ -65,7 +73,7 @@ class ProductCategoryService extends BaseService {
     }
 
     public function save($f) {
-        if ($this->isDuplicateName($f['categoryName'], $f['id'])) {
+        if ($this->isDuplicateName($f['categoryName'], $f['company'], $f['id'])) {
             throw new Exception('Category name already exists');
         }
 
@@ -118,30 +126,20 @@ class ProductCategoryService extends BaseService {
         $stmt->close();
     }
 
-    public function upload($data) {
+    public function upload($data, $companyId) {
         $errors = [];
+        $company = $companyId;
 
         foreach ($data as $index => $row) {
             $rowNum = $index + 2;
-            
-            $companyName = isset($row['Company']) ? trim($row['Company']) : '';
+
             $categoryName = isset($row['CategoryName']) ? trim($row['CategoryName']) : null;
             $postToSql = isset($row['PostToSQL']) ? trim($row['PostToSQL']) : null;
-            
+
             if (empty($categoryName)) {
                 continue;
             }
-            
-            // Lookup company by name
-            $company = null;
-            if (!empty($companyName)) {
-                $company = searchCompanyIdByName($companyName, $this->db);
-                if (empty($company)) {
-                    $errors[] = "Row {$rowNum}: Company '{$companyName}' not found.";
-                    continue;
-                }
-            }
-            
+
             // Validate and format post to sql value
             if (in_array($postToSql, ['Yes', 'Y'])) {
                 $postToSql = 'Y';
@@ -152,8 +150,8 @@ class ProductCategoryService extends BaseService {
                 continue;
             }
             
-            // Check duplicate
-            if ($this->isDuplicateName($categoryName)) {
+            // Check duplicate (scoped to the same company)
+            if ($this->isDuplicateName($categoryName, $company)) {
                 $errors[] = "Row {$rowNum}: Category Name '{$categoryName}' already exists";
                 continue;
             }
@@ -167,15 +165,16 @@ class ProductCategoryService extends BaseService {
         return $errors;
     }
 
-    private function isDuplicateName($name, $excludeId = null) {
-        $sql = "SELECT id FROM {$this->table} WHERE category_name=? AND status='0'";
+    private function isDuplicateName($name, $company, $excludeId = null) {
+        // Duplicate check is scoped to the same company (<=> is null-safe)
+        $sql = "SELECT id FROM {$this->table} WHERE category_name=? AND company <=> ? AND status='0'";
         if ($excludeId) {
             $sql .= " AND id != ?";
             $stmt = $this->db->prepare($sql);
-            $stmt->bind_param('si', $name, $excludeId);
+            $stmt->bind_param('ssi', $name, $company, $excludeId);
         } else {
             $stmt = $this->db->prepare($sql);
-            $stmt->bind_param('s', $name);
+            $stmt->bind_param('ss', $name, $company);
         }
         $stmt->execute();
         $stmt->store_result();
