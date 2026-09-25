@@ -110,12 +110,6 @@
                                                             <input type="text" class="form-control" id="vehicleNoSearch" placeholder="<?=$languageArray['vehicle_no_code'][$language]?>">
                                                         </div>
                                                     </div>
-                                                    <div class="col-3">
-                                                        <div class="mb-3">
-                                                            <label class="form-label"><?=$languageArray['customer_code'][$language]?></label>
-                                                            <input type="text" class="form-control" id="customerNameSearch" placeholder="<?=$languageArray['customer_code'][$language]?>">
-                                                        </div>
-                                                    </div>
                                                     <div class="col-lg-12">
                                                         <div class="text-end">
                                                             <button type="submit" class="btn btn-success" id="filterSearch"><i class="bx bx-search-alt"></i> <?=$languageArray['search_code'][$language] ?? 'Search'?></button>
@@ -672,7 +666,6 @@ $(function () {
 function renderTable(){
     var companyId = $('#companySearch').val() || '';
     var vehicleNo = $('#vehicleNoSearch').val() || '';
-    var customerName = $('#customerNameSearch').val() || '';
 
     // Destroy old DataTables if exist
     if ($.fn.DataTable.isDataTable('#vehicleTable')) {
@@ -687,7 +680,7 @@ function renderTable(){
         'serverMethod': 'post',
         'ajax': {
             'url': 'php/modules/vehicle/index.php',
-            'data': function(d) { d.action = 'filter'; d.companyId = companyId; d.vehicleNo = vehicleNo; d.customerName = customerName; }
+            'data': function(d) { d.action = 'filter'; d.companyId = companyId; d.vehicleNo = vehicleNo; }
         },
         'createdRow': function(row, data) {
             if (data.is_manual === 'Y') {
