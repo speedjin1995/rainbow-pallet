@@ -49,24 +49,48 @@ if ($user != null && $user != ''){
 }
 
 //$lots = $db->query("SELECT * FROM lots WHERE deleted = '0'");
-$company = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
-$company2 = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
-$vehicles = $db->query("SELECT * FROM Vehicle WHERE status = '0' ORDER BY veh_number ASC");
-$vehicles2 = $db->query("SELECT * FROM Vehicle WHERE status = '0' ORDER BY veh_number ASC");
-$customer = $db->query("SELECT * FROM Customer WHERE status = '0' ORDER BY name ASC");
-$customer2 = $db->query("SELECT * FROM Customer WHERE status = '0' ORDER BY name ASC");
-$product = $db->query("SELECT p.*, IFNULL(c.is_sales, 'Y') as is_sales, IFNULL(c.is_purchase, 'Y') as is_purchase, IFNULL(c.is_local, 'Y') as is_local, IFNULL(c.is_port, 'Y') as is_port, IFNULL(c.is_misc, 'Y') as is_misc FROM Product p LEFT JOIN Product_Categories c ON p.category = c.id WHERE p.status = '0' ORDER BY p.name ASC");
-$product2 = $db->query("SELECT p.*, IFNULL(c.is_sales, 'Y') as is_sales, IFNULL(c.is_purchase, 'Y') as is_purchase, IFNULL(c.is_local, 'Y') as is_local, IFNULL(c.is_port, 'Y') as is_port, IFNULL(c.is_misc, 'Y') as is_misc FROM Product p LEFT JOIN Product_Categories c ON p.category = c.id WHERE p.status = '0' ORDER BY p.name ASC");
-$rawMaterial = $db->query("SELECT p.*, IFNULL(c.is_sales, 'Y') as is_sales, IFNULL(c.is_purchase, 'Y') as is_purchase, IFNULL(c.is_local, 'Y') as is_local, IFNULL(c.is_port, 'Y') as is_port, IFNULL(c.is_misc, 'Y') as is_misc FROM Product p LEFT JOIN Product_Categories c ON p.category = c.id WHERE p.status = '0' ORDER BY p.name ASC");
-$rawMaterial2 = $db->query("SELECT p.*, IFNULL(c.is_sales, 'Y') as is_sales, IFNULL(c.is_purchase, 'Y') as is_purchase, IFNULL(c.is_local, 'Y') as is_local, IFNULL(c.is_port, 'Y') as is_port, IFNULL(c.is_misc, 'Y') as is_misc FROM Product p LEFT JOIN Product_Categories c ON p.category = c.id WHERE p.status = '0' ORDER BY p.name ASC");
+$companyId = $_SESSION['company_id'];
+$selectedCompanyId = intval($companyId);
+if (!hasPermission('Weighing', ['view_all_companies'])) {
+    $company_ids = implode(',', array_map('intval', $_SESSION['company_ids']));
+    $company = $db->query("SELECT * FROM Company WHERE status = 0 AND id IN ($selectedCompanyId) ORDER BY name");
+    $company2 = $db->query("SELECT * FROM Company WHERE status = 0 AND id IN ($selectedCompanyId) ORDER BY name");
+    $vehicles = $db->query("SELECT * FROM Vehicle WHERE status='0' AND company=$selectedCompanyId ORDER BY veh_number ASC");
+    $vehicles2 = $db->query("SELECT * FROM Vehicle WHERE status='0' AND company=$selectedCompanyId ORDER BY veh_number ASC");
+    $customer = $db->query("SELECT * FROM Customer WHERE status='0' AND company=$selectedCompanyId ORDER BY name ASC");
+    $customer2 = $db->query("SELECT * FROM Customer WHERE status='0' AND company=$selectedCompanyId ORDER BY name ASC");
+    $productSql="SELECT p.*,IFNULL(c.is_sales,'Y') as is_sales,IFNULL(c.is_purchase,'Y') as is_purchase,IFNULL(c.is_local,'Y') as is_local,IFNULL(c.is_port,'Y') as is_port,IFNULL(c.is_misc,'Y') as is_misc FROM Product p LEFT JOIN Product_Categories c ON p.category=c.id WHERE p.status='0' AND p.company=$selectedCompanyId ORDER BY p.name ASC";
+    $product = $db->query($productSql);
+    $product2 = $db->query($productSql);
+    $rawMaterial = $db->query($productSql);
+    $rawMaterial2 = $db->query($productSql);
+    $destination = $db->query("SELECT * FROM Destination WHERE status='0' AND company=$selectedCompanyId ORDER BY name ASC");
+    $supplier = $db->query("SELECT * FROM Supplier WHERE status='0' AND company=$selectedCompanyId ORDER BY name ASC");
+    $supplier2 = $db->query("SELECT * FROM Supplier WHERE status='0' AND company=$selectedCompanyId ORDER BY name ASC");
+    $projects = $db->query("SELECT * FROM Project WHERE status = '0' AND company=$selectedCompanyId ORDER BY project_code ASC");
+    $container = $db->query("SELECT * FROM Weight_Container WHERE status = '0' AND is_complete = 'Y' AND is_cancel = 'N' AND company_id = $selectedCompanyId");
+} else {
+    $company = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
+    $company2 = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
+    $vehicles = $db->query("SELECT * FROM Vehicle WHERE status = '0' ORDER BY veh_number ASC");
+    $vehicles2 = $db->query("SELECT * FROM Vehicle WHERE status = '0' ORDER BY veh_number ASC");
+    $customer = $db->query("SELECT * FROM Customer WHERE status = '0' ORDER BY name ASC");
+    $customer2 = $db->query("SELECT * FROM Customer WHERE status = '0' ORDER BY name ASC");
+    $productSql = "SELECT p.*, IFNULL(c.is_sales, 'Y') as is_sales, IFNULL(c.is_purchase, 'Y') as is_purchase, IFNULL(c.is_local, 'Y') as is_local, IFNULL(c.is_port, 'Y') as is_port, IFNULL(c.is_misc, 'Y') as is_misc FROM Product p LEFT JOIN Product_Categories c ON p.category = c.id WHERE p.status = '0' ORDER BY p.name ASC";
+    $product = $db->query($productSql);
+    $product2 = $db->query($productSql);
+    $rawMaterial = $db->query($productSql);
+    $rawMaterial2 = $db->query($productSql);
+    $destination = $db->query("SELECT * FROM Destination WHERE status = '0' ORDER BY name ASC");
+    $supplier = $db->query("SELECT * FROM Supplier WHERE status = '0' ORDER BY name ASC");
+    $supplier2 = $db->query("SELECT * FROM Supplier WHERE status = '0' ORDER BY name ASC");
+    $projects = $db->query("SELECT * FROM Project WHERE status = '0' ORDER BY project_code ASC");
+    $container = $db->query("SELECT * FROM Weight_Container WHERE status = '0' AND is_complete = 'Y' AND is_cancel = 'N'");
+}
+
 $transporter = $db->query("SELECT * FROM Transporter WHERE status = '0' ORDER BY name ASC");
-$destination = $db->query("SELECT * FROM Destination WHERE status = '0' ORDER BY name ASC");
-$supplier = $db->query("SELECT * FROM Supplier WHERE status = '0' ORDER BY name ASC");
-$supplier2 = $db->query("SELECT * FROM Supplier WHERE status = '0' ORDER BY name ASC");
 $purchaseOrder = $db->query("SELECT * FROM Purchase_Order WHERE status = 'Open' AND deleted = '0' ORDER BY po_no ASC");
 $salesOrder = $db->query("SELECT * FROM Sales_Order WHERE status = 'Open' AND deleted = '0' ORDER BY order_no ASC");
-$container = $db->query("SELECT * FROM Weight_Container WHERE status = '0' AND is_complete = 'Y' AND is_cancel = 'N'");
-$projects = $db->query("SELECT * FROM Project WHERE status = '0' ORDER BY project_code ASC");
 
 $plantName = '-';
 $plantCode = '-';
@@ -145,26 +169,6 @@ else{
                 <div class="row">
                     <div class="col">
                         <div class="h-100">
-                            <div class="row mb-3 pb-1">
-                                <div class="col-12">
-                                    <div class="d-flex align-items-lg-center flex-lg-row flex-column">
-                                        <div class="flex-grow-1">
-                                            <!--h4 class="fs-16 mb-1">Good Morning, Anna!</h4>
-                                            <p class="text-muted mb-0">Here's what's happening with your store
-                                                today.</p-->
-                                        </div>
-                                        <div class="mt-3 mt-lg-0">
-                                            <form action="javascript:void(0);">
-                                                <div class="row g-3 mb-0 align-items-center">
-
-                                            </form>
-                                        </div>
-                                    </div><!-- end card header -->
-                                </div>
-                                <!--end col-->
-                            </div>
-                            <!--end row-->
-
                             <div class="col-xxl-12 col-lg-12">
                                 <div class="card">
                                     <div class="card-header fs-5 text-white" href="#collapseSearch" data-bs-toggle="collapse" role="button" aria-expanded="true" aria-controls="collapseSearch" style="background-color: #405189;">
@@ -210,13 +214,12 @@ else{
                                                             </select>
                                                         </div>
                                                     </div><!--end col-->
-                                                    <div class="col-3">
+                                                    <div class="col-3" style="<?= !hasPermission('Weighing', ['view_all_companies']) ? 'display:none' : '' ?>">
                                                         <div class="mb-3">
                                                             <label for="companySearch" class="form-label"><?=$languageArray['company_code'][$language]?></label>
                                                             <select id="companySearch" class="form-select select2" >
-                                                                <option selected>-</option>
                                                                 <?php while($rowCompany = mysqli_fetch_assoc($company2)){ ?>
-                                                                    <option value="<?=$rowCompany['id'] ?>"><?=$rowCompany['name'] ?></option>
+                                                                    <option value="<?=$rowCompany['id'] ?>" <?=(hasPermission('Weighing', ['view_all_companies']) ? $rowCompany['id'] == 1 : $rowCompany['id'] == $companyId) ? 'selected' : ''?>><?=$rowCompany['name'] ?></option>
                                                                 <?php } ?>
                                                             </select>
                                                         </div>
@@ -525,9 +528,13 @@ else{
                                                                         <div class="row">
                                                                             <div class="col-xxl-4 col-lg-4 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="transactionId" class="col-sm-4 col-form-label"><?=$languageArray['transaction_id_code'][$language]?></label>
+                                                                                    <label for="companyId" class="col-sm-4 col-form-label"><?=$languageArray['company_code'][$language]?></label>
                                                                                     <div class="col-sm-8">
-                                                                                        <input type="text" class="form-control input-readonly" id="transactionId" name="transactionId" placeholder="<?=$languageArray['transaction_id_code'][$language]?>" readonly>                                                                                  
+                                                                                        <select class="form-select select2" id="companyId" name="companyId" required>
+                                                                                            <?php while($rowCompany=mysqli_fetch_assoc($company)){ ?>
+                                                                                                <option value="<?=$rowCompany['id'] ?>" <?=($rowCompany['id'] == $companyId) ? 'selected' : ''?>><?=$rowCompany['name'] ?></option>
+                                                                                            <?php } ?>
+                                                                                        </select>           
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
@@ -597,12 +604,9 @@ else{
                                                                         <div class="row">
                                                                             <div class="col-xxl-4 col-lg-4 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="transactionDate" class="col-sm-4 col-form-label"><?=$languageArray['transaction_date_code'][$language]?></label>
+                                                                                    <label for="transactionId" class="col-sm-4 col-form-label"><?=$languageArray['transaction_id_code'][$language]?></label>
                                                                                     <div class="col-sm-8">
-                                                                                        <input type="date" class="form-control input-readonly" data-provider="flatpickr" id="transactionDate" name="transactionDate" required>
-                                                                                        <div class="invalid-feedback">
-                                                                                            Please fill in the field.
-                                                                                        </div>    
+                                                                                        <input type="text" class="form-control input-readonly" id="transactionId" name="transactionId" placeholder="<?=$languageArray['transaction_id_code'][$language]?>" readonly>                                                                                  
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
@@ -670,25 +674,12 @@ else{
                                                                         <div class="row">
                                                                             <div class="col-xxl-4 col-lg-4 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="transactionStatus" class="col-sm-4 col-form-label"><?=$languageArray['transaction_status_code'][$language]?></label>
+                                                                                    <label for="transactionDate" class="col-sm-4 col-form-label"><?=$languageArray['transaction_date_code'][$language]?></label>
                                                                                     <div class="col-sm-8">
-                                                                                        <select id="transactionStatus" name="transactionStatus" class="form-select select2">
-                                                                                            <?php if(hasModulePermission('Weighing', 'Sales', ['create', 'edit'])) { ?>
-                                                                                                <option value="Sales" selected><?=$languageArray['dispatch_code'][$language]?></option>
-                                                                                            <?php } ?>
-                                                                                            <?php if(hasModulePermission('Weighing', 'Purchase', ['create', 'edit'])) { ?>
-                                                                                                <option value="Purchase"><?=$languageArray['receiving_code'][$language]?></option>
-                                                                                            <?php } ?>
-                                                                                            <?php if(hasModulePermission('Weighing', 'Local', ['create', 'edit'])) { ?>
-                                                                                                <!-- <option value="Local"><?=$languageArray['internal_transfer_code'][$language]?></option> -->
-                                                                                            <?php } ?>
-                                                                                            <?php if(hasModulePermission('Weighing', 'Port', ['create', 'edit'])) { ?>
-                                                                                                <option value="Port"><?=$languageArray['trx_to_port_code'][$language]?></option>
-                                                                                            <?php } ?>
-                                                                                            <?php if(hasModulePermission('Weighing', 'Miscellaneous', ['create', 'edit'])) { ?>
-                                                                                                <option value="Misc"><?=$languageArray['miscellaneous_code'][$language]?></option>
-                                                                                            <?php } ?>
-                                                                                        </select>  
+                                                                                        <input type="date" class="form-control input-readonly" data-provider="flatpickr" id="transactionDate" name="transactionDate" required>
+                                                                                        <div class="invalid-feedback">
+                                                                                            Please fill in the field.
+                                                                                        </div>    
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
@@ -712,22 +703,25 @@ else{
                                                                         <div class="row">
                                                                             <div class="col-xxl-4 col-lg-4 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="weightType" class="col-sm-4 col-form-label"><?=$languageArray['weight_type_code'][$language]?></label>
+                                                                                    <label for="transactionStatus" class="col-sm-4 col-form-label"><?=$languageArray['transaction_status_code'][$language]?></label>
                                                                                     <div class="col-sm-8">
-                                                                                        <select id="weightType" name="weightType" class="form-select select2">
-                                                                                            <?php if(hasModulePermission('Weighing', 'Normal Type', ['view'])) { ?>
-                                                                                                <option value="Normal" selected><?=$languageArray['normal_weighing_code'][$language]?></option>
+                                                                                        <select id="transactionStatus" name="transactionStatus" class="form-select select2">
+                                                                                            <?php if(hasModulePermission('Weighing', 'Sales', ['create', 'edit'])) { ?>
+                                                                                                <option value="Sales" selected><?=$languageArray['dispatch_code'][$language]?></option>
                                                                                             <?php } ?>
-                                                                                            <?php if(hasModulePermission('Weighing', 'Container Type', ['view'])) { ?>
-                                                                                                <option value="Container"><?=$languageArray['primer_mover_code'][$language]?></option>
+                                                                                            <?php if(hasModulePermission('Weighing', 'Purchase', ['create', 'edit'])) { ?>
+                                                                                                <option value="Purchase"><?=$languageArray['receiving_code'][$language]?></option>
                                                                                             <?php } ?>
-                                                                                            <?php if(hasModulePermission('Weighing', 'Empty Container Type', ['view'])) { ?>
-                                                                                                <option value="Empty Container"><?=$languageArray['primer_mover_container_code'][$language]?></option>
+                                                                                            <?php if(hasModulePermission('Weighing', 'Local', ['create', 'edit'])) { ?>
+                                                                                                <!-- <option value="Local"><?=$languageArray['internal_transfer_code'][$language]?></option> -->
                                                                                             <?php } ?>
-                                                                                            <?php if(hasModulePermission('Weighing', 'Different Container Type', ['view'])) { ?>
-                                                                                                <option value="Different Container"><?=$languageArray['primer_mover_different_bins_code'][$language]?></option>
+                                                                                            <?php if(hasModulePermission('Weighing', 'Port', ['create', 'edit'])) { ?>
+                                                                                                <option value="Port"><?=$languageArray['trx_to_port_code'][$language]?></option>
                                                                                             <?php } ?>
-                                                                                        </select>   
+                                                                                            <?php if(hasModulePermission('Weighing', 'Miscellaneous', ['create', 'edit'])) { ?>
+                                                                                                <option value="Misc"><?=$languageArray['miscellaneous_code'][$language]?></option>
+                                                                                            <?php } ?>
+                                                                                        </select>  
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
@@ -759,13 +753,22 @@ else{
                                                                         <div class="row">
                                                                             <div class="col-xxl-4 col-lg-4 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="companyId" class="col-sm-4 col-form-label"><?=$languageArray['company_code'][$language]?></label>
+                                                                                    <label for="weightType" class="col-sm-4 col-form-label"><?=$languageArray['weight_type_code'][$language]?></label>
                                                                                     <div class="col-sm-8">
-                                                                                        <select class="form-select select2" id="companyId" name="companyId" required>
-                                                                                            <?php while($rowCompany=mysqli_fetch_assoc($company)){ ?>
-                                                                                                <option value="<?=$rowCompany['id'] ?>"><?=$rowCompany['name'] ?></option>
+                                                                                        <select id="weightType" name="weightType" class="form-select select2">
+                                                                                            <?php if(hasModulePermission('Weighing', 'Normal Type', ['view'])) { ?>
+                                                                                                <option value="Normal" selected><?=$languageArray['normal_weighing_code'][$language]?></option>
                                                                                             <?php } ?>
-                                                                                        </select>           
+                                                                                            <?php if(hasModulePermission('Weighing', 'Container Type', ['view'])) { ?>
+                                                                                                <option value="Container"><?=$languageArray['primer_mover_code'][$language]?></option>
+                                                                                            <?php } ?>
+                                                                                            <?php if(hasModulePermission('Weighing', 'Empty Container Type', ['view'])) { ?>
+                                                                                                <option value="Empty Container"><?=$languageArray['primer_mover_container_code'][$language]?></option>
+                                                                                            <?php } ?>
+                                                                                            <?php if(hasModulePermission('Weighing', 'Different Container Type', ['view'])) { ?>
+                                                                                                <option value="Different Container"><?=$languageArray['primer_mover_different_bins_code'][$language]?></option>
+                                                                                            <?php } ?>
+                                                                                        </select>   
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
@@ -1465,6 +1468,7 @@ else{
                                                             <thead>
                                                                 <tr>
                                                                     <th><input type="checkbox" id="selectAllCheckbox" class="selectAllCheckbox"></th>
+                                                                    <th><?=$languageArray['company_code'][$language]?></th>
                                                                     <th><?=$languageArray['transaction_id_code'][$language]?></th>
                                                                     <th><?=$languageArray['weight_type_code'][$language]?></th>
                                                                     <th><?=$languageArray['weight_status_code'][$language]?></th>
@@ -1523,6 +1527,7 @@ else{
                                                             <thead>
                                                                 <tr>
                                                                     <th><input type="checkbox" id="selectAllContainerCheckbox" class="selectAllContainerCheckbox"></th>
+                                                                    <th><?=$languageArray['company_code'][$language]?></th>
                                                                     <th><?=$languageArray['container_no_code'][$language]?></th>
                                                                     <th><?=$languageArray['seal_no_code'][$language]?></th>
                                                                     <th><?=$languageArray['weight_status_code'][$language]?></th>
@@ -1646,6 +1651,9 @@ else{
     var allRawMatOptions = null;
     var allProductSearchOptions = null;
     var allRawMatSearchOptions = null;
+    var sessionCompanyId = '<?=$companyId?>';
+    var modalCompanyId = sessionCompanyId;
+    var modalListsReady = $.Deferred().resolve().promise();
     let clickTimer = null;
 
     var fromDateSearchPicker;
@@ -1674,6 +1682,13 @@ else{
             placeholder: "Please Select",
         });
 
+        // Initialize all Select2 elements in the modal
+        $('#addModal .select2').select2({
+            allowClear: true,
+            placeholder: "Please Select",
+            dropdownParent: $('#addModal') // Ensures dropdown is not cut off
+        });
+
         // Apply custom styling to Select2 elements in search bar
         $('.select2-container .select2-selection--single').css({
             'padding-top': '4px',
@@ -1682,25 +1697,6 @@ else{
         });
 
         $('.select2-container .select2-selection__arrow').css({
-            'padding-top': '33px',
-            'height': 'auto'
-        });
-
-        // Initialize all Select2 elements in the modal
-        $('#addModal .select2').select2({
-            allowClear: true,
-            placeholder: "Please Select",
-            dropdownParent: $('#addModal') // Ensures dropdown is not cut off
-        });
-
-        // Apply custom styling to Select2 elements in addModal
-        $('#addModal .select2-container .select2-selection--single').css({
-            'padding-top': '4px',
-            'padding-bottom': '4px',
-            'height': 'auto'
-        });
-
-        $('#addModal .select2-container .select2-selection__arrow').css({
             'padding-top': '33px',
             'height': 'auto'
         });
@@ -1830,6 +1826,20 @@ else{
                 <?php endif; ?>
             }
         });
+
+        $('#companySearch').on('change', function(){
+            loadSearchListsByCompany($(this).val());
+        });
+
+        $('#companyId').on('change', function(){
+            loadModalListsByCompany($(this).val());
+        });
+
+        // Load search filter and modal dropdowns for the initially-selected company on page load
+        var initialCompany = $('#companySearch').val();
+        if (initialCompany) {
+            loadSearchListsByCompany(initialCompany);
+        }
 
         // Clear All Filter Function
         $('#clearAllSearch').on('click', function(){
@@ -2114,13 +2124,15 @@ else{
         }, 500);
 
         $('#addWeight').on('click', function(){
+            modalCompanyId = null;
+            
             // Show Capture Buttons When Add New
             $('#addModal').find('#grossCapture').show();
             $('#addModal').find('#tareCapture').show();
             $('#addModal').find('#id').val("");
             $('#addModal').find('#currentWeight').text("0");
             $('#addModal').find('#transactionId').val("");
-            $('#addModal').find('#companyId').val(1).trigger('change');
+            $('#addModal').find('#companyId').val(<?= hasPermission('Weighing', ['view_all_companies']) ? 1 : 'sessionCompanyId' ?>).trigger('change');
             $('#addModal').find('#transactionStatus').val("Sales").trigger('change');
             $('#addModal').find('#emptyContainerNo').val("").trigger('change');
             $('#addModal').find('#weightType').val("Normal").trigger('change');
@@ -2269,6 +2281,7 @@ else{
                     fromDate : fromDateI,
                     toDate : fromDateI,
                     transactionStatus : statusI,
+                    company : $('#companySearch').val() || '',
                     customer : customerNoI,
                     supplier : supplierNoI,
                     vehicle : vehicleNoI,
@@ -2307,6 +2320,7 @@ else{
                     fromDate : fromDateI,
                     toDate : fromDateI,
                     transactionStatus : statusI,
+                    company : $('#companySearch').val() || '',
                     customer : customerNoI,
                     supplier : supplierNoI,
                     vehicle : vehicleNoI,
@@ -2374,11 +2388,11 @@ else{
 
             if (selectedIds.length > 0) {
                 window.open("php/modules/report/index.php?action=exportExcel&file=weight&fromDate="+fromDateI+"&toDate="+toDateI+
-                "&transactionStatus="+statusI+"&customer="+customerNoI+"&supplier="+supplierNoI+"&vehicle="+vehicleNoI+
+                "&transactionStatus="+statusI+"&company="+encodeURIComponent($('#companySearch').val() || '')+"&customer="+customerNoI+"&supplier="+supplierNoI+"&vehicle="+vehicleNoI+
                 "&weighingType="+invoiceNoI+"&product="+productSearchI+"&rawMat="+rawMaterialI+"&plant="+plantNoI+"&status="+batchNoI+"&isMulti=Y&ids="+selectedIds);
             }else{
                 window.open("php/modules/report/index.php?action=exportExcel&file=weight&fromDate="+fromDateI+"&toDate="+toDateI+
-                "&transactionStatus="+statusI+"&customer="+customerNoI+"&supplier="+supplierNoI+"&vehicle="+vehicleNoI+
+                "&transactionStatus="+statusI+"&company="+encodeURIComponent($('#companySearch').val() || '')+"&customer="+customerNoI+"&supplier="+supplierNoI+"&vehicle="+vehicleNoI+
                 "&weighingType="+invoiceNoI+"&product="+productSearchI+"&rawMat="+rawMaterialI+"&plant="+plantNoI+"&status="+batchNoI+"&isMulti=N");
             }
         });
@@ -3221,6 +3235,7 @@ else{
                 // $('#divPurchaseOrder').find('#purchaseOrder').attr('placeholder', 'Sale Order');
                 $('#addModal').find('#divPoSupplyWeight').hide();
                 $('#customerSideCard').hide();
+                $('#customerSideLabel').hide();
             }
         });
 
@@ -3297,6 +3312,7 @@ else{
 
                     if (obj.status == 'success'){ 
                         $('#addModal').find('#companyId').val(obj.message.company_id).trigger('change');
+                        modalListsReady.then(function(){
                         $('#addModal').find('#project').val(obj.message.project_id).trigger('change');
                         $('#addModal').find('#invoiceNo').val(obj.message.invoice_no);
                         $('#addModal').find('#deliveryNo').val(obj.message.delivery_no);
@@ -3379,6 +3395,7 @@ else{
                         $('#normalCard').show();
                         $('#grossCapture').hide();
                         $('#tareCapture').hide();
+                        });
                     }
                     else if(obj.status === 'failed'){
                         $('#spinnerLoading').hide();
@@ -3643,6 +3660,101 @@ else{
         }
     }
 
+    // Rebuild a dropdown from a master data 'list' endpoint; always resolves so callers can chain on it
+    function loadCompanyOptions(url, companyId, selector, buildOption) {
+        return $.post(url, { action: 'list', company: companyId }).then(function(data) {
+            var $sel = $(selector);
+            $sel.empty().append('<option selected>-</option>');
+            try {
+                var obj = JSON.parse(data);
+                if (obj.status === 'success') {
+                    $.each(obj.data, function(i, item) {
+                        $sel.append(buildOption(item));
+                    });
+                }
+            } catch (e) {
+                console.error('Failed to load ' + selector, e);
+            }
+            $sel.val('-').trigger('change');
+        }, function() {
+            return $.Deferred().resolve();
+        });
+    }
+
+    // Reload the search bar listings for the selected company
+    function loadSearchListsByCompany(companyId) {
+        if (!companyId || companyId === '-') {
+            return;
+        }
+        var productFiltered = allProductSearchOptions !== null;
+        var rawMatFiltered = allRawMatSearchOptions !== null;
+
+        loadCompanyOptions('php/modules/customer/index.php', companyId, '#customerNoSearch', function(item) {
+            return $('<option>').val(item.customer_code).text(item.name);
+        });
+        loadCompanyOptions('php/modules/supplier/index.php', companyId, '#supplierSearch', function(item) {
+            return $('<option>').val(item.supplier_code).text(item.name);
+        });
+        $.when(
+            loadCompanyOptions('php/modules/item/index.php', companyId, '#productSearch', function(item) {
+                return productOption(item, item.product_code, item.name);
+            }),
+            loadCompanyOptions('php/modules/item/index.php', companyId, '#rawMatSearch', function(item) {
+                return productOption(item, item.product_code, item.name);
+            })
+        ).then(function() {
+            allProductSearchOptions = null;
+            allRawMatSearchOptions = null;
+            var status = $('#statusSearch').val();
+            if (productFiltered) filterDropdownByTransactionStatus('#productSearch', 'allProductSearchOptions', status);
+            if (rawMatFiltered) filterDropdownByTransactionStatus('#rawMatSearch', 'allRawMatSearchOptions', status);
+        });
+    }
+
+    // Reload the add/edit modal listings for the selected company; returns a promise resolved once all lists are rebuilt
+    function loadModalListsByCompany(companyId) {
+        if (!companyId || companyId === '-' || companyId == modalCompanyId) {
+            return modalListsReady;
+        }
+        modalCompanyId = companyId;
+        var productFiltered = allProductOptions !== null;
+        var rawMatFiltered = allRawMatOptions !== null;
+
+        modalListsReady = $.when(
+            loadCompanyOptions('php/modules/customer/index.php', companyId, '#customerName', function(item) {
+                return $('<option>').val(item.name).text(item.name).attr('data-code', item.customer_code);
+            }),
+            loadCompanyOptions('php/modules/supplier/index.php', companyId, '#supplierName', function(item) {
+                return $('<option>').val(item.name).text(item.name).attr('data-code', item.supplier_code);
+            }),
+            loadCompanyOptions('php/modules/item/index.php', companyId, '#productName', function(item) {
+                return productOption(item, item.name, item.product_code + ' - ' + item.name);
+            }),
+            loadCompanyOptions('php/modules/item/index.php', companyId, '#rawMaterialName', function(item) {
+                return productOption(item, item.name, item.product_code + ' - ' + item.name);
+            }),
+            loadCompanyOptions('php/modules/destination/index.php', companyId, '#destination', function(item) {
+                return $('<option>').val(item.name).text(item.name).attr('data-code', item.destination_code);
+            }),
+            loadCompanyOptions('php/modules/project/index.php', companyId, '#project', function(item) {
+                return $('<option>').val(item.id).text(item.project_code);
+            }),
+            loadCompanyOptions('php/modules/vehicle/index.php', companyId, '#vehiclePlateNo1', function(item) {
+                return $('<option>').val(item.veh_number).text(item.veh_number).attr('data-weight', item.vehicle_weight);
+            }),
+            loadCompanyOptions('php/modules/vehicle/index.php', companyId, '#vehiclePlateNo2', function(item) {
+                return $('<option>').val(item.veh_number).text(item.veh_number).attr('data-weight', item.vehicle_weight);
+            })
+        ).then(function() {
+            allProductOptions = null;
+            allRawMatOptions = null;
+            var status = $('#transactionStatus').val();
+            if (productFiltered) filterDropdownByTransactionStatus('#productName', 'allProductOptions', status);
+            if (rawMatFiltered) filterDropdownByTransactionStatus('#rawMaterialName', 'allRawMatOptions', status);
+        });
+        return modalListsReady;
+    }
+
     // Filter dropdown options based on transaction status
     function filterDropdownByTransactionStatus(selector, allOptionsVar, status) {
         if (!window[allOptionsVar]) {
@@ -3666,6 +3778,19 @@ else{
         });
 
         $(selector).val('-').trigger('change');
+    }
+
+    function productOption(item, value, text) {
+        return $('<option>').val(value).text(text)
+            .attr('data-code', item.product_code)
+            .attr('data-high', item.high)
+            .attr('data-low', item.low)
+            .attr('data-variance', item.variance)
+            .attr('data-description', item.description)
+            .attr('data-is-sales', item.is_sales)
+            .attr('data-is-purchase', item.is_purchase)
+            .attr('data-is-port', item.is_port)
+            .attr('data-is-misc', item.is_misc);
     }
 
     function renderTable() {
@@ -3737,7 +3862,8 @@ else{
                         }
                     }
                 },
-                { data: 'transaction_id' },                
+                { data: 'company_name' },
+                { data: 'transaction_id' },
                 { data: 'weight_type' },
                 { data: 'transaction_status' },
                 { data: 'customer' },
@@ -3871,6 +3997,7 @@ else{
                     d.fromDate = fromDateI;
                     d.toDate = toDateI;
                     d.plant = plantNoI;
+                    d.company = companyI;
                     return d;
                 },
             },
@@ -3883,8 +4010,9 @@ else{
                         return '<input type="checkbox" class="select-checkbox" id="checkbox_' + data + '" value="'+data+'"/>';
                     }
                 },
-                { data: 'container_no' },                
-                { data: 'seal_no' },                
+                { data: 'company_name' },
+                { data: 'container_no' },
+                { data: 'seal_no' },
                 { data: 'transaction_status' },
                 { data: 'lorry_plate_no1' },
                 { data: 'gross_weight1' },
@@ -4223,277 +4351,279 @@ else{
 
                 $('#addModal').find('#id').val(obj.message.id);
                 $('#addModal').find('#companyId').val(obj.message.company_id).trigger('change');
-                $('#addModal').find('#transactionId').val(obj.message.transaction_id);
-                $('#addModal').find('#transactionStatus').val(obj.message.transaction_status).trigger('change');
-                $('#addModal').find('#weightType').val(obj.message.weight_type).trigger('change');
-                $('#addModal').find('#customerType').val(obj.message.customer_type).trigger('change');
-                $('#addModal').find('#transactionDate').val(formatDate2(new Date(obj.message.transaction_date)));
+                modalListsReady.then(function(){
+                    $('#addModal').find('#transactionId').val(obj.message.transaction_id);
+                    $('#addModal').find('#transactionStatus').val(obj.message.transaction_status).trigger('change');
+                    $('#addModal').find('#weightType').val(obj.message.weight_type).trigger('change');
+                    $('#addModal').find('#customerType').val(obj.message.customer_type).trigger('change');
+                    $('#addModal').find('#transactionDate').val(formatDate2(new Date(obj.message.transaction_date)));
 
-                if(obj.message.transaction_status == "Purchase" || obj.message.transaction_status == "Local"){
-                    $('#divWeightDifference').show();
-                    $('#divSupplierWeight').show();
-                    $('#divSupplierName').show();
-                    $('#divOrderWeight').hide();
-                    $('#divCustomerName').hide();
-                }
-                else{
-                    $('#divOrderWeight').show();
-                    $('#divWeightDifference').show();
-                    $('#divSupplierWeight').hide();
-                    $('#divSupplierName').hide();
-                    $('#divCustomerName').show();
-                }
+                    if(obj.message.transaction_status == "Purchase" || obj.message.transaction_status == "Local"){
+                        $('#divWeightDifference').show();
+                        $('#divSupplierWeight').show();
+                        $('#divSupplierName').show();
+                        $('#divOrderWeight').hide();
+                        $('#divCustomerName').hide();
+                    }
+                    else{
+                        $('#divOrderWeight').show();
+                        $('#divWeightDifference').show();
+                        $('#divSupplierWeight').hide();
+                        $('#divSupplierName').hide();
+                        $('#divCustomerName').show();
+                    }
 
-                if(obj.message.vehicleNoTxt != null){
-                    $('#addModal').find('#vehicleNoTxt').val(obj.message.vehicleNoTxt);
-                    $('#manualVehicle').val(1);
-                    $('#manualVehicle').prop("checked", true);
-                    $('.index-vehicle').hide();
-                    $('#vehicleNoTxt').show();
-                }
-                else{
-                    $('#addModal').find('#vehiclePlateNo1Edit').val('EDIT');
-                    $('#addModal').find('#vehiclePlateNo1').val(obj.message.lorry_plate_no1).select2('destroy').select2();
-                    $('#manualVehicle').val(0);
-                    $('#manualVehicle').prop("checked", false);
-                    $('.index-vehicle').show();
-                    $('#vehicleNoTxt').hide();
-                }
+                    if(obj.message.vehicleNoTxt != null){
+                        $('#addModal').find('#vehicleNoTxt').val(obj.message.vehicleNoTxt);
+                        $('#manualVehicle').val(1);
+                        $('#manualVehicle').prop("checked", true);
+                        $('.index-vehicle').hide();
+                        $('#vehicleNoTxt').show();
+                    }
+                    else{
+                        $('#addModal').find('#vehiclePlateNo1Edit').val('EDIT');
+                        $('#addModal').find('#vehiclePlateNo1').val(obj.message.lorry_plate_no1).select2('destroy').select2();
+                        $('#manualVehicle').val(0);
+                        $('#manualVehicle').prop("checked", false);
+                        $('.index-vehicle').show();
+                        $('#vehicleNoTxt').hide();
+                    }
 
-                if(obj.message.vehicleNoTxt2 != null){
-                    $('#addModal').find('#vehicleNoTxt2').val(obj.message.vehicleNoTxt2);
-                    $('#manualVehicle2').val(1);
-                    $('#manualVehicle2').prop("checked", true);
-                    $('.index-vehicle2').hide();
-                    $('#vehicleNoTxt2').show();
-                }
-                else{
-                    $('#addModal').find('#vehiclePlateNo2').val(obj.message.lorry_plate_no2).select2('destroy').select2();
-                    $('#manualVehicle2').val(0);
-                    $('#manualVehicle2').prop("checked", false);
-                    $('.index-vehicle2').show();
-                    $('#vehicleNoTxt2').hide();
-                }
-                
-                $('#addModal').find('#productCode').val(obj.message.product_code);                
-                $('#addModal').find('#purchaseOrder').val(obj.message.purchase_order);
-                $('#addModal').find('#invoiceNo').val(obj.message.invoice_no);
-                $('#addModal').find('#deliveryNo').val(obj.message.delivery_no);
-                $('#addModal').find('#transporterCode').val(obj.message.transporter_code);
-                $('#addModal').find('#transporter').val(obj.message.transporter).trigger('change');
-                $('#addModal').find('#project').val(obj.message.project_id).trigger('change');
-                $('#addModal').find('#customerName').val(obj.message.customer_name).select2('destroy').select2();
-                $('#addModal').find('#customerCode').val(obj.message.customer_code);
-                $('#addModal').find('#supplierName').val(obj.message.supplier_name).select2('destroy').select2();
-                $('#addModal').find('#supplierCode').val(obj.message.supplier_code);
-                $('#addModal').find('#rawMaterialCode').val(obj.message.raw_mat_code);
-                $('#addModal').find('#rawMaterialName').val(obj.message.raw_mat_name).trigger('change');
-                $('#addModal').find('#productName').val(obj.message.product_name).trigger('change');
-                $('#addModal').find('#productCode').val(obj.message.product_code);
-
-                // Check if manual product was used
-                if(obj.message.is_manual_product == 'Y'){
-                    $('#addModal').find('#productNameTxt').val(obj.message.product_name);
-                    $('#manualProduct').val(1);
-                    $('#manualProduct').prop("checked", true);
-                    $('.index-product').hide();
-                    $('#productNameTxt').show();
-                }
-                else{
-                    $('#manualProduct').val(0);
-                    $('#manualProduct').prop("checked", false);
-                    $('.index-product').show();
-                    $('#productNameTxt').hide();
-                }
-
-                // Check if manual raw material was used
-                if(obj.message.is_manual_raw_material == 'Y'){
-                    $('#addModal').find('#rawMaterialNameTxt').val(obj.message.raw_mat_name);
-                    $('#manualRawMaterial').val(1);
-                    $('#manualRawMaterial').prop("checked", true);
-                    $('.index-rawmaterial').hide();
-                    $('#rawMaterialNameTxt').show();
-                }
-                else{
-                    $('#manualRawMaterial').val(0);
-                    $('#manualRawMaterial').prop("checked", false);
-                    $('.index-rawmaterial').show();
-                    $('#rawMaterialNameTxt').hide();
-                }
-                $('#addModal').find('#supplierWeight').val(obj.message.supplier_weight);
-                $('#addModal').find('#orderWeight').val(obj.message.order_weight);
-                $('#addModal').find('#destinationCode').val(obj.message.destination_code);
-                $('#addModal').find('#destination').val(obj.message.destination).trigger('change');
-                $('#addModal').find('#plant').val(obj.message.plant_name).trigger('change');
-                $('#addModal').find('#plantCode').val(obj.message.plant_code);
-                
-                $('#addModal').find('#otherRemarks').val(obj.message.remarks);
-                $('#addModal').find('#grossIncoming').val(obj.message.gross_weight1);
-                grossIncomingDatePicker.setDate(new Date(obj.message.gross_weight1_date));
-                $('#addModal').find('#grossWeightBy1').val(obj.message.gross_weight_by1);
-                $('#addModal').find('#tareOutgoing').val(obj.message.tare_weight1);
-                tareOutgoingDatePicker.setDate(obj.message.tare_weight1_date != null ? new Date(obj.message.tare_weight1_date) : null);
-                $('#addModal').find('#tareWeightBy1').val(obj.message.tare_weight_by1);
-                $('#addModal').find('#nettWeight').val(obj.message.nett_weight1);
-                $('#addModal').find('#vehicleWeight2').val(obj.message.lorry_no2_weight);
-                $('#addModal').find('#emptyContainerWeight2').val(obj.message.empty_container2_weight);
-                $('#addModal').find('#replacementContainer').val(obj.message.replacement_container).trigger('keyup');
-                $('#addModal').find('#grossIncoming2').val(obj.message.gross_weight2);
-                grossIncomingDatePicker2.setDate(obj.message.gross_weight2_date != null ? new Date(obj.message.gross_weight2_date) : null);
-                $('#addModal').find('#grossWeightBy2').val(obj.message.gross_weight_by2);
-                $('#addModal').find('#tareOutgoing2').val(obj.message.tare_weight2);
-                tareOutgoingDatePicker2.setDate(obj.message.tare_weight2_date != null ? new Date(obj.message.tare_weight2_date) : null);
-                $('#addModal').find('#tareWeightBy2').val(obj.message.tare_weight_by2);
-                $('#addModal').find('#nettWeight2').val(obj.message.nett_weight2);
-                $('#addModal').find('#reduceWeight').val(obj.message.reduce_weight);
-                $('#addModal').find('#customerSideCompany').val(obj.message.customer_side_company);
-                $('#addModal').find('#customerSideRemovalPassNo').val(obj.message.customer_side_removal_pass_no);
-                $('#addModal').find('#customerSideLicenseNo').val(obj.message.customer_side_license_no);
-                $('#addModal').find('#customerSideMoistureContent').val(obj.message.customer_side_moisture_content);
-                $('#addModal').find('#customerSideOfficerName').val(obj.message.customer_side_officer_name);
-                $('#addModal').find('#customerSideRainbowDriver').val(obj.message.customer_side_rainbow_driver);
-                customerSideTimeInPicker.setDate(obj.message.customer_side_time_in != null && obj.message.customer_side_time_in != '' ? new Date(obj.message.customer_side_time_in) : null);
-                customerSideTimeOutPicker.setDate(obj.message.customer_side_time_out != null && obj.message.customer_side_time_out != '' ? new Date(obj.message.customer_side_time_out) : null);
-                $('#addModal').find('#weightDifference').val(obj.message.weight_different);
-                $('#addModal').find('#weightDifferencePerc').val(obj.message.weight_different_perc);
-                $('#addModal').find('#currentWeight').text(obj.message.final_weight);
-
-                if(obj.message.manual_weight == 'true'){
-                    $("#manualWeightToggle").prop("checked", true).val('true');
-                    $('#manualWeightToggle').trigger('change');
-                }
-                else{
-                    $("#manualWeightToggle").prop("checked", false).val('false');
-                    $('#manualWeightToggle').trigger('change');
-                }
-
-                $('#addModal').find('#indicatorId').val(obj.message.indicator_id);
-                $('#addModal').find('#weighbridge').val(obj.message.weighbridge_id);
-                $('#addModal').find('#indicatorId2').val(obj.message.indicator_id_2);
-                $('#addModal').find('#productDescription').val(obj.message.product_description);
-                $('#addModal').find('#unitPrice').val(obj.message.unit_price);
-                $('#addModal').find('#subTotalPrice').val(obj.message.sub_total);
-                $('#addModal').find('#sstPrice').val(obj.message.sst);
-                $('#addModal').find('#totalPrice').val(obj.message.total_price);
-                $('#addModal').find('#finalWeight').val(obj.message.final_weight);
-                $('#addModal').find('#containerNoInput').val(obj.message.container_no);
-                $('#addModal').find('#containerNo').val(obj.message.container_no);
-                $('#addModal').find('#containerNo2').val(obj.message.container_no2);
-                $('#addModal').find('#sealNo').val(obj.message.seal_no);
-                $('#addModal').find('#sealNo2').val(obj.message.seal_no2);
-
-                // Load container data and update the emptyContainerNo field if it's a container
-                if((obj.message.weight_type == 'Container' || obj.message.weight_type == 'Different Container') && obj.message.container_no){
-                    loadContainerData(function() {
-                        $('#normalCard').show();
-
-                        // Check if container value exist in the select tag
-                        var emptyContainerExists = $('#addModal').find('#emptyContainerNo option').filter(function() {
-                            return $(this).val() === obj.message.container_no;
-                        }).length > 0;
-
-                        if (!emptyContainerExists){
-                            // Append missing empty container no
-                            $('#addModal').find('#emptyContainerNo').append(
-                                '<option value="'+obj.message.container_no+'">'+obj.message.container_no+'</option>'
-                            );
-                        }
-
-                        // Callback to ensure the dropdown is updated before setting the value
-                        $('#addModal').find('#emptyContainerNo').val(obj.message.container_no).select2('destroy').select2();
-
-                        // Initialize all Select2 elements in the modal
-                        $('#addModal .select2').select2({
-                            allowClear: true,
-                            placeholder: "Please Select",
-                            dropdownParent: $('#addModal') // Ensures dropdown is not cut off
-                        });
-
-                        // Apply custom styling to Select2 elements in addModal
-                        $('#addModal .select2-container .select2-selection--single').css({
-                            'padding-top': '4px',
-                            'padding-bottom': '4px',
-                            'height': 'auto'
-                        });
-
-                        $('#addModal .select2-container .select2-selection__arrow').css({
-                            'padding-top': '33px',
-                            'height': 'auto'
-                        });
-                    });
-                }
-
-                // Load these field after PO/SO is loaded
-                /*$('#addModal').on('orderLoaded', function() {
+                    if(obj.message.vehicleNoTxt2 != null){
+                        $('#addModal').find('#vehicleNoTxt2').val(obj.message.vehicleNoTxt2);
+                        $('#manualVehicle2').val(1);
+                        $('#manualVehicle2').prop("checked", true);
+                        $('.index-vehicle2').hide();
+                        $('#vehicleNoTxt2').show();
+                    }
+                    else{
+                        $('#addModal').find('#vehiclePlateNo2').val(obj.message.lorry_plate_no2).select2('destroy').select2();
+                        $('#manualVehicle2').val(0);
+                        $('#manualVehicle2').prop("checked", false);
+                        $('.index-vehicle2').show();
+                        $('#vehicleNoTxt2').hide();
+                    }
+                    
+                    $('#addModal').find('#productCode').val(obj.message.product_code);                
+                    $('#addModal').find('#purchaseOrder').val(obj.message.purchase_order);
+                    $('#addModal').find('#invoiceNo').val(obj.message.invoice_no);
+                    $('#addModal').find('#deliveryNo').val(obj.message.delivery_no);
+                    $('#addModal').find('#transporterCode').val(obj.message.transporter_code);
+                    $('#addModal').find('#transporter').val(obj.message.transporter).trigger('change');
+                    $('#addModal').find('#project').val(obj.message.project_id).trigger('change');
+                    $('#addModal').find('#customerName').val(obj.message.customer_name).select2('destroy').select2();
                     $('#addModal').find('#customerCode').val(obj.message.customer_code);
-                    $('#addModal').find('#customerName').val(obj.message.customer_name).trigger('change');
+                    $('#addModal').find('#supplierName').val(obj.message.supplier_name).select2('destroy').select2();
                     $('#addModal').find('#supplierCode').val(obj.message.supplier_code);
-                    $('#addModal').find('#supplierName').val(obj.message.supplier_name).trigger('change')
                     $('#addModal').find('#rawMaterialCode').val(obj.message.raw_mat_code);
                     $('#addModal').find('#rawMaterialName').val(obj.message.raw_mat_name).trigger('change');
                     $('#addModal').find('#productName').val(obj.message.product_name).trigger('change');
                     $('#addModal').find('#productCode').val(obj.message.product_code);
+
+                    // Check if manual product was used
+                    if(obj.message.is_manual_product == 'Y'){
+                        $('#addModal').find('#productNameTxt').val(obj.message.product_name);
+                        $('#manualProduct').val(1);
+                        $('#manualProduct').prop("checked", true);
+                        $('.index-product').hide();
+                        $('#productNameTxt').show();
+                    }
+                    else{
+                        $('#manualProduct').val(0);
+                        $('#manualProduct').prop("checked", false);
+                        $('.index-product').show();
+                        $('#productNameTxt').hide();
+                    }
+
+                    // Check if manual raw material was used
+                    if(obj.message.is_manual_raw_material == 'Y'){
+                        $('#addModal').find('#rawMaterialNameTxt').val(obj.message.raw_mat_name);
+                        $('#manualRawMaterial').val(1);
+                        $('#manualRawMaterial').prop("checked", true);
+                        $('.index-rawmaterial').hide();
+                        $('#rawMaterialNameTxt').show();
+                    }
+                    else{
+                        $('#manualRawMaterial').val(0);
+                        $('#manualRawMaterial').prop("checked", false);
+                        $('.index-rawmaterial').show();
+                        $('#rawMaterialNameTxt').hide();
+                    }
                     $('#addModal').find('#supplierWeight').val(obj.message.supplier_weight);
                     $('#addModal').find('#orderWeight').val(obj.message.order_weight);
                     $('#addModal').find('#destinationCode').val(obj.message.destination_code);
                     $('#addModal').find('#destination').val(obj.message.destination).trigger('change');
                     $('#addModal').find('#plant').val(obj.message.plant_name).trigger('change');
                     $('#addModal').find('#plantCode').val(obj.message.plant_code);
-
-                    // Hide select and show input readonly
-                    // if (obj.message.transaction_status == 'Purchase'){
-                    //     $('#addModal').find('#purchaseOrder').next('.select2-container').hide();
-                    //     $('#addModal').find('#purchaseOrderEdit').val(obj.message.purchase_order).show();
-                    // }else{
-                    //     $('#addModal').find('#salesOrder').next('.select2-container').hide();
-                    //     $('#addModal').find('#salesOrderEdit').val(obj.message.purchase_order).show();
-                    // }
-                });*/
-
-                // Initialize all Select2 elements in the modal
-                $('#addModal .select2').select2({
-                    allowClear: true,
-                    placeholder: "Please Select",
-                    dropdownParent: $('#addModal') // Ensures dropdown is not cut off
-                });
-
-                // Apply custom styling to Select2 elements in addModal
-                $('#addModal .select2-container .select2-selection--single').css({
-                    'padding-top': '4px',
-                    'padding-bottom': '4px',
-                    'height': 'auto'
-                });
-
-                $('#addModal .select2-container .select2-selection__arrow').css({
-                    'padding-top': '33px',
-                    'height': 'auto'
-                });
-
-                // Remove Validation Error Message
-                $('#addModal .is-invalid').removeClass('is-invalid');
-
-                $('#addModal .select2[required]').each(function () {
-                    var select2Field = $(this);
-                    var select2Container = select2Field.next('.select2-container');
                     
-                    select2Container.find('.select2-selection').css('border', ''); // Remove red border
-                    select2Container.next('.select2-error').remove(); // Remove error message
-                });
+                    $('#addModal').find('#otherRemarks').val(obj.message.remarks);
+                    $('#addModal').find('#grossIncoming').val(obj.message.gross_weight1);
+                    grossIncomingDatePicker.setDate(new Date(obj.message.gross_weight1_date));
+                    $('#addModal').find('#grossWeightBy1').val(obj.message.gross_weight_by1);
+                    $('#addModal').find('#tareOutgoing').val(obj.message.tare_weight1);
+                    tareOutgoingDatePicker.setDate(obj.message.tare_weight1_date != null ? new Date(obj.message.tare_weight1_date) : null);
+                    $('#addModal').find('#tareWeightBy1').val(obj.message.tare_weight_by1);
+                    $('#addModal').find('#nettWeight').val(obj.message.nett_weight1);
+                    $('#addModal').find('#vehicleWeight2').val(obj.message.lorry_no2_weight);
+                    $('#addModal').find('#emptyContainerWeight2').val(obj.message.empty_container2_weight);
+                    $('#addModal').find('#replacementContainer').val(obj.message.replacement_container).trigger('keyup');
+                    $('#addModal').find('#grossIncoming2').val(obj.message.gross_weight2);
+                    grossIncomingDatePicker2.setDate(obj.message.gross_weight2_date != null ? new Date(obj.message.gross_weight2_date) : null);
+                    $('#addModal').find('#grossWeightBy2').val(obj.message.gross_weight_by2);
+                    $('#addModal').find('#tareOutgoing2').val(obj.message.tare_weight2);
+                    tareOutgoingDatePicker2.setDate(obj.message.tare_weight2_date != null ? new Date(obj.message.tare_weight2_date) : null);
+                    $('#addModal').find('#tareWeightBy2').val(obj.message.tare_weight_by2);
+                    $('#addModal').find('#nettWeight2').val(obj.message.nett_weight2);
+                    $('#addModal').find('#reduceWeight').val(obj.message.reduce_weight);
+                    $('#addModal').find('#customerSideCompany').val(obj.message.customer_side_company);
+                    $('#addModal').find('#customerSideRemovalPassNo').val(obj.message.customer_side_removal_pass_no);
+                    $('#addModal').find('#customerSideLicenseNo').val(obj.message.customer_side_license_no);
+                    $('#addModal').find('#customerSideMoistureContent').val(obj.message.customer_side_moisture_content);
+                    $('#addModal').find('#customerSideOfficerName').val(obj.message.customer_side_officer_name);
+                    $('#addModal').find('#customerSideRainbowDriver').val(obj.message.customer_side_rainbow_driver);
+                    customerSideTimeInPicker.setDate(obj.message.customer_side_time_in != null && obj.message.customer_side_time_in != '' ? new Date(obj.message.customer_side_time_in) : null);
+                    customerSideTimeOutPicker.setDate(obj.message.customer_side_time_out != null && obj.message.customer_side_time_out != '' ? new Date(obj.message.customer_side_time_out) : null);
+                    $('#addModal').find('#weightDifference').val(obj.message.weight_different);
+                    $('#addModal').find('#weightDifferencePerc').val(obj.message.weight_different_perc);
+                    $('#addModal').find('#currentWeight').text(obj.message.final_weight);
 
-                $('#addModal').modal('show');
-            
-                $('#weightForm').validate({
-                    errorElement: 'span',
-                    errorPlacement: function (error, element) {
-                        error.addClass('invalid-feedback');
-                        element.closest('.form-group').append(error);
-                    },
-                    highlight: function (element, errorClass, validClass) {
-                        $(element).addClass('is-invalid');
-                    },
-                    unhighlight: function (element, errorClass, validClass) {
-                        $(element).removeClass('is-invalid');
+                    if(obj.message.manual_weight == 'true'){
+                        $("#manualWeightToggle").prop("checked", true).val('true');
+                        $('#manualWeightToggle').trigger('change');
                     }
+                    else{
+                        $("#manualWeightToggle").prop("checked", false).val('false');
+                        $('#manualWeightToggle').trigger('change');
+                    }
+
+                    $('#addModal').find('#indicatorId').val(obj.message.indicator_id);
+                    $('#addModal').find('#weighbridge').val(obj.message.weighbridge_id);
+                    $('#addModal').find('#indicatorId2').val(obj.message.indicator_id_2);
+                    $('#addModal').find('#productDescription').val(obj.message.product_description);
+                    $('#addModal').find('#unitPrice').val(obj.message.unit_price);
+                    $('#addModal').find('#subTotalPrice').val(obj.message.sub_total);
+                    $('#addModal').find('#sstPrice').val(obj.message.sst);
+                    $('#addModal').find('#totalPrice').val(obj.message.total_price);
+                    $('#addModal').find('#finalWeight').val(obj.message.final_weight);
+                    $('#addModal').find('#containerNoInput').val(obj.message.container_no);
+                    $('#addModal').find('#containerNo').val(obj.message.container_no);
+                    $('#addModal').find('#containerNo2').val(obj.message.container_no2);
+                    $('#addModal').find('#sealNo').val(obj.message.seal_no);
+                    $('#addModal').find('#sealNo2').val(obj.message.seal_no2);
+
+                    // Load container data and update the emptyContainerNo field if it's a container
+                    if((obj.message.weight_type == 'Container' || obj.message.weight_type == 'Different Container') && obj.message.container_no){
+                        loadContainerData(function() {
+                            $('#normalCard').show();
+
+                            // Check if container value exist in the select tag
+                            var emptyContainerExists = $('#addModal').find('#emptyContainerNo option').filter(function() {
+                                return $(this).val() === obj.message.container_no;
+                            }).length > 0;
+
+                            if (!emptyContainerExists){
+                                // Append missing empty container no
+                                $('#addModal').find('#emptyContainerNo').append(
+                                    '<option value="'+obj.message.container_no+'">'+obj.message.container_no+'</option>'
+                                );
+                            }
+
+                            // Callback to ensure the dropdown is updated before setting the value
+                            $('#addModal').find('#emptyContainerNo').val(obj.message.container_no).select2('destroy').select2();
+
+                            // Initialize all Select2 elements in the modal
+                            $('#addModal .select2').select2({
+                                allowClear: true,
+                                placeholder: "Please Select",
+                                dropdownParent: $('#addModal') // Ensures dropdown is not cut off
+                            });
+
+                            // Apply custom styling to Select2 elements in addModal
+                            $('#addModal .select2-container .select2-selection--single').css({
+                                'padding-top': '4px',
+                                'padding-bottom': '4px',
+                                'height': 'auto'
+                            });
+
+                            $('#addModal .select2-container .select2-selection__arrow').css({
+                                'padding-top': '33px',
+                                'height': 'auto'
+                            });
+                        });
+                    }
+
+                    // Load these field after PO/SO is loaded
+                    /*$('#addModal').on('orderLoaded', function() {
+                        $('#addModal').find('#customerCode').val(obj.message.customer_code);
+                        $('#addModal').find('#customerName').val(obj.message.customer_name).trigger('change');
+                        $('#addModal').find('#supplierCode').val(obj.message.supplier_code);
+                        $('#addModal').find('#supplierName').val(obj.message.supplier_name).trigger('change')
+                        $('#addModal').find('#rawMaterialCode').val(obj.message.raw_mat_code);
+                        $('#addModal').find('#rawMaterialName').val(obj.message.raw_mat_name).trigger('change');
+                        $('#addModal').find('#productName').val(obj.message.product_name).trigger('change');
+                        $('#addModal').find('#productCode').val(obj.message.product_code);
+                        $('#addModal').find('#supplierWeight').val(obj.message.supplier_weight);
+                        $('#addModal').find('#orderWeight').val(obj.message.order_weight);
+                        $('#addModal').find('#destinationCode').val(obj.message.destination_code);
+                        $('#addModal').find('#destination').val(obj.message.destination).trigger('change');
+                        $('#addModal').find('#plant').val(obj.message.plant_name).trigger('change');
+                        $('#addModal').find('#plantCode').val(obj.message.plant_code);
+
+                        // Hide select and show input readonly
+                        // if (obj.message.transaction_status == 'Purchase'){
+                        //     $('#addModal').find('#purchaseOrder').next('.select2-container').hide();
+                        //     $('#addModal').find('#purchaseOrderEdit').val(obj.message.purchase_order).show();
+                        // }else{
+                        //     $('#addModal').find('#salesOrder').next('.select2-container').hide();
+                        //     $('#addModal').find('#salesOrderEdit').val(obj.message.purchase_order).show();
+                        // }
+                    });*/
+
+                    // Initialize all Select2 elements in the modal
+                    $('#addModal .select2').select2({
+                        allowClear: true,
+                        placeholder: "Please Select",
+                        dropdownParent: $('#addModal') // Ensures dropdown is not cut off
+                    });
+
+                    // Apply custom styling to Select2 elements in addModal
+                    $('#addModal .select2-container .select2-selection--single').css({
+                        'padding-top': '4px',
+                        'padding-bottom': '4px',
+                        'height': 'auto'
+                    });
+
+                    $('#addModal .select2-container .select2-selection__arrow').css({
+                        'padding-top': '33px',
+                        'height': 'auto'
+                    });
+
+                    // Remove Validation Error Message
+                    $('#addModal .is-invalid').removeClass('is-invalid');
+
+                    $('#addModal .select2[required]').each(function () {
+                        var select2Field = $(this);
+                        var select2Container = select2Field.next('.select2-container');
+                        
+                        select2Container.find('.select2-selection').css('border', ''); // Remove red border
+                        select2Container.next('.select2-error').remove(); // Remove error message
+                    });
+
+                    $('#addModal').modal('show');
+                
+                    $('#weightForm').validate({
+                        errorElement: 'span',
+                        errorPlacement: function (error, element) {
+                            error.addClass('invalid-feedback');
+                            element.closest('.form-group').append(error);
+                        },
+                        highlight: function (element, errorClass, validClass) {
+                            $(element).addClass('is-invalid');
+                        },
+                        unhighlight: function (element, errorClass, validClass) {
+                            $(element).removeClass('is-invalid');
+                        }
+                    });
                 });
             }
             else if(obj.status === 'failed'){

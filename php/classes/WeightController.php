@@ -118,7 +118,8 @@ class WeightController extends BaseController {
     private function parseFields() {
         $f = [];
         $f['weightId']              = $this->getPost('id');
-        $f['companyId']             = $this->getPost('companyId');
+        // Restricted users can only save weighings under their own company
+        $f['companyId']             = hasPermission('Weighing', ['view_all_companies']) ? $this->getPost('companyId') : ($_SESSION['company_id'] ?? null);
         $f['plantCode']             = $this->getPost('plantCode');
         $f['plant']                 = $this->getPost('plant');
         $f['weightType']            = $this->getPost('weightType', 'Normal');
@@ -177,7 +178,8 @@ class WeightController extends BaseController {
         $f['finalWeight']           = $this->getPost('finalWeight', '0');
         $f['indicatorId2']          = $this->getPost('indicatorId2');
         $f['productDescription']    = $this->getPost('productDescription');
-        $f['project']               = $this->getPost('project');
+        $project                    = $this->getPost('project');
+        $f['project']               = ($project === null || $project === '' || $project === '-') ? null : $project;
         $f['vehiclePlateNo1']       = filter_has_var(INPUT_POST, 'manualVehicle') ? trim($_POST['vehicleNoTxt']) : $this->getPost('vehiclePlateNo1');
         $f['vehiclePlateNo2']       = filter_has_var(INPUT_POST, 'manualVehicle2') ? trim($_POST['vehicleNoTxt2']) : $this->getPost('vehiclePlateNo2');
         $f['vehicleWeight2']        = $this->getPost('vehicleWeight2');

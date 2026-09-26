@@ -200,16 +200,16 @@ class VehicleService extends BaseService {
         return $row ? $this->mapRow($row) : null;
     }
 
-    public function autoRegisterVehicle($plateNo, $vehicleWeight = 0) {
+    public function autoRegisterVehicle($plateNo, $vehicleWeight = 0, $companyId = null) {
         if (empty($plateNo)) {
             return;
         }
 
-        $stmt = $this->db->prepare("SELECT id FROM Vehicle WHERE veh_number=? AND status='0'");
+        $stmt = $this->db->prepare("SELECT id FROM Vehicle WHERE veh_number=? AND company <=> ? AND status='0'");
         if (!$stmt) {
             throw new Exception($this->db->error);
         }
-        $stmt->bind_param('s', $plateNo);
+        $stmt->bind_param('ss', $plateNo, $companyId);
         $stmt->execute();
         $stmt->store_result();
         $exists = $stmt->num_rows > 0;
@@ -220,11 +220,11 @@ class VehicleService extends BaseService {
         }
 
         $vehicleWeight = $vehicleWeight ?: 0;
-        $stmt = $this->db->prepare("INSERT INTO Vehicle (veh_number, vehicle_weight, is_manual, created_by, modified_by) VALUES (?, ?, 'Y', ?, ?)");
+        $stmt = $this->db->prepare("INSERT INTO Vehicle (company, veh_number, vehicle_weight, is_manual, created_by, modified_by) VALUES (?, ?, ?, 'Y', ?, ?)");
         if (!$stmt) {
             throw new Exception($this->db->error);
         }
-        $stmt->bind_param('ssss', $plateNo, $vehicleWeight, $this->username, $this->username);
+        $stmt->bind_param('sssss', $companyId, $plateNo, $vehicleWeight, $this->username, $this->username);
         if (!$stmt->execute()) {
             throw new Exception($stmt->error);
         }

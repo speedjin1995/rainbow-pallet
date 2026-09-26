@@ -426,7 +426,7 @@ class ItemService extends BaseService {
     }
 
     public function getListByCompany($companyId) {
-        $stmt = $this->db->prepare("SELECT p.id, p.product_code, p.name,
+        $stmt = $this->db->prepare("SELECT p.id, p.product_code, p.name, p.high, p.low, p.variance, p.description,
             IFNULL(c.is_sales, 'Y') as is_sales,
             IFNULL(c.is_purchase, 'Y') as is_purchase,
             IFNULL(c.is_local, 'Y') as is_local,
