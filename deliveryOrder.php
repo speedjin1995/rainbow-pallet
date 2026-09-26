@@ -278,6 +278,10 @@ if ($canEditWeight || $canPrintWeight) {
                             <?php if ($canEditWeight || $canPrintWeight): ?>
                             <?php include 'components/weighingModal/modal.php'; ?>
                             <?php endif; ?>
+
+                            <?php if ($canEditWeight): ?>
+                            <?php include 'components/customerSideInfoModal/modal.php'; ?>
+                            <?php endif; ?>
                         </div> <!-- end .h-100-->
                     </div> <!-- end col -->
                 </div>
@@ -334,6 +338,15 @@ if ($canEditWeight || $canPrintWeight) {
         if (window.initWeighingModal) {
             initWeighingModal({
                 onSaved: function(obj, withPrint){
+                    table.ajax.reload(null, false);
+                }
+            });
+        }
+
+        // Customer side info modal: refresh the DO list after saving
+        if (window.initCustomerSideInfoModal) {
+            initCustomerSideInfoModal({
+                onSaved: function(obj){
                     table.ajax.reload(null, false);
                 }
             });
@@ -723,6 +736,16 @@ if ($canEditWeight || $canPrintWeight) {
                                                 <i class="fas fa-pen"></i>
                                             </button>
                                         </div>`;
+
+                                    // Same rule as the weighing page: customer side info for non-purchase weighings, needs edit
+                                    if (weights[i].transaction_status != 'Purchase' && weights[i].transaction_status != 'Local') {
+                                        returnString += `
+                                        <div class="col-auto">
+                                            <button title="<?=$languageArray['fill_in_customer_side_info_code'][$language]?>" type="button" id="customerSideInfo${weights[i].id}" onclick="event.stopPropagation(); openCustomerSideInfo(${weights[i].id})" class="btn btn-secondary btn-sm">
+                                                <i class="fas fa-clipboard-list"></i>
+                                            </button>
+                                        </div>`;
+                                    }
                                 }
 
                                 if (canPrintWeight) {
@@ -888,6 +911,11 @@ if ($canEditWeight || $canPrintWeight) {
     <?php if ($canEditWeight || $canPrintWeight): ?>
     <!-- Weighing modal component (after the page script so its Select2 / date picker setup runs last) -->
     <?php include 'components/weighingModal/script.php'; ?>
+    <?php endif; ?>
+
+    <?php if ($canEditWeight): ?>
+    <!-- Customer side info modal component -->
+    <?php include 'components/customerSideInfoModal/script.php'; ?>
     <?php endif; ?>
 </body>
 </html>

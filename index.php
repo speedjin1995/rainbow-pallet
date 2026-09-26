@@ -425,62 +425,7 @@ require_once "components/weighingModal/data.php";
                                     <!-- /.modal-dialog -->
                                     <?php include 'components/weighingModal/modal.php'; ?>
                                     
-                                    <div class="modal fade" id="customerSideInfoModal">
-                                        <div class="modal-dialog">
-                                            <div class="modal-content">
-                                                <form role="form" id="customerSideInfoForm">
-                                                    <div class="modal-header bg-gray-dark color-palette">
-                                                        <h4 class="modal-title"><?=$languageArray['fill_in_customer_side_info_code'][$language]?></h4>
-                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        <div class="row mb-3">
-                                                            <label for="custSideDoNo" class="col-sm-4 col-form-label"><?=$languageArray['customer_side_do_no_code'][$language]?></label>
-                                                            <div class="col-sm-8">
-                                                                <input type="text" class="form-control" id="custSideDoNo" name="custSideDoNo">
-                                                            </div>
-                                                        </div>
-                                                        <div class="row mb-3">
-                                                            <label for="custSideFirstWeight" class="col-sm-4 col-form-label"><?=$languageArray['first_code'][$language]?> (KG)</label>
-                                                            <div class="col-sm-8">
-                                                                <div class="input-group">
-                                                                    <input type="number" class="form-control cust-side-weight" id="custSideFirstWeight" name="custSideFirstWeight" placeholder="0">
-                                                                    <div class="input-group-text">Kg</div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div class="row mb-3">
-                                                            <label for="custSideSecondWeight" class="col-sm-4 col-form-label"><?=$languageArray['second_code'][$language]?> (KG)</label>
-                                                            <div class="col-sm-8">
-                                                                <div class="input-group">
-                                                                    <input type="number" class="form-control cust-side-weight" id="custSideSecondWeight" name="custSideSecondWeight" placeholder="0">
-                                                                    <div class="input-group-text">Kg</div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div class="row mb-3">
-                                                            <label for="custSideMc" class="col-sm-4 col-form-label"><?=$languageArray['customer_side_mc_code'][$language]?></label>
-                                                            <div class="col-sm-8">
-                                                                <input type="text" class="form-control" id="custSideMc" name="custSideMc">
-                                                            </div>
-                                                        </div>
-                                                        <div class="row mb-3">
-                                                            <label for="custSideNettWeight" class="col-sm-4 col-form-label"><?=$languageArray['nett_weight_code'][$language]?> (KG)</label>
-                                                            <div class="col-sm-8">
-                                                                <input type="number" class="form-control input-readonly" id="custSideNettWeight" name="custSideNettWeight" placeholder="0" readonly>
-                                                            </div>
-                                                        </div>
-                                                        <input type="hidden" class="form-control" id="customerSideInfoId" name="id">
-                                                        <input type="hidden" class="form-control" name="action" value="save">
-                                                    </div>
-                                                    <div class="modal-footer justify-content-between bg-gray-dark color-palette">
-                                                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal"><?=$languageArray['close_code'][$language]?></button>
-                                                        <button type="button" class="btn btn-success" id="submitCustomerSideInfo"><?=$languageArray['submit_code'][$language]?></button>
-                                                    </div>
-                                                </form>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <?php include 'components/customerSideInfoModal/modal.php'; ?>
 
                                     <div class="modal fade" id="cancelModal">
                                         <div class="modal-dialog modal-xl" style="max-width: 90%;">
@@ -677,6 +622,8 @@ require_once "components/weighingModal/data.php";
     <script src="assets/js/additional.js"></script>
     <!-- Weighing modal component -->
     <?php include 'components/weighingModal/script.php'; ?>
+    <!-- Customer side info modal component -->
+    <?php include 'components/customerSideInfoModal/script.php'; ?>
 
     <script type="text/javascript">
     var table = null;
@@ -884,30 +831,6 @@ require_once "components/weighingModal/data.php";
             }
         });
 
-        $('.cust-side-weight').on('input', function(){
-            updateCustomerSideNettWeight();
-        });
-
-        $('#submitCustomerSideInfo').on('click', function(){
-            $('#spinnerLoading').show();
-            $.post('php/modules/weighing/index.php', $('#customerSideInfoForm').serialize() + '&action=customerSideInfo&custAction=save', function(data){
-                var obj = JSON.parse(data);
-
-                if(obj.status === 'success'){
-                    table.ajax.reload(null, false);
-                    $('#spinnerLoading').hide();
-                    $('#customerSideInfoModal').modal('hide');
-                    $("#successBtn").attr('data-toast-text', obj.message);
-                    $("#successBtn").click();
-                }
-                else{
-                    $('#spinnerLoading').hide();
-                    $("#failBtn").attr('data-toast-text', obj.message);
-                    $("#failBtn").click();
-                }
-            });
-        });
-
         // Weighing modal: after a normal save reload the page, "Save & Print" opens the pre-print modal instead
         initWeighingModal({
             onSaved: function(obj, withPrint){
@@ -915,6 +838,13 @@ require_once "components/weighingModal/data.php";
                     table.ajax.reload();
                     window.location = 'index.php';
                 }
+            }
+        });
+
+        // Customer side info modal: keep the current page of the table after saving
+        initCustomerSideInfoModal({
+            onSaved: function(obj){
+                table.ajax.reload(null, false);
             }
         });
 
@@ -1762,42 +1692,6 @@ require_once "components/weighingModal/data.php";
                 }
             });
         }
-    }
-
-    function updateCustomerSideNettWeight() {
-        var firstWeight = $('#custSideFirstWeight').val();
-        var secondWeight = $('#custSideSecondWeight').val();
-
-        if (firstWeight !== '' && secondWeight !== '') {
-            var nettWeight = Math.abs(parseFloat(firstWeight) - parseFloat(secondWeight));
-            $('#custSideNettWeight').val(isNaN(nettWeight) ? '' : nettWeight.toFixed(0));
-        } else {
-            $('#custSideNettWeight').val('');
-        }
-    }
-
-    function openCustomerSideInfo(id) {
-        $('#customerSideInfoForm')[0].reset();
-        $('#customerSideInfoModal').find('#customerSideInfoId').val(id);
-        $('#customerSideInfoModal').find('#custSideNettWeight').val('');
-
-        $.post('php/modules/weighing/index.php', { id: id, action: 'customerSideInfo', custAction: 'get' }, function(data){
-            var obj = JSON.parse(data);
-
-            if(obj.status === 'success'){
-                $('#customerSideInfoModal').find('#custSideDoNo').val(obj.message.cust_side_do_no);
-                $('#customerSideInfoModal').find('#custSideFirstWeight').val(obj.message.cust_side_first_weight);
-                $('#customerSideInfoModal').find('#custSideSecondWeight').val(obj.message.cust_side_second_weight);
-                $('#customerSideInfoModal').find('#custSideMc').val(obj.message.cust_side_mc);
-                $('#customerSideInfoModal').find('#custSideNettWeight').val(obj.message.cust_side_nett_weight);
-                updateCustomerSideNettWeight();
-                $('#customerSideInfoModal').modal('show');
-            }
-            else{
-                $("#failBtn").attr('data-toast-text', obj.message);
-                $("#failBtn").click();
-            }
-        });
     }
     </script>
 </body>
