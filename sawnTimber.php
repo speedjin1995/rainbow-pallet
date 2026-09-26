@@ -530,19 +530,19 @@ else{
                         <input type="text" class="form-control form-control-sm card-bundle" placeholder="Bundle">
                     </div>
                     <div class="col-md-1">
-                        <label class="form-label small text-muted mb-0"><?=$languageArray['thick_code'][$language]?> (m)</label>
+                        <label class="form-label small text-muted mb-0"><?=$languageArray['thick_code'][$language]?> (m) <span class="text-danger">*</span></label>
                         <input type="number" step="0.0001" class="form-control form-control-sm card-thick" placeholder="0">
                     </div>
                     <div class="col-md-1">
-                        <label class="form-label small text-muted mb-0"><?=$languageArray['width_code'][$language]?> (m)</label>
+                        <label class="form-label small text-muted mb-0"><?=$languageArray['width_code'][$language]?> (m) <span class="text-danger">*</span></label>
                         <input type="number" step="0.0001" class="form-control form-control-sm card-width" placeholder="0">
                     </div>
                     <div class="col-md-1">
-                        <label class="form-label small text-muted mb-0"><?=$languageArray['length_code'][$language]?> (m)</label>
+                        <label class="form-label small text-muted mb-0"><?=$languageArray['length_code'][$language]?> (m) <span class="text-danger">*</span></label>
                         <input type="number" step="0.0001" class="form-control form-control-sm card-length" placeholder="0">
                     </div>
                     <div class="col-md-1">
-                        <label class="form-label small text-muted mb-0"><?=$languageArray['pieces_code'][$language]?></label>
+                        <label class="form-label small text-muted mb-0"><?=$languageArray['pieces_code'][$language]?> <span class="text-danger">*</span></label>
                         <input type="number" step="1" class="form-control form-control-sm card-pieces" placeholder="0">
                     </div>
                     <div class="col-md-2">
