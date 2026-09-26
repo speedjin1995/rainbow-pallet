@@ -407,22 +407,6 @@ else{
                                                                 </button>
                                                                 <?php endif; ?>
 
-                                                                <!-- <?php if(hasModulePermission('Sawn Timber', 'Sawn Timber', ['download_template'])): ?>
-                                                                <a href="php/modules/sawnTimber/index.php?action=export&template=1" download>
-                                                                    <button type="button" class="btn btn-info waves-effect waves-light">
-                                                                        <i class="mdi mdi-file-import-outline align-middle me-1"></i>
-                                                                        <?=$languageArray['download_template_code'][$language]?>
-                                                                    </button>
-                                                                </a>
-                                                                <?php endif; ?>
-
-                                                                <?php if(hasModulePermission('Sawn Timber', 'Sawn Timber', ['upload_excel'])): ?>
-                                                                <button type="button" id="uploadExcel" class="btn btn-warning waves-effect waves-light">
-                                                                    <i class="ri-file-pdf-line align-middle me-1"></i>
-                                                                    <?=$languageArray['upload_excel_code'][$language]?>
-                                                                </button>
-                                                                <?php endif; ?> -->
-
                                                                 <?php if(hasModulePermission('Sawn Timber', 'Sawn Timber', ['cancelled'])): ?>
                                                                 <button type="button" id="multiDeactivate" class="btn btn-warning waves-effect waves-light">
                                                                     <i class="ri-delete-bin-fill align-middle me-1"></i>
@@ -546,15 +530,15 @@ else{
                         <input type="text" class="form-control form-control-sm card-bundle" placeholder="Bundle">
                     </div>
                     <div class="col-md-1">
-                        <label class="form-label small text-muted mb-0"><?=$languageArray['thick_code'][$language]?></label>
+                        <label class="form-label small text-muted mb-0"><?=$languageArray['thick_code'][$language]?> (m)</label>
                         <input type="number" step="0.0001" class="form-control form-control-sm card-thick" placeholder="0">
                     </div>
                     <div class="col-md-1">
-                        <label class="form-label small text-muted mb-0"><?=$languageArray['width_code'][$language]?></label>
+                        <label class="form-label small text-muted mb-0"><?=$languageArray['width_code'][$language]?> (m)</label>
                         <input type="number" step="0.0001" class="form-control form-control-sm card-width" placeholder="0">
                     </div>
                     <div class="col-md-1">
-                        <label class="form-label small text-muted mb-0"><?=$languageArray['length_code'][$language]?></label>
+                        <label class="form-label small text-muted mb-0"><?=$languageArray['length_code'][$language]?> (m)</label>
                         <input type="number" step="0.0001" class="form-control form-control-sm card-length" placeholder="0">
                     </div>
                     <div class="col-md-1">
@@ -849,93 +833,6 @@ else{
                 }
             });
         });
-
-        // $('#uploadExcel').on('click', function(){
-        //     $('#previewTable').html('');
-        //     $('#fileInput').val('');
-        //     $('#uploadModal').modal('show');
-
-        //     $('#uploadForm').validate({
-        //         errorElement: 'span',
-        //         errorPlacement: function (error, element) {
-        //             error.addClass('invalid-feedback');
-        //             element.closest('.form-group').append(error);
-        //         },
-        //         highlight: function (element, errorClass, validClass) {
-        //             $(element).addClass('is-invalid');
-        //         },
-        //         unhighlight: function (element, errorClass, validClass) {
-        //             $(element).removeClass('is-invalid');
-        //         }
-        //     });
-        // });
-
-        // $('#uploadModal').find('#previewButton').on('click', function(){
-        //     var fileInput = document.getElementById('fileInput');
-        //     var file = fileInput.files[0];
-        //     var reader = new FileReader();
-            
-        //     reader.onload = function(e) {
-        //         var data = e.target.result;
-        //         displayPreview(data);
-        //     };
-
-        //     reader.readAsBinaryString(file);
-        // });
-
-        // $('#submitUpload').on('click', function(){
-        //     $('#spinnerLoading').show();
-        //     var formData = $('#uploadForm').serializeArray();
-        //     var data = [];
-        //     var rowIndex = -1;
-        //     formData.forEach(function(field) {
-        //         var match = field.name.match(/([a-zA-Z0-9]+)\[(\d+)\]/);
-        //         if (match) {
-        //             var fieldName = match[1];
-        //             var index = parseInt(match[2], 10);
-        //             if (index !== rowIndex) {
-        //                 rowIndex = index;
-        //                 data.push({});
-        //             }
-        //             data[index][fieldName] = field.value;
-        //         }
-        //     });
-
-        //     $.ajax({
-        //         url: 'php/modules/sawnTimber/uploadSawnTimber.php',
-        //         type: 'POST',
-        //         contentType: 'application/json',
-        //         data: JSON.stringify(data),
-        //         success: function(response) {
-        //             var obj = JSON.parse(response);
-        //             if (obj.status === 'success') {
-        //                 $('#spinnerLoading').hide();
-        //                 $('#uploadModal').modal('hide');
-        //                 toastr["success"](obj.message, "Success:");
-        //                 table.ajax.reload(null, false);
-        //             } 
-        //             else if (obj.status === 'failed') {
-        //                 $('#spinnerLoading').hide();
-        //                 toastr["error"](obj.message, "Failed:");
-        //             } 
-        //             else if (obj.status === 'error') {
-        //                 $('#spinnerLoading').hide();
-        //                 $('#uploadModal').modal('hide');
-        //                 table.ajax.reload(null, false);
-        //                 $('#errorModal').find('#errorList').empty();
-        //                 var errorMessage = obj.message;
-        //                 for (var i = 0; i < errorMessage.length; i++) {
-        //                     $('#errorModal').find('#errorList').append(`<li>${errorMessage[i]}</li>`);                            
-        //                 }
-        //                 $('#errorModal').modal('show');
-        //             } 
-        //             else {
-        //                 $('#spinnerLoading').hide();
-        //                 toastr["error"]("Failed to save", "Failed:");
-        //             }
-        //         }
-        //     });
-        // });
     });
 
     function renderTable() {
