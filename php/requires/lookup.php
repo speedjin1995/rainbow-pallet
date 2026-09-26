@@ -19,6 +19,23 @@ function searchPlantById($value, $db) {
     return $result;
 }
 
+function searchPlantsByIds($values, $db) {
+    $result = null;
+    $ids = array_values(array_map('intval', (array) $values));
+
+    if(empty($ids)){
+        $ids = [0];
+    }
+
+    if ($select_stmt = $db->prepare("SELECT * FROM Plant WHERE status = '0' AND id IN (" . implode(',', array_fill(0, count($ids), '?')) . ") ORDER BY name ASC")) {
+        $select_stmt->bind_param(str_repeat('i', count($ids)), ...$ids);
+        $select_stmt->execute();
+        $result = $select_stmt->get_result();
+    }
+
+    return $result;
+}
+
 function searchPlantCodeById($value, $db) {
     $id = '0';
 

@@ -8,7 +8,7 @@ if (!hasModulePermission('Accounting', 'Goods Received', ['view'])){
     exit;
 }
 
-$plantId = $_SESSION['plant'];
+$plantId = $_SESSION['plant_id'];
 $selectedPlantId = $_SESSION['selected_plant_id'] ?? null;
 
 $companyId = $_SESSION['company_id'];
@@ -16,20 +16,30 @@ if (!hasModulePermission('Accounting', 'Goods Received', ['view_all_companies'])
     // Get companies
     $company_ids = implode(',', array_map('intval', $_SESSION['company_ids']));
     $company = $db->query("SELECT * FROM Company WHERE status = 0 AND id IN ($company_ids) ORDER BY name");
+    // Only the selected company's suppliers and raw materials
+    $selectedCompanyId = intval($companyId);
+    $supplier = $db->query("SELECT * FROM Supplier WHERE status = '0' AND company IN ($selectedCompanyId) ORDER BY name ASC");
+    $supplier2 = $db->query("SELECT * FROM Supplier WHERE status = '0' AND company IN ($selectedCompanyId) ORDER BY name ASC");
+    $rawMaterial = $db->query("SELECT p.*, IFNULL(c.is_sales, 'Y') as is_sales, IFNULL(c.is_purchase, 'Y') as is_purchase, IFNULL(c.is_local, 'Y') as is_local, IFNULL(c.is_port, 'Y') as is_port, IFNULL(c.is_misc, 'Y') as is_misc FROM Product p LEFT JOIN Product_Categories c ON p.category = c.id WHERE p.status = '0' AND p.company IN ($selectedCompanyId) ORDER BY p.name ASC");
+    $rawMaterial2 = $db->query("SELECT p.*, IFNULL(c.is_sales, 'Y') as is_sales, IFNULL(c.is_purchase, 'Y') as is_purchase, IFNULL(c.is_local, 'Y') as is_local, IFNULL(c.is_port, 'Y') as is_port, IFNULL(c.is_misc, 'Y') as is_misc FROM Product p LEFT JOIN Product_Categories c ON p.category = c.id WHERE p.status = '0' AND p.company IN ($selectedCompanyId) ORDER BY p.name ASC");
 }else{
     $company = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
+    $supplier = $db->query("SELECT * FROM Supplier WHERE status = '0' ORDER BY name ASC");
+    $supplier2 = $db->query("SELECT * FROM Supplier WHERE status = '0' ORDER BY name ASC");
+    $rawMaterial = $db->query("SELECT p.*, IFNULL(c.is_sales, 'Y') as is_sales, IFNULL(c.is_purchase, 'Y') as is_purchase, IFNULL(c.is_local, 'Y') as is_local, IFNULL(c.is_port, 'Y') as is_port, IFNULL(c.is_misc, 'Y') as is_misc FROM Product p LEFT JOIN Product_Categories c ON p.category = c.id WHERE p.status = '0' ORDER BY p.name ASC");
+    $rawMaterial2 = $db->query("SELECT p.*, IFNULL(c.is_sales, 'Y') as is_sales, IFNULL(c.is_purchase, 'Y') as is_purchase, IFNULL(c.is_local, 'Y') as is_local, IFNULL(c.is_port, 'Y') as is_port, IFNULL(c.is_misc, 'Y') as is_misc FROM Product p LEFT JOIN Product_Categories c ON p.category = c.id WHERE p.status = '0' ORDER BY p.name ASC");
 }
-$vehicles = $db->query("SELECT DISTINCT veh_number FROM Vehicle WHERE status = '0' ORDER BY veh_number ASC");
-$vehicles2 = $db->query("SELECT * FROM Vehicle WHERE status = '0' ORDER BY veh_number ASC");
-$supplier = $db->query("SELECT * FROM Supplier WHERE status = '0' ORDER BY name ASC");
-$supplier2 = $db->query("SELECT * FROM Supplier WHERE status = '0' ORDER BY name ASC");
-$rawMaterial = $db->query("SELECT p.*, IFNULL(c.is_sales, 'Y') as is_sales, IFNULL(c.is_purchase, 'Y') as is_purchase, IFNULL(c.is_local, 'Y') as is_local, IFNULL(c.is_port, 'Y') as is_port, IFNULL(c.is_misc, 'Y') as is_misc FROM Product p LEFT JOIN Product_Categories c ON p.category = c.id WHERE p.status = '0' ORDER BY p.name ASC");
-$rawMaterial2 = $db->query("SELECT p.*, IFNULL(c.is_sales, 'Y') as is_sales, IFNULL(c.is_purchase, 'Y') as is_purchase, IFNULL(c.is_local, 'Y') as is_local, IFNULL(c.is_port, 'Y') as is_port, IFNULL(c.is_misc, 'Y') as is_misc FROM Product p LEFT JOIN Product_Categories c ON p.category = c.id WHERE p.status = '0' ORDER BY p.name ASC");
 
 $plantName = '-';
 $plantCode = '-';
 if (!hasModulePermission('Accounting', 'Goods Received', ['view_all_plants'])){
-    $plant = searchPlantById($selectedPlantId, $db);
+    if (!empty($selectedPlantId)){
+        // Locked to the plant selected at login - backend restricts "-" to this plant only
+        $plant = searchPlantById($selectedPlantId, $db);
+    }else{
+        // No plant selected - list every plant the user is tied to
+        $plant = searchPlantsByIds($plantId ?? [], $db);
+    }
 
     $stmt2 = $db->prepare("SELECT * from Plant WHERE id = ?");
     $stmt2->bind_param('s', $selectedPlantId);
@@ -400,12 +410,13 @@ else{
 
             if (selectedIds.length > 0) {
                 if (confirm('Are you sure you want to post to SQL these items?')) {
-                    $.post('php/modules/goodsReceived/postGr.php', {
+                    $.post('php/modules/goodsReceived/index.php', {
+                        action: 'post',
                         fromDate: fromDateI,
                         toDate: toDateI,
                         company: companyI,
                         supplier: supplierNoI,
-                        rawMat: rawMatI,
+                        rawMaterial: rawMatI,
                         plant: plantI,
                         purchaseOrder: poI,
                         transactionId: transactionIdI,
@@ -434,12 +445,13 @@ else{
             } 
             else {
                 if (confirm('Are you sure you want to post to SQL?')) {
-                    $.post('php/modules/goodsReceived/postGr.php', {
+                    $.post('php/modules/goodsReceived/index.php', {
+                        action: 'post',
                         fromDate: fromDateI,
                         toDate: toDateI,
                         company: companyI,
                         supplier: supplierNoI,
-                        rawMat: rawMatI,
+                        rawMaterial: rawMatI,
                         plant: plantI,
                         purchaseOrder: poI,
                         transactionId: transactionIdI,
@@ -486,11 +498,11 @@ else{
             });
 
             if (selectedIds.length > 0) {
-                window.open("php/modules/goodsReceived/exportExcel.php?&isMulti=Y&fromDate="+fromDateI+"&toDate="+toDateI+"&company="+companyI+"&supplier="+supplierNoI+
+                window.open("php/modules/goodsReceived/index.php?action=export&isMulti=Y&fromDate="+fromDateI+"&toDate="+toDateI+"&company="+companyI+"&supplier="+supplierNoI+
                 "&rawMaterial="+rawMatI+"&plant="+plantI+"&purchaseOrder="+poI+"&transactionId="+transactionIdI+"&id="+selectedIds);
             } 
             else {
-                window.open("php/modules/goodsReceived/exportExcel.php?&isMulti=N&fromDate="+fromDateI+"&toDate="+toDateI+"&company="+companyI+"&supplier="+supplierNoI+"&rawMaterial="+rawMatI+"&plant="+plantI+"&purchaseOrder="+poI+"&transactionId="+transactionIdI);
+                window.open("php/modules/goodsReceived/index.php?action=export&isMulti=N&fromDate="+fromDateI+"&toDate="+toDateI+"&company="+companyI+"&supplier="+supplierNoI+"&rawMaterial="+rawMatI+"&plant="+plantI+"&purchaseOrder="+poI+"&transactionId="+transactionIdI);
             }     
         });
 
@@ -546,8 +558,9 @@ else{
             'searching': false,
             'serverMethod': 'post',
             'ajax': {
-                'url': 'php/modules/goodsReceived/filterGr.php',
+                'url': 'php/modules/goodsReceived/index.php',
                 'data': {
+                    action: 'filter',
                     fromDate: fromDateI,
                     toDate: toDateI,
                     company: companyI,
