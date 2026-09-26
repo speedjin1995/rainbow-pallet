@@ -57,7 +57,13 @@ if (!hasPermission('Weighing', ['view_all_companies'])) {
 $wmPlantName = '-';
 $wmPlantCode = '-';
 if (!hasPermission('Weighing', ['view_all_plants'])){
-    $wmPlant = searchPlantById($wmSelectedPlantId, $db);
+    if (!empty($wmSelectedPlantId)){
+        // Locked to the plant selected at login
+        $wmPlant = searchPlantById($wmSelectedPlantId, $db);
+    }else{
+        // No plant selected - list every plant the user is tied to
+        $wmPlant = searchPlantsByIds($_SESSION['plant_id'] ?? [], $db);
+    }
 
     $wmStmt = $db->prepare("SELECT * from Plant WHERE id = ?");
     $wmStmt->bind_param('s', $wmSelectedPlantId);

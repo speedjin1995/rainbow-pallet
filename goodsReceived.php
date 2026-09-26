@@ -54,6 +54,13 @@ if (!hasModulePermission('Accounting', 'Goods Received', ['view_all_plants'])){
 else{
     $plant = $db->query("SELECT * FROM Plant WHERE status = '0'");
 }
+
+// Weighing modal component - used to edit / print the GR's weighings, which are Purchase
+$canEditWeight = hasModulePermission('Weighing', 'Purchase', ['edit']);
+$canPrintWeight = hasModulePermission('Weighing', 'Purchase', ['print']);
+if ($canEditWeight || $canPrintWeight) {
+    require_once "components/weighingModal/data.php";
+}
 ?>
 
 <head>
@@ -252,6 +259,10 @@ else{
                                     </div> <!-- end .h-100-->
                                 </div> <!-- end col -->
                             </div><!-- container-fluid -->
+
+                            <?php if ($canEditWeight || $canPrintWeight): ?>
+                            <?php include 'components/weighingModal/modal.php'; ?>
+                            <?php endif; ?>
                         </div> <!-- end .h-100-->
                     </div> <!-- end col -->
                 </div>
@@ -299,8 +310,19 @@ else{
     var permissions = <?= json_encode($_SESSION['permissions']) ?>;
     var isSADMIN = <?= json_encode($_SESSION['roles'] == 'SADMIN') ?>;
     var allRawMatSearchOptions = null;
+    var canEditWeight = <?= $canEditWeight ? 'true' : 'false' ?>;
+    var canPrintWeight = <?= $canPrintWeight ? 'true' : 'false' ?>;
 
     $(function () {
+        // Weighing modal: refresh the GR list after a weighing is saved
+        if (window.initWeighingModal) {
+            initWeighingModal({
+                onSaved: function(obj, withPrint){
+                    table.ajax.reload(null, false);
+                }
+            });
+        }
+
         const today = new Date();
         const tomorrow = new Date(today);
         const yesterday = new Date(today);
@@ -627,9 +649,9 @@ else{
                         <th><?=$languageArray['tare_outgoing_code'][$language]?></th>
                         <th><?=$languageArray['outgoing_date_code'][$language]?></th>
                         <th><?=$languageArray['nett_weight_code'][$language]?></th>`;
-                        // if (isSADMIN) {
-                        //     returnString += `<th>Action</th>`;
-                        // }
+                        if (canEditWeight || canPrintWeight) {
+                            returnString += `<th><?=$languageArray['action_code'][$language]?></th>`;
+                        }
 
                         returnString += `</tr>
                 </thead>
@@ -650,14 +672,34 @@ else{
                             <td>${parseFloat(weights[i].tare_weight1)/1000} MT</td>
                             <td>${weights[i].tare_weight1_date}</td>
                             <td>${parseFloat(weights[i].nett_weight1)/1000} MT</td>`
-                            // if (isSADMIN) {
-                            //     returnString += `
-                            //     <td>
-                            //         <button title="Edit" type="button" id="edit${weights[i].id}" onclick="edit(${weights[i].id})" class="btn btn-warning btn-sm">
-                            //             <i class="fas fa-pen"></i>
-                            //         </button>
-                            //     </td>`;
-                            // }
+                            if (canEditWeight || canPrintWeight) {
+                                // stopPropagation: don't let the clicks reach the parent row's expand handler
+                                returnString += `
+                                <td>
+                                    <div class="row g-1 d-flex">`;
+
+                                if (canEditWeight) {
+                                    returnString += `
+                                        <div class="col-auto">
+                                            <button title="<?=$languageArray['edit_code'][$language]?>" type="button" id="editWeight${weights[i].id}" onclick="event.stopPropagation(); editWeight(${weights[i].id}, 'N')" class="btn btn-warning btn-sm">
+                                                <i class="fas fa-pen"></i>
+                                            </button>
+                                        </div>`;
+                                }
+
+                                if (canPrintWeight) {
+                                    returnString += `
+                                        <div class="col-auto">
+                                            <button title="<?=$languageArray['print_code'][$language]?>" type="button" id="printWeight${weights[i].id}" onclick="event.stopPropagation(); printWeight('${weights[i].id}', '${weights[i].transaction_status}')" class="btn btn-info btn-sm">
+                                                <i class="fas fa-print"></i>
+                                            </button>
+                                        </div>`;
+                                }
+
+                                returnString += `
+                                    </div>
+                                </td>`;
+                            }
                         returnString += `</tr>`;
                 }
 
@@ -669,5 +711,10 @@ else{
         return returnString;
     }
     </script>
+
+    <?php if ($canEditWeight || $canPrintWeight): ?>
+    <!-- Weighing modal component (after the page script so its Select2 / date picker setup runs last) -->
+    <?php include 'components/weighingModal/script.php'; ?>
+    <?php endif; ?>
 </body>
 </html>
