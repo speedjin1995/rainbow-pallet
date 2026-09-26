@@ -477,6 +477,18 @@ class WeightService extends BaseService {
         }
     }
 
+    public function reactivateWeight($id) {
+        $stmt = $this->db->prepare("UPDATE Weight SET is_cancel='N' WHERE id=? AND status='0' AND is_cancel='Y'");
+        if (!$stmt) throw new Exception($this->db->error);
+        $stmt->bind_param('s', $id);
+        if (!$stmt->execute()) throw new Exception($stmt->error);
+        if ($stmt->affected_rows !== 1) {
+            $stmt->close();
+            throw new Exception('Cancelled weight record not found');
+        }
+        $stmt->close();
+    }
+
     // ─── Customer Side Info Processing ─────────────────────────────────────────────
     public function saveCustomerSideInfo($id, $doNo, $mc, $firstWeight, $secondWeight) {
         $nettWeight = null;

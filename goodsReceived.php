@@ -147,7 +147,7 @@ else{
                                                             </select>
                                                         </div>
                                                     </div><!--end col-->
-                                                    <div class="col-3">
+                                                    <div class="col-3" id="paymentTermPeriodSearchDisplay" style="display:none">
                                                         <div class="mb-3">
                                                             <label for="paymentTermPeriodSearch" class="form-label"><?=$languageArray['payment_term_period_code'][$language]?></label>
                                                             <input type="number" class="form-control number-spinner" id="paymentTermPeriodSearch" name="paymentTermPeriodSearch" min="0" step="1" placeholder="<?=$languageArray['payment_term_period_code'][$language]?>">
@@ -374,6 +374,7 @@ else{
 
         $('#paymentTermSearch').on('change', function () {
             filterSupplierDropdown();
+            togglePaymentTermPeriodSearch();
         });
 
         // Add event listener for opening and closing details on row click
@@ -525,7 +526,16 @@ else{
 
         filterDropdownByTransactionStatus('#rawMatSearch', 'allRawMatSearchOptions', 'Purchase');
         filterSupplierDropdown();
+        togglePaymentTermPeriodSearch();
     });
+
+    function togglePaymentTermPeriodSearch() {
+        var isTerm = $('#paymentTermSearch').val() === 'Term';
+        $('#paymentTermPeriodSearchDisplay').toggle(isTerm);
+        if (!isTerm) {
+            $('#paymentTermPeriodSearch').val('');
+        }
+    }
 
     function filterSupplierDropdown() {
         if (!allSupplierSearchOptions) {

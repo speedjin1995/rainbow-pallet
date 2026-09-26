@@ -3768,6 +3768,18 @@ else{
                         var buttons = `<div class="row g-1 d-flex">`;
                         var isSynced = row.synced == 'Y';
 
+                        if (row.is_cancel == 'Y') {
+                            if (isSADMIN || (permissions['Weighing'] && permissions['Weighing'][transactionKey] && permissions['Weighing'][transactionKey].includes('cancelled'))) {
+                                buttons += `
+                                <div class="col-auto">
+                                    <button title="Reactivate" type="button" id="reactivate${data}" onclick="reactivate(${data})" class="btn btn-success btn-sm">
+                                        <i class="fas fa-undo"></i>
+                                    </button>
+                                </div>`;
+                            }
+                            return buttons + `</div>`;
+                        }
+
                         if (!isSynced) {
                             if (isSADMIN || (permissions['Weighing'] && permissions['Weighing'][transactionKey] && permissions['Weighing'][transactionKey].includes('edit'))) {
                                 if (row.weight_type == 'Primer Mover + Container'){
@@ -4567,6 +4579,22 @@ else{
                 }
             });
         }
+    }
+
+    function reactivate(id) {
+        if (!confirm('Are you sure you want to reactivate this weighing record?')) {
+            return;
+        }
+
+        $.post('php/modules/weighing/index.php', {action: 'reactivate', id: id}, function(data) {
+            var obj = JSON.parse(data);
+            if (obj.status === 'success') {
+                table.ajax.reload(null, false);
+                toastr.success(obj.message);
+            } else {
+                toastr.error(obj.message);
+            }
+        });
     }
 
     function preparePrePrintModal(id, transactionStatus, isEmptyContainer) {

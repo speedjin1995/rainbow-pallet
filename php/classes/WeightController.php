@@ -88,6 +88,22 @@ class WeightController extends BaseController {
         }
     }
 
+    public function handleReactivate() {
+        $id = $_POST['id'] ?? null;
+        if (!$id) $this->failed('Missing weight record');
+
+        $weight = $this->service->getWeight($id, 'MODAL', 'Weight', null, null, null);
+        if (!$weight || $weight['is_cancel'] !== 'Y') $this->failed('Cancelled weight record not found');
+        if (!hasModulePermission('Weighing', $weight['transaction_status'], 'cancelled')) $this->failed('Unauthorized');
+
+        try {
+            $this->service->reactivateWeight($id);
+            $this->success('Reactivated Successfully!!');
+        } catch (Exception $e) {
+            $this->failed($e->getMessage());
+        }
+    }
+
     // ─── Entry Point ─────────────────────────────────────────────────────────────
     public function handle() {
         try {
