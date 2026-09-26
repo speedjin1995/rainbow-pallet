@@ -22,7 +22,6 @@ class PrintService {
         }
 
         $id = filter_input(INPUT_POST, 'userID', FILTER_SANITIZE_STRING);
-        $this->loadCompanyDetails();
 
         if ($_POST['file'] === 'weight') {
             $this->handleWeightPrint($id);
@@ -31,10 +30,10 @@ class PrintService {
         }
     }
 
-    private function loadCompanyDetails() {
+    // Company printed on the slip - the company the weighing record belongs to
+    private function loadCompanyDetails($companyId) {
         $stmt = $this->db->prepare("SELECT * FROM Company WHERE id=?");
-        $compId = '1';
-        $stmt->bind_param('s', $compId);
+        $stmt->bind_param('s', $companyId);
         $stmt->execute();
         $row = $stmt->get_result()->fetch_assoc();
         $stmt->close();
@@ -126,6 +125,8 @@ class PrintService {
         $stmt->close();
 
         if (!$row) { $this->respond('failed', 'Unable to read data'); }
+
+        $this->loadCompanyDetails($row['company_id']);
 
         $printTemplate = $_POST['printTemplate'] ?? 'with_weight';
         if ($row['transaction_status'] === 'Purchase') {
