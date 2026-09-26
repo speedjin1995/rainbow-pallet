@@ -29,23 +29,14 @@ if (!$canViewAllCompanies) {
 $species = $db->query("SELECT * FROM Sawn_Timber_Species WHERE status = '0' ORDER BY name ASC");
 $species2 = $db->query("SELECT * FROM Sawn_Timber_Species WHERE status = '0' ORDER BY name ASC");
 
-// $plantName = '-';
-// $plantCode = '-';
-if (!hasModulePermission('Sawn Timber', 'Sawn Timber', ['view_all_plants'])){
+$canViewAllPlants = hasModulePermission('Sawn Timber', 'Sawn Timber', ['view_all_plants']);
+if (!$canViewAllPlants){
     $plant = searchPlantById($selectedPlantId, $db);
-
-    // $stmt2 = $db->prepare("SELECT * from Plant WHERE id = ?");
-    // $stmt2->bind_param('s', $selectedPlantId);
-    // $stmt2->execute();
-    // $result2 = $stmt2->get_result();
-        
-    // if(($row2 = $result2->fetch_assoc()) !== null){
-    //     $plantName = $row2['name'];
-    //     $plantCode = $row2['plant_code'];
-    // }
+    $plant2 = searchPlantById($selectedPlantId, $db);
 }
 else{
     $plant = $db->query("SELECT * FROM Plant WHERE status = '0'");
+    $plant2 = $db->query("SELECT * FROM Plant WHERE status = '0'");
 }
 
 // Nudge if the active company has no Product Category flagged for Sawn Timber
@@ -235,6 +226,29 @@ if ($activeCompanyId) {
                                                                             <?=$languageArray['please_fill_in_the_field_code'][$language] ?? 'Please fill in the field'?>
                                                                         </div>
                                                                     </div>
+                                                                    <div class="col-md-3" style="<?= !$canViewAllCompanies ? 'display:none' : '' ?>">
+                                                                        <label class="form-label small mb-1"><?=$languageArray['company_code'][$language]?> <span class="text-danger">*</span></label>
+                                                                        <select class="form-control select2" id="companyId" name="companyId" required>
+                                                                            <?php while($rowCompanyM=mysqli_fetch_assoc($company2)){ ?>
+                                                                                <option value="<?=$rowCompanyM['id'] ?>" <?=($canViewAllCompanies ? $rowCompanyM['id'] == 1 : $rowCompanyM['id'] == $companyId) ? 'selected' : ''?>><?=$rowCompanyM['name'] ?></option>
+                                                                            <?php } ?>
+                                                                        </select>
+                                                                        <div class="invalid-feedback">
+                                                                            <?=$languageArray['please_fill_in_the_field_code'][$language] ?? 'Please fill in the field'?>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-md-3" style="<?= !$canViewAllPlants ? 'display:none' : '' ?>">
+                                                                        <label class="form-label small mb-1"><?=$languageArray['plant_code'][$language]?> <span class="text-danger">*</span></label>
+                                                                        <select class="form-control select2" id="plantId" name="plantId" required>
+                                                                            <option value="">-</option>
+                                                                            <?php while($rowPlantM=mysqli_fetch_assoc($plant2)){ ?>
+                                                                                <option value="<?=$rowPlantM['id'] ?>" <?= ($rowPlantM['id'] == $selectedPlantId) ? 'selected' : '' ?>><?=$rowPlantM['plant_code'] ?> - <?=$rowPlantM['name'] ?></option>
+                                                                            <?php } ?>
+                                                                        </select>
+                                                                        <div class="invalid-feedback">
+                                                                            <?=$languageArray['please_fill_in_the_field_code'][$language] ?? 'Please fill in the field'?>
+                                                                        </div>
+                                                                    </div>
                                                                     <div class="col-md-3">
                                                                         <label class="form-label small mb-1"><?=$languageArray['transaction_id_code'][$language]?> <span class="text-danger">*</span></label>
                                                                         <select class="form-control select2" id="weightId" name="weightId" required>
@@ -268,14 +282,6 @@ if ($activeCompanyId) {
                                                                         <label class="form-label small mb-1"><?=$languageArray['vehicle_no_code'][$language]?></label>
                                                                         <input type="text" class="form-control readonly-field" id="lorryNo" name="lorryNo" readonly>
                                                                     </div>
-                                                                    <div class="col-md-3">
-                                                                        <label class="form-label small mb-1"><?=$languageArray['company_code'][$language]?></label>
-                                                                        <input type="text" class="form-control readonly-field" id="companyDisplay" readonly>
-                                                                    </div>
-                                                                    <div class="col-md-3">
-                                                                        <label class="form-label small mb-1"><?=$languageArray['plant_code'][$language]?></label>
-                                                                        <input type="text" class="form-control readonly-field" id="plantDisplay" readonly>
-                                                                    </div>
                                                                     <div class="col-md-12">
                                                                         <label class="form-label small mb-1"><?=$languageArray['remarks_code'][$language]?></label>
                                                                         <textarea class="form-control" id="remarks" name="remarks" rows="3" placeholder="<?=$languageArray['enter_remarks_message_code'][$language]?>"></textarea>
@@ -283,8 +289,6 @@ if ($activeCompanyId) {
                                                                 </div>
                                                                 <input type="hidden" id="id" name="id">
                                                                 <input type="hidden" id="transactionId" name="transactionId">
-                                                                <input type="hidden" id="companyId" name="companyId">
-                                                                <input type="hidden" id="plantId" name="plantId">
                                                             </div>
                                                         </div>
                                                         
@@ -739,10 +743,7 @@ if ($activeCompanyId) {
             $('#sawnTimberForm')[0].reset();
             $('#sawnTimberForm').removeClass('was-validated');
             $('#sawnTimberForm .is-invalid').removeClass('is-invalid');
-            $('#companyDisplay').val('');
-            $('#plantDisplay').val('');
-            $('#companyId').val('');
-            $('#plantId').val('');
+            $('#companyId, #plantId').trigger('change.select2');
             $('#weightId').val('').trigger('change');
             $('#transactionStatus').val('');
             $('#transactionDate').val('');
@@ -777,6 +778,11 @@ if ($activeCompanyId) {
             });
         });
 
+        // Reload transaction list when company or plant changes
+        $('#companyId, #plantId').on('change', function() {
+            loadSawnTimberWeighing();
+        });
+
         // Handle weight dropdown change
         $('#weightId').on('change', function() {
             var selectedOption = $(this).find('option:selected');
@@ -789,10 +795,6 @@ if ($activeCompanyId) {
                 $('#deliveredTo').val(selectedOption.data('destination') || '');
                 $('#lorryNo').val(selectedOption.data('lorry-no') || '');
                 $('#doNo').val(selectedOption.data('do-no') || '');
-                $('#companyDisplay').val(selectedOption.data('company-name') || '');
-                $('#plantDisplay').val(selectedOption.data('plant-display') || '');
-                $('#companyId').val(selectedOption.data('company-id') || '');
-                $('#plantId').val(selectedOption.data('plant-id') || '');
                 var transDate = selectedOption.data('transaction-date');
                 if (transDate) {
                     var d = new Date(transDate);
@@ -807,10 +809,6 @@ if ($activeCompanyId) {
                 $('#deliveredTo').val('');
                 $('#lorryNo').val('');
                 $('#doNo').val('');
-                $('#companyDisplay').val('');
-                $('#plantDisplay').val('');
-                $('#companyId').val('');
-                $('#plantId').val('');
             }
         });
 
@@ -1132,7 +1130,10 @@ if ($activeCompanyId) {
     }
 
     function loadSawnTimberWeighing() {
-        $.get('php/modules/sawnTimber/index.php?action=getWeighing', function(data) {
+        $.post('php/modules/sawnTimber/index.php?action=getWeighing', {
+            company: $('#companyId').val() || '',
+            plant: $('#plantId').val() || ''
+        }, function(data) {
             var obj = JSON.parse(data);
             if (obj.status === 'success') {
                 var options = '<option value="">-</option>';
@@ -1152,7 +1153,9 @@ if ($activeCompanyId) {
                         ' data-plant-display="' + (item.plant_display || '') + '"' +
                         '>' + item.transaction_id + '</option>';
                 });
-                $('#weightId').html(options);
+                $('#weightId').html(options).trigger('change');
+            } else {
+                toastr.error(obj.message);
             }
         });
     }
@@ -1180,10 +1183,8 @@ if ($activeCompanyId) {
         detailRowCount = 0;
 
         $('#id').val(record.id || '');
-        $('#companyDisplay').val(record.company_name || '');
-        $('#plantDisplay').val(record.plant_display || '');
-        $('#companyId').val(record.company_id || '');
-        $('#plantId').val(record.plant_id || '');
+        $('#companyId').val(record.company_id || '').trigger('change.select2');
+        $('#plantId').val(record.plant_id || '').trigger('change.select2');
         $('#transactionId').val(record.transaction_id || '');
         $('#transactionStatus').val(record.transaction_status || '');
         $('#transactionDate').val(record.transaction_date ? record.transaction_date.split(' ')[0].split('-').reverse().join('-') : '');

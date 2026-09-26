@@ -165,8 +165,42 @@ class SawnTimberService extends BaseService {
     }
 
     // ─── Get Weighing Transactions ───────────────────────────────────────────────
-    public function getWeighingTransactions() {
-        $sql = "SELECT w.id, w.transaction_id, w.transaction_status, 
+    public function getWeighingTransactions($companyId = null, $plantId = null) {
+        $where = '';
+        $types = '';
+        $params = [];
+
+        // Never trust frontend company for restricted users
+        if (!hasModulePermission('Sawn Timber', 'Sawn Timber', ['view_all_companies'])) {
+            $companyId = $_SESSION['company_id'] ?? 0;
+        }
+        if (intval($companyId) > 0) {
+            $where .= " AND w.company_id = ?";
+            $types .= 'i';
+            $params[] = intval($companyId);
+        }
+
+        // Restricted users: locked to the login-selected plant, otherwise to their tied plants
+        if (!hasModulePermission('Sawn Timber', 'Sawn Timber', ['view_all_plants'])) {
+            if (!empty($_SESSION['selected_plant_id'])) {
+                $plantId = $_SESSION['selected_plant_id'];
+            } else {
+                $tiedPlants = (array) ($_SESSION['plant'] ?? []);
+                if (empty($tiedPlants)) {
+                    return [];
+                }
+                $where .= " AND w.plant_code IN (" . implode(',', array_fill(0, count($tiedPlants), '?')) . ")";
+                $types .= str_repeat('s', count($tiedPlants));
+                $params = array_merge($params, array_values($tiedPlants));
+            }
+        }
+        if (intval($plantId) > 0) {
+            $where .= " AND pl.id = ?";
+            $types .= 'i';
+            $params[] = intval($plantId);
+        }
+
+        $sql = "SELECT w.id, w.transaction_id, w.transaction_status,
             w.customer_code, w.customer_name, w.supplier_code, w.supplier_name,
             w.destination, w.lorry_plate_no1, w.delivery_no, w.transaction_date,
             w.company_id, c.name AS company_name, w.plant_code, w.plant_name, pl.id AS plant_id
@@ -182,10 +216,16 @@ class SawnTimberService extends BaseService {
             AND NOT EXISTS (
                 SELECT 1 FROM Sawn_Timber_Header sth 
                 WHERE sth.weight_id = w.id AND sth.status = '0'
-            )
+            )" . $where . "
             ORDER BY w.transaction_date DESC";
 
-        $result = $this->db->query($sql);
+        $stmt = $this->db->prepare($sql);
+        if (!$stmt) throw new Exception('Failed to load weighing transactions');
+        if ($types !== '') {
+            $stmt->bind_param($types, ...$params);
+        }
+        if (!$stmt->execute()) throw new Exception('Failed to load weighing transactions');
+        $result = $stmt->get_result();
         $data = [];
 
         while ($row = $result->fetch_assoc()) {
@@ -207,6 +247,7 @@ class SawnTimberService extends BaseService {
                 'plant_display' => $row['plant_code'] . ' - ' . $row['plant_name']
             ];
         }
+        $stmt->close();
 
         return $data;
     }
