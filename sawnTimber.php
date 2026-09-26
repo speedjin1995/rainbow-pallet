@@ -10,11 +10,22 @@ if (!hasModulePermission('Sawn Timber', 'Sawn Timber', ['view'])){
 
 $plantId = $_SESSION['plant'];
 $selectedPlantId = $_SESSION['selected_plant_id'] ?? null;
+$companyId = $_SESSION['company_id'];
+$selectedCompanyId = intval($companyId);
+$canViewAllCompanies = hasModulePermission('Sawn Timber', 'Sawn Timber', ['view_all_companies']);
 
-$company = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
-$company2 = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
-$supplier = $db->query("SELECT * FROM Supplier WHERE status = '0' ORDER BY name ASC");
-$supplier2 = $db->query("SELECT * FROM Supplier WHERE status = '0' ORDER BY name ASC");
+if (!$canViewAllCompanies) {
+    $company_ids = implode(',', array_map('intval', $_SESSION['company_ids']));
+    $company  = $db->query("SELECT * FROM Company WHERE status = 0 AND id IN ($selectedCompanyId) ORDER BY name");
+    $company2 = $db->query("SELECT * FROM Company WHERE status = 0 AND id IN ($selectedCompanyId) ORDER BY name");
+    $supplier  = $db->query("SELECT * FROM Supplier WHERE status = '0' AND company=$selectedCompanyId ORDER BY name ASC");
+    $supplier2 = $db->query("SELECT * FROM Supplier WHERE status = '0' AND company=$selectedCompanyId ORDER BY name ASC");
+} else {
+    $company  = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
+    $company2 = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
+    $supplier  = $db->query("SELECT * FROM Supplier WHERE status = '0' ORDER BY name ASC");
+    $supplier2 = $db->query("SELECT * FROM Supplier WHERE status = '0' ORDER BY name ASC");
+}
 $species = $db->query("SELECT * FROM Sawn_Timber_Species WHERE status = '0' ORDER BY name ASC");
 $species2 = $db->query("SELECT * FROM Sawn_Timber_Species WHERE status = '0' ORDER BY name ASC");
 
@@ -160,14 +171,14 @@ if ($activeCompanyId) {
                                                             <input id="transactionIdSearch" name="transactionIdSearch" class="form-control">
                                                         </div>
                                                     </div><!--end col-->
-                                                    <div class="col-3">
+                                                    <div class="col-3" style="<?= !$canViewAllCompanies ? 'display:none' : '' ?>">
                                                         <div class="mb-3">
                                                             <label for="companySearch" class="form-label"><?=$languageArray['company_code'][$language]?></label>
                                                             <select class="form-select select2" id="companySearch" name="companySearch" required>
                                                                 <?php while($rowCompany=mysqli_fetch_assoc($company)){ ?>
-                                                                    <option value="<?=$rowCompany['id'] ?>" <?=$rowCompany['id'] == 1 ? 'selected' : ''?>><?=$rowCompany['name'] ?></option>
+                                                                    <option value="<?=$rowCompany['id'] ?>" <?=($canViewAllCompanies ? $rowCompany['id'] == 1 : $rowCompany['id'] == $companyId) ? 'selected' : ''?>><?=$rowCompany['name'] ?></option>
                                                                 <?php } ?>
-                                                            </select>           
+                                                            </select>
                                                         </div>
                                                     </div><!--end col-->
                                                     <div class="col-3">

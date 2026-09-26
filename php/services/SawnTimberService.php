@@ -28,8 +28,14 @@ class SawnTimberService extends BaseService {
             $dateTime = DateTime::createFromFormat('d-m-Y', $params['toDate']);
             $searchQuery .= " AND h.record_date <= '" . $dateTime->format('Y-m-d 23:59:59') . "'";
         }
-        if (!empty($params['company']) && $params['company'] != '-') {
-            $searchQuery .= " AND h.company_id = '" . mysqli_real_escape_string($this->db, $params['company']) . "'";
+        // Company filter — never trust frontend value for restricted users
+        if (hasModulePermission('Sawn Timber', 'Sawn Timber', ['view_all_companies'])) {
+            $companyFilter = (!empty($params['company']) && $params['company'] != '-') ? intval($params['company']) : 0;
+        } else {
+            $companyFilter = intval($_SESSION['company_id'] ?? 0);
+        }
+        if ($companyFilter > 0) {
+            $searchQuery .= " AND h.company_id = {$companyFilter}";
         }
         if (!empty($params['plant']) && $params['plant'] != '-') {
             $searchQuery .= " AND h.plant_id = '" . mysqli_real_escape_string($this->db, $params['plant']) . "'";
@@ -208,7 +214,9 @@ class SawnTimberService extends BaseService {
     // ─── Save (Create/Update) ────────────────────────────────────────────────────
     public function save($data) {
         $id = $data['id'] ?? null;
-        $companyId = $data['companyId'] ?? null;
+        $companyId = hasModulePermission('Sawn Timber', 'Sawn Timber', ['view_all_companies'])
+            ? ($data['companyId'] ?? null)
+            : ($_SESSION['company_id'] ?? null);
         $plantId = $data['plantId'] ?? null;
         $weightId = $data['weightId'] ?? null;
         $transactionId = $data['transactionId'] ?? null;
