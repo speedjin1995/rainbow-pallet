@@ -4,6 +4,8 @@ require_once __DIR__ . '/../services/VehicleService.php';
 require_once __DIR__ . '/../services/ItemService.php';
 require_once __DIR__ . '/../services/CustomerService.php';
 require_once __DIR__ . '/../services/SupplierService.php';
+require_once __DIR__ . '/../services/DestinationService.php';
+require_once __DIR__ . '/../services/ProjectService.php';
 require_once __DIR__ . '/../requires/lookup.php';
 
 class WeightService extends BaseService {
@@ -12,6 +14,8 @@ class WeightService extends BaseService {
     private $itemService;
     private $customerService;
     private $supplierService;
+    private $destinationService;
+    private $projectService;
 
     public function __construct($db, $username) {
         parent::__construct($db, $username);
@@ -19,6 +23,23 @@ class WeightService extends BaseService {
         $this->itemService = new ItemService($db, $username);
         $this->customerService = new CustomerService($db, $username);
         $this->supplierService = new SupplierService($db, $username);
+        $this->destinationService = new DestinationService($db, $username);
+        $this->projectService = new ProjectService($db, $username);
+    }
+
+    /**
+     * All company-scoped dropdown lists for the weighing page (modal + search bar), in a single call.
+     * Products are used for both the product and raw material dropdowns; vehicles for vehicle 1 and 2.
+     */
+    public function getCompanyLists($companyId) {
+        return [
+            'customers'    => $this->customerService->getListByCompany($companyId),
+            'suppliers'    => $this->supplierService->getListByCompany($companyId),
+            'products'     => $this->itemService->getListByCompany($companyId),
+            'destinations' => $this->destinationService->getListByCompany($companyId),
+            'projects'     => $this->projectService->getListByCompany($companyId),
+            'vehicles'     => $this->vehicleService->getListByCompany($companyId),
+        ];
     }
     
     public function saveNormal($f) {

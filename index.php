@@ -1171,28 +1171,17 @@ require_once "components/weighingModal/data.php";
         ?>
     });
 
-    // Rebuild a dropdown from a master data 'list' endpoint; always resolves so callers can chain on it
-    function loadCompanyOptions(url, companyId, selector, buildOption) {
-        return $.post(url, { action: 'list', company: companyId }).then(function(data) {
-            var $sel = $(selector);
-            $sel.empty().append('<option selected>-</option>');
-            try {
-                var obj = JSON.parse(data);
-                if (obj.status === 'success') {
-                    $.each(obj.data, function(i, item) {
-                        $sel.append(buildOption(item));
-                    });
-                }
-            } catch (e) {
-                console.error('Failed to load ' + selector, e);
-            }
-            $sel.val('-').trigger('change');
-        }, function() {
-            return $.Deferred().resolve();
+    // Rebuild a dropdown: "-" placeholder followed by one option per item
+    function fillOptions(selector, items, buildOption) {
+        var $sel = $(selector);
+        $sel.empty().append('<option selected>-</option>');
+        $.each(items || [], function(i, item) {
+            $sel.append(buildOption(item));
         });
+        $sel.val('-').trigger('change');
     }
 
-    // Reload the search bar listings for the selected company
+    // Reload the search bar listings for the selected company (one request returns all the lists)
     function loadSearchListsByCompany(companyId) {
         if (!companyId || companyId === '-') {
             return;
@@ -1200,20 +1189,30 @@ require_once "components/weighingModal/data.php";
         var productFiltered = allProductSearchOptions !== null;
         var rawMatFiltered = allRawMatSearchOptions !== null;
 
-        loadCompanyOptions('php/modules/customer/index.php', companyId, '#customerNoSearch', function(item) {
-            return $('<option>').val(item.customer_code).text(item.name);
-        });
-        loadCompanyOptions('php/modules/supplier/index.php', companyId, '#supplierSearch', function(item) {
-            return $('<option>').val(item.supplier_code).text(item.name);
-        });
-        $.when(
-            loadCompanyOptions('php/modules/item/index.php', companyId, '#productSearch', function(item) {
+        $.post('php/modules/weighing/index.php', { action: 'companyLists', company: companyId }, function(data) {
+            var lists = {};
+            try {
+                var obj = JSON.parse(data);
+                if (obj.status === 'success') {
+                    lists = obj.data;
+                }
+            } catch (e) {
+                console.error('Failed to load search lists', e);
+            }
+
+            fillOptions('#customerNoSearch', lists.customers, function(item) {
+                return $('<option>').val(item.customer_code).text(item.name);
+            });
+            fillOptions('#supplierSearch', lists.suppliers, function(item) {
+                return $('<option>').val(item.supplier_code).text(item.name);
+            });
+            fillOptions('#productSearch', lists.products, function(item) {
                 return productOption(item, item.product_code, item.name);
-            }),
-            loadCompanyOptions('php/modules/item/index.php', companyId, '#rawMatSearch', function(item) {
+            });
+            fillOptions('#rawMatSearch', lists.products, function(item) {
                 return productOption(item, item.product_code, item.name);
-            })
-        ).then(function() {
+            });
+
             allProductSearchOptions = null;
             allRawMatSearchOptions = null;
             var status = $('#statusSearch').val();

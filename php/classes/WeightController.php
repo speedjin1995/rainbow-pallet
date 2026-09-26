@@ -54,6 +54,20 @@ class WeightController extends BaseController {
         echo json_encode(['status' => 'success', 'message' => $this->service->getContainers($id)]);
     }
 
+    // ─── Company dropdown lists (weighing modal + search bar) ─────────────────────
+    public function handleCompanyLists() {
+        $companyId = intval($this->getPost('company'));
+        if ($companyId <= 0) $this->failed('Invalid company');
+
+        try {
+            $data = $this->service->getCompanyLists($companyId);
+        } catch (Exception $e) {
+            error_log('Weighing company lists: ' . $e->getMessage());
+            $this->failed('Something went wrong');
+        }
+        echo json_encode(['status' => 'success', 'data' => $data]);
+    }
+
     public function handleCustomerSideInfo() {
         $id = $_POST['id'] ?? null;
         if (!$id) $this->failed('Missing weight record');

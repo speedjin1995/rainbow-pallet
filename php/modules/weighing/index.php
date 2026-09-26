@@ -19,6 +19,7 @@ switch ($action) {
     case 'getWeight':           $controller->handleGetWeight(); break;
     case 'getEmptyContainer':   $controller->handleGetEmptyContainer(); break;
     case 'getContainers':       $controller->handleGetContainers(); break;
+    case 'companyLists':        $controller->handleCompanyLists(); break;
     case 'customerSideInfo':   $controller->handleCustomerSideInfo(); break;
     case 'delete':              $controller->handleDelete(); break;
     default:
