@@ -618,8 +618,6 @@ require_once "components/weighingModal/data.php";
     <script src="plugins/datatables-buttons/js/buttons.print.min.js"></script>
     <script src="plugins/datatables-buttons/js/buttons.html5.min.js"></script>
     <script src="assets/js/pages/datatables.init.js"></script>
-    <!-- Additional js -->
-    <script src="assets/js/additional.js"></script>
     <!-- Weighing modal component -->
     <?php include 'components/weighingModal/script.php'; ?>
     <!-- Customer side info modal component -->
@@ -1506,11 +1504,11 @@ require_once "components/weighingModal/data.php";
         <div class="row">
             <div class="col-6">
                 <p><span><strong style="font-size:120%; text-decoration: underline;">Customer/Supplier</strong></span><br>
-                <p><strong>${row.name}</strong></p>
-                <p>${row.address_line_1}</p>
-                <p>${row.address_line_2}</p>
-                <p>${row.address_line_3}</p>
-                <p>TEL: ${row.phone_no} FAX: ${row.fax_no}</p>
+                <p><strong>${displayValue(row.name)}</strong></p>
+                <p>${displayValue(row.address_line_1)}</p>
+                <p>${displayValue(row.address_line_2)}</p>
+                <p>${displayValue(row.address_line_3)}</p>
+                <p>TEL: ${displayValue(row.phone_no)} FAX: ${displayValue(row.fax_no)}</p>
             </div>
         </div>
         <hr>
@@ -1518,29 +1516,29 @@ require_once "components/weighingModal/data.php";
         <div class="row">
             <p><span><strong style="font-size:120%; text-decoration: underline;">Delivery Order Information</strong></span><br>
             <div class="col-6">
-                <p><strong>COMPANY:</strong> ${row.company_name}</p>
-                <p><strong>TRANSPORTER NAME:</strong> ${row.transporter}</p>
-                <p><strong>DESTINATION NAME:</strong> ${row.destination}</p>
-                <p><strong>PLANT NAME:</strong> ${row.plant_name}</p>`;
+                <p><strong>COMPANY:</strong> ${displayValue(row.company_name)}</p>
+                <p><strong>TRANSPORTER NAME:</strong> ${displayValue(row.transporter)}</p>
+                <p><strong>DESTINATION NAME:</strong> ${displayValue(row.destination)}</p>
+                <p><strong>PLANT NAME:</strong> ${displayValue(row.plant_name)}</p>`;
                 if (row.transaction_status == 'Purchase' || row.transaction_status == 'Local'){
-                    returnString += `<p><strong>PURCHASE PRODUCT:</strong> ${row.product_rawmat_name}</p>`;
+                    returnString += `<p><strong>PURCHASE PRODUCT:</strong> ${displayValue(row.product_rawmat_name)}</p>`;
                 }else{
-                    returnString += `<p><strong>SALES PRODUCT:</strong> ${row.product_rawmat_name}</p>`;
+                    returnString += `<p><strong>SALES PRODUCT:</strong> ${displayValue(row.product_rawmat_name)}</p>`;
                 }
         
             returnString += `
-                <p><strong>PURCHASE ORDER:</strong> ${row.purchase_order}</p>
-                <p><strong>CONTAINER NO:</strong> ${row.container_no}</p>
-                <p><strong>CONTAINER NO 2:</strong> ${row.container_no2}</p>
+                <p><strong>PURCHASE ORDER:</strong> ${displayValue(row.purchase_order)}</p>
+                <p><strong>CONTAINER NO:</strong> ${displayValue(row.container_no)}</p>
+                <p><strong>CONTAINER NO 2:</strong> ${displayValue(row.container_no2)}</p>
             </div>
             <div class="col-6">
-                <p><strong>TRANSACTION ID:</strong> ${row.transaction_id}</p>
-                <p><strong>PROJECT:</strong> ${row.project_code}</p>
+                <p><strong>TRANSACTION ID:</strong> ${displayValue(row.transaction_id)}</p>
+                <p><strong>PROJECT:</strong> ${displayValue(row.project_code)}</p>
                 <p><strong>WEIGHT STATUS:</strong> ${transactionStatus}</p>
                 <p><strong>WEIGHT TYPE:</strong> ${weightType}</p>
-                <p><strong>DELIVERY NO:</strong> ${row.delivery_no}</p>
-                <p><strong>SEAL NO:</strong> ${row.seal_no}</p>
-                <p><strong>SEAL NO 2:</strong> ${row.seal_no2}</p>
+                <p><strong>DELIVERY NO:</strong> ${displayValue(row.delivery_no)}</p>
+                <p><strong>SEAL NO:</strong> ${displayValue(row.seal_no)}</p>
+                <p><strong>SEAL NO 2:</strong> ${displayValue(row.seal_no2)}</p>
             </div>
         </div>
         <hr>
@@ -1569,26 +1567,26 @@ require_once "components/weighingModal/data.php";
             <p><span><strong style="font-size:120%; text-decoration: underline;">Weighing Information</strong></span><br>
             <!-- Normal -->
             <div class="col-6">
-                <p><strong>VEHICLE PLATE:</strong> ${row.lorry_plate_no1}</p>
-                <p><strong>IN WEIGHT:</strong> ${row.gross_weight1}</p>
-                <p><strong>IN DATE / TIME:</strong> ${row.gross_weight1_date}</p>
-                <p><strong>IN WEIGH BY:</strong> ${row.gross_weight_by1}</p>
-                <p><strong>OUT WEIGHT:</strong> ${row.tare_weight1}</p>
-                <p><strong>OUT DATE / TIME:</strong> ${row.tare_weight1_date}</p>
-                <p><strong>OUT WEIGH BY:</strong> ${row.tare_weight_by1}</p>
-                <p><strong>NETT WEIGHT:</strong> ${row.nett_weight1}</p>
-                <p><strong>SUB TOTAL WEIGHT:</strong> ${row.final_weight}</p>
+                <p><strong>VEHICLE PLATE:</strong> ${displayValue(row.lorry_plate_no1)}</p>
+                <p><strong>IN WEIGHT:</strong> ${displayValue(row.gross_weight1)}</p>
+                <p><strong>IN DATE / TIME:</strong> ${displayValue(row.gross_weight1_date)}</p>
+                <p><strong>IN WEIGH BY:</strong> ${displayValue(row.gross_weight_by1)}</p>
+                <p><strong>OUT WEIGHT:</strong> ${displayValue(row.tare_weight1)}</p>
+                <p><strong>OUT DATE / TIME:</strong> ${displayValue(row.tare_weight1_date)}</p>
+                <p><strong>OUT WEIGH BY:</strong> ${displayValue(row.tare_weight_by1)}</p>
+                <p><strong>NETT WEIGHT:</strong> ${displayValue(row.nett_weight1)}</p>
+                <p><strong>SUB TOTAL WEIGHT:</strong> ${displayValue(row.final_weight)}</p>
             </div>
             <!-- Container -->
             <div class="col-6">
-                <p><strong>VEHICLE PLATE 2:</strong> ${row.lorry_plate_no2}</p>
-                <p><strong>IN WEIGHT 2:</strong> ${row.gross_weight2}</p>
-                <p><strong>IN DATE / TIME 2:</strong> ${row.gross_weight2_date}</p>
-                <p><strong>IN WEIGH BY 2:</strong> ${row.gross_weight_by2}</p>
-                <p><strong>OUT WEIGHT 2:</strong> ${row.tare_weight2}</p>
-                <p><strong>OUT DATE / TIME 2:</strong> ${row.tare_weight2_date}</p>
-                <p><strong>OUT WEIGH BY 2:</strong> ${row.tare_weight_by2}</p>
-                <p><strong>NETT WEIGHT 2:</strong> ${row.nett_weight2}</p>            
+                <p><strong>VEHICLE PLATE 2:</strong> ${displayValue(row.lorry_plate_no2)}</p>
+                <p><strong>IN WEIGHT 2:</strong> ${displayValue(row.gross_weight2)}</p>
+                <p><strong>IN DATE / TIME 2:</strong> ${displayValue(row.gross_weight2_date)}</p>
+                <p><strong>IN WEIGH BY 2:</strong> ${displayValue(row.gross_weight_by2)}</p>
+                <p><strong>OUT WEIGHT 2:</strong> ${displayValue(row.tare_weight2)}</p>
+                <p><strong>OUT DATE / TIME 2:</strong> ${displayValue(row.tare_weight2_date)}</p>
+                <p><strong>OUT WEIGH BY 2:</strong> ${displayValue(row.tare_weight_by2)}</p>
+                <p><strong>NETT WEIGHT 2:</strong> ${displayValue(row.nett_weight2)}</p>            
                 </div>
         </div>
         <hr>

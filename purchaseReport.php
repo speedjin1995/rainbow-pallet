@@ -498,8 +498,6 @@ if (!hasModulePermission('Reports', 'Purchase', ['view_all_plants'])) {
     <script src="plugins/datatables-buttons/js/buttons.print.min.js"></script>
     <script src="plugins/datatables-buttons/js/buttons.html5.min.js"></script>
     <script src="assets/js/pages/datatables.init.js"></script>
-    <!-- Additional js -->
-    <script src="assets/js/additional.js"></script>
 
     <script type="text/javascript">
     

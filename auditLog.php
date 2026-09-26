@@ -679,39 +679,39 @@ function format (row) {
     <!-- Weighing Section -->
     <div class="row">
         <div class="col-3">
-            <p><strong>TRANSACTION ID:</strong> ${row.transaction_id}</p>
-            <p><strong>CUSTOMER TYPE:</strong> ${row.weight_type}</p>
-            <p><strong>WEIGHT STATUS:</strong> ${row.transaction_status}</p>
-            <p><strong>TRANSACTION DATE:</strong> ${row.transaction_date}</p>
-            <p><strong>INVOICE NO:</strong> ${row.invoice_no}</p>
-            <p><strong>MANUAL WEIGHT:</strong> ${row.manual_weight}</p>
-            <p><strong>DELIVERY NO:</strong> ${row.delivery_no}</p>
-            <p><strong>SO/PO NO:</strong> ${row.purchase_order}</p>
+            <p><strong>TRANSACTION ID:</strong> ${displayValue(row.transaction_id)}</p>
+            <p><strong>CUSTOMER TYPE:</strong> ${displayValue(row.weight_type)}</p>
+            <p><strong>WEIGHT STATUS:</strong> ${displayValue(row.transaction_status)}</p>
+            <p><strong>TRANSACTION DATE:</strong> ${displayValue(row.transaction_date)}</p>
+            <p><strong>INVOICE NO:</strong> ${displayValue(row.invoice_no)}</p>
+            <p><strong>MANUAL WEIGHT:</strong> ${displayValue(row.manual_weight)}</p>
+            <p><strong>DELIVERY NO:</strong> ${displayValue(row.delivery_no)}</p>
+            <p><strong>SO/PO NO:</strong> ${displayValue(row.purchase_order)}</p>
         </div>
         <div class="col-3">
-            <p><strong>CONTAINER NO:</strong> ${row.container_no}</p>
+            <p><strong>CONTAINER NO:</strong> ${displayValue(row.container_no)}</p>
             <p><strong>CUSTOMER/SUPPLIER:</strong> ${custSupplier}</p>
             <p><strong>PRODUCT/RAW MATERIAL:</strong> ${productRawMat}</p>
-            <p><strong>TRANSPORTER:</strong> ${row.transporter_code} - ${row.transporter}</p>
-            <p><strong>DESTINATION:</strong> ${row.destination_code} - ${row.destination}</p>
-            <p><strong>PLANT:</strong> ${row.plant_code} - ${row.plant_name}</p>
+            <p><strong>TRANSPORTER:</strong> ${displayPair(row.transporter_code, row.transporter)}</p>
+            <p><strong>DESTINATION:</strong> ${displayPair(row.destination_code, row.destination)}</p>
+            <p><strong>PLANT:</strong> ${displayPair(row.plant_code, row.plant_name)}</p>
         </div>
         <div class="col-3">
             <p><strong>ORDER/SUPPLIER WEIGHT:</strong> ${orderSuppWeight}</p>
-            <p><strong>WEIGHT DIFFERENCE:</strong> ${row.reduce_weight}</p>
-            <p><strong>UNIT PRICE:</strong> ${row.unit_price}</p>
-            <p><strong>SUB-TOTAL PRICE:</strong> ${row.sub_total}</p>
-            <p><strong>SST (6%):</strong> ${row.sst}</p>
-            <p><strong>TOTAL PRICE:</strong> ${row.total_price}</p>
+            <p><strong>WEIGHT DIFFERENCE:</strong> ${displayValue(row.reduce_weight)}</p>
+            <p><strong>UNIT PRICE:</strong> ${displayValue(row.unit_price)}</p>
+            <p><strong>SUB-TOTAL PRICE:</strong> ${displayValue(row.sub_total)}</p>
+            <p><strong>SST (6%):</strong> ${displayValue(row.sst)}</p>
+            <p><strong>TOTAL PRICE:</strong> ${displayValue(row.total_price)}</p>
         </div>
         <div class="col-3">
-            <p><strong>VEHICLE PLATE:</strong> ${row.lorry_plate_no1}</p>
-            <p><strong>IN WEIGHT:</strong> ${row.gross_weight1} KG</p>
-            <p><strong>IN DATE/TIME:</strong> ${row.gross_weight1_date}</p>
-            <p><strong>OUT WEIGHT:</strong> ${row.tare_weight1} KG</p>
-            <p><strong>OUT DATE/TIME:</strong> ${row.tare_weight1_date}</p>
-            <p><strong>NETT WEIGHT:</strong> ${row.nett_weight1} KG</p>
-            <p><strong>REMARK:</strong> ${row.remarks}</p>
+            <p><strong>VEHICLE PLATE:</strong> ${displayValue(row.lorry_plate_no1)}</p>
+            <p><strong>IN WEIGHT:</strong> ${displayUnit(row.gross_weight1, 'KG')}</p>
+            <p><strong>IN DATE/TIME:</strong> ${displayValue(row.gross_weight1_date)}</p>
+            <p><strong>OUT WEIGHT:</strong> ${displayUnit(row.tare_weight1, 'KG')}</p>
+            <p><strong>OUT DATE/TIME:</strong> ${displayValue(row.tare_weight1_date)}</p>
+            <p><strong>NETT WEIGHT:</strong> ${displayUnit(row.nett_weight1, 'KG')}</p>
+            <p><strong>REMARK:</strong> ${displayValue(row.remarks)}</p>
         </div>
     </div>`;
     

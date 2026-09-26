@@ -320,8 +320,6 @@ if ($canEditWeight || $canPrintWeight) {
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
     <script src="assets/js/pages/datatables.init.js"></script>
-    <!-- Additional js -->
-    <script src="assets/js/additional.js"></script>
 
     <script type="text/javascript">
     var userRole = '<?=$_SESSION["roles"] ?>';
@@ -620,6 +618,7 @@ if ($canEditWeight || $canPrintWeight) {
                     transactionId: transactionIdI
                 }
             },
+            'columnDefs': [{ targets: '_all', defaultContent: '' }], // show "" instead of null
             'columns': [
                 {
                     data: 'id',
@@ -669,16 +668,16 @@ if ($canEditWeight || $canPrintWeight) {
         <div class="row">
             <p><span><strong style="font-size:120%; text-decoration: underline;"><?=$languageArray['delivery_order_information_code'][$language]?></strong></span><br>
             <div class="col-4">
-                <p><strong class="text-uppercase"><?=$languageArray['total_delivery_amount_code'][$language]?>:</strong> ${parseFloat(row.totalDeliverAmt)/1000} MT</p>
+                <p><strong class="text-uppercase"><?=$languageArray['total_delivery_amount_code'][$language]?>:</strong> ${displayWeightMT(row.totalDeliverAmt)}</p>
             </div>`;
         
         if (isSADMIN && row.weights && row.weights.length > 0) {
             returnString += `
             <div class="col-4">
-                <p><strong class="text-uppercase"><?=$languageArray['unit_price_code'][$language]?>:</strong> RM ${row.weights[0].unit_price}</p>
+                <p><strong class="text-uppercase"><?=$languageArray['unit_price_code'][$language]?>:</strong> RM ${displayValue(row.weights[0].unit_price)}</p>
             </div>
             <div class="col-4">
-                <p><strong class="text-uppercase"><?=$languageArray['total_price_code'][$language]?>:</strong> RM ${parseFloat(parseFloat(row.weights[0].unit_price) * (parseFloat(row.totalDeliverAmt)/1000)).toFixed(2)}</p>
+                <p><strong class="text-uppercase"><?=$languageArray['total_price_code'][$language]?>:</strong> RM ${displayNumber(parseFloat(row.weights[0].unit_price) * (parseFloat(row.totalDeliverAmt)/1000), 2)}</p>
             </div>
             `;
         }
@@ -713,16 +712,16 @@ if ($canEditWeight || $canPrintWeight) {
                     
                     returnString += `
                         <tr>
-                            <td>${weights[i].transaction_id}</td>
-                            <td>${weights[i].delivery_no}</td>
-                            <td>${weights[i].lorry_plate_no1}</td>
-                            <td>${weights[i].transporter}</td>
-                            <td>${weights[i].destination}</td>
-                            <td>${parseFloat(weights[i].gross_weight1)/1000} MT</td>
-                            <td>${weights[i].gross_weight1_date}</td>
-                            <td>${parseFloat(weights[i].tare_weight1)/1000} MT</td>
-                            <td>${weights[i].tare_weight1_date}</td>
-                            <td>${parseFloat(weights[i].nett_weight1)/1000} MT</td>`
+                            <td>${displayValue(weights[i].transaction_id)}</td>
+                            <td>${displayValue(weights[i].delivery_no)}</td>
+                            <td>${displayValue(weights[i].lorry_plate_no1)}</td>
+                            <td>${displayValue(weights[i].transporter)}</td>
+                            <td>${displayValue(weights[i].destination)}</td>
+                            <td>${displayWeightMT(weights[i].gross_weight1)}</td>
+                            <td>${displayValue(weights[i].gross_weight1_date)}</td>
+                            <td>${displayWeightMT(weights[i].tare_weight1)}</td>
+                            <td>${displayValue(weights[i].tare_weight1_date)}</td>
+                            <td>${displayWeightMT(weights[i].nett_weight1)}</td>`
                             if (canEditWeight || canPrintWeight) {
                                 // stopPropagation: don't let the clicks reach the parent row's expand handler
                                 returnString += `
@@ -833,16 +832,16 @@ if ($canEditWeight || $canPrintWeight) {
                     tableHtml += `
                         <tr>
                             <td><input type="checkbox" class="do-checkbox" value="${w.id}"></td>
-                            <td>${w.transaction_id}</td>
-                            <td>${w.delivery_no}</td>
-                            <td>${w.lorry_plate_no1}</td>
-                            <td>${w.transporter}</td>
-                            <td>${w.destination}</td>
-                            <td>${(parseFloat(w.gross_weight1) / 1000).toFixed(2)} MT</td>
-                            <td>${w.gross_weight1_date}</td>
-                            <td>${(parseFloat(w.tare_weight1) / 1000).toFixed(2)} MT</td>
-                            <td>${w.tare_weight1_date}</td>
-                            <td>${(parseFloat(w.nett_weight1) / 1000).toFixed(2)} MT</td>
+                            <td>${displayValue(w.transaction_id)}</td>
+                            <td>${displayValue(w.delivery_no)}</td>
+                            <td>${displayValue(w.lorry_plate_no1)}</td>
+                            <td>${displayValue(w.transporter)}</td>
+                            <td>${displayValue(w.destination)}</td>
+                            <td>${displayWeightMT(w.gross_weight1, 2)}</td>
+                            <td>${displayValue(w.gross_weight1_date)}</td>
+                            <td>${displayWeightMT(w.tare_weight1, 2)}</td>
+                            <td>${displayValue(w.tare_weight1_date)}</td>
+                            <td>${displayWeightMT(w.nett_weight1, 2)}</td>
                         </tr>
                     `;
                 }
