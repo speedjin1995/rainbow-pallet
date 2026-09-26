@@ -3625,7 +3625,3 @@ CREATE OR REPLACE TRIGGER `TRG_UPD_USER` BEFORE UPDATE ON `Users` FOR EACH ROW B
 END
 $$
 DELIMITER ;
-
--- 25 Sep 2026 --
-ALTER TABLE `Sawn_Timber_Header` ADD `supplier_code` VARCHAR(50) NULL AFTER `transaction_id`, ADD `lot` VARCHAR(255) NULL AFTER `supplier_code`;
-ALTER TABLE `Sawn_Timber_Header_Log` ADD `supplier_code` VARCHAR(50) NULL AFTER `transaction_id`, ADD `lot` VARCHAR(255) NULL AFTER `supplier_code`;
