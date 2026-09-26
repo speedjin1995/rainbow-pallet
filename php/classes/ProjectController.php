@@ -15,6 +15,16 @@ class ProjectController extends BaseController {
         $this->projectService = new ProjectService($db, $username);
     }
     
+    public function handleList() {
+        $companyId = intval($this->getPost('company'));
+        if ($companyId <= 0) {
+            $this->failed('Invalid company');
+        }
+        $list = $this->projectService->getListByCompany($companyId);
+        echo json_encode(['status' => 'success', 'data' => $list]);
+        exit();
+    }
+
     /**
      * Get all projects (for DataTables)
      */

@@ -248,6 +248,20 @@ class ProjectService extends BaseService {
         return ['errors' => $errors, 'successCount' => $successCount];
     }
     
+    public function getListByCompany($companyId) {
+        $stmt = $this->db->prepare("SELECT id, project_code, project_description FROM {$this->table} WHERE company = ? AND status = '0' ORDER BY project_code");
+        if (!$stmt) throw new Exception($this->db->error);
+        $stmt->bind_param('i', $companyId);
+        if (!$stmt->execute()) throw new Exception($stmt->error);
+        $result = $stmt->get_result();
+        $list = [];
+        while ($row = $result->fetch_assoc()) {
+            $list[] = $row;
+        }
+        $stmt->close();
+        return $list;
+    }
+
     /**
      * Check for duplicate value
      */

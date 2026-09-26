@@ -16,6 +16,7 @@ switch ($action) {
     case 'get':    $controller->handleGet();    break;
     case 'delete': $controller->handleDelete(); break;
     case 'upload': $controller->handleUpload(); break;
+    case 'list':   $controller->handleList();   break;
     default:       $controller->handleSave();   break;
 }
 ?>

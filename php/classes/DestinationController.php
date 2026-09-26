@@ -11,6 +11,16 @@ class DestinationController extends BaseController {
         $this->destinationService = new DestinationService($db, $this->username);
     }
 
+    public function handleList() {
+        $companyId = intval($this->getPost('company') ?? 0);
+        if ($companyId <= 0) {
+            $this->failed('Invalid company');
+        }
+        $list = $this->destinationService->getListByCompany($companyId);
+        echo json_encode(['status' => 'success', 'data' => $list]);
+        exit;
+    }
+
     /**
      * Get all destinations (for DataTables)
      */

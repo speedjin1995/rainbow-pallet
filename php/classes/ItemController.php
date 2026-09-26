@@ -20,6 +20,16 @@ class ItemController extends BaseController {
         $this->itemService = new ItemService($db, $username);
     }
     
+    public function handleList() {
+        $companyId = intval($this->getPost('company'));
+        if ($companyId <= 0) {
+            $this->failed('Invalid company');
+        }
+        $list = $this->itemService->getListByCompany($companyId);
+        echo json_encode(['status' => 'success', 'data' => $list]);
+        exit();
+    }
+
     /**
      * Get all items (for DataTables)
      */

@@ -217,6 +217,20 @@ class LocationService extends BaseService {
         $stmt->close();
     }
 
+    public function getListByCompany($companyId) {
+        $stmt = $this->db->prepare("SELECT id, location_code, location_name, plant_id FROM {$this->table} WHERE company = ? AND status = '0' ORDER BY location_name");
+        if (!$stmt) throw new Exception($this->db->error);
+        $stmt->bind_param('i', $companyId);
+        if (!$stmt->execute()) throw new Exception($stmt->error);
+        $result = $stmt->get_result();
+        $list = [];
+        while ($row = $result->fetch_assoc()) {
+            $list[] = $row;
+        }
+        $stmt->close();
+        return $list;
+    }
+
     /**
      * Check for duplicate value
      */

@@ -176,6 +176,20 @@ class VehicleService extends BaseService {
         return $errors;
     }
 
+    public function getListByCompany($companyId) {
+        $stmt = $this->db->prepare("SELECT id, veh_number, vehicle_weight FROM Vehicle WHERE company = ? AND status = '0' ORDER BY veh_number");
+        if (!$stmt) throw new Exception($this->db->error);
+        $stmt->bind_param('i', $companyId);
+        if (!$stmt->execute()) throw new Exception($stmt->error);
+        $result = $stmt->get_result();
+        $list = [];
+        while ($row = $result->fetch_assoc()) {
+            $list[] = $row;
+        }
+        $stmt->close();
+        return $list;
+    }
+
     private function getByPlate($plateNo) {
         $stmt = $this->db->prepare("SELECT * FROM Vehicle WHERE veh_number=? AND status='0'");
         if (!$stmt) throw new Exception($this->db->error);

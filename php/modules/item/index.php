@@ -20,6 +20,7 @@ switch ($action) {
     case 'reactivate': $controller->reactivate(); break;
     case 'upload':    $controller->upload(); break;
     case 'downloadTemplate': $controller->downloadTemplate(); break;
+    case 'list':      $controller->handleList(); break;
     default:
         echo json_encode(['status' => 'failed', 'message' => 'Invalid action']);
 }

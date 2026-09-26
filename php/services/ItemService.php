@@ -425,6 +425,27 @@ class ItemService extends BaseService {
         return $lists;
     }
 
+    public function getListByCompany($companyId) {
+        $stmt = $this->db->prepare("SELECT p.id, p.product_code, p.name,
+            IFNULL(c.is_sales, 'Y') as is_sales,
+            IFNULL(c.is_purchase, 'Y') as is_purchase,
+            IFNULL(c.is_local, 'Y') as is_local,
+            IFNULL(c.is_port, 'Y') as is_port,
+            IFNULL(c.is_misc, 'Y') as is_misc
+            FROM {$this->table} p LEFT JOIN Product_Categories c ON p.category = c.id
+            WHERE p.company = ? AND p.status = '0' ORDER BY p.name");
+        if (!$stmt) throw new Exception($this->db->error);
+        $stmt->bind_param('i', $companyId);
+        if (!$stmt->execute()) throw new Exception($stmt->error);
+        $result = $stmt->get_result();
+        $list = [];
+        while ($row = $result->fetch_assoc()) {
+            $list[] = $row;
+        }
+        $stmt->close();
+        return $list;
+    }
+
     /**
      * Check for duplicate value
      */
