@@ -8,6 +8,28 @@ $wmCompanyId = $_SESSION['company_id'];
 $wmSelectedCompanyId = intval($wmCompanyId);
 $wmSelectedPlantId = $_SESSION['selected_plant_id'] ?? null;
 
+// Serial port setup (#setupModal) and indicator type for the live weight reading
+$wmPort = 'COM5';
+$wmBaudrate = 9600;
+$wmDatabits = "8";
+$wmParity = "N";
+$wmStopbits = '1';
+$wmIndicator = 'X722';
+$wmUserId = $_SESSION['id'];
+$wmStmt = $db->prepare("SELECT * from Port WHERE weighind_id = ?");
+$wmStmt->bind_param('s', $wmUserId);
+$wmStmt->execute();
+$wmResult = $wmStmt->get_result();
+if(($wmRow = $wmResult->fetch_assoc()) !== null){
+    $wmPort = $wmRow['com_port'];
+    $wmBaudrate = $wmRow['bits_per_second'];
+    $wmDatabits = $wmRow['data_bits'];
+    $wmParity = $wmRow['parity'];
+    $wmStopbits = $wmRow['stop_bits'];
+    $wmIndicator = $wmRow['indicator'];
+}
+$wmStmt->close();
+
 if (!hasPermission('Weighing', ['view_all_companies'])) {
     $wmCompany = $db->query("SELECT * FROM Company WHERE status = 0 AND id IN ($wmSelectedCompanyId) ORDER BY name");
     $wmVehicles = $db->query("SELECT * FROM Vehicle WHERE status='0' AND company=$wmSelectedCompanyId ORDER BY veh_number ASC");
