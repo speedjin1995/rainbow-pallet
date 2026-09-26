@@ -97,5 +97,20 @@ class CompanyController extends BaseController {
             $this->failed($e->getMessage());
         }
     }
+
+    /**
+     * Switch company for current session
+     */
+    public function switchCompany() {
+        $companyId = $this->getRequiredPost('companyId');
+
+        try {
+            $_SESSION['company_id'] = $companyId;
+            
+            $this->success('Company switched successfully');
+        } catch (Exception $e) {
+            $this->failed($e->getMessage());
+        }
+    }
 }
 ?>

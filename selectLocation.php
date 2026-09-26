@@ -8,7 +8,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 }
 
 // Check if user has plant_id assigned
-if(!isset($_SESSION['plant_id']) || empty($_SESSION['plant_id'])) {
+if((!isset($_SESSION['plant_id']) || empty($_SESSION['plant_id'])) && (!isset($_SESSION['company_ids']) || empty($_SESSION['company_ids']))) {
     // Show error page
     include 'layouts/head-main.php';
     ?>
@@ -50,8 +50,8 @@ if(!isset($_SESSION['plant_id']) || empty($_SESSION['plant_id'])) {
                                 </div>
                                 <div class="mt-4 pt-2">
                                     <h4 class="text-danger">Access Denied</h4>
-                                    <p class="text-muted">No plant has been assigned to your account.</p>
-                                    <p class="text-muted">Please contact your <strong>IT Administrator</strong> to assign a plant to your user account.</p>
+                                    <p class="text-muted">No plant or company has been assigned to your account.</p>
+                                    <p class="text-muted">Please contact your <strong>IT Administrator</strong> to assign a plant or company to your user account.</p>
                                     <div class="mt-4">
                                         <a href="php/logout.php" class="btn btn-danger w-100"><i class="ri-logout-box-line me-1"></i> Logout</a>
                                     </div>
@@ -83,15 +83,32 @@ if(!isset($_SESSION['plant_id']) || empty($_SESSION['plant_id'])) {
     exit;
 }
 
-$plant_ids = implode(',', array_map('intval', $_SESSION['plant_id']));
-$plants = $db->query("SELECT * FROM Plant WHERE status = '0' AND id IN ($plant_ids)");
+// Get companies
+$company_ids = implode(',', array_map('intval', $_SESSION['company_ids']));
+$companies = $db->query("SELECT id, company_code, name FROM Company WHERE status = 0 AND id IN ($company_ids) ORDER BY name");
 
-// Build locations array grouped by plant_id for JavaScript
-$locationsResult = $db->query("SELECT id, plant_id, location_code, location_name FROM Location WHERE status = 0 AND plant_id IN ($plant_ids)");
-$locationsByPlant = [];
-while ($loc = $locationsResult->fetch_assoc()) {
-    $locationsByPlant[$loc['plant_id']][] = $loc;
+// Get plants that user has access to
+$plant_ids = implode(',', array_map('intval', $_SESSION['plant_id']));
+
+// Build plants array grouped by company (via Location table)
+$plantsResult = $db->query("SELECT DISTINCT p.id, p.plant_code, p.name, l.company 
+    FROM Plant p 
+    INNER JOIN Location l ON p.id = l.plant_id 
+    WHERE p.status = '0' AND p.id IN ($plant_ids) AND l.status = 0
+    ORDER BY p.name");
+$plantsByCompany = [];
+while ($plant = $plantsResult->fetch_assoc()) {
+    $plantsByCompany[$plant['company']][] = $plant;
 }
+
+// Build locations array grouped by company and plant_id for JavaScript
+$locationsResult = $db->query("SELECT id, company, plant_id, location_code, location_name FROM Location WHERE status = 0 AND plant_id IN ($plant_ids)");
+$locationsByCompanyPlant = [];
+while ($loc = $locationsResult->fetch_assoc()) {
+    $key = $loc['company'] . '_' . $loc['plant_id'];
+    $locationsByCompanyPlant[$key][] = $loc;
+}
+
 ?>
 <?php include 'layouts/head-main.php'; ?>
 <head>
@@ -137,6 +154,7 @@ while ($loc = $locationsResult->fetch_assoc()) {
                                 <?php 
                                     if($_GET['error'] == 'choose_plant') echo 'Please select a plant.';
                                     elseif($_GET['error'] == 'choose_location') echo 'Please select a location.';
+                                    elseif($_GET['error'] == 'choose_company') echo 'Please select a company.';
                                     else echo 'An error occurred. Please try again.';
                                 ?>
                             </div>
@@ -144,14 +162,20 @@ while ($loc = $locationsResult->fetch_assoc()) {
                             <div class="p-2 mt-4">
                                 <form method="POST" action="php/modules/locations/select_location_process.php">
                                     <div class="mb-3">
-                                        <label class="form-label">Plant</label>
-                                        <select name="plant" id="plantSelect" class="form-select" required>
-                                            <option value="">-- Choose Plant --</option>
-                                            <?php foreach($plants as $plant): ?>
-                                                <option value="<?= $plant['id']; ?>">
-                                                    <?= $plant['name']; ?> (<?= $plant['plant_code']; ?>)
+                                        <label class="form-label">Company</label>
+                                        <select name="company" id="companySelect" class="form-select" required>
+                                            <option value="">-- Choose Company --</option>
+                                            <?php while($company = $companies->fetch_assoc()): ?>
+                                                <option value="<?= $company['id']; ?>">
+                                                    <?= $company['name']; ?>
                                                 </option>
-                                            <?php endforeach; ?>
+                                            <?php endwhile; ?>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Plant</label>
+                                        <select name="plant" id="plantSelect" class="form-select" required disabled>
+                                            <option value="">-- Choose Company First --</option>
                                         </select>
                                     </div>
                                     <div class="mb-3">
@@ -193,18 +217,44 @@ while ($loc = $locationsResult->fetch_assoc()) {
 <script src="assets/libs/particles.js/particles.js"></script>
 <script src="assets/js/pages/particles.app.js"></script>
 <script>
-var locationsByPlant = <?= json_encode($locationsByPlant) ?>;
+var plantsByCompany = <?= json_encode($plantsByCompany) ?>;
+var locationsByCompanyPlant = <?= json_encode($locationsByCompanyPlant) ?>;
 
 $(document).ready(function() {
+    // Company change - filter plants
+    $('#companySelect').on('change', function() {
+        var companyId = $(this).val();
+        var $plantSelect = $('#plantSelect');
+        var $locationSelect = $('#locationSelect');
+        
+        // Reset plant and location
+        $plantSelect.empty();
+        $locationSelect.empty().append('<option value="">-- Choose Plant First --</option>').prop('disabled', true);
+        
+        if (companyId && plantsByCompany[companyId]) {
+            $plantSelect.append('<option value="">-- Choose Plant --</option>');
+            plantsByCompany[companyId].forEach(function(plant) {
+                $plantSelect.append('<option value="' + plant.id + '">' + plant.name + ' (' + plant.plant_code + ')</option>');
+            });
+            $plantSelect.prop('disabled', false);
+        } else {
+            $plantSelect.append('<option value="">-- Choose Company First --</option>');
+            $plantSelect.prop('disabled', true);
+        }
+    });
+
+    // Plant change - filter locations
     $('#plantSelect').on('change', function() {
+        var companyId = $('#companySelect').val();
         var plantId = $(this).val();
         var $locationSelect = $('#locationSelect');
+        var key = companyId + '_' + plantId;
         
         $locationSelect.empty();
         
-        if (plantId && locationsByPlant[plantId]) {
+        if (plantId && locationsByCompanyPlant[key]) {
             $locationSelect.append('<option value="">-- Choose Location --</option>');
-            locationsByPlant[plantId].forEach(function(loc) {
+            locationsByCompanyPlant[key].forEach(function(loc) {
                 $locationSelect.append('<option value="' + loc.id + '">' + loc.location_name + ' (' + loc.location_code + ')</option>');
             });
             $locationSelect.prop('disabled', false);

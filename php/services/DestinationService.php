@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/BaseService.php';
 require_once __DIR__ . '/../requires/functions.php';
+require_once __DIR__ . '/../requires/lookup.php';
 
 class DestinationService extends BaseService {
 
@@ -14,10 +15,15 @@ class DestinationService extends BaseService {
         $start = $post['start'] ?? 0;
         $length = $post['length'] ?? 10;
         $searchValue = isset($post['search']['value']) ? mysqli_real_escape_string($this->db, $post['search']['value']) : '';
+        $companyId  = isset($post['companyId']) ? intval($post['companyId']) : 0;
+        $destinationCode = isset($post['destinationCode']) ? mysqli_real_escape_string($this->db, $post['destinationCode']) : '';
+        $destinationName = isset($post['destinationName']) ? mysqli_real_escape_string($this->db, $post['destinationName']) : '';
 
         $columnIndex = $post['order'][0]['column'] ?? 0;
         $columnName = $post['columns'][$columnIndex]['data'] ?? 'id';
         $columnSortOrder = $post['order'][0]['dir'] ?? 'asc';
+        // company_name is a computed column (not a real DB column), sort by company instead
+        if ($columnName === 'company_name') $columnName = 'company';
 
         // Total records
         $totalResult = $this->db->query("SELECT COUNT(*) as total FROM {$this->table}");
@@ -27,6 +33,15 @@ class DestinationService extends BaseService {
         $searchQuery = "";
         if ($searchValue != '') {
             $searchQuery = " AND (name LIKE '%{$searchValue}%' OR description LIKE '%{$searchValue}%' OR destination_code LIKE '%{$searchValue}%')";
+        }
+        if ($companyId > 0) {
+            $searchQuery .= " AND company={$companyId}";
+        }
+        if ($destinationCode !== '') {
+            $searchQuery .= " AND destination_code LIKE '%{$destinationCode}%'";
+        }
+        if ($destinationName !== '') {
+            $searchQuery .= " AND name LIKE '%{$destinationName}%'";
         }
 
         // Filtered records
@@ -38,8 +53,11 @@ class DestinationService extends BaseService {
 
         $data = [];
         while ($row = $dataResult->fetch_assoc()) {
+            $company = searchCompanyById($row['company'], $this->db);
             $data[] = [
                 'id'               => $row['id'],
+                'company'          => $row['company'],
+                'company_name'     => $company ? $company['name'] : '',
                 'destination_code' => $row['destination_code'],
                 'name'             => $row['name'],
                 'description'      => $row['description'],
@@ -59,19 +77,20 @@ class DestinationService extends BaseService {
      * Create new destination
      */
     public function create($post) {
+        $company         = isset($post['company']) && $post['company'] !== '' ? $post['company'] : null;
         $destinationCode = trim($post['destinationCode']);
         $destinationName = isset($post['destinationName']) && $post['destinationName'] !== '' ? trim($post['destinationName']) : null;
         $description     = isset($post['description']) && $post['description'] !== '' ? trim($post['description']) : null;
 
-        if ($this->isDuplicate('destination_code', $destinationCode)) {
+        if ($this->isDuplicate('destination_code', $destinationCode, $company)) {
             throw new Exception('Destination code already exists');
         }
 
         $this->db->begin_transaction();
 
-        $stmt = $this->db->prepare("INSERT INTO {$this->table} (destination_code, name, description, created_by, modified_by) VALUES (?, ?, ?, ?, ?)");
+        $stmt = $this->db->prepare("INSERT INTO {$this->table} (company, destination_code, name, description, created_by, modified_by) VALUES (?, ?, ?, ?, ?, ?)");
         if (!$stmt) throw new Exception($this->db->error);
-        $stmt->bind_param('sssss', $destinationCode, $destinationName, $description, $this->username, $this->username);
+        $stmt->bind_param('ssssss', $company, $destinationCode, $destinationName, $description, $this->username, $this->username);
         if (!$stmt->execute()) throw new Exception($stmt->error);
         $insertId = $stmt->insert_id;
         $stmt->close();
@@ -86,11 +105,12 @@ class DestinationService extends BaseService {
      */
     public function update($post) {
         $id              = $post['id'];
+        $company         = isset($post['company']) && $post['company'] !== '' ? $post['company'] : null;
         $destinationCode = trim($post['destinationCode']);
         $destinationName = isset($post['destinationName']) && $post['destinationName'] !== '' ? trim($post['destinationName']) : null;
         $description     = isset($post['description']) && $post['description'] !== '' ? trim($post['description']) : null;
 
-        if ($this->isDuplicate('destination_code', $destinationCode, $id)) {
+        if ($this->isDuplicate('destination_code', $destinationCode, $company, $id)) {
             throw new Exception('Destination code already exists');
         }
 
@@ -105,9 +125,9 @@ class DestinationService extends BaseService {
         $stmt->fetch();
         $stmt->close();
 
-        $stmt = $this->db->prepare("UPDATE {$this->table} SET destination_code=?, name=?, description=?, created_by=?, modified_by=? WHERE id=?");
+        $stmt = $this->db->prepare("UPDATE {$this->table} SET company=?, destination_code=?, name=?, description=?, created_by=?, modified_by=? WHERE id=?");
         if (!$stmt) throw new Exception($this->db->error);
-        $stmt->bind_param('ssssss', $destinationCode, $destinationName, $description, $this->username, $this->username, $id);
+        $stmt->bind_param('sssssss', $company, $destinationCode, $destinationName, $description, $this->username, $this->username, $id);
         if (!$stmt->execute()) throw new Exception($stmt->error);
         $stmt->close();
 
@@ -161,13 +181,14 @@ class DestinationService extends BaseService {
     /**
      * Upload destinations from Excel
      */
-    public function upload($data) {
+    public function upload($data, $companyId) {
         if (empty($data)) {
             throw new Exception('No data provided');
         }
 
         $errors = [];
         $successCount = 0;
+        $company = $companyId;
 
         foreach ($data as $index => $row) {
             $rowNum = $index + 2;
@@ -180,13 +201,13 @@ class DestinationService extends BaseService {
                 continue;
             }
 
-            if ($this->isDuplicate('destination_code', $destinationCode)) {
+            if ($this->isDuplicate('destination_code', $destinationCode, $company)) {
                 $errors[] = "Row {$rowNum}: Destination '{$destinationCode}' already exists";
                 continue;
             }
 
-            $stmt = $this->db->prepare("INSERT INTO {$this->table} (destination_code, name, description, created_by, modified_by) VALUES (?, ?, ?, ?, ?)");
-            $stmt->bind_param('sssss', $destinationCode, $destinationName, $description, $this->username, $this->username);
+            $stmt = $this->db->prepare("INSERT INTO {$this->table} (company, destination_code, name, description, created_by, modified_by) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param('ssssss', $company, $destinationCode, $destinationName, $description, $this->username, $this->username);
 
             if ($stmt->execute()) {
                 $successCount++;
@@ -199,18 +220,33 @@ class DestinationService extends BaseService {
         return ['errors' => $errors, 'successCount' => $successCount];
     }
 
+    public function getListByCompany($companyId) {
+        $stmt = $this->db->prepare("SELECT destination_code, name FROM Destination WHERE company = ? AND status = '0' ORDER BY name");
+        if (!$stmt) throw new Exception($this->db->error);
+        $stmt->bind_param('i', $companyId);
+        if (!$stmt->execute()) throw new Exception($stmt->error);
+        $result = $stmt->get_result();
+        $list = [];
+        while ($row = $result->fetch_assoc()) {
+            $list[] = $row;
+        }
+        $stmt->close();
+        return $list;
+    }
+
     /**
      * Check for duplicate value
      */
-    private function isDuplicate($column, $value, $excludeId = null) {
-        $query = "SELECT id FROM {$this->table} WHERE {$column} = ? AND status = 0";
+    private function isDuplicate($column, $value, $company, $excludeId = null) {
+        // Duplicate check is scoped to the same company (<=> is null-safe)
+        $query = "SELECT id FROM {$this->table} WHERE {$column} = ? AND company <=> ? AND status = 0";
         if ($excludeId) {
             $query .= " AND id != ?";
             $stmt = $this->db->prepare($query);
-            $stmt->bind_param('si', $value, $excludeId);
+            $stmt->bind_param('ssi', $value, $company, $excludeId);
         } else {
             $stmt = $this->db->prepare($query);
-            $stmt->bind_param('s', $value);
+            $stmt->bind_param('ss', $value, $company);
         }
         $stmt->execute();
         $exists = $stmt->get_result()->num_rows > 0;

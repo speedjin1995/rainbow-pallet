@@ -721,8 +721,6 @@ $pvItem2 = $db->query("SELECT * FROM Pv_Items WHERE status = 0 ORDER BY item_nam
     <script src="plugins/datatables-buttons/js/buttons.print.min.js"></script>
     <script src="plugins/datatables-buttons/js/buttons.html5.min.js"></script>
     <script src="assets/js/pages/datatables.init.js"></script>
-    <!-- Additional js -->
-    <script src="assets/js/additional.js"></script>
 
     <script type="text/javascript">
     

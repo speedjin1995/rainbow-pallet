@@ -45,8 +45,12 @@ class SawnTimberController extends BaseController {
 
     // ─── Get Weighing Transactions ───────────────────────────────────────────────
     public function handleGetWeighing() {
-        $data = $this->service->getWeighingTransactions();
-        echo json_encode(['status' => 'success', 'data' => $data]);
+        try {
+            $data = $this->service->getWeighingTransactions($this->getPost('company'), $this->getPost('plant'));
+            echo json_encode(['status' => 'success', 'data' => $data]);
+        } catch (Exception $e) {
+            $this->failed($e->getMessage());
+        }
     }
 
     // ─── Save (Create/Update) ────────────────────────────────────────────────────

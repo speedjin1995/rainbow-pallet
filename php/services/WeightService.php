@@ -4,6 +4,8 @@ require_once __DIR__ . '/../services/VehicleService.php';
 require_once __DIR__ . '/../services/ItemService.php';
 require_once __DIR__ . '/../services/CustomerService.php';
 require_once __DIR__ . '/../services/SupplierService.php';
+require_once __DIR__ . '/../services/DestinationService.php';
+require_once __DIR__ . '/../services/ProjectService.php';
 require_once __DIR__ . '/../requires/lookup.php';
 
 class WeightService extends BaseService {
@@ -12,6 +14,8 @@ class WeightService extends BaseService {
     private $itemService;
     private $customerService;
     private $supplierService;
+    private $destinationService;
+    private $projectService;
 
     public function __construct($db, $username) {
         parent::__construct($db, $username);
@@ -19,6 +23,23 @@ class WeightService extends BaseService {
         $this->itemService = new ItemService($db, $username);
         $this->customerService = new CustomerService($db, $username);
         $this->supplierService = new SupplierService($db, $username);
+        $this->destinationService = new DestinationService($db, $username);
+        $this->projectService = new ProjectService($db, $username);
+    }
+
+    /**
+     * All company-scoped dropdown lists for the weighing page (modal + search bar), in a single call.
+     * Products are used for both the product and raw material dropdowns; vehicles for vehicle 1 and 2.
+     */
+    public function getCompanyLists($companyId) {
+        return [
+            'customers'    => $this->customerService->getListByCompany($companyId),
+            'suppliers'    => $this->supplierService->getListByCompany($companyId),
+            'products'     => $this->itemService->getListByCompany($companyId),
+            'destinations' => $this->destinationService->getListByCompany($companyId),
+            'projects'     => $this->projectService->getListByCompany($companyId),
+            'vehicles'     => $this->vehicleService->getListByCompany($companyId),
+        ];
     }
     
     public function saveNormal($f) {
@@ -38,8 +59,8 @@ class WeightService extends BaseService {
         $id = $stmt->insert_id;
         $stmt->close();
         $this->persistCustomerSideFields($id, $f['customerSide']);
-        $this->vehicleService->autoRegisterVehicle($f['vehiclePlateNo1']);
-        $this->vehicleService->autoRegisterVehicle($f['vehiclePlateNo2']);
+        $this->vehicleService->autoRegisterVehicle($f['vehiclePlateNo1'], 0, $f['companyId']);
+        $this->vehicleService->autoRegisterVehicle($f['vehiclePlateNo2'], 0, $f['companyId']);
         $misValue++;
         $this->incrementPlantCount($f['plantCode'], $f['transactionStatus'], $misValue);
         if ($f['weightType'] === 'Container') {
@@ -62,8 +83,8 @@ class WeightService extends BaseService {
         }
         $stmt->close();
         $this->persistCustomerSideFields($f['weightId'], $f['customerSide']);
-        $this->vehicleService->autoRegisterVehicle($f['vehiclePlateNo1']);
-        $this->vehicleService->autoRegisterVehicle($f['vehiclePlateNo2']);
+        $this->vehicleService->autoRegisterVehicle($f['vehiclePlateNo1'], 0, $f['companyId']);
+        $this->vehicleService->autoRegisterVehicle($f['vehiclePlateNo2'], 0, $f['companyId']);
         if ($f['weightType'] === 'Container') {
             $this->flagContainerStatus($f['containerNo'], $f['isComplete']);
         }
@@ -90,8 +111,8 @@ class WeightService extends BaseService {
         }
         $id = $stmt->insert_id;
         $stmt->close();
-        $this->vehicleService->autoRegisterVehicle($f['vehiclePlateNo1']);
-        $this->vehicleService->autoRegisterVehicle($f['vehiclePlateNo2']);
+        $this->vehicleService->autoRegisterVehicle($f['vehiclePlateNo1'], 0, $f['companyId']);
+        $this->vehicleService->autoRegisterVehicle($f['vehiclePlateNo2'], 0, $f['companyId']);
         $misValue++;
         $this->incrementPlantCount($f['plantCode'], $f['transactionStatus'], $misValue);
         return ['id' => $id];
@@ -137,8 +158,8 @@ class WeightService extends BaseService {
             }
             $stmt->close();
         }
-        $this->vehicleService->autoRegisterVehicle($f['vehiclePlateNo1']);
-        $this->vehicleService->autoRegisterVehicle($f['vehiclePlateNo2']);
+        $this->vehicleService->autoRegisterVehicle($f['vehiclePlateNo1'], 0, $f['companyId']);
+        $this->vehicleService->autoRegisterVehicle($f['vehiclePlateNo2'], 0, $f['companyId']);
         return ['id' => $f['weightId']];
     }
 
@@ -163,8 +184,8 @@ class WeightService extends BaseService {
         $id = $stmt->insert_id;
         $stmt->close();
         $this->persistCustomerSideFields($id, $f['customerSide']);
-        $this->vehicleService->autoRegisterVehicle($f['vehiclePlateNo1']);
-        $this->vehicleService->autoRegisterVehicle($f['vehiclePlateNo2']);
+        $this->vehicleService->autoRegisterVehicle($f['vehiclePlateNo1'], 0, $f['companyId']);
+        $this->vehicleService->autoRegisterVehicle($f['vehiclePlateNo2'], 0, $f['companyId']);
         $misValue++;
         $this->incrementPlantCount($f['plantCode'], $f['transactionStatus'], $misValue);
         if ($f['isComplete'] === 'Y') {
@@ -193,8 +214,8 @@ class WeightService extends BaseService {
         }
         $stmt->close();
         $this->persistCustomerSideFields($f['weightId'], $f['customerSide']);
-        $this->vehicleService->autoRegisterVehicle($f['vehiclePlateNo1']);
-        $this->vehicleService->autoRegisterVehicle($f['vehiclePlateNo2']);
+        $this->vehicleService->autoRegisterVehicle($f['vehiclePlateNo1'], 0, $f['companyId']);
+        $this->vehicleService->autoRegisterVehicle($f['vehiclePlateNo2'], 0, $f['companyId']);
         if (!empty($f['containerNo'])) {
             $this->flagContainerStatus($f['containerNo'], $f['isComplete']);
             if ($f['isComplete'] === 'Y') {
@@ -220,7 +241,16 @@ class WeightService extends BaseService {
         if (!empty($post['toDate'])) {
             $q .= " AND transaction_date <= '" . DateTime::createFromFormat('d-m-Y', $post['toDate'])->format('Y-m-d 23:59:59') . "'";
         }
-        foreach (['status' => 'transaction_status', 'company' => 'company_id', 'customer' => 'customer_code', 'supplier' => 'supplier_code', 'invoice' => 'weight_type', 'batch' => 'is_complete', 'product' => 'product_code', 'rawMaterial' => 'raw_mat_code', 'plant' => 'plant_code'] as $param => $col) {
+        // Determine company on the backend - never trust frontend value for restricted users
+        if (hasPermission('Weighing', ['view_all_companies'])) {
+            $companyFilter = (!empty($post['company']) && $post['company'] !== '-') ? intval($post['company']) : 0;
+        } else {
+            $companyFilter = intval($_SESSION['company_id'] ?? 0);
+        }
+        if ($companyFilter > 0) {
+            $q .= " AND company_id = {$companyFilter}";
+        }
+        foreach (['status' => 'transaction_status', 'customer' => 'customer_code', 'supplier' => 'supplier_code', 'invoice' => 'weight_type', 'batch' => 'is_complete', 'product' => 'product_code', 'rawMaterial' => 'raw_mat_code', 'plant' => 'plant_code'] as $param => $col) {
             if (!empty($post[$param]) && $post[$param] !== '-') {
                 $q .= " AND {$col} = '" . mysqli_real_escape_string($this->db, $post[$param]) . "'";
             }
@@ -244,10 +274,10 @@ class WeightService extends BaseService {
             $q .= " AND (purchase_order LIKE '%{$v}%' OR invoice_no LIKE '%{$v}%' OR delivery_no LIKE '%{$v}%')";
         }
         if ($search !== '') {
-            $q = " AND (transaction_id LIKE '%{$search}%' OR lorry_plate_no1 LIKE '%{$search}%')";
+            $q .= " AND (transaction_id LIKE '%{$search}%' OR lorry_plate_no1 LIKE '%{$search}%')";
         }
 
-        $cols = "id, transaction_id, transaction_status, weight_type, transaction_date, lorry_plate_no1, lorry_plate_no2, supplier_weight, customer_code, customer_name, plant_code, plant_name, supplier_code, supplier_name, raw_mat_code, raw_mat_name, product_code, product_name, container_no, container_no2, seal_no, seal_no2, invoice_no, purchase_order, delivery_no, transporter_code, transporter, destination_code, destination, remarks, gross_weight1, gross_weight1_date, tare_weight1, tare_weight1_date, nett_weight1, gross_weight2, gross_weight2_date, tare_weight2, tare_weight2_date, nett_weight2, final_weight, weight_different, is_complete, is_cancel, is_approved, manual_weight, indicator_id, weighbridge_id, created_date, created_by, modified_date, modified_by, indicator_id_2, product_description";
+        $cols = "id, company_id, transaction_id, transaction_status, weight_type, transaction_date, lorry_plate_no1, lorry_plate_no2, supplier_weight, customer_code, customer_name, plant_code, plant_name, supplier_code, supplier_name, raw_mat_code, raw_mat_name, product_code, product_name, container_no, container_no2, seal_no, seal_no2, invoice_no, purchase_order, delivery_no, transporter_code, transporter, destination_code, destination, remarks, gross_weight1, gross_weight1_date, tare_weight1, tare_weight1_date, nett_weight1, gross_weight2, gross_weight2_date, tare_weight2, tare_weight2_date, nett_weight2, final_weight, weight_different, is_complete, is_cancel, is_approved, manual_weight, indicator_id, weighbridge_id, created_date, created_by, modified_date, modified_by, indicator_id_2, product_description";
         $isPending = ($post['batch'] ?? '') === 'N';
         $plantFilter = '';
         if (!hasPermission('Weighing', ['view_all_plants'])) {
@@ -298,6 +328,8 @@ class WeightService extends BaseService {
             $row['customer'] = ($ts === 'Purchase' || $ts === 'Local') ? $row['supplier_name'] : $row['customer_name'];
             $row['product_code'] = ($ts === 'Purchase' || $ts === 'Local') ? $row['raw_mat_code'] : $row['product_code'];
             $row['product_name'] = ($ts === 'Purchase' || $ts === 'Local') ? $row['raw_mat_name'] : $row['product_name'];
+            $company = searchCompanyById($row['company_id'], $this->db);
+            $row['company_name'] = $company ? $company['name'] : '';
             $data[] = $row;
         }
 
@@ -328,11 +360,24 @@ class WeightService extends BaseService {
         if (!empty($post['toDate'])) {
             $q .= " AND transaction_date <= '" . DateTime::createFromFormat('d-m-Y', $post['toDate'])->format('Y-m-d 23:59:59') . "'";
         }
+        // Company filter — never trust frontend value for restricted users
+        if (hasPermission('Weighing', ['view_all_companies'])) {
+            $companyFilter = (!empty($post['company']) && $post['company'] !== '-') ? intval($post['company']) : 0;
+        } else {
+            $companyFilter = intval($_SESSION['company_id'] ?? 0);
+        }
+        if ($companyFilter > 0) {
+            $q .= " AND company_id = {$companyFilter}";
+        }
+        // Plant filter — restrict to user's tied plants unless they have view_all_plants
         if (!empty($post['plant']) && $post['plant'] !== '-') {
             $q .= " AND plant_code='" . mysqli_real_escape_string($this->db, $post['plant']) . "'";
+        } elseif (!hasPermission('Weighing', ['view_all_plants'])) {
+            $plants = implode("', '", $_SESSION['plant']);
+            $q .= " AND plant_code IN ('{$plants}')";
         }
         if ($search !== '') {
-            $q = " AND (transaction_id LIKE '%{$search}%' OR lorry_plate_no1 LIKE '%{$search}%' OR container_no LIKE '%{$search}%')";
+            $q .= " AND (transaction_id LIKE '%{$search}%' OR lorry_plate_no1 LIKE '%{$search}%' OR container_no LIKE '%{$search}%')";
         }
 
         $totalRes = $this->db->query("SELECT COUNT(*) as c FROM Weight_Container WHERE status='0'");
@@ -362,6 +407,8 @@ class WeightService extends BaseService {
             $row['customer'] = ($ts === 'Purchase' || $ts === 'Local') ? $row['supplier_name'] : $row['customer_name'];
             $row['product_code'] = ($ts === 'Purchase' || $ts === 'Local') ? $row['raw_mat_code'] : $row['product_code'];
             $row['product_name'] = ($ts === 'Purchase' || $ts === 'Local') ? $row['raw_mat_name'] : $row['product_name'];
+            $company = searchCompanyById($row['company_id'], $this->db);
+            $row['company_name'] = $company ? $company['name'] : '';
             $data[] = $row;
         }
 

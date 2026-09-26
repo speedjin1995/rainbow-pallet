@@ -19,6 +19,23 @@ function searchPlantById($value, $db) {
     return $result;
 }
 
+function searchPlantsByIds($values, $db) {
+    $result = null;
+    $ids = array_values(array_map('intval', (array) $values));
+
+    if(empty($ids)){
+        $ids = [0];
+    }
+
+    if ($select_stmt = $db->prepare("SELECT * FROM Plant WHERE status = '0' AND id IN (" . implode(',', array_fill(0, count($ids), '?')) . ") ORDER BY name ASC")) {
+        $select_stmt->bind_param(str_repeat('i', count($ids)), ...$ids);
+        $select_stmt->execute();
+        $result = $select_stmt->get_result();
+    }
+
+    return $result;
+}
+
 function searchPlantCodeById($value, $db) {
     $id = '0';
 
@@ -234,6 +251,22 @@ function searchCompanyById($value, $db) {
         $result = $select_stmt->get_result();
         if ($row = $result->fetch_assoc()) {
             $id = $row;
+        }
+        $select_stmt->close();
+    }
+
+    return $id;
+}
+
+function searchCompanyNameById($value, $db) {
+    $id = null;
+
+    if ($select_stmt = $db->prepare("SELECT * FROM Company WHERE id=?")) {
+        $select_stmt->bind_param('s', $value);
+        $select_stmt->execute();
+        $result = $select_stmt->get_result();
+        if ($row = $result->fetch_assoc()) {
+            $id = $row['name'];
         }
         $select_stmt->close();
     }

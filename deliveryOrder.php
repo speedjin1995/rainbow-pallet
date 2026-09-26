@@ -8,21 +8,38 @@ if (!hasModulePermission('Accounting', 'Delivery Order', ['view'])){
     exit;
 }
 
-$plantId = $_SESSION['plant'];
+$plantId = $_SESSION['plant_id'];
 $selectedPlantId = $_SESSION['selected_plant_id'] ?? null;
 
-$company = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
-$vehicles = $db->query("SELECT DISTINCT veh_number FROM Vehicle WHERE status = '0' ORDER BY veh_number ASC");
-$vehicles2 = $db->query("SELECT * FROM Vehicle WHERE status = '0' ORDER BY veh_number ASC");
-$customer = $db->query("SELECT * FROM Customer WHERE status = '0' ORDER BY name ASC");
-$customer2 = $db->query("SELECT * FROM Customer WHERE status = '0' ORDER BY name ASC");
-$product = $db->query("SELECT p.*, IFNULL(c.is_sales, 'Y') as is_sales, IFNULL(c.is_purchase, 'Y') as is_purchase, IFNULL(c.is_local, 'Y') as is_local, IFNULL(c.is_port, 'Y') as is_port, IFNULL(c.is_misc, 'Y') as is_misc FROM Product p LEFT JOIN Product_Categories c ON p.category = c.id WHERE p.status = '0' ORDER BY p.name ASC");
-$product2 = $db->query("SELECT p.*, IFNULL(c.is_sales, 'Y') as is_sales, IFNULL(c.is_purchase, 'Y') as is_purchase, IFNULL(c.is_local, 'Y') as is_local, IFNULL(c.is_port, 'Y') as is_port, IFNULL(c.is_misc, 'Y') as is_misc FROM Product p LEFT JOIN Product_Categories c ON p.category = c.id WHERE p.status = '0' ORDER BY p.name ASC");
+$companyId = $_SESSION['company_id'];
+if (!hasModulePermission('Accounting', 'Delivery Order', ['view_all_companies'])){
+    // Get companies
+    $company_ids = implode(',', array_map('intval', $_SESSION['company_ids']));
+    $company = $db->query("SELECT * FROM Company WHERE status = 0 AND id IN ($company_ids) ORDER BY name");
+    // Only the selected company's customers and products
+    $selectedCompanyId = intval($companyId);
+    $customer = $db->query("SELECT * FROM Customer WHERE status = '0' AND company IN ($selectedCompanyId) ORDER BY name ASC");
+    $customer2 = $db->query("SELECT * FROM Customer WHERE status = '0' AND company IN ($selectedCompanyId) ORDER BY name ASC");
+    $product = $db->query("SELECT p.*, IFNULL(c.is_sales, 'Y') as is_sales, IFNULL(c.is_purchase, 'Y') as is_purchase, IFNULL(c.is_local, 'Y') as is_local, IFNULL(c.is_port, 'Y') as is_port, IFNULL(c.is_misc, 'Y') as is_misc FROM Product p LEFT JOIN Product_Categories c ON p.category = c.id WHERE p.status = '0' AND p.company IN ($selectedCompanyId) ORDER BY p.name ASC");
+    $product2 = $db->query("SELECT p.*, IFNULL(c.is_sales, 'Y') as is_sales, IFNULL(c.is_purchase, 'Y') as is_purchase, IFNULL(c.is_local, 'Y') as is_local, IFNULL(c.is_port, 'Y') as is_port, IFNULL(c.is_misc, 'Y') as is_misc FROM Product p LEFT JOIN Product_Categories c ON p.category = c.id WHERE p.status = '0' AND p.company IN ($selectedCompanyId) ORDER BY p.name ASC");
+}else{
+    $company = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
+    $customer = $db->query("SELECT * FROM Customer WHERE status = '0' ORDER BY name ASC");
+    $customer2 = $db->query("SELECT * FROM Customer WHERE status = '0' ORDER BY name ASC");
+    $product = $db->query("SELECT p.*, IFNULL(c.is_sales, 'Y') as is_sales, IFNULL(c.is_purchase, 'Y') as is_purchase, IFNULL(c.is_local, 'Y') as is_local, IFNULL(c.is_port, 'Y') as is_port, IFNULL(c.is_misc, 'Y') as is_misc FROM Product p LEFT JOIN Product_Categories c ON p.category = c.id WHERE p.status = '0' ORDER BY p.name ASC");
+    $product2 = $db->query("SELECT p.*, IFNULL(c.is_sales, 'Y') as is_sales, IFNULL(c.is_purchase, 'Y') as is_purchase, IFNULL(c.is_local, 'Y') as is_local, IFNULL(c.is_port, 'Y') as is_port, IFNULL(c.is_misc, 'Y') as is_misc FROM Product p LEFT JOIN Product_Categories c ON p.category = c.id WHERE p.status = '0' ORDER BY p.name ASC");
+}
 
 $plantName = '-';
 $plantCode = '-';
 if (!hasModulePermission('Accounting', 'Delivery Order', ['view_all_plants'])){
-    $plant = searchPlantById($selectedPlantId, $db);
+    if (!empty($selectedPlantId)){
+        // Locked to the plant selected at login - backend restricts "-" to this plant only
+        $plant = searchPlantById($selectedPlantId, $db);
+    }else{
+        // No plant selected - list every plant the user is tied to
+        $plant = searchPlantsByIds($plantId ?? [], $db);
+    }
 
     $stmt2 = $db->prepare("SELECT * from Plant WHERE id = ?");
     $stmt2->bind_param('s', $selectedPlantId);
@@ -36,6 +53,13 @@ if (!hasModulePermission('Accounting', 'Delivery Order', ['view_all_plants'])){
 }
 else{
     $plant = $db->query("SELECT * FROM Plant WHERE status = '0'");
+}
+
+// Weighing modal component - used to edit / print the DO's weighings, which are Sales
+$canEditWeight = hasModulePermission('Weighing', 'Sales', ['edit']);
+$canPrintWeight = hasModulePermission('Weighing', 'Sales', ['print']);
+if ($canEditWeight || $canPrintWeight) {
+    require_once "components/weighingModal/data.php";
 }
 ?>
 
@@ -117,12 +141,12 @@ else{
                                                             <input type="date" class="form-control" data-provider="flatpickr" id="toDateSearch">
                                                         </div>
                                                     </div><!--end col-->
-                                                    <div class="col-3">
+                                                    <div class="col-3" <?= !hasModulePermission('Accounting', 'Delivery Order', ['view_all_companies']) ? "style='display:none'" : '' ?>>
                                                         <div class="mb-3">
                                                             <label for="companySearch" class="form-label"><?=$languageArray['company_code'][$language]?></label>
                                                             <select class="form-select select2" id="companySearch" name="companySearch" required>
                                                                 <?php while($rowCompany=mysqli_fetch_assoc($company)){ ?>
-                                                                    <option value="<?=$rowCompany['id'] ?>" <?=$rowCompany['id'] == 1 ? 'selected' : ''?>><?=$rowCompany['name'] ?></option>
+                                                                    <option value="<?=$rowCompany['id'] ?>" <?=($rowCompany['id'] == $companyId) ? 'selected' : ''?>><?=$rowCompany['name'] ?></option>
                                                                 <?php } ?>
                                                             </select>           
                                                         </div>
@@ -250,6 +274,14 @@ else{
                                     </div><!-- /.modal-content -->
                                 </div><!-- /.modal-dialog -->
                             </div><!-- /.modal -->
+
+                            <?php if ($canEditWeight || $canPrintWeight): ?>
+                            <?php include 'components/weighingModal/modal.php'; ?>
+                            <?php endif; ?>
+
+                            <?php if ($canEditWeight): ?>
+                            <?php include 'components/customerSideInfoModal/modal.php'; ?>
+                            <?php endif; ?>
                         </div> <!-- end .h-100-->
                     </div> <!-- end col -->
                 </div>
@@ -288,8 +320,6 @@ else{
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
     <script src="assets/js/pages/datatables.init.js"></script>
-    <!-- Additional js -->
-    <script src="assets/js/additional.js"></script>
 
     <script type="text/javascript">
     var userRole = '<?=$_SESSION["roles"] ?>';
@@ -298,8 +328,28 @@ else{
     var isSADMIN = <?= json_encode($_SESSION['roles'] == 'SADMIN') ?>;
     var allProductOptions = null;
     var allProductSearchOptions = null;
+    var canEditWeight = <?= $canEditWeight ? 'true' : 'false' ?>;
+    var canPrintWeight = <?= $canPrintWeight ? 'true' : 'false' ?>;
 
     $(function () {
+        // Weighing modal: refresh the DO list after a weighing is saved
+        if (window.initWeighingModal) {
+            initWeighingModal({
+                onSaved: function(obj, withPrint){
+                    table.ajax.reload(null, false);
+                }
+            });
+        }
+
+        // Customer side info modal: refresh the DO list after saving
+        if (window.initCustomerSideInfoModal) {
+            initCustomerSideInfoModal({
+                onSaved: function(obj){
+                    table.ajax.reload(null, false);
+                }
+            });
+        }
+
         const today = new Date();
         const tomorrow = new Date(today);
         const yesterday = new Date(today);
@@ -409,7 +459,8 @@ else{
             if (selectedIds.length > 0) {
                 if (confirm('Are you sure you want to post to SQL these items?')) {
                     $('#spinnerLoading').show();
-                    $.post('php/modules/deliveryOrder/postDo.php', {
+                    $.post('php/modules/deliveryOrder/index.php', {
+                        action: 'post',
                         fromDate: fromDateI,
                         toDate: toDateI,
                         company: companyI,
@@ -442,7 +493,8 @@ else{
             else {
                 if (confirm('Are you sure you want to post to SQL?')) {
                     $('#spinnerLoading').show();
-                    $.post('php/modules/deliveryOrder/postDo.php', {
+                    $.post('php/modules/deliveryOrder/index.php', {
+                        action: 'post',
                         fromDate: fromDateI,
                         toDate: toDateI,
                         company: companyI,
@@ -492,11 +544,11 @@ else{
             });
 
             if (selectedIds.length > 0) {
-                window.open("php/modules/deliveryOrder/exportExcel.php?isMulti=Y&fromDate="+fromDateI+"&toDate="+toDateI+"&company="+companyI+
+                window.open("php/modules/deliveryOrder/index.php?action=export&isMulti=Y&fromDate="+fromDateI+"&toDate="+toDateI+"&company="+companyI+
                 "&customer="+customerNoI+"&product="+productI+"&plant="+plantI+"&deliveryNo="+deliveryNoI+"&transactionId="+transactionIdI+"&id="+selectedIds);
             } 
             else {
-                window.open("php/modules/deliveryOrder/exportExcel.php?isMulti=N&fromDate="+fromDateI+"&toDate="+toDateI+"&company="+companyI+
+                window.open("php/modules/deliveryOrder/index.php?action=export&isMulti=N&fromDate="+fromDateI+"&toDate="+toDateI+"&company="+companyI+
                 "&customer="+customerNoI+"&product="+productI+"&plant="+plantI+"&deliveryNo="+deliveryNoI+"&transactionId="+transactionIdI);
             }     
         });
@@ -553,8 +605,9 @@ else{
             'searching': false,
             'serverMethod': 'post',
             'ajax': {
-                'url': 'php/modules/deliveryOrder/filterDeliveryOrder.php',
+                'url': 'php/modules/deliveryOrder/index.php',
                 'data': {
+                    action: 'filter',
                     fromDate: fromDateI,
                     toDate: toDateI,
                     company: companyI,
@@ -565,6 +618,7 @@ else{
                     transactionId: transactionIdI
                 }
             },
+            'columnDefs': [{ targets: '_all', defaultContent: '' }], // show "" instead of null
             'columns': [
                 {
                     data: 'id',
@@ -614,16 +668,16 @@ else{
         <div class="row">
             <p><span><strong style="font-size:120%; text-decoration: underline;"><?=$languageArray['delivery_order_information_code'][$language]?></strong></span><br>
             <div class="col-4">
-                <p><strong class="text-uppercase"><?=$languageArray['total_delivery_amount_code'][$language]?>:</strong> ${parseFloat(row.totalDeliverAmt)/1000} MT</p>
+                <p><strong class="text-uppercase"><?=$languageArray['total_delivery_amount_code'][$language]?>:</strong> ${displayWeightMT(row.totalDeliverAmt)}</p>
             </div>`;
         
         if (isSADMIN && row.weights && row.weights.length > 0) {
             returnString += `
             <div class="col-4">
-                <p><strong class="text-uppercase"><?=$languageArray['unit_price_code'][$language]?>:</strong> RM ${row.weights[0].unit_price}</p>
+                <p><strong class="text-uppercase"><?=$languageArray['unit_price_code'][$language]?>:</strong> RM ${displayValue(row.weights[0].unit_price)}</p>
             </div>
             <div class="col-4">
-                <p><strong class="text-uppercase"><?=$languageArray['total_price_code'][$language]?>:</strong> RM ${parseFloat(parseFloat(row.weights[0].unit_price) * (parseFloat(row.totalDeliverAmt)/1000)).toFixed(2)}</p>
+                <p><strong class="text-uppercase"><?=$languageArray['total_price_code'][$language]?>:</strong> RM ${displayNumber(parseFloat(row.weights[0].unit_price) * (parseFloat(row.totalDeliverAmt)/1000), 2)}</p>
             </div>
             `;
         }
@@ -645,9 +699,9 @@ else{
                         <th><?=$languageArray['tare_outgoing_code'][$language]?></th>
                         <th><?=$languageArray['outgoing_date_code'][$language]?></th>
                         <th><?=$languageArray['nett_weight_code'][$language]?></th>`;
-                        // if (isSADMIN) {
-                        //     returnString += `<th>Action</th>`;
-                        // }
+                        if (canEditWeight || canPrintWeight) {
+                            returnString += `<th><?=$languageArray['action_code'][$language]?></th>`;
+                        }
 
                     returnString += `</tr>
                 </thead>
@@ -658,24 +712,54 @@ else{
                     
                     returnString += `
                         <tr>
-                            <td>${weights[i].transaction_id}</td>
-                            <td>${weights[i].delivery_no}</td>
-                            <td>${weights[i].lorry_plate_no1}</td>
-                            <td>${weights[i].transporter}</td>
-                            <td>${weights[i].destination}</td>
-                            <td>${parseFloat(weights[i].gross_weight1)/1000} MT</td>
-                            <td>${weights[i].gross_weight1_date}</td>
-                            <td>${parseFloat(weights[i].tare_weight1)/1000} MT</td>
-                            <td>${weights[i].tare_weight1_date}</td>
-                            <td>${parseFloat(weights[i].nett_weight1)/1000} MT</td>`
-                            // if (isSADMIN) {
-                            //     returnString += `
-                            //     <td>
-                            //         <button title="Edit" type="button" id="edit${weights[i].id}" onclick="edit(${weights[i].id})" class="btn btn-warning btn-sm">
-                            //             <i class="fas fa-pen"></i>
-                            //         </button>
-                            //     </td>`;
-                            // }
+                            <td>${displayValue(weights[i].transaction_id)}</td>
+                            <td>${displayValue(weights[i].delivery_no)}</td>
+                            <td>${displayValue(weights[i].lorry_plate_no1)}</td>
+                            <td>${displayValue(weights[i].transporter)}</td>
+                            <td>${displayValue(weights[i].destination)}</td>
+                            <td>${displayWeightMT(weights[i].gross_weight1)}</td>
+                            <td>${displayValue(weights[i].gross_weight1_date)}</td>
+                            <td>${displayWeightMT(weights[i].tare_weight1)}</td>
+                            <td>${displayValue(weights[i].tare_weight1_date)}</td>
+                            <td>${displayWeightMT(weights[i].nett_weight1)}</td>`
+                            if (canEditWeight || canPrintWeight) {
+                                // stopPropagation: don't let the clicks reach the parent row's expand handler
+                                returnString += `
+                                <td>
+                                    <div class="row g-1 d-flex">`;
+
+                                if (canEditWeight) {
+                                    returnString += `
+                                        <div class="col-auto">
+                                            <button title="<?=$languageArray['edit_code'][$language]?>" type="button" id="editWeight${weights[i].id}" onclick="event.stopPropagation(); editWeight(${weights[i].id}, 'N')" class="btn btn-warning btn-sm">
+                                                <i class="fas fa-pen"></i>
+                                            </button>
+                                        </div>`;
+
+                                    // Same rule as the weighing page: customer side info for non-purchase weighings, needs edit
+                                    if (weights[i].transaction_status != 'Purchase' && weights[i].transaction_status != 'Local') {
+                                        returnString += `
+                                        <div class="col-auto">
+                                            <button title="<?=$languageArray['fill_in_customer_side_info_code'][$language]?>" type="button" id="customerSideInfo${weights[i].id}" onclick="event.stopPropagation(); openCustomerSideInfo(${weights[i].id})" class="btn btn-secondary btn-sm">
+                                                <i class="fas fa-clipboard-list"></i>
+                                            </button>
+                                        </div>`;
+                                    }
+                                }
+
+                                if (canPrintWeight) {
+                                    returnString += `
+                                        <div class="col-auto">
+                                            <button title="<?=$languageArray['print_code'][$language]?>" type="button" id="printWeight${weights[i].id}" onclick="event.stopPropagation(); printWeight('${weights[i].id}', '${weights[i].transaction_status}')" class="btn btn-info btn-sm">
+                                                <i class="fas fa-print"></i>
+                                            </button>
+                                        </div>`;
+                                }
+
+                                returnString += `
+                                    </div>
+                                </td>`;
+                            }
                         returnString += `</tr>`;
                 }
 
@@ -748,16 +832,16 @@ else{
                     tableHtml += `
                         <tr>
                             <td><input type="checkbox" class="do-checkbox" value="${w.id}"></td>
-                            <td>${w.transaction_id}</td>
-                            <td>${w.delivery_no}</td>
-                            <td>${w.lorry_plate_no1}</td>
-                            <td>${w.transporter}</td>
-                            <td>${w.destination}</td>
-                            <td>${(parseFloat(w.gross_weight1) / 1000).toFixed(2)} MT</td>
-                            <td>${w.gross_weight1_date}</td>
-                            <td>${(parseFloat(w.tare_weight1) / 1000).toFixed(2)} MT</td>
-                            <td>${w.tare_weight1_date}</td>
-                            <td>${(parseFloat(w.nett_weight1) / 1000).toFixed(2)} MT</td>
+                            <td>${displayValue(w.transaction_id)}</td>
+                            <td>${displayValue(w.delivery_no)}</td>
+                            <td>${displayValue(w.lorry_plate_no1)}</td>
+                            <td>${displayValue(w.transporter)}</td>
+                            <td>${displayValue(w.destination)}</td>
+                            <td>${displayWeightMT(w.gross_weight1, 2)}</td>
+                            <td>${displayValue(w.gross_weight1_date)}</td>
+                            <td>${displayWeightMT(w.tare_weight1, 2)}</td>
+                            <td>${displayValue(w.tare_weight1_date)}</td>
+                            <td>${displayWeightMT(w.nett_weight1, 2)}</td>
                         </tr>
                     `;
                 }
@@ -787,7 +871,8 @@ else{
                     if (selectedDOs.length > 0) {
                         if (confirm('Are you sure you want to post to SQL these items?')) {
                             $('#spinnerLoading').show();
-                            $.post('php/modules/deliveryOrder/postDo.php', {
+                            $.post('php/modules/deliveryOrder/index.php', {
+                        action: 'post',
                                 userID: selectedDOs, 
                                 type: 'MULTIDO'
                             }, function(data){
@@ -821,5 +906,15 @@ else{
         });
     }
     </script>
+
+    <?php if ($canEditWeight || $canPrintWeight): ?>
+    <!-- Weighing modal component (after the page script so its Select2 / date picker setup runs last) -->
+    <?php include 'components/weighingModal/script.php'; ?>
+    <?php endif; ?>
+
+    <?php if ($canEditWeight): ?>
+    <!-- Customer side info modal component -->
+    <?php include 'components/customerSideInfoModal/script.php'; ?>
+    <?php endif; ?>
 </body>
 </html>

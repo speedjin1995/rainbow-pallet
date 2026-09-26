@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/../requires/permissions.php';
+
 /**
  * Base Service Class
  * All module services should extend this class

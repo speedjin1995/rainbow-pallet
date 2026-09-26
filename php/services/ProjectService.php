@@ -14,22 +14,34 @@ class ProjectService extends BaseService {
         $start = $post['start'] ?? 0;
         $length = $post['length'] ?? 10;
         $searchValue = isset($post['search']['value']) ? mysqli_real_escape_string($this->db, $post['search']['value']) : '';
-        
+        $companyId  = isset($post['companyId']) ? intval($post['companyId']) : 0;
+        $projectCode = isset($post['projectCode']) ? mysqli_real_escape_string($this->db, $post['projectCode']) : '';
+        $projectDescription = isset($post['projectDescription']) ? mysqli_real_escape_string($this->db, $post['projectDescription']) : '';
+
         $columnIndex = $post['order'][0]['column'] ?? 0;
         $columnName = $post['columns'][$columnIndex]['data'] ?? 'id';
         $columnSortOrder = $post['order'][0]['dir'] ?? 'asc';
-        
+
         // Total records
         $totalQuery = "SELECT COUNT(*) as total FROM {$this->table} WHERE status = 0";
         $totalResult = $this->db->query($totalQuery);
         $totalRecords = $totalResult->fetch_assoc()['total'];
-        
+
         // Search filter
         $searchQuery = "";
         if ($searchValue != '') {
             $searchQuery = " AND (p.project_code LIKE '%{$searchValue}%' OR p.project_description LIKE '%{$searchValue}%' OR c.name LIKE '%{$searchValue}%')";
         }
-        
+        if ($companyId > 0) {
+            $searchQuery .= " AND p.company={$companyId}";
+        }
+        if ($projectCode !== '') {
+            $searchQuery .= " AND p.project_code LIKE '%{$projectCode}%'";
+        }
+        if ($projectDescription !== '') {
+            $searchQuery .= " AND p.project_description LIKE '%{$projectDescription}%'";
+        }
+
         // Filtered records
         $filteredQuery = "SELECT COUNT(*) as total FROM {$this->table} p LEFT JOIN Company c ON p.company = c.id WHERE p.status = 0 {$searchQuery}";
         $filteredResult = $this->db->query($filteredQuery);
@@ -60,13 +72,13 @@ class ProjectService extends BaseService {
         $projectDescription = isset($post['projectDescription']) ? trim($post['projectDescription']) : null;
         $companyId = isset($post['company']) && $post['company'] !== '' ? $post['company'] : null;
         
-        // Check duplicate
-        if ($this->isDuplicate('project_code', $projectCode)) {
+        // Check duplicate (scoped to the same company)
+        if ($this->isDuplicate('project_code', $projectCode, $companyId)) {
             throw new Exception('Project code already exists');
         }
-        
+
         $this->db->begin_transaction();
-        
+
         $stmt = $this->db->prepare("INSERT INTO {$this->table} (project_code, project_description, company, created_by) VALUES (?, ?, ?, ?)");
         if (!$stmt) {
             throw new Exception($this->db->error);
@@ -94,13 +106,13 @@ class ProjectService extends BaseService {
         $projectDescription = isset($post['projectDescription']) ? trim($post['projectDescription']) : null;
         $companyId = isset($post['company']) && $post['company'] !== '' ? $post['company'] : null;
         
-        // Check duplicate (exclude current record)
-        if ($this->isDuplicate('project_code', $projectCode, $id)) {
+        // Check duplicate (scoped to the same company, exclude current record)
+        if ($this->isDuplicate('project_code', $projectCode, $companyId, $id)) {
             throw new Exception('Project code already exists');
         }
-        
+
         $this->db->begin_transaction();
-        
+
         $stmt = $this->db->prepare("UPDATE {$this->table} SET project_code=?, project_description=?, company=?, modified_by=? WHERE id=?");
         if (!$stmt) {
             throw new Exception($this->db->error);
@@ -195,39 +207,28 @@ class ProjectService extends BaseService {
     /**
      * Upload projects from Excel
      */
-    public function upload($data) {
+    public function upload($data, $companyId) {
         if (empty($data)) {
             throw new Exception('No data provided');
         }
-        
+
         $errors = [];
         $successCount = 0;
-        
+
         foreach ($data as $index => $row) {
             $rowNum = $index + 1;
-            
+
             $projectCode = isset($row['ProjectCode']) ? trim($row['ProjectCode']) : null;
             $projectDescription = isset($row['ProjectDescription']) ? trim($row['ProjectDescription']) : null;
-            $companyName = isset($row['Company']) ? trim($row['Company']) : null;
-            $companyId = null;
-            
+
             // Validate required fields
             if (empty($projectCode)) {
                 $errors[] = "Row {$rowNum}: Project Code is required";
                 continue;
             }
-            
-            // Lookup company_id by name
-            if (!empty($companyName)) {
-                $companyId = searchCompanyIdByName($companyName, $this->db);
-                if (empty($companyId)) {
-                    $errors[] = "Row {$rowNum}: Company '{$companyName}' not found.";
-                    continue;
-                }
-            }
-            
-            // Check duplicate
-            if ($this->isDuplicate('project_code', $projectCode)) {
+
+            // Check duplicate (scoped to the same company)
+            if ($this->isDuplicate('project_code', $projectCode, $companyId)) {
                 $errors[] = "Row {$rowNum}: Project Code '{$projectCode}' already exists";
                 continue;
             }
@@ -247,18 +248,33 @@ class ProjectService extends BaseService {
         return ['errors' => $errors, 'successCount' => $successCount];
     }
     
+    public function getListByCompany($companyId) {
+        $stmt = $this->db->prepare("SELECT id, project_code, project_description FROM {$this->table} WHERE company = ? AND status = '0' ORDER BY project_code");
+        if (!$stmt) throw new Exception($this->db->error);
+        $stmt->bind_param('i', $companyId);
+        if (!$stmt->execute()) throw new Exception($stmt->error);
+        $result = $stmt->get_result();
+        $list = [];
+        while ($row = $result->fetch_assoc()) {
+            $list[] = $row;
+        }
+        $stmt->close();
+        return $list;
+    }
+
     /**
      * Check for duplicate value
      */
-    private function isDuplicate($column, $value, $excludeId = null) {
-        $query = "SELECT id FROM {$this->table} WHERE {$column} = ? AND status = 0";
+    private function isDuplicate($column, $value, $company, $excludeId = null) {
+        // Duplicate check is scoped to the same company (<=> is null-safe)
+        $query = "SELECT id FROM {$this->table} WHERE {$column} = ? AND company <=> ? AND status = 0";
         if ($excludeId) {
             $query .= " AND id != ?";
             $stmt = $this->db->prepare($query);
-            $stmt->bind_param('si', $value, $excludeId);
+            $stmt->bind_param('sii', $value, $company, $excludeId);
         } else {
             $stmt = $this->db->prepare($query);
-            $stmt->bind_param('s', $value);
+            $stmt->bind_param('si', $value, $company);
         }
         $stmt->execute();
         $result = $stmt->get_result();

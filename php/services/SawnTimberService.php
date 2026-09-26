@@ -28,17 +28,37 @@ class SawnTimberService extends BaseService {
             $dateTime = DateTime::createFromFormat('d-m-Y', $params['toDate']);
             $searchQuery .= " AND h.record_date <= '" . $dateTime->format('Y-m-d 23:59:59') . "'";
         }
-        if (!empty($params['company']) && $params['company'] != '-') {
-            $searchQuery .= " AND h.company_id = '" . mysqli_real_escape_string($this->db, $params['company']) . "'";
+        // Company filter — never trust frontend value for restricted users
+        if (hasModulePermission('Sawn Timber', 'Sawn Timber', ['view_all_companies'])) {
+            $companyFilter = (!empty($params['company']) && $params['company'] != '-') ? intval($params['company']) : 0;
+        } else {
+            $companyFilter = intval($_SESSION['company_id'] ?? 0);
         }
-        if (!empty($params['plant']) && $params['plant'] != '-') {
-            $searchQuery .= " AND h.plant_id = '" . mysqli_real_escape_string($this->db, $params['plant']) . "'";
+        if ($companyFilter > 0) {
+            $searchQuery .= " AND h.company_id = {$companyFilter}";
+        }
+        // Plant filter — restricted users are locked to the login-selected plant, otherwise to their tied plants
+        $plantFilter = (!empty($params['plant']) && $params['plant'] != '-') ? intval($params['plant']) : 0;
+        if (!hasModulePermission('Sawn Timber', 'Sawn Timber', ['view_all_plants'])) {
+            if (!empty($_SESSION['selected_plant_id'])) {
+                $plantFilter = intval($_SESSION['selected_plant_id']);
+            } else {
+                $tiedPlants = array_map(function($code) {
+                    return "'" . mysqli_real_escape_string($this->db, $code) . "'";
+                }, (array) ($_SESSION['plant'] ?? []));
+                $searchQuery .= empty($tiedPlants)
+                    ? " AND 1=0"
+                    : " AND h.plant_id IN (SELECT id FROM Plant WHERE plant_code IN (" . implode(',', $tiedPlants) . "))";
+            }
+        }
+        if ($plantFilter > 0) {
+            $searchQuery .= " AND h.plant_id = {$plantFilter}";
         }
         if (!empty($params['transactionId'])) {
             $searchQuery .= " AND w.transaction_id LIKE '%" . mysqli_real_escape_string($this->db, $params['transactionId']) . "%'";
         }
         if ($searchValue != '') {
-            $searchQuery = " AND (w.transaction_id LIKE '%" . $searchValue . "%' OR w.lorry_plate_no1 LIKE '%" . $searchValue . "%')";
+            $searchQuery .= " AND (w.transaction_id LIKE '%" . $searchValue . "%' OR w.lorry_plate_no1 LIKE '%" . $searchValue . "%')";
         }
 
         // Total records
@@ -159,8 +179,42 @@ class SawnTimberService extends BaseService {
     }
 
     // ─── Get Weighing Transactions ───────────────────────────────────────────────
-    public function getWeighingTransactions() {
-        $sql = "SELECT w.id, w.transaction_id, w.transaction_status, 
+    public function getWeighingTransactions($companyId = null, $plantId = null) {
+        $where = '';
+        $types = '';
+        $params = [];
+
+        // Never trust frontend company for restricted users
+        if (!hasModulePermission('Sawn Timber', 'Sawn Timber', ['view_all_companies'])) {
+            $companyId = $_SESSION['company_id'] ?? 0;
+        }
+        if (intval($companyId) > 0) {
+            $where .= " AND w.company_id = ?";
+            $types .= 'i';
+            $params[] = intval($companyId);
+        }
+
+        // Restricted users: locked to the login-selected plant, otherwise to their tied plants
+        if (!hasModulePermission('Sawn Timber', 'Sawn Timber', ['view_all_plants'])) {
+            if (!empty($_SESSION['selected_plant_id'])) {
+                $plantId = $_SESSION['selected_plant_id'];
+            } else {
+                $tiedPlants = (array) ($_SESSION['plant'] ?? []);
+                if (empty($tiedPlants)) {
+                    return [];
+                }
+                $where .= " AND w.plant_code IN (" . implode(',', array_fill(0, count($tiedPlants), '?')) . ")";
+                $types .= str_repeat('s', count($tiedPlants));
+                $params = array_merge($params, array_values($tiedPlants));
+            }
+        }
+        if (intval($plantId) > 0) {
+            $where .= " AND pl.id = ?";
+            $types .= 'i';
+            $params[] = intval($plantId);
+        }
+
+        $sql = "SELECT w.id, w.transaction_id, w.transaction_status,
             w.customer_code, w.customer_name, w.supplier_code, w.supplier_name,
             w.destination, w.lorry_plate_no1, w.delivery_no, w.transaction_date,
             w.company_id, c.name AS company_name, w.plant_code, w.plant_name, pl.id AS plant_id
@@ -169,17 +223,23 @@ class SawnTimberService extends BaseService {
             LEFT JOIN Product_Categories pc ON p.category = pc.id
             LEFT JOIN Company c ON w.company_id = c.id
             LEFT JOIN Plant pl ON w.plant_code = pl.plant_code
-            WHERE pc.category_name = 'Sawn Timber'
+            WHERE pc.is_sawn_timber = 'Y'
             AND w.status = 0
             AND w.is_complete = 'Y'
             AND w.synced = 'N'
             AND NOT EXISTS (
                 SELECT 1 FROM Sawn_Timber_Header sth 
                 WHERE sth.weight_id = w.id AND sth.status = '0'
-            )
+            )" . $where . "
             ORDER BY w.transaction_date DESC";
 
-        $result = $this->db->query($sql);
+        $stmt = $this->db->prepare($sql);
+        if (!$stmt) throw new Exception('Failed to load weighing transactions');
+        if ($types !== '') {
+            $stmt->bind_param($types, ...$params);
+        }
+        if (!$stmt->execute()) throw new Exception('Failed to load weighing transactions');
+        $result = $stmt->get_result();
         $data = [];
 
         while ($row = $result->fetch_assoc()) {
@@ -201,6 +261,7 @@ class SawnTimberService extends BaseService {
                 'plant_display' => $row['plant_code'] . ' - ' . $row['plant_name']
             ];
         }
+        $stmt->close();
 
         return $data;
     }
@@ -208,7 +269,9 @@ class SawnTimberService extends BaseService {
     // ─── Save (Create/Update) ────────────────────────────────────────────────────
     public function save($data) {
         $id = $data['id'] ?? null;
-        $companyId = $data['companyId'] ?? null;
+        $companyId = hasModulePermission('Sawn Timber', 'Sawn Timber', ['view_all_companies'])
+            ? ($data['companyId'] ?? null)
+            : ($_SESSION['company_id'] ?? null);
         $plantId = $data['plantId'] ?? null;
         $weightId = $data['weightId'] ?? null;
         $transactionId = $data['transactionId'] ?? null;
@@ -355,15 +418,37 @@ class SawnTimberService extends BaseService {
             }
         }
 
-        if (!empty($params['company']) && $params['company'] != '-') {
+        // Company filter — never trust frontend value for restricted users
+        if (hasModulePermission('Sawn Timber', 'Sawn Timber', ['view_all_companies'])) {
+            $companyFilter = (!empty($params['company']) && $params['company'] != '-') ? intval($params['company']) : 0;
+        } else {
+            $companyFilter = intval($_SESSION['company_id'] ?? 0);
+        }
+        if ($companyFilter > 0) {
             $where .= " AND h.company_id = ?";
-            $bindParams[] = $params['company'];
+            $bindParams[] = $companyFilter;
             $types .= 'i';
         }
 
-        if (!empty($params['plant']) && $params['plant'] != '-') {
+        // Plant filter — restricted users are locked to the login-selected plant, otherwise to their tied plants
+        $plantFilter = (!empty($params['plant']) && $params['plant'] != '-') ? intval($params['plant']) : 0;
+        if (!hasModulePermission('Sawn Timber', 'Sawn Timber', ['view_all_plants'])) {
+            if (!empty($_SESSION['selected_plant_id'])) {
+                $plantFilter = intval($_SESSION['selected_plant_id']);
+            } else {
+                $tiedPlants = array_values((array) ($_SESSION['plant'] ?? []));
+                if (empty($tiedPlants)) {
+                    $where .= " AND 1=0";
+                } else {
+                    $where .= " AND h.plant_id IN (SELECT id FROM Plant WHERE plant_code IN (" . implode(',', array_fill(0, count($tiedPlants), '?')) . "))";
+                    $bindParams = array_merge($bindParams, $tiedPlants);
+                    $types .= str_repeat('s', count($tiedPlants));
+                }
+            }
+        }
+        if ($plantFilter > 0) {
             $where .= " AND h.plant_id = ?";
-            $bindParams[] = $params['plant'];
+            $bindParams[] = $plantFilter;
             $types .= 'i';
         }
 

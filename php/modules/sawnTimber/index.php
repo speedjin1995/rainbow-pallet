@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once __DIR__ . '/../../db_connect.php';
+require_once __DIR__ . '/../../requires/permissions.php';
 require_once __DIR__ . '/../../classes/SawnTimberController.php';
 
 if (!isset($_SESSION['id'])) {

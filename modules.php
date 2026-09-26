@@ -214,7 +214,7 @@ $(function () {
         'serverSide': true,
         'serverMethod': 'post',
         'order': [[2, 'asc']],
-        'ajax': { 'url': 'php/modules/modules/loadModules.php' },
+        'ajax': { 'url': 'php/modules/modules/index.php?action=getAll' },
         'columns': [
             {
                 data: 'id',
@@ -271,7 +271,7 @@ $(function () {
     $('#insertDefaultModules').on('click', function() {
         if (!confirm('Insert default modules? Existing ones will be skipped.')) return;
         $('#spinnerLoading').show();
-        $.post('php/modules/modules/insertDefaultModules.php', function(data) {
+        $.post('php/modules/modules/index.php', {action: 'insertDefaults'}, function(data) {
             var obj = JSON.parse(data);
             $('#spinnerLoading').hide();
             table.ajax.reload();
@@ -316,7 +316,7 @@ $(function () {
 
         if ($('#moduleForm').valid()) {
             $('#spinnerLoading').show();
-            $.post('php/modules/modules/modules.php', $('#moduleForm').serialize(), function(data) {
+            $.post('php/modules/modules/index.php', $('#moduleForm').serialize() + '&action=' + ($('#moduleForm').find('#moduleId').val() ? 'update' : 'create'), function(data) {
                 var obj = JSON.parse(data);
                 if (obj.status === 'success') {
                     table.ajax.reload();
@@ -340,7 +340,7 @@ $(function () {
 
         if (selectedIds.length > 0) {
             if (confirm('Are you sure you want to delete these modules?')) {
-                $.post('php/modules/modules/deleteModule.php', { moduleID: selectedIds, type: 'MULTI' }, function(data) {
+                $.post('php/modules/modules/index.php', { action: 'delete', moduleID: selectedIds, type: 'MULTI' }, function(data) {
                     var obj = JSON.parse(data);
                     if (obj.status === 'success') {
                         table.ajax.reload();
@@ -362,7 +362,7 @@ $(function () {
 
 function edit(id) {
     $('#spinnerLoading').show();
-    $.post('php/modules/modules/getModule.php', { id: id }, function(data) {
+    $.post('php/modules/modules/index.php', { action: 'get', id: id }, function(data) {
         var obj = JSON.parse(data);
         if (obj.status === 'success') {
             $('#addModal').find('#moduleId').val(obj.message.id);
@@ -382,7 +382,7 @@ function edit(id) {
 function deactivate(id) {
     if (confirm('Are you sure you want to delete this module?')) {
         $('#spinnerLoading').show();
-        $.post('php/modules/modules/deleteModule.php', { moduleID: id }, function(data) {
+        $.post('php/modules/modules/index.php', { action: 'delete', moduleID: id }, function(data) {
             var obj = JSON.parse(data);
             if (obj.status === 'success') {
                 table.ajax.reload();
