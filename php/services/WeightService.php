@@ -356,7 +356,7 @@ class WeightService extends BaseService {
             $q .= " AND plant_code IN ('{$plants}')";
         }
         if ($search !== '') {
-            $q = " AND (transaction_id LIKE '%{$search}%' OR lorry_plate_no1 LIKE '%{$search}%' OR container_no LIKE '%{$search}%')";
+            $q .= " AND (transaction_id LIKE '%{$search}%' OR lorry_plate_no1 LIKE '%{$search}%' OR container_no LIKE '%{$search}%')";
         }
 
         $totalRes = $this->db->query("SELECT COUNT(*) as c FROM Weight_Container WHERE status='0'");

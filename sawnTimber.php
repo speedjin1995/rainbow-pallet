@@ -38,17 +38,6 @@ else{
     $plant = $db->query("SELECT * FROM Plant WHERE status = '0'");
     $plant2 = $db->query("SELECT * FROM Plant WHERE status = '0'");
 }
-
-// Nudge if the active company has no Product Category flagged for Sawn Timber
-$missingSawnTimberCategory = false;
-$activeCompanyId = $_SESSION['company_id'] ?? null;
-if ($activeCompanyId) {
-    $catCheckStmt = $db->prepare("SELECT id FROM Product_Categories WHERE company = ? AND is_sawn_timber = 'Y' AND status = '0'");
-    $catCheckStmt->bind_param('i', $activeCompanyId);
-    $catCheckStmt->execute();
-    $missingSawnTimberCategory = $catCheckStmt->get_result()->num_rows === 0;
-    $catCheckStmt->close();
-}
 ?>
 
 <head>
@@ -128,12 +117,6 @@ if ($activeCompanyId) {
                 <div class="row">
                     <div class="col">
                         <div class="h-100">
-                            <?php if ($missingSawnTimberCategory): ?>
-                            <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                                <?=$languageArray['sawn_timber_category_missing_code'][$language] ?? 'No Product Category is flagged for Sawn Timber for this company, so no weighings will show up below. Set it up in Product Categories (tick "Sawn Timber" in Transaction Status).'?>
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>
-                            <?php endif; ?>
                             <div class="col-xxl-12 col-lg-12">
                                 <div class="card">
                                     <div class="card-header fs-5 text-white" href="#collapseSearch" data-bs-toggle="collapse" role="button" aria-expanded="true" aria-controls="collapseSearch" style="background-color: #405189;">
@@ -462,9 +445,9 @@ if ($activeCompanyId) {
                                                                 <tr>
                                                                     <th><input type="checkbox" id="selectAllCheckbox" class="selectAllCheckbox"></th>
                                                                     <th><?=$languageArray['record_date_code'][$language]?></th>
-                                                                    <th><?=$languageArray['transaction_id_code'][$language]?></th>
                                                                     <th><?=$languageArray['company_code'][$language]?></th>
                                                                     <th><?=$languageArray['plant_code'][$language]?></th>
+                                                                    <th><?=$languageArray['transaction_id_code'][$language]?></th>
                                                                     <th><?=$languageArray['customer_code'][$language]?> / <?=$languageArray['supplier_code'][$language]?></th>
                                                                     <th><?=$languageArray['total_pcs_code'][$language]?></th>
                                                                     <th><?=$languageArray['total_tons_code'][$language]?></th>
@@ -995,9 +978,9 @@ if ($activeCompanyId) {
                     }
                 },
                 { data: 'record_date' },
-                { data: 'transaction_id' },
                 { data: 'company' },
                 { data: 'plant' },
+                { data: 'transaction_id' },
                 { data: 'customer_supplier' },
                 { data: 'total_pieces' },
                 { data: 'total_tons' },

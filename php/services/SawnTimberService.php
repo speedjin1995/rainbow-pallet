@@ -37,14 +37,28 @@ class SawnTimberService extends BaseService {
         if ($companyFilter > 0) {
             $searchQuery .= " AND h.company_id = {$companyFilter}";
         }
-        if (!empty($params['plant']) && $params['plant'] != '-') {
-            $searchQuery .= " AND h.plant_id = '" . mysqli_real_escape_string($this->db, $params['plant']) . "'";
+        // Plant filter — restricted users are locked to the login-selected plant, otherwise to their tied plants
+        $plantFilter = (!empty($params['plant']) && $params['plant'] != '-') ? intval($params['plant']) : 0;
+        if (!hasModulePermission('Sawn Timber', 'Sawn Timber', ['view_all_plants'])) {
+            if (!empty($_SESSION['selected_plant_id'])) {
+                $plantFilter = intval($_SESSION['selected_plant_id']);
+            } else {
+                $tiedPlants = array_map(function($code) {
+                    return "'" . mysqli_real_escape_string($this->db, $code) . "'";
+                }, (array) ($_SESSION['plant'] ?? []));
+                $searchQuery .= empty($tiedPlants)
+                    ? " AND 1=0"
+                    : " AND h.plant_id IN (SELECT id FROM Plant WHERE plant_code IN (" . implode(',', $tiedPlants) . "))";
+            }
+        }
+        if ($plantFilter > 0) {
+            $searchQuery .= " AND h.plant_id = {$plantFilter}";
         }
         if (!empty($params['transactionId'])) {
             $searchQuery .= " AND w.transaction_id LIKE '%" . mysqli_real_escape_string($this->db, $params['transactionId']) . "%'";
         }
         if ($searchValue != '') {
-            $searchQuery = " AND (w.transaction_id LIKE '%" . $searchValue . "%' OR w.lorry_plate_no1 LIKE '%" . $searchValue . "%')";
+            $searchQuery .= " AND (w.transaction_id LIKE '%" . $searchValue . "%' OR w.lorry_plate_no1 LIKE '%" . $searchValue . "%')";
         }
 
         // Total records
@@ -404,15 +418,37 @@ class SawnTimberService extends BaseService {
             }
         }
 
-        if (!empty($params['company']) && $params['company'] != '-') {
+        // Company filter — never trust frontend value for restricted users
+        if (hasModulePermission('Sawn Timber', 'Sawn Timber', ['view_all_companies'])) {
+            $companyFilter = (!empty($params['company']) && $params['company'] != '-') ? intval($params['company']) : 0;
+        } else {
+            $companyFilter = intval($_SESSION['company_id'] ?? 0);
+        }
+        if ($companyFilter > 0) {
             $where .= " AND h.company_id = ?";
-            $bindParams[] = $params['company'];
+            $bindParams[] = $companyFilter;
             $types .= 'i';
         }
 
-        if (!empty($params['plant']) && $params['plant'] != '-') {
+        // Plant filter — restricted users are locked to the login-selected plant, otherwise to their tied plants
+        $plantFilter = (!empty($params['plant']) && $params['plant'] != '-') ? intval($params['plant']) : 0;
+        if (!hasModulePermission('Sawn Timber', 'Sawn Timber', ['view_all_plants'])) {
+            if (!empty($_SESSION['selected_plant_id'])) {
+                $plantFilter = intval($_SESSION['selected_plant_id']);
+            } else {
+                $tiedPlants = array_values((array) ($_SESSION['plant'] ?? []));
+                if (empty($tiedPlants)) {
+                    $where .= " AND 1=0";
+                } else {
+                    $where .= " AND h.plant_id IN (SELECT id FROM Plant WHERE plant_code IN (" . implode(',', array_fill(0, count($tiedPlants), '?')) . "))";
+                    $bindParams = array_merge($bindParams, $tiedPlants);
+                    $types .= str_repeat('s', count($tiedPlants));
+                }
+            }
+        }
+        if ($plantFilter > 0) {
             $where .= " AND h.plant_id = ?";
-            $bindParams[] = $params['plant'];
+            $bindParams[] = $plantFilter;
             $types .= 'i';
         }
 
