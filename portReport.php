@@ -4,31 +4,42 @@
 <?php
 require_once "php/requires/lookup.php";
 
-$plantId = $_SESSION['plant'];
-$selectedPlantId = $_SESSION['selected_plant_id'] ?? null;
+$companyId = $_SESSION['company_id'];
+$selectedPlantId = intval($_SESSION['selected_plant_id'] ?? 0);
 
-$company = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
-$customer = $db->query("SELECT * FROM Customer WHERE status = '0' ORDER BY name ASC");
-$product = $db->query("SELECT p.*, IFNULL(c.is_sales, 'Y') as is_sales, IFNULL(c.is_purchase, 'Y') as is_purchase, IFNULL(c.is_local, 'Y') as is_local, IFNULL(c.is_port, 'Y') as is_port, IFNULL(c.is_misc, 'Y') as is_misc FROM Product p LEFT JOIN Product_Categories c ON p.category = c.id WHERE p.status = '0' ORDER BY p.name ASC");
+$selectedCompanyId = intval($companyId);
+if (!hasModulePermission('Reports', 'Port', ['view_all_companies'])) {
+    $company_ids = implode(',', array_map('intval', $_SESSION['company_ids']));
+    $company = $db->query("SELECT * FROM Company WHERE status = 0 AND id IN ($company_ids) ORDER BY name");
+} else {
+    $company = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
+}
+$customer = $db->query("SELECT * FROM Customer WHERE status = '0' AND company IN ($selectedCompanyId) ORDER BY name ASC");
+$product = $db->query("SELECT p.*, IFNULL(c.is_sales, 'Y') as is_sales, IFNULL(c.is_purchase, 'Y') as is_purchase, IFNULL(c.is_local, 'Y') as is_local, IFNULL(c.is_port, 'Y') as is_port, IFNULL(c.is_misc, 'Y') as is_misc FROM Product p LEFT JOIN Product_Categories c ON p.category = c.id WHERE p.status = '0' AND p.company IN ($selectedCompanyId) ORDER BY p.name ASC");
+$destination = $db->query("SELECT * FROM Destination WHERE status = '0' AND company = $selectedCompanyId ORDER BY name ASC");
 $transporter = $db->query("SELECT * FROM Transporter WHERE status = '0'");
-$destination = $db->query("SELECT * FROM Destination WHERE status = '0'");
 
 $plantName = '-';
 $plantCode = '-';
-if($_SESSION["roles"] != 'ADMIN' && $_SESSION["roles"] != 'SADMIN'){
-    $plant = searchPlantById($selectedPlantId, $db);
+if (!hasModulePermission('Reports', 'Port', ['view_all_plants'])) {
+    if (!empty($selectedPlantId)){
+        // Locked to the plant selected at login - backend restricts "-" to this plant only
+        $plant = searchPlantById($selectedPlantId, $db);
+    }else{
+        // No plant selected - list every plant the user is tied to
+        $plant = searchPlantsByIds($plantId ?? [], $db);
+    }
 
-    $stmt2 = $db->prepare("SELECT * from Plant WHERE id = ?");
-    $stmt2->bind_param('s', $selectedPlantId);
+    $stmt2 = $db->prepare("SELECT * FROM Plant WHERE id = ? AND status = '0'");
+    $stmt2->bind_param('i', $selectedPlantId);
     $stmt2->execute();
     $result2 = $stmt2->get_result();
-        
-    if(($row2 = $result2->fetch_assoc()) !== null){
+    if (($row2 = $result2->fetch_assoc()) !== null) {
         $plantName = $row2['name'];
         $plantCode = $row2['plant_code'];
     }
-}
-else{
+    $stmt2->close();
+} else {
     $plant = $db->query("SELECT * FROM Plant WHERE status = '0'");
 }
 ?>
@@ -118,13 +129,13 @@ else{
                                                             </select>
                                                         </div>
                                                     </div><!--end col-->
-                                                    <div class="col-3">
+                                                    <div class="col-3" <?= !hasModulePermission('Reports', 'Port', ['view_all_companies']) ? "style='display:none'" : '' ?>>
                                                         <div class="mb-3">
                                                             <label for="companySearch" class="form-label"><?=$languageArray['company_code'][$language]?></label>
                                                             <select id="companySearch" class="form-select select2">
-                                                                <option selected>-</option>
+                                                                <option>-</option>
                                                                 <?php while($rowCompany = mysqli_fetch_assoc($company)){ ?>
-                                                                    <option value="<?=$rowCompany['id'] ?>"><?=$rowCompany['name'] ?></option>
+                                                                    <option value="<?=$rowCompany['id'] ?>" <?=($rowCompany['id'] == $companyId) ? 'selected' : ''?>><?=$rowCompany['name'] ?></option>
                                                                 <?php } ?>
                                                             </select>
                                                         </div>
@@ -152,7 +163,8 @@ else{
                                                             <select id="invoiceNoSearch" class="form-select select2">
                                                                 <option selected>-</option>
                                                                 <option value="Normal"><?=$languageArray['normal_weighing_code'][$language]?></option>
-                                                                <!-- <option value="Container">Primer Mover</option> -->
+                                                                <option value="Container"><?=$languageArray['primer_mover_code'][$language]?></option>
+                                                                <option value="Different Container"><?=$languageArray['primer_mover_different_bins_code'][$language]?></option>
                                                             </select>
                                                         </div>
                                                     </div><!--end col-->                                               
@@ -543,7 +555,7 @@ else{
             fromDateSearchPicker.setDate(yesterday);
             toDateSearchPicker.setDate(today);
             $('#transactionStatusSearch').val('Port').trigger('change');
-            $('#companySearch').val('-').trigger('change');
+            $('#companySearch').val('<?=$companyId?>').trigger('change');
             $('#customerNoSearch').val('-').trigger('change');
             $('#vehicleNo').val('');
             $('#invoiceNoSearch').val('-').trigger('change');
@@ -572,7 +584,7 @@ else{
             e.preventDefault();
             $('#exportPdfModal').modal('hide');
 
-            $.post('php/exportPdf.php', $(this).serialize(), function(response){
+            $.post('php/modules/report/index.php?action=exportPdf', $(this).serialize(), function(response){
                 var obj = JSON.parse(response);
 
                 if(obj.status === 'success'){
@@ -661,7 +673,7 @@ else{
             });
 
             var isMulti = selectedIds.length > 0 ? 'Y' : 'N';
-            var url = "php/export.php?file=weight&fromDate="+encodeURIComponent(fromDateI)+"&toDate="+encodeURIComponent(toDateI)+
+            var url = "php/modules/report/index.php?action=exportExcel&file=weight&fromDate="+encodeURIComponent(fromDateI)+"&toDate="+encodeURIComponent(toDateI)+
                 "&transactionStatus="+encodeURIComponent(transactionStatusI)+"&customer="+encodeURIComponent(customerNoI)+"&supplier="+encodeURIComponent(supplierNoI)+"&vehicle="+encodeURIComponent(vehicleNoI)+
                 "&weighingType="+encodeURIComponent(weightTypeI)+"&product="+encodeURIComponent(productI)+"&rawMat="+encodeURIComponent(rawMatI)+
                 "&destination="+encodeURIComponent(destinationI)+"&plant="+encodeURIComponent(plantI)+"&status="+encodeURIComponent(statusI)+
@@ -701,7 +713,7 @@ else{
                 ids: selectedIds.join(',')
             };
 
-            $.post('php/exportPdf.php', params, function(response){
+            $.post('php/modules/report/index.php?action=exportPdf', params, function(response){
                 var obj = JSON.parse(response);
                 if(obj.status === 'success'){
                     var printWindow = window.open('', '', 'height=' + screen.height + ',width=' + screen.width);
@@ -726,7 +738,7 @@ else{
                 if (this.checked) selectedIds.push($(this).val());
             });
 
-            var url = "php/export.php?file=weight" +
+            var url = "php/modules/report/index.php?action=exportExcel&file=weight" +
                 "&fromDate=" + encodeURIComponent($('#fromDateSearch').val()) +
                 "&toDate=" + encodeURIComponent($('#toDateSearch').val()) +
                 "&transactionStatus=" + encodeURIComponent($('#transactionStatusSearch').val() || '') +
@@ -784,7 +796,62 @@ else{
         });
 
         filterDropdownByTransactionStatus('#productSearch', 'allProductOptions', 'Port');
+
+        $('#companySearch').on('change', function() {
+            var companyId = $(this).val();
+            loadCustomersByCompany(companyId);
+            loadProductsByCompany(companyId);
+            loadDestinationsByCompany(companyId);
+        });
     });
+
+    function loadCustomersByCompany(companyId) {
+        $.post('php/modules/customer/index.php', { action: 'list', company: companyId }, function(data) {
+            var obj = JSON.parse(data);
+            var $sel = $('#customerNoSearch');
+            $sel.empty().append('<option selected>-</option>');
+            if (obj.status === 'success') {
+                $.each(obj.data, function(i, item) {
+                    $sel.append('<option value="' + item.customer_code + '">' + item.name + '</option>');
+                });
+            }
+            $sel.val('-').trigger('change');
+        });
+    }
+
+    function loadProductsByCompany(companyId) {
+        $.post('php/modules/item/index.php', { action: 'list', company: companyId }, function(data) {
+            var obj = JSON.parse(data);
+            var $sel = $('#productSearch');
+            $sel.empty().append('<option selected>-</option>');
+            if (obj.status === 'success') {
+                $.each(obj.data, function(i, item) {
+                    $sel.append('<option value="' + item.product_code + '"'
+                        + ' data-is-sales="' + item.is_sales + '"'
+                        + ' data-is-purchase="' + item.is_purchase + '"'
+                        + ' data-is-port="' + item.is_port + '"'
+                        + ' data-is-misc="' + item.is_misc + '">'
+                        + item.name + '</option>');
+                });
+            }
+            allProductOptions = null;
+            filterDropdownByTransactionStatus('#productSearch', 'allProductOptions', 'Port');
+        });
+    }
+
+    function loadDestinationsByCompany(companyId) {
+        $.post('php/modules/destination/index.php', { action: 'list', company: companyId }, function(data) {
+            var obj = JSON.parse(data);
+            var $sel = $('#destinationSearch');
+            $sel.empty().append('<option selected>-</option>');
+            if (obj.status === 'success') {
+                $.each(obj.data, function(i, item) {
+                    $sel.append('<option value="' + item.name + '" data-code="' + item.destination_code + '">' + item.name + '</option>');
+                });
+            }
+            $sel.val('-').trigger('change');
+        });
+    }
 
     // Filter dropdown options based on transaction status
     function filterDropdownByTransactionStatus(selector, allOptionsVar, status) {
@@ -842,7 +909,7 @@ else{
             'searching': true,
             'serverMethod': 'post',
             'ajax': {
-                'url': 'php/filterReports.php',
+                'url': 'php/modules/report/index.php?action=filter',
                 'data': {
                     fromDate: fromDateI,
                     toDate: toDateI,

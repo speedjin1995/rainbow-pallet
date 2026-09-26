@@ -543,7 +543,7 @@ else{
             e.preventDefault();
             $('#exportPdfModal').modal('hide');
 
-            $.post('php/exportPdf.php', $(this).serialize(), function(response){
+            $.post('php/modules/report/index.php?action=exportPdf', $(this).serialize(), function(response){
                 var obj = JSON.parse(response);
 
                 if(obj.status === 'success'){
@@ -636,12 +636,12 @@ else{
             });
 
             if (selectedIds.length > 0) {
-                window.open("php/export.php?file=weight&fromDate="+encodeURIComponent(fromDateI)+"&toDate="+encodeURIComponent(toDateI)+
+                window.open("php/modules/report/index.php?action=exportExcel&file=weight&fromDate="+encodeURIComponent(fromDateI)+"&toDate="+encodeURIComponent(toDateI)+
                 "&transactionStatus="+encodeURIComponent(transactionStatusI)+"&customer="+encodeURIComponent(customerNoI)+"&supplier="+encodeURIComponent(supplierNoI)+"&vehicle="+encodeURIComponent(vehicleNoI)+
                 "&weighingType="+encodeURIComponent(weightTypeI)+"&product="+encodeURIComponent(productI)+"&rawMat="+encodeURIComponent(rawMatI)+
                 "&destination="+encodeURIComponent(destinationI)+"&plant="+encodeURIComponent(plantI)+"&status="+encodeURIComponent(statusI)+"&isMulti=Y&ids="+encodeURIComponent(selectedIds));
             } else {
-                window.open("php/export.php?file=weight&fromDate="+encodeURIComponent(fromDateI)+"&toDate="+encodeURIComponent(toDateI)+
+                window.open("php/modules/report/index.php?action=exportExcel&file=weight&fromDate="+encodeURIComponent(fromDateI)+"&toDate="+encodeURIComponent(toDateI)+
                 "&transactionStatus="+encodeURIComponent(transactionStatusI)+"&customer="+encodeURIComponent(customerNoI)+"&supplier="+encodeURIComponent(supplierNoI)+"&vehicle="+encodeURIComponent(vehicleNoI)+
                 "&weighingType="+encodeURIComponent(weightTypeI)+"&product="+encodeURIComponent(productI)+"&rawMat="+encodeURIComponent(rawMatI)+
                 "&destination="+encodeURIComponent(destinationI)+"&plant="+encodeURIComponent(plantI)+"&status="+encodeURIComponent(statusI)+"&isMulti=N");
@@ -730,7 +730,7 @@ else{
             'searching': true,
             'serverMethod': 'post',
             'ajax': {
-                'url': 'php/filterReports.php',
+                'url': 'php/modules/report/index.php?action=filter',
                 'data': {
                     fromDate: fromDateI,
                     toDate: toDateI,
