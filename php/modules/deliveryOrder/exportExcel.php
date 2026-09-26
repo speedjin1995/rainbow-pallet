@@ -26,8 +26,15 @@ if($_GET['toDate'] != null && $_GET['toDate'] != ''){
     $searchQuery .= " and transaction_date <= '".$toDateTime."'";
 }
 
-if($_GET['company'] != null && $_GET['company'] != '' && $_GET['company'] != '-'){
-	$searchQuery .= " and company_id = '".$_GET['company']."'";
+// Determine company on the backend - never trust frontend value for restricted users
+if (hasModulePermission('Accounting', 'Delivery Order', ['view_all_companies'])) {
+	$companyFilter = (!empty($_GET['company']) && $_GET['company'] != '-') ? intval($_GET['company']) : 0;
+} else {
+	$companyFilter = intval($_SESSION['company_id'] ?? 0);
+}
+
+if($companyFilter > 0){
+	$searchQuery .= " and company_id = '".$companyFilter."'";
 }
 
 if($_GET['customer'] != null && $_GET['customer'] != '' && $_GET['customer'] != '-'){

@@ -25,8 +25,15 @@ if($_GET['toDate'] != null && $_GET['toDate'] != ''){
     $searchQuery .= " and transaction_date <= '".$toDateTime."'";
 }
 
-if($_GET['company'] != null && $_GET['company'] != '' && $_GET['company'] != '-'){
-	$searchQuery .= " and company_id = '".$_GET['company']."'";
+// Determine company on the backend - never trust frontend value for restricted users
+if (hasModulePermission('Accounting', 'Goods Received', ['view_all_companies'])) {
+	$companyFilter = (!empty($_GET['company']) && $_GET['company'] != '-') ? intval($_GET['company']) : 0;
+} else {
+	$companyFilter = intval($_SESSION['company_id'] ?? 0);
+}
+
+if($companyFilter > 0){
+	$searchQuery .= " and company_id = '".$companyFilter."'";
 }
 
 if($_GET['supplier'] != null && $_GET['supplier'] != '' && $_GET['supplier'] != '-'){
@@ -71,7 +78,7 @@ if ($isMulti == 'N'){
     // Fetch records from database
     $query = "select * from Weight where is_complete = 'Y' AND is_cancel <> 'Y'".$searchQuery." group by company_id, plant_code, raw_mat_code, supplier_code order by id asc";
     
-    if (!hasModulePermission('Accounting', 'Goods Received', ['view_all_plant'])){
+    if (!hasModulePermission('Accounting', 'Goods Received', ['view_all_plants'])){
         $username = implode("', '", $_SESSION["plant"]);
         $query = "select * from Weight where is_complete = 'Y' AND  is_cancel <> 'Y' and plant_code IN ('$username')".$searchQuery." group by company_id, plant_code, raw_mat_code, supplier_code order by id asc";
     }

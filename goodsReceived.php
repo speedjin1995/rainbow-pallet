@@ -11,7 +11,14 @@ if (!hasModulePermission('Accounting', 'Goods Received', ['view'])){
 $plantId = $_SESSION['plant'];
 $selectedPlantId = $_SESSION['selected_plant_id'] ?? null;
 
-$company = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
+$companyId = $_SESSION['company_id'];
+if (!hasModulePermission('Accounting', 'Goods Received', ['view_all_companies'])){
+    // Get companies
+    $company_ids = implode(',', array_map('intval', $_SESSION['company_ids']));
+    $company = $db->query("SELECT * FROM Company WHERE status = 0 AND id IN ($company_ids) ORDER BY name");
+}else{
+    $company = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
+}
 $vehicles = $db->query("SELECT DISTINCT veh_number FROM Vehicle WHERE status = '0' ORDER BY veh_number ASC");
 $vehicles2 = $db->query("SELECT * FROM Vehicle WHERE status = '0' ORDER BY veh_number ASC");
 $supplier = $db->query("SELECT * FROM Supplier WHERE status = '0' ORDER BY name ASC");
@@ -117,12 +124,12 @@ else{
                                                             <input type="date" class="form-control" data-provider="flatpickr" id="toDateSearch">
                                                         </div>
                                                     </div><!--end col-->
-                                                    <div class="col-3">
+                                                    <div class="col-3" <?= !hasModulePermission('Accounting', 'Goods Received', ['view_all_companies']) ? "style='display:none'" : '' ?>>
                                                         <div class="mb-3">
                                                             <label for="companySearch" class="form-label"><?=$languageArray['company_code'][$language]?></label>
                                                             <select class="form-select select2" id="companySearch" name="companySearch" required>
                                                                 <?php while($rowCompany=mysqli_fetch_assoc($company)){ ?>
-                                                                    <option value="<?=$rowCompany['id'] ?>" <?=$rowCompany['id'] == 1 ? 'selected' : ''?>><?=$rowCompany['name'] ?></option>
+                                                                    <option value="<?=$rowCompany['id'] ?>" <?=($rowCompany['id'] == $companyId) ? 'selected' : ''?>><?=$rowCompany['name'] ?></option>
                                                                 <?php } ?>
                                                             </select>           
                                                         </div>

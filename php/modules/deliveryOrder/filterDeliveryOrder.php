@@ -3,7 +3,7 @@
 session_start();
 require_once '../../db_connect.php';
 require_once '../../requires/lookup.php';
-// require_once '../../requires/permissions.php';
+require_once '../../requires/permissions.php';
 
 ## Read value
 $draw = $_POST['draw'];
@@ -29,8 +29,15 @@ if($_POST['toDate'] != null && $_POST['toDate'] != ''){
 	$searchQuery .= " and transaction_date <= '".$toDateTime."'";
 }
 
-if($_POST['company'] != null && $_POST['company'] != '' && $_POST['company'] != '-'){
-	$searchQuery .= " and company_id = '".$_POST['company']."'";
+// Determine company on the backend - never trust frontend value for restricted users
+if (hasModulePermission('Accounting', 'Delivery Order', ['view_all_companies'])) {
+	$companyFilter = (!empty($_POST['company']) && $_POST['company'] != '-') ? intval($_POST['company']) : 0;
+} else {
+	$companyFilter = intval($_SESSION['company_id'] ?? 0);
+}
+
+if($companyFilter > 0){
+	$searchQuery .= " and company_id = '".$companyFilter."'";
 }
 
 if($_POST['customer'] != null && $_POST['customer'] != '' && $_POST['customer'] != '-'){
@@ -58,8 +65,7 @@ if($searchValue != ''){
 }
 
 $allQuery = "select * from Weight where is_complete = 'Y' AND  is_cancel <> 'Y' AND transaction_status = 'Sales' group by company_id, plant_code, product_code, customer_code";
-// if (($_POST['type'] == 'DO' && !hasModulePermission('Accounting', 'Delivery Order (DO)', ['view_all_plants'])) || ($_POST['type'] == 'GR' && !hasModulePermission('Accounting', 'Goods Received (GR)', ['view_all_plants']))){
-if($_SESSION["roles"] != 'ADMIN' && $_SESSION["roles"] != 'SADMIN'){
+if (!hasModulePermission('Accounting', 'Delivery Order', ['view_all_plants'])){
   $username = implode("', '", $_SESSION["plant"]);
   $allQuery = "select * from Weight where is_complete = 'Y' AND  is_cancel <> 'Y' AND transaction_status = 'Sales' and plant_code IN ('$username') group by company_id, plant_code, product_code, customer_code";
 }
@@ -69,10 +75,9 @@ $totalRecords = mysqli_num_rows($sel);
 
 ## Total number of record with filtering
 $filteredQuery = "select * from Weight where is_complete = 'Y' AND is_cancel <> 'Y' AND transaction_status = 'Sales'".$searchQuery." group by company_id, plant_code, product_code, customer_code";
-// if (($_POST['type'] == 'DO' && !hasModulePermission('Accounting', 'Delivery Order (DO)', ['view_all_plants'])) || ($_POST['type'] == 'GR' && !hasModulePermission('Accounting', 'Goods Received (GR)', ['view_all_plants']))){
-if($_SESSION["roles"] != 'ADMIN' && $_SESSION["roles"] != 'SADMIN'){
-    $username = implode("', '", $_SESSION["plant"]);
-    $filteredQuery = "select * from Weight where is_complete = 'Y' AND is_cancel <> 'Y' AND transaction_status = 'Sales' and plant_code IN ('$username')".$searchQuery." group by company_id, plant_code, product_code, customer_code";
+if (!hasModulePermission('Accounting', 'Delivery Order', ['view_all_plants'])){
+  $username = implode("', '", $_SESSION["plant"]);
+  $filteredQuery = "select * from Weight where is_complete = 'Y' AND is_cancel <> 'Y' AND transaction_status = 'Sales' and plant_code IN ('$username')".$searchQuery." group by company_id, plant_code, product_code, customer_code";
 }
 
 $sel = mysqli_query($db, $filteredQuery);
@@ -81,8 +86,7 @@ $totalRecordwithFilter = mysqli_num_rows($sel);
 
 ## Fetch records
 $empQuery = "select * from Weight where is_complete = 'Y' AND is_cancel <> 'Y' AND transaction_status = 'Sales'".$searchQuery." group by company_id, plant_code, product_code, customer_code order by ".$columnName." ".$columnSortOrder." limit ".$row.",".$rowperpage;
-// if (($_POST['type'] == 'DO' && !hasModulePermission('Accounting', 'Delivery Order (DO)', ['view_all_plants'])) || ($_POST['type'] == 'GR' && !hasModulePermission('Accounting', 'Goods Received (GR)', ['view_all_plants']))){
-if($_SESSION["roles"] != 'ADMIN' && $_SESSION["roles"] != 'SADMIN'){
+if (!hasModulePermission('Accounting', 'Delivery Order', ['view_all_plants'])){
   $username = implode("', '", $_SESSION["plant"]);
   $empQuery = "select * from Weight where is_complete = 'Y' AND is_cancel <> 'Y' AND transaction_status = 'Sales' and plant_code IN ('$username')".$searchQuery." group by company_id, plant_code, product_code, customer_code order by ".$columnName." ".$columnSortOrder." limit ".$row.",".$rowperpage;
 }

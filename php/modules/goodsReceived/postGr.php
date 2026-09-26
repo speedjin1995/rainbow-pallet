@@ -2,6 +2,7 @@
 session_start();
 require_once '../../db_connect.php';
 require_once '../../requires/lookup.php';
+require_once '../../requires/permissions.php';
 $config = include(dirname(__DIR__, 2) . '/sql_config.php');
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
@@ -27,8 +28,15 @@ if(!empty($_POST['toDate']) && $_POST['toDate'] != null && $_POST['toDate'] != '
 	$searchQuery .= " and transaction_date <= '".$toDateTime."'";
 }
 
-if(!empty($_POST['company']) && $_POST['company'] != null && $_POST['company'] != '' && $_POST['company'] != '-'){
-	$searchQuery .= " and company_id = '".$_POST['company']."'";
+// Determine company on the backend - never trust frontend value for restricted users
+if (hasModulePermission('Accounting', 'Goods Received', ['view_all_companies'])) {
+	$companyFilter = (!empty($_POST['company']) && $_POST['company'] != '-') ? intval($_POST['company']) : 0;
+} else {
+	$companyFilter = intval($_SESSION['company_id'] ?? 0);
+}
+
+if($companyFilter > 0){
+	$searchQuery .= " and company_id = '".$companyFilter."'";
 }
 
 if(!empty($_POST['supplier']) && $_POST['supplier'] != null && $_POST['supplier'] != '' && $_POST['supplier'] != '-'){
@@ -238,7 +246,7 @@ if ($type == "MULTI"){
     }
 }else{
     $sql = "select * from Weight WHERE transaction_status = 'Purchase' AND is_complete = 'Y' AND  is_cancel <> 'Y' AND synced='N'".$searchQuery;
-    if($_SESSION["roles"] != 'ADMIN' && $_SESSION["roles"] != 'SADMIN'){
+    if (!hasModulePermission('Accounting', 'Goods Received', ['view_all_plants'])){
         $username = implode("', '", $_SESSION["plant"]);
         $sql = "select * from Weight WHERE transaction_status = 'Purchase' AND is_complete = 'Y' AND  is_cancel <> 'Y' AND synced='N' and plant_code IN ('$username')".$searchQuery;
     }
