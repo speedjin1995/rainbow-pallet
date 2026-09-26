@@ -183,31 +183,39 @@ class CustomerService extends BaseService {
     }
 
     /**
-     * Auto register customer from manual input
+     * Auto register customer from manual input, within the given company
      * @param string $customerName
-     * @return array ['customer_code' => code, 'name' => name]
+     * @param int $companyId
+     * @return array|null ['customer_code' => code, 'name' => name], or null when the name / company is blank
      */
-    public function autoRegisterCustomer($customerName) {
+    public function autoRegisterCustomer($customerName, $companyId) {
+        if ($this->isBlankValue($customerName) || $this->isInvalidCompanyId($companyId)) {
+            return null;
+        }
         $customerName = trim($customerName);
-        
-        $stmt = $this->db->prepare("SELECT customer_code FROM Customer WHERE name=? AND status='0'");
-        $stmt->bind_param('s', $customerName);
-        $stmt->execute();
+        $companyId = (int) $companyId;
+
+        // Reuse the company's existing customer with this name
+        $stmt = $this->db->prepare("SELECT customer_code FROM Customer WHERE name=? AND company=? AND status='0'");
+        if (!$stmt) throw new Exception($this->db->error);
+        $stmt->bind_param('si', $customerName, $companyId);
+        if (!$stmt->execute()) throw new Exception($stmt->error);
         $row = $stmt->get_result()->fetch_assoc();
         $stmt->close();
-        
+
         if ($row) {
             return ['customer_code' => $row['customer_code'], 'name' => $customerName];
         }
-        
+
         $customerCode = 'C' . date('ymdHis') . rand(100, 999);
         $isManual = 'Y';
-        
-        $stmt = $this->db->prepare("INSERT INTO Customer (customer_code, name, is_manual, created_by) VALUES (?, ?, ?, ?)");
-        $stmt->bind_param('ssss', $customerCode, $customerName, $isManual, $this->username);
-        $stmt->execute();
+
+        $stmt = $this->db->prepare("INSERT INTO Customer (company, customer_code, name, is_manual, created_by) VALUES (?, ?, ?, ?, ?)");
+        if (!$stmt) throw new Exception($this->db->error);
+        $stmt->bind_param('issss', $companyId, $customerCode, $customerName, $isManual, $this->username);
+        if (!$stmt->execute()) throw new Exception($stmt->error);
         $stmt->close();
-        
+
         return ['customer_code' => $customerCode, 'name' => $customerName];
     }
 

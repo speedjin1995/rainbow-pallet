@@ -189,27 +189,38 @@ class SupplierService extends BaseService {
         return $errors;
     }
 
-    public function autoRegisterSupplier($supplierName) {
+    /**
+     * Auto register supplier from manual input, within the given company
+     * @return array|null ['supplier_code' => code, 'name' => name], or null when the name / company is blank
+     */
+    public function autoRegisterSupplier($supplierName, $companyId) {
+        if ($this->isBlankValue($supplierName) || $this->isInvalidCompanyId($companyId)) {
+            return null;
+        }
         $supplierName = trim($supplierName);
-        
-        $stmt = $this->db->prepare("SELECT supplier_code FROM Supplier WHERE name=? AND status='0'");
-        $stmt->bind_param('s', $supplierName);
-        $stmt->execute();
+        $companyId = (int) $companyId;
+
+        // Reuse the company's existing supplier with this name
+        $stmt = $this->db->prepare("SELECT supplier_code FROM Supplier WHERE name=? AND company=? AND status='0'");
+        if (!$stmt) throw new Exception($this->db->error);
+        $stmt->bind_param('si', $supplierName, $companyId);
+        if (!$stmt->execute()) throw new Exception($stmt->error);
         $row = $stmt->get_result()->fetch_assoc();
         $stmt->close();
-        
+
         if ($row) {
             return ['supplier_code' => $row['supplier_code'], 'name' => $supplierName];
         }
-        
+
         $supplierCode = 'S' . date('ymdHis') . rand(100, 999);
         $isManual = 'Y';
-        
-        $stmt = $this->db->prepare("INSERT INTO Supplier (supplier_code, name, is_manual, created_by) VALUES (?, ?, ?, ?)");
-        $stmt->bind_param('ssss', $supplierCode, $supplierName, $isManual, $this->username);
-        $stmt->execute();
+
+        $stmt = $this->db->prepare("INSERT INTO Supplier (company, supplier_code, name, is_manual, created_by) VALUES (?, ?, ?, ?, ?)");
+        if (!$stmt) throw new Exception($this->db->error);
+        $stmt->bind_param('issss', $companyId, $supplierCode, $supplierName, $isManual, $this->username);
+        if (!$stmt->execute()) throw new Exception($stmt->error);
         $stmt->close();
-        
+
         return ['supplier_code' => $supplierCode, 'name' => $supplierName];
     }
 

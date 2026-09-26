@@ -201,15 +201,17 @@ class VehicleService extends BaseService {
     }
 
     public function autoRegisterVehicle($plateNo, $vehicleWeight = 0, $companyId = null) {
-        if (empty($plateNo)) {
+        if ($this->isBlankValue($plateNo) || $this->isInvalidCompanyId($companyId)) {
             return;
         }
+        $plateNo = trim($plateNo);
+        $companyId = (int) $companyId;
 
-        $stmt = $this->db->prepare("SELECT id FROM Vehicle WHERE veh_number=? AND company <=> ? AND status='0'");
+        $stmt = $this->db->prepare("SELECT id FROM Vehicle WHERE veh_number=? AND company=? AND status='0'");
         if (!$stmt) {
             throw new Exception($this->db->error);
         }
-        $stmt->bind_param('ss', $plateNo, $companyId);
+        $stmt->bind_param('si', $plateNo, $companyId);
         $stmt->execute();
         $stmt->store_result();
         $exists = $stmt->num_rows > 0;

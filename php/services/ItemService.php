@@ -497,31 +497,37 @@ class ItemService extends BaseService {
      * @param string $entityType - 'Customer' for product, 'Supplier' for raw material
      * @return array - ['product_code' => code, 'name' => name]
      */
-    public function autoRegisterProduct($productName, $entityType) {
+    public function autoRegisterProduct($productName, $entityType, $companyId) {
+        if ($this->isBlankValue($productName) || $this->isInvalidCompanyId($companyId)) {
+            return null;
+        }
         $productName = trim($productName);
-        
-        // Check if product already exists
-        $stmt = $this->db->prepare("SELECT product_code FROM Product WHERE name=? AND entity_type=? AND status='0'");
-        $stmt->bind_param('ss', $productName, $entityType);
-        $stmt->execute();
+        $companyId = (int) $companyId;
+
+        // Reuse the company's existing item with this name (items serve as both products and raw materials)
+        $stmt = $this->db->prepare("SELECT product_code FROM Product WHERE name=? AND company=? AND status='0'");
+        if (!$stmt) throw new Exception($this->db->error);
+        $stmt->bind_param('si', $productName, $companyId);
+        if (!$stmt->execute()) throw new Exception($stmt->error);
         $row = $stmt->get_result()->fetch_assoc();
         $stmt->close();
-        
+
         if ($row) {
             return ['product_code' => $row['product_code'], 'name' => $productName];
         }
-        
-        // Generate product code
+
+        // Generate product code - P for products, R for raw materials
         $prefix = ($entityType === 'Customer') ? 'P' : 'R';
         $productCode = $prefix . date('ymdHis') . rand(100, 999);
         $isManual = 'Y';
         $status = '0';
-        
-        $stmt = $this->db->prepare("INSERT INTO Product (product_code, name, entity_type, is_manual, status, created_by) VALUES (?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param('ssssss', $productCode, $productName, $entityType, $isManual, $status, $this->username);
-        $stmt->execute();
+
+        $stmt = $this->db->prepare("INSERT INTO Product (company, product_code, name, is_manual, status, created_by) VALUES (?, ?, ?, ?, ?, ?)");
+        if (!$stmt) throw new Exception($this->db->error);
+        $stmt->bind_param('isssss', $companyId, $productCode, $productName, $isManual, $status, $this->username);
+        if (!$stmt->execute()) throw new Exception($stmt->error);
         $stmt->close();
-        
+
         return ['product_code' => $productCode, 'name' => $productName];
     }
 }

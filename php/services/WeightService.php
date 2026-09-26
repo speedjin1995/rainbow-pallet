@@ -896,35 +896,47 @@ class WeightService extends BaseService {
     }
 
     // ─── Auto Register Product ───────────────────────────────────────────────────
+    // Manually typed product / raw material / customer / supplier are registered under the weighing's company.
+    // The register functions return null for blank values ("", "-", null), in which case the form values are kept.
     private function autoRegisterProduct($f) {
+        $companyId = $f['companyId'] ?? null;
+
         // Handle manual product (for Sales/Port/Misc)
         if (!empty($f['manualProduct']) && $f['manualProduct'] == '1' && !empty($f['productNameTxt'])) {
-            $result = $this->itemService->autoRegisterProduct($f['productNameTxt'], 'Customer');
-            $f['productCode'] = $result['product_code'];
-            $f['productName'] = $result['name'];
+            $result = $this->itemService->autoRegisterProduct($f['productNameTxt'], 'Customer', $companyId);
+            if ($result) {
+                $f['productCode'] = $result['product_code'];
+                $f['productName'] = $result['name'];
+            }
         }
-        
+
         // Handle manual raw material (for Purchase/Local)
         if (!empty($f['manualRawMaterial']) && $f['manualRawMaterial'] == '1' && !empty($f['rawMaterialNameTxt'])) {
-            $result = $this->itemService->autoRegisterProduct($f['rawMaterialNameTxt'], 'Supplier');
-            $f['rawMaterialCode'] = $result['product_code'];
-            $f['rawMaterialName'] = $result['name'];
+            $result = $this->itemService->autoRegisterProduct($f['rawMaterialNameTxt'], 'Supplier', $companyId);
+            if ($result) {
+                $f['rawMaterialCode'] = $result['product_code'];
+                $f['rawMaterialName'] = $result['name'];
+            }
         }
-        
+
         // Handle manual customer
         if (!empty($f['manualCustomer']) && $f['manualCustomer'] == '1' && !empty($f['customerNameTxt'])) {
-            $result = $this->customerService->autoRegisterCustomer($f['customerNameTxt']);
-            $f['customerCode'] = $result['customer_code'];
-            $f['customerName'] = $result['name'];
+            $result = $this->customerService->autoRegisterCustomer($f['customerNameTxt'], $companyId);
+            if ($result) {
+                $f['customerCode'] = $result['customer_code'];
+                $f['customerName'] = $result['name'];
+            }
         }
-        
+
         // Handle manual supplier
         if (!empty($f['manualSupplier']) && $f['manualSupplier'] == '1' && !empty($f['supplierNameTxt'])) {
-            $result = $this->supplierService->autoRegisterSupplier($f['supplierNameTxt']);
-            $f['supplierCode'] = $result['supplier_code'];
-            $f['supplierName'] = $result['name'];
+            $result = $this->supplierService->autoRegisterSupplier($f['supplierNameTxt'], $companyId);
+            if ($result) {
+                $f['supplierCode'] = $result['supplier_code'];
+                $f['supplierName'] = $result['name'];
+            }
         }
-        
+
         return $f;
     }
 }

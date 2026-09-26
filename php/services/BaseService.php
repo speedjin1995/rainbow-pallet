@@ -26,6 +26,25 @@ class BaseService {
     }
 
     /**
+     * True for values that must not be saved as master data:
+     * null, empty / whitespace only, or "-" (the dropdown placeholder).
+     */
+    protected function isBlankValue($value) {
+        if ($value === null) {
+            return true;
+        }
+        $value = trim((string) $value);
+        return $value === '' || $value === '-';
+    }
+
+    /**
+     * True when the company id is missing or not a valid id.
+     */
+    protected function isInvalidCompanyId($companyId) {
+        return $this->isBlankValue($companyId) || (int) $companyId <= 0;
+    }
+
+    /**
      * When a master data code changes, update it in the records that reference it.
      * $companyId limits the update to that company's records; null updates every company
      * (for master data without a company, e.g. Plant).
