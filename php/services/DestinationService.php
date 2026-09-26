@@ -1,6 +1,5 @@
 <?php
 require_once __DIR__ . '/BaseService.php';
-require_once __DIR__ . '/../requires/functions.php';
 require_once __DIR__ . '/../requires/lookup.php';
 
 class DestinationService extends BaseService {
@@ -117,11 +116,11 @@ class DestinationService extends BaseService {
         $this->db->begin_transaction();
 
         // Get old values before update
-        $stmt = $this->db->prepare("SELECT destination_code, name FROM {$this->table} WHERE id = ?");
+        $stmt = $this->db->prepare("SELECT destination_code, name, company FROM {$this->table} WHERE id = ?");
         if (!$stmt) throw new Exception($this->db->error);
         $stmt->bind_param('s', $id);
         $stmt->execute();
-        $stmt->bind_result($oldCode, $oldName);
+        $stmt->bind_result($oldCode, $oldName, $oldCompany);
         $stmt->fetch();
         $stmt->close();
 
@@ -133,11 +132,11 @@ class DestinationService extends BaseService {
 
         // Cascade code/name changes to related tables
         if ($oldCode !== null && $oldCode !== $destinationCode) {
-            updateMasterDataCodeValue($this->db, $oldCode, $destinationCode, 'Destination');
+            $this->updateMasterDataCodeValue($oldCode, $destinationCode, 'Destination', $oldCompany);
         }
 
         if ($oldName !== null && $oldName !== $destinationName) {
-            updateMasterDataNameValue($this->db, $oldName, $destinationName, 'Destination');
+            $this->updateMasterDataNameValue($oldName, $destinationName, 'Destination', $oldCompany);
         }
 
         $this->db->commit();

@@ -1,6 +1,5 @@
 <?php
 require_once __DIR__ . '/BaseService.php';
-require_once __DIR__ . '/../requires/functions.php';
 require_once __DIR__ . '/../requires/lookup.php';
 
 class SupplierService extends BaseService {
@@ -114,10 +113,10 @@ class SupplierService extends BaseService {
             $stmt->close();
 
             if ($old['supplier_code'] !== $f['supplierCode']) {
-                updateMasterDataCodeValue($this->db, $old['supplier_code'], $f['supplierCode'], 'Supplier');
+                $this->updateMasterDataCodeValue($old['supplier_code'], $f['supplierCode'], 'Supplier', $old['company']);
             }
             if ($old['name'] !== $f['companyName']) {
-                updateMasterDataNameValue($this->db, $old['name'], $f['companyName'], 'Supplier');
+                $this->updateMasterDataNameValue($old['name'], $f['companyName'], 'Supplier', $old['company']);
             }
         } else {
             $stmt = $this->db->prepare("INSERT INTO Supplier (company, supplier_code, company_reg_no, new_reg_no, name, address_line_1, address_line_2, address_line_3, phone_no, fax_no, contact_name, ic_no, tin_no, payment_term, payment_term_period, account_no, created_by, modified_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");

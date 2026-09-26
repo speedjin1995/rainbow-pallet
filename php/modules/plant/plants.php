@@ -1,7 +1,7 @@
 <?php
 session_start();
 require_once '../../db_connect.php';
-require_once '../../requires/functions.php';
+require_once '../../services/BaseService.php';
 
 if (!isset($_SESSION['id'])) {
     echo '<script type="text/javascript">location.href = "../login.php";</script>';
@@ -67,12 +67,12 @@ if (isset($_POST['plantCode'], $_POST['plantName'])) {
 
             // Update related tables if plant code is changed
             if ($oldCode !== null && $oldCode !== $plantCode) {
-                updateMasterDataCodeValue($db, $oldCode, $plantCode, 'Plant');
+                (new BaseService($db, $username))->updateMasterDataCodeValue($oldCode, $plantCode, 'Plant');
             }
 
             // Update related tables if plant name is changed
             if ($oldName !== null && $oldName !== $plantName) {
-                updateMasterDataNameValue($db, $oldName, $plantName, 'Plant');
+                (new BaseService($db, $username))->updateMasterDataNameValue($oldName, $plantName, 'Plant');
             }
 
             $stmt->close();

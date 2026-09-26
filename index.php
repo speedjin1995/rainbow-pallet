@@ -3,7 +3,6 @@
 
 <?php
 require_once "php/requires/lookup.php";
-require_once "php/requires/functions.php";
 
 if (!hasPermission('Weighing', ['view', 'create', 'edit'])){
     header('Location: no-permission.php');

@@ -133,6 +133,19 @@ class ItemService extends BaseService {
 
         $this->db->begin_transaction();
 
+        // Get old values before update
+        $stmt = $this->db->prepare("SELECT product_code, name, company FROM {$this->table} WHERE id = ?");
+        if (!$stmt) {
+            throw new Exception($this->db->error);
+        }
+        $stmt->bind_param('s', $id);
+        if (!$stmt->execute()) {
+            throw new Exception($stmt->error);
+        }
+        $stmt->bind_result($oldCode, $oldName, $oldCompany);
+        $stmt->fetch();
+        $stmt->close();
+
         $stmt = $this->db->prepare("UPDATE {$this->table} SET company=?, product_code=?, name=?, category=?, uom=?, description=?, variance=?, high=?, low=?, modified_by=? WHERE id=?");
         if (!$stmt) {
             throw new Exception($this->db->error);
@@ -148,9 +161,20 @@ class ItemService extends BaseService {
         
         // Handle UOM Conversion (smart update)
         $this->syncUomConversion($id, $post);
-        
+
+        // Cascade code/name changes to the weighing records of the item's company.
+        // Items are used as both sales products and purchase raw materials, so update both.
+        foreach (['Product', 'Raw Material'] as $module) {
+            if ($oldCode !== null && $oldCode !== $productCode) {
+                $this->updateMasterDataCodeValue($oldCode, $productCode, $module, $oldCompany);
+            }
+            if ($oldName !== null && $oldName !== $productName) {
+                $this->updateMasterDataNameValue($oldName, $productName, $module, $oldCompany);
+            }
+        }
+
         $this->db->commit();
-        
+
         return ['id' => $id];
     }
     

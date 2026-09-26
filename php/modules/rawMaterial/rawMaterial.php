@@ -1,7 +1,7 @@
 <?php
 session_start();
 require_once '../../db_connect.php';
-require_once '../../requires/functions.php';
+require_once '../../services/BaseService.php';
 
 if (!isset($_SESSION['id'])) {
     echo '<script type="text/javascript">location.href = "../login.php";</script>';
@@ -68,12 +68,12 @@ if (isset($_POST['rawMatCode'])) {
 
             // Update related tables if raw material code is changed
             if ($oldCode !== null && $oldCode !== $rawMatCode) {
-                updateMasterDataCodeValue($db, $oldCode, $rawMatCode, 'Raw Material');
+                (new BaseService($db, $username))->updateMasterDataCodeValue($oldCode, $rawMatCode, 'Raw Material');
             }
 
             // Update related tables if raw material name is changed
             if ($oldName !== null && $oldName !== $rawMatName) {
-                updateMasterDataNameValue($db, $oldName, $rawMatName, 'Raw Material');
+                (new BaseService($db, $username))->updateMasterDataNameValue($oldName, $rawMatName, 'Raw Material');
             }
 
             $stmt->close();
