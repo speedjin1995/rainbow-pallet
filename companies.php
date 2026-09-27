@@ -340,10 +340,10 @@
                                         <div class="row">
                                             <div class="col-lg-12">
                                                 <div class="card">
-                                                    <div class="card-header">
+                                                    <div class="card-header" style="background-color: #405189;">
                                                         <div class="d-flex justify-content-between">
                                                             <div>
-                                                                <h5 class="card-title mb-0"><?=$languageArray['previous_records_code'][$language]?></h5>
+                                                                <h5 class="card-title mb-0 text-white"><?=$languageArray['previous_records_code'][$language]?></h5>
                                                             </div>
                                                             <div class="flex-shrink-0">
                                                                 <?php if(hasModulePermission('Master Data', 'Companies', ['download_template'])): ?>
@@ -755,7 +755,7 @@ $(function () {
     }).on('change', function() {
         toggleDocumentNumberRows();
     });
-    
+
     // Select2 doesn't copy the select's classes, so tag its container for the .select2-multiple chip styling
     $('#documentStatuses').next('.select2-container').addClass('select2-multiple');
 
