@@ -4171,3 +4171,32 @@ ALTER TABLE `Document_Number` ADD `document_type` VARCHAR(10) NOT NULL DEFAULT '
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('document_type_code', 'Document Type', '单据类型', 'Jenis Dokumen', 'ஆவண வகை');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('delivery_order_no_code', 'Delivery Order No', '送货单号', 'No. Pesanan Penghantaran', 'விநியோக ஆணை எண்');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('purchase_order_no_code', 'Purchase Order No', '采购单号', 'No. Pesanan Belian', 'கொள்முதல் ஆணை எண்');
+
+ALTER TABLE `Product_Price_Tier` ADD `unit_price` DECIMAL(15,2) NULL AFTER `qty_to`;
+UPDATE Product_Price_Tier t JOIN Product_Price p ON p.id = t.price_id
+SET t.unit_price = IF(p.party_type = 'Supplier', t.purchase_price, t.selling_price);
+ALTER TABLE `Product_Price_Tier` DROP `purchase_price`, DROP `selling_price`;
+
+ALTER TABLE `Product_Price_Tier_Log` ADD `unit_price` DECIMAL(15,2) NULL AFTER `qty_to`;
+UPDATE Product_Price_Tier_Log t JOIN Product_Price p ON p.id = t.price_id
+SET t.unit_price = IF(p.party_type = 'Supplier', t.purchase_price, t.selling_price);
+ALTER TABLE `Product_Price_Tier_Log` DROP `purchase_price`, DROP `selling_price`;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_PRODUCT_PRICE_TIER` AFTER INSERT ON `Product_Price_Tier` FOR EACH ROW
+INSERT INTO Product_Price_Tier_Log (
+    tier_id, price_id, product_log_id, qty_from, qty_to, unit_price, discount, discount_type, status, action_id, action_by, event_date
+) VALUES (
+    NEW.id, NEW.price_id, @product_log_id, NEW.qty_from, NEW.qty_to, NEW.unit_price, NEW.discount, NEW.discount_type, NEW.status, 1, COALESCE(@product_price_action_by, 'system'), NOW()
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_PRODUCT_PRICE_TIER` BEFORE UPDATE ON `Product_Price_Tier` FOR EACH ROW
+INSERT INTO Product_Price_Tier_Log (
+    tier_id, price_id, product_log_id, qty_from, qty_to, unit_price, discount, discount_type, status, action_id, action_by, event_date
+) VALUES (
+    NEW.id, NEW.price_id, @product_log_id, NEW.qty_from, NEW.qty_to, NEW.unit_price, NEW.discount, NEW.discount_type, NEW.status, IF(NEW.status = 1 AND OLD.status <> 1, 3, 2), COALESCE(@product_price_action_by, 'system'), NOW()
+)
+$$
+DELIMITER ;

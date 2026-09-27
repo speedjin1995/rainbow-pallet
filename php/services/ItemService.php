@@ -374,7 +374,7 @@ class ItemService extends BaseService {
         if (!empty($entries)) {
             $ids = array_keys($entries);
             $placeholders = implode(',', array_fill(0, count($ids), '?'));
-            $stmt = $this->db->prepare("SELECT price_id, qty_from, qty_to, purchase_price, selling_price, discount, discount_type FROM Product_Price_Tier WHERE status = 0 AND price_id IN ({$placeholders}) ORDER BY qty_from, id");
+            $stmt = $this->db->prepare("SELECT price_id, qty_from, qty_to, unit_price, discount, discount_type FROM Product_Price_Tier WHERE status = 0 AND price_id IN ({$placeholders}) ORDER BY qty_from, id");
             if (!$stmt) throw new Exception($this->db->error);
             $stmt->bind_param(str_repeat('i', count($ids)), ...$ids);
             if (!$stmt->execute()) throw new Exception($stmt->error);
@@ -439,7 +439,7 @@ class ItemService extends BaseService {
             $stmt->close();
 
             $entryStmt = $this->db->prepare("INSERT INTO Product_Price (product_id, party_type, party_id, date_from, date_to, price_type, created_by, modified_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-            $tierStmt = $this->db->prepare("INSERT INTO Product_Price_Tier (price_id, qty_from, qty_to, purchase_price, selling_price, discount, discount_type) VALUES (?, ?, ?, ?, ?, ?, ?)");
+            $tierStmt = $this->db->prepare("INSERT INTO Product_Price_Tier (price_id, qty_from, qty_to, unit_price, discount, discount_type) VALUES (?, ?, ?, ?, ?, ?)");
             if (!$entryStmt || !$tierStmt) throw new Exception($this->db->error);
 
             foreach ($entries as $entry) {
@@ -448,7 +448,7 @@ class ItemService extends BaseService {
                 $priceId = $entryStmt->insert_id;
 
                 foreach ($entry['tiers'] as $tier) {
-                    $tierStmt->bind_param('iddddds', $priceId, $tier['qtyFrom'], $tier['qtyTo'], $tier['purchasePrice'], $tier['sellingPrice'], $tier['discount'], $tier['discountType']);
+                    $tierStmt->bind_param('idddds', $priceId, $tier['qtyFrom'], $tier['qtyTo'], $tier['unitPrice'], $tier['discount'], $tier['discountType']);
                     if (!$tierStmt->execute()) throw new Exception($tierStmt->error);
                 }
             }
@@ -514,9 +514,12 @@ class ItemService extends BaseService {
         ];
 
         $clean = [];
-        foreach (array_values($entries) as $i => $entry) {
-            $label = 'Price entry ' . ($i + 1);
+        $entryCount = ['Customer' => 0, 'Supplier' => 0];
+        foreach (array_values($entries) as $entry) {
             $partyType = $entry['partyType'] ?? '';
+            // Numbered per Customer / Supplier tab, e.g. "Supplier entry 2"
+            $entryNo = isset($entryCount[$partyType]) ? ++$entryCount[$partyType] : 0;
+            $label = "{$partyType} entry {$entryNo}";
             $partyId = intval($entry['partyId'] ?? 0);
             $priceType = $entry['priceType'] ?? '';
 
@@ -554,10 +557,10 @@ class ItemService extends BaseService {
                     }
                 }
 
-                $purchasePrice = $this->toPrice($tier['purchasePrice'] ?? '', "{$label} purchase price");
-                $sellingPrice = $this->toPrice($tier['sellingPrice'] ?? '', "{$label} selling price");
-                if ($purchasePrice === null && $sellingPrice === null) {
-                    throw new InvalidArgumentException("{$label}: please fill in the purchase or selling price");
+                // Supplier = purchase price, customer = selling price
+                $unitPrice = $this->toPrice($tier['unitPrice'] ?? '', "{$label} unit price");
+                if ($unitPrice === null) {
+                    throw new InvalidArgumentException("{$label}: please fill in the unit price");
                 }
 
                 $discountType = ($tier['discountType'] ?? 'Amount') === 'Percent' ? 'Percent' : 'Amount';
@@ -568,7 +571,7 @@ class ItemService extends BaseService {
 
                 $cleanTiers[] = [
                     'qtyFrom' => $qtyFrom, 'qtyTo' => $qtyTo,
-                    'purchasePrice' => $purchasePrice, 'sellingPrice' => $sellingPrice,
+                    'unitPrice' => $unitPrice,
                     'discount' => $discount, 'discountType' => $discountType,
                 ];
             }
@@ -581,7 +584,7 @@ class ItemService extends BaseService {
             }
 
             $clean[] = [
-                'partyType' => $partyType, 'partyId' => $partyId, 'partyName' => $validParties[$partyType][$partyId],
+                'partyType' => $partyType, 'partyId' => $partyId, 'partyName' => $validParties[$partyType][$partyId], 'label' => $label,
                 'priceType' => $priceType,
                 'dateFrom' => $dateFrom->format('Y-m-d'), 'dateTo' => $dateTo->format('Y-m-d'),
                 'tiers' => $cleanTiers,
@@ -593,7 +596,7 @@ class ItemService extends BaseService {
             for ($b = $a + 1; $b < count($clean); $b++) {
                 if ($clean[$a]['partyType'] === $clean[$b]['partyType'] && $clean[$a]['partyId'] === $clean[$b]['partyId']
                     && $clean[$a]['dateFrom'] <= $clean[$b]['dateTo'] && $clean[$b]['dateFrom'] <= $clean[$a]['dateTo']) {
-                    throw new InvalidArgumentException("Price entry " . ($a + 1) . " and " . ($b + 1) . " for {$clean[$a]['partyName']} have overlapping dates");
+                    throw new InvalidArgumentException("{$clean[$a]['label']} and {$clean[$b]['label']} for {$clean[$a]['partyName']} have overlapping dates");
                 }
             }
         }

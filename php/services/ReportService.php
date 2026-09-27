@@ -1322,7 +1322,7 @@ class ReportService extends BaseService {
             'i', [$productLogId]
         );
         $tierRows = $this->fetchAll(
-            "SELECT price_id, qty_from, qty_to, purchase_price, selling_price, discount, discount_type, action_id
+            "SELECT price_id, qty_from, qty_to, unit_price, discount, discount_type, action_id
              FROM Product_Price_Tier_Log WHERE product_log_id = ? ORDER BY qty_from, id",
             'i', [$productLogId]
         );
