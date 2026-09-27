@@ -576,7 +576,7 @@ $count2 = count($salesList2) + count($purchaseList2) + count($localList2) + coun
                         <div class="py-2">
                             <a class="dropdown-item" href="myProfile.php">
                                 <i class="mdi mdi-account-circle text-muted fs-16 align-middle me-1"></i> 
-                                <span class="align-middle">Profile</span>
+                                <span class="align-middle"><?=$languageArray['profile_code'][$language]?></span>
                             </a>
                             <a class="dropdown-item" href="php/logout.php">
                                 <i class="mdi mdi-logout text-muted fs-16 align-middle me-1"></i> 
