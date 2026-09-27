@@ -93,6 +93,16 @@ if ($canEditWeight || $canPrintWeight) {
         .modal-header {
             padding: var(1rem, 1rem) !important;
         }
+
+        .number-spinner::-webkit-inner-spin-button,
+        .number-spinner::-webkit-outer-spin-button {
+            -webkit-appearance: auto;
+            opacity: 1;
+        }
+
+        .number-spinner {
+            -moz-appearance: number-input;
+        }
     </style>
 </head>
 
@@ -151,6 +161,22 @@ if ($canEditWeight || $canPrintWeight) {
                                                             </select>           
                                                         </div>
                                                     </div><!--end col-->
+                                                    <div class="col-3">
+                                                        <div class="mb-3">
+                                                            <label for="paymentTermSearch" class="form-label"><?=$languageArray['payment_term_code'][$language]?></label>
+                                                            <select id="paymentTermSearch" class="form-select select2">
+                                                                <option selected>-</option>
+                                                                <option value="Cash"><?=$languageArray['cash_code'][$language]?></option>
+                                                                <option value="Term"><?=$languageArray['term_code'][$language]?></option>
+                                                            </select>
+                                                        </div>
+                                                    </div><!--end col-->
+                                                    <div class="col-3" id="paymentTermPeriodSearchDisplay" style="display:none">
+                                                        <div class="mb-3">
+                                                            <label for="paymentTermPeriodSearch" class="form-label"><?=$languageArray['payment_term_period_code'][$language]?></label>
+                                                            <input type="number" class="form-control number-spinner" id="paymentTermPeriodSearch" name="paymentTermPeriodSearch" min="0" step="1" placeholder="<?=$languageArray['payment_term_period_code'][$language]?>">
+                                                        </div>
+                                                    </div><!--end col-->
 
                                                     <div class="col-3" id="supplierSearchDisplay">
                                                         <div class="mb-3">
@@ -158,7 +184,7 @@ if ($canEditWeight || $canPrintWeight) {
                                                             <select id="supplierSearch" class="form-select select2">
                                                                 <option selected>-</option>
                                                                 <?php while($rowSF=mysqli_fetch_assoc($supplier2)){ ?>
-                                                                    <option value="<?=$rowSF['supplier_code'] ?>"><?=$rowSF['name'] ?></option>
+                                                                    <option value="<?=$rowSF['supplier_code'] ?>" data-payment-term="<?=$rowSF['payment_term'] ?>"><?=$rowSF['name'] ?></option>
                                                                 <?php } ?>
                                                             </select>
                                                         </div>
@@ -310,6 +336,7 @@ if ($canEditWeight || $canPrintWeight) {
     var allRawMatSearchOptions = null;
     var canEditWeight = <?= $canEditWeight ? 'true' : 'false' ?>;
     var canPrintWeight = <?= $canPrintWeight ? 'true' : 'false' ?>;
+    var allSupplierSearchOptions = null;
 
     $(function () {
         // Weighing modal: refresh the GR list after a weighing is saved
@@ -382,6 +409,11 @@ if ($canEditWeight || $canPrintWeight) {
             renderTable();
         });
 
+        $('#paymentTermSearch').on('change', function () {
+            filterSupplierDropdown();
+            togglePaymentTermPeriodSearch();
+        });
+
         // Add event listener for opening and closing details on row click
         $('#weightTable tbody').on('click', 'tr', function (e) {
             var tr = $(this); // The row that was clicked
@@ -411,10 +443,11 @@ if ($canEditWeight || $canPrintWeight) {
 
         // Post to SQL Handling
         $('#postSQL').on('click', function () {
-            $('#spinnerLoading').show();
             var fromDateI = $('#fromDateSearch').val();
             var toDateI = $('#toDateSearch').val();
             var companyI = $('#companySearch').val() || '';
+            var paymentTermI = $('#paymentTermSearch').val() || '';
+            var paymentTermPeriodI = $('#paymentTermPeriodSearch').val() || '';
             var supplierNoI = $('#supplierSearch').val() || '';
             var rawMatI = $('#rawMatSearch').val() || '';
             var plantI = $('#plantSearch').val() || '';
@@ -430,11 +463,14 @@ if ($canEditWeight || $canPrintWeight) {
 
             if (selectedIds.length > 0) {
                 if (confirm('Are you sure you want to post to SQL these items?')) {
+                    $('#spinnerLoading').show();
                     $.post('php/modules/goodsReceived/index.php', {
                         action: 'post',
                         fromDate: fromDateI,
                         toDate: toDateI,
                         company: companyI,
+                        paymentTerm: paymentTermI,
+                        paymentTermPeriod: paymentTermPeriodI,
                         supplier: supplierNoI,
                         rawMaterial: rawMatI,
                         plant: plantI,
@@ -460,16 +496,17 @@ if ($canEditWeight || $canPrintWeight) {
                         }
                     });
                 }
-
-                //$('#spinnerLoading').hide();
             } 
             else {
                 if (confirm('Are you sure you want to post to SQL?')) {
+                    $('#spinnerLoading').show();
                     $.post('php/modules/goodsReceived/index.php', {
                         action: 'post',
                         fromDate: fromDateI,
                         toDate: toDateI,
                         company: companyI,
+                        paymentTerm: paymentTermI,
+                        paymentTermPeriod: paymentTermPeriodI,
                         supplier: supplierNoI,
                         rawMaterial: rawMatI,
                         plant: plantI,
@@ -494,8 +531,6 @@ if ($canEditWeight || $canPrintWeight) {
                         }
                     });
                 }
-
-                //$('#spinnerLoading').hide();
             }     
         });
 
@@ -504,6 +539,8 @@ if ($canEditWeight || $canPrintWeight) {
             var fromDateI = $('#fromDateSearch').val();
             var toDateI = $('#toDateSearch').val();
             var companyI = $('#companySearch').val() || '';
+            var paymentTermI = $('#paymentTermSearch').val() || '';
+            var paymentTermPeriodI = $('#paymentTermPeriodSearch').val() || '';
             var supplierNoI = $('#supplierSearch').val() || '';
             var rawMatI = $('#rawMatSearch').val() || '';
             var plantI = $('#plantSearch').val() || '';
@@ -519,45 +556,24 @@ if ($canEditWeight || $canPrintWeight) {
 
             if (selectedIds.length > 0) {
                 window.open("php/modules/goodsReceived/index.php?action=export&isMulti=Y&fromDate="+fromDateI+"&toDate="+toDateI+"&company="+companyI+"&supplier="+supplierNoI+
-                "&rawMaterial="+rawMatI+"&plant="+plantI+"&purchaseOrder="+poI+"&transactionId="+transactionIdI+"&id="+selectedIds);
+                "&paymentTerm="+paymentTermI+"&paymentTermPeriod="+paymentTermPeriodI+"&rawMaterial="+rawMatI+"&plant="+plantI+"&purchaseOrder="+poI+"&transactionId="+transactionIdI+"&id="+selectedIds);
             } 
             else {
-                window.open("php/modules/goodsReceived/index.php?action=export&isMulti=N&fromDate="+fromDateI+"&toDate="+toDateI+"&company="+companyI+"&supplier="+supplierNoI+"&rawMaterial="+rawMatI+"&plant="+plantI+"&purchaseOrder="+poI+"&transactionId="+transactionIdI);
-            }     
-        });
-
-        filterDropdownByTransactionStatus('#rawMatSearch', 'allRawMatSearchOptions', 'Purchase');
-    });
-
-    // Filter dropdown options based on transaction status
-    function filterDropdownByTransactionStatus(selector, allOptionsVar, status) {
-        if (!window[allOptionsVar]) {
-            window[allOptionsVar] = $(selector + ' option').clone(true);
-        }
-
-        var dataAttr = 'is-sales';
-        if (status === 'Sales') dataAttr = 'is-sales';
-        else if (status === 'Purchase') dataAttr = 'is-purchase';
-        else if (status === 'Port') dataAttr = 'is-port';
-        else if (status === 'Misc') dataAttr = 'is-misc';
-
-        $(selector).empty();
-        window[allOptionsVar].each(function() {
-            var $option = $(this).clone(true);
-            if ($option.val() === '-' || $option.val() === '') {
-                $(selector).append($option);
-            } else if ($option.data(dataAttr) === 'Y') {
-                $(selector).append($option);
+                window.open("php/modules/goodsReceived/index.php?action=export&isMulti=N&fromDate="+fromDateI+"&toDate="+toDateI+"&company="+companyI+"&supplier="+supplierNoI+"&paymentTerm="+paymentTermI+"&paymentTermPeriod="+paymentTermPeriodI+"&rawMaterial="+rawMatI+"&plant="+plantI+"&purchaseOrder="+poI+"&transactionId="+transactionIdI);
             }
         });
 
-        $(selector).val('-').trigger('change');
-    }
+        filterDropdownByTransactionStatus('#rawMatSearch', 'allRawMatSearchOptions', 'Purchase');
+        filterSupplierDropdown();
+        togglePaymentTermPeriodSearch();
+    });
 
     function renderTable() {
         var fromDateI = $('#fromDateSearch').val();
         var toDateI = $('#toDateSearch').val();
         var companyI = $('#companySearch').val() || '';
+        var paymentTermI = $('#paymentTermSearch').val() || '';
+        var paymentTermPeriodI = $('#paymentTermPeriodSearch').val() || '';
         var supplierNoI = $('#supplierSearch').val() || '';
         var rawMatI = $('#rawMatSearch').val() || '';
         var plantI = $('#plantSearch').val() || '';
@@ -584,6 +600,8 @@ if ($canEditWeight || $canPrintWeight) {
                     fromDate: fromDateI,
                     toDate: toDateI,
                     company: companyI,
+                    paymentTerm: paymentTermI,
+                    paymentTermPeriod: paymentTermPeriodI,
                     supplier: supplierNoI,
                     rawMaterial: rawMatI,
                     plant: plantI,
@@ -708,6 +726,59 @@ if ($canEditWeight || $canPrintWeight) {
         `;
         
         return returnString;
+    }
+
+    function togglePaymentTermPeriodSearch() {
+        var isTerm = $('#paymentTermSearch').val() === 'Term';
+        $('#paymentTermPeriodSearchDisplay').toggle(isTerm);
+        if (!isTerm) {
+            $('#paymentTermPeriodSearch').val('');
+        }
+    }
+
+    function filterSupplierDropdown() {
+        if (!allSupplierSearchOptions) {
+            allSupplierSearchOptions = $('#supplierSearch option').clone(true);
+        }
+
+        var paymentTerm = $('#paymentTermSearch').val() || '-';
+        $('#supplierSearch').empty();
+
+        allSupplierSearchOptions.each(function() {
+            var $option = $(this).clone(true);
+            if ($option.val() === '-' || $option.val() === '') {
+                $('#supplierSearch').append($option);
+            } else if (paymentTerm === '-' || $option.data('payment-term') == paymentTerm) {
+                $('#supplierSearch').append($option);
+            }
+        });
+
+        $('#supplierSearch').val('-').trigger('change');
+    }
+
+    // Filter dropdown options based on transaction status
+    function filterDropdownByTransactionStatus(selector, allOptionsVar, status) {
+        if (!window[allOptionsVar]) {
+            window[allOptionsVar] = $(selector + ' option').clone(true);
+        }
+
+        var dataAttr = 'is-sales';
+        if (status === 'Sales') dataAttr = 'is-sales';
+        else if (status === 'Purchase') dataAttr = 'is-purchase';
+        else if (status === 'Port') dataAttr = 'is-port';
+        else if (status === 'Misc') dataAttr = 'is-misc';
+
+        $(selector).empty();
+        window[allOptionsVar].each(function() {
+            var $option = $(this).clone(true);
+            if ($option.val() === '-' || $option.val() === '') {
+                $(selector).append($option);
+            } else if ($option.data(dataAttr) === 'Y') {
+                $(selector).append($option);
+            }
+        });
+
+        $(selector).val('-').trigger('change');
     }
     </script>
 

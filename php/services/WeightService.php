@@ -250,9 +250,16 @@ class WeightService extends BaseService {
         if ($companyFilter > 0) {
             $q .= " AND company_id = {$companyFilter}";
         }
-        foreach (['status' => 'transaction_status', 'customer' => 'customer_code', 'supplier' => 'supplier_code', 'invoice' => 'weight_type', 'batch' => 'is_complete', 'product' => 'product_code', 'rawMaterial' => 'raw_mat_code', 'plant' => 'plant_code'] as $param => $col) {
+        foreach (['status' => 'transaction_status', 'customer' => 'customer_code', 'supplier' => 'supplier_code', 'invoice' => 'weight_type', 'product' => 'product_code', 'rawMaterial' => 'raw_mat_code', 'plant' => 'plant_code'] as $param => $col) {
             if (!empty($post[$param]) && $post[$param] !== '-') {
                 $q .= " AND {$col} = '" . mysqli_real_escape_string($this->db, $post[$param]) . "'";
+            }
+        }
+        if (!empty($post['batch']) && $post['batch'] !== '-') {
+            if ($post['batch'] == 'Cancelled') {
+                $q .= " AND is_cancel = 'Y'";
+            } else {
+                $q .= " AND is_complete = '" . mysqli_real_escape_string($this->db, $post['batch']) . "'";
             }
         }
         if (!empty($post['vehicle']) && $post['vehicle'] !== '-') {
@@ -277,7 +284,7 @@ class WeightService extends BaseService {
             $q .= " AND (transaction_id LIKE '%{$search}%' OR lorry_plate_no1 LIKE '%{$search}%')";
         }
 
-        $cols = "id, company_id, transaction_id, transaction_status, weight_type, transaction_date, lorry_plate_no1, lorry_plate_no2, supplier_weight, customer_code, customer_name, plant_code, plant_name, supplier_code, supplier_name, raw_mat_code, raw_mat_name, product_code, product_name, container_no, container_no2, seal_no, seal_no2, invoice_no, purchase_order, delivery_no, transporter_code, transporter, destination_code, destination, remarks, gross_weight1, gross_weight1_date, tare_weight1, tare_weight1_date, nett_weight1, gross_weight2, gross_weight2_date, tare_weight2, tare_weight2_date, nett_weight2, final_weight, weight_different, is_complete, is_cancel, is_approved, manual_weight, indicator_id, weighbridge_id, created_date, created_by, modified_date, modified_by, indicator_id_2, product_description";
+        $cols = "id, company_id, transaction_id, transaction_status, weight_type, transaction_date, lorry_plate_no1, lorry_plate_no2, supplier_weight, customer_code, customer_name, plant_code, plant_name, supplier_code, supplier_name, raw_mat_code, raw_mat_name, product_code, product_name, container_no, container_no2, seal_no, seal_no2, invoice_no, purchase_order, delivery_no, transporter_code, transporter, destination_code, destination, remarks, gross_weight1, gross_weight1_date, tare_weight1, tare_weight1_date, nett_weight1, gross_weight2, gross_weight2_date, tare_weight2, tare_weight2_date, nett_weight2, final_weight, weight_different, is_complete, is_cancel, is_approved, manual_weight, indicator_id, weighbridge_id, created_date, created_by, modified_date, modified_by, indicator_id_2, product_description, synced";
         $isPending = ($post['batch'] ?? '') === 'N';
         $plantFilter = '';
         if (!hasPermission('Weighing', ['view_all_plants'])) {
@@ -515,6 +522,18 @@ class WeightService extends BaseService {
                 $stmt->close();
             }
         }
+    }
+
+    public function reactivateWeight($id) {
+        $stmt = $this->db->prepare("UPDATE Weight SET is_cancel='N' WHERE id=? AND status='0' AND is_cancel='Y'");
+        if (!$stmt) throw new Exception($this->db->error);
+        $stmt->bind_param('s', $id);
+        if (!$stmt->execute()) throw new Exception($stmt->error);
+        if ($stmt->affected_rows !== 1) {
+            $stmt->close();
+            throw new Exception('Cancelled weight record not found');
+        }
+        $stmt->close();
     }
 
     // ─── Customer Side Info Processing ─────────────────────────────────────────────

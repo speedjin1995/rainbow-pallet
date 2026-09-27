@@ -57,6 +57,15 @@ class SawnTimberService extends BaseService {
         if (!empty($params['transactionId'])) {
             $searchQuery .= " AND w.transaction_id LIKE '%" . mysqli_real_escape_string($this->db, $params['transactionId']) . "%'";
         }
+        if (!empty($params['customerSupplier'])) {
+            [$partyType, $partyCode] = array_pad(explode(':', $params['customerSupplier'], 2), 2, '');
+            $partyCode = mysqli_real_escape_string($this->db, $partyCode);
+            if ($partyType === 'customer' && $partyCode !== '') {
+                $searchQuery .= " AND w.customer_code = '" . $partyCode . "'";
+            } elseif ($partyType === 'supplier' && $partyCode !== '') {
+                $searchQuery .= " AND (h.supplier_code = '" . $partyCode . "' OR w.supplier_code = '" . $partyCode . "')";
+            }
+        }
         if ($searchValue != '') {
             $searchQuery .= " AND (w.transaction_id LIKE '%" . $searchValue . "%' OR w.lorry_plate_no1 LIKE '%" . $searchValue . "%')";
         }
