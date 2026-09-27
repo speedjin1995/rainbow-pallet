@@ -10,31 +10,35 @@ if (!hasModulePermission('Sawn Timber', 'Sawn Timber', ['view'])){
 
 $plantId = $_SESSION['plant'];
 $selectedPlantId = $_SESSION['selected_plant_id'] ?? null;
+$companyId = $_SESSION['company_id'];
+$selectedCompanyId = intval($companyId);
+$canViewAllCompanies = hasModulePermission('Sawn Timber', 'Sawn Timber', ['view_all_companies']);
 
-$company = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
-$company2 = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
-$supplier = $db->query("SELECT * FROM Supplier WHERE status = '0' ORDER BY name ASC");
-$supplier2 = $db->query("SELECT * FROM Supplier WHERE status = '0' ORDER BY name ASC");
+if (!$canViewAllCompanies) {
+    $company_ids = implode(',', array_map('intval', $_SESSION['company_ids']));
+    $company  = $db->query("SELECT * FROM Company WHERE status = 0 AND id IN ($selectedCompanyId) ORDER BY name");
+    $company2 = $db->query("SELECT * FROM Company WHERE status = 0 AND id IN ($selectedCompanyId) ORDER BY name");
+    $customer  = $db->query("SELECT * FROM Customer WHERE status = '0' AND company=$selectedCompanyId ORDER BY name ASC");
+    $supplier  = $db->query("SELECT * FROM Supplier WHERE status = '0' AND company=$selectedCompanyId ORDER BY name ASC");
+    $supplier2 = $db->query("SELECT * FROM Supplier WHERE status = '0' AND company=$selectedCompanyId ORDER BY name ASC");
+} else {
+    $company  = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
+    $company2 = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
+    $customer  = $db->query("SELECT * FROM Customer WHERE status = '0' ORDER BY name ASC");
+    $supplier  = $db->query("SELECT * FROM Supplier WHERE status = '0' ORDER BY name ASC");
+    $supplier2 = $db->query("SELECT * FROM Supplier WHERE status = '0' ORDER BY name ASC");
+}
 $species = $db->query("SELECT * FROM Sawn_Timber_Species WHERE status = '0' ORDER BY name ASC");
 $species2 = $db->query("SELECT * FROM Sawn_Timber_Species WHERE status = '0' ORDER BY name ASC");
 
-// $plantName = '-';
-// $plantCode = '-';
-if (!hasModulePermission('Sawn Timber', 'Sawn Timber', ['view_all_plants'])){
+$canViewAllPlants = hasModulePermission('Sawn Timber', 'Sawn Timber', ['view_all_plants']);
+if (!$canViewAllPlants){
     $plant = searchPlantById($selectedPlantId, $db);
-
-    // $stmt2 = $db->prepare("SELECT * from Plant WHERE id = ?");
-    // $stmt2->bind_param('s', $selectedPlantId);
-    // $stmt2->execute();
-    // $result2 = $stmt2->get_result();
-        
-    // if(($row2 = $result2->fetch_assoc()) !== null){
-    //     $plantName = $row2['name'];
-    //     $plantCode = $row2['plant_code'];
-    // }
+    $plant2 = searchPlantById($selectedPlantId, $db);
 }
 else{
     $plant = $db->query("SELECT * FROM Plant WHERE status = '0'");
+    $plant2 = $db->query("SELECT * FROM Plant WHERE status = '0'");
 }
 ?>
 
@@ -143,14 +147,14 @@ else{
                                                             <input id="transactionIdSearch" name="transactionIdSearch" class="form-control">
                                                         </div>
                                                     </div><!--end col-->
-                                                    <div class="col-3">
+                                                    <div class="col-3" style="<?= !$canViewAllCompanies ? 'display:none' : '' ?>">
                                                         <div class="mb-3">
                                                             <label for="companySearch" class="form-label"><?=$languageArray['company_code'][$language]?></label>
                                                             <select class="form-select select2" id="companySearch" name="companySearch" required>
                                                                 <?php while($rowCompany=mysqli_fetch_assoc($company)){ ?>
-                                                                    <option value="<?=$rowCompany['id'] ?>" <?=$rowCompany['id'] == 1 ? 'selected' : ''?>><?=$rowCompany['name'] ?></option>
+                                                                    <option value="<?=$rowCompany['id'] ?>" <?=($canViewAllCompanies ? $rowCompany['id'] == 1 : $rowCompany['id'] == $companyId) ? 'selected' : ''?>><?=$rowCompany['name'] ?></option>
                                                                 <?php } ?>
-                                                            </select>           
+                                                            </select>
                                                         </div>
                                                     </div><!--end col-->
                                                     <div class="col-3">
@@ -161,6 +165,24 @@ else{
                                                                 <?php while($rowPlantF=mysqli_fetch_assoc($plant)){ ?>
                                                                     <option value="<?=$rowPlantF['id'] ?>" <?= ($rowPlantF['id'] == $selectedPlantId) ? 'selected' : '' ?>><?=$rowPlantF['name'] ?></option>
                                                                 <?php } ?>
+                                                            </select>
+                                                        </div>
+                                                    </div><!--end col-->
+                                                    <div class="col-3">
+                                                        <div class="mb-3">
+                                                            <label for="customerSupplierSearch" class="form-label"><?=$languageArray['customer_supplier_code'][$language]?></label>
+                                                            <select id="customerSupplierSearch" class="form-select select2">
+                                                                <option value="">-</option>
+                                                                <optgroup label="<?=$languageArray['customer_code'][$language]?>">
+                                                                    <?php while($rowCustomer = mysqli_fetch_assoc($customer)){ ?>
+                                                                        <option value="customer:<?=$rowCustomer['customer_code'] ?>"><?=$rowCustomer['name'] ?></option>
+                                                                    <?php } ?>
+                                                                </optgroup>
+                                                                <optgroup label="<?=$languageArray['supplier_code'][$language]?>">
+                                                                    <?php while($rowSupplier = mysqli_fetch_assoc($supplier)){ ?>
+                                                                        <option value="supplier:<?=$rowSupplier['supplier_code'] ?>"><?=$rowSupplier['name'] ?></option>
+                                                                    <?php } ?>
+                                                                </optgroup>
                                                             </select>
                                                         </div>
                                                     </div><!--end col-->
@@ -207,6 +229,29 @@ else{
                                                                             <?=$languageArray['please_fill_in_the_field_code'][$language] ?? 'Please fill in the field'?>
                                                                         </div>
                                                                     </div>
+                                                                    <div class="col-md-3" style="<?= !$canViewAllCompanies ? 'display:none' : '' ?>">
+                                                                        <label class="form-label small mb-1"><?=$languageArray['company_code'][$language]?> <span class="text-danger">*</span></label>
+                                                                        <select class="form-control select2" id="companyId" name="companyId" required>
+                                                                            <?php while($rowCompanyM=mysqli_fetch_assoc($company2)){ ?>
+                                                                                <option value="<?=$rowCompanyM['id'] ?>" <?=($canViewAllCompanies ? $rowCompanyM['id'] == 1 : $rowCompanyM['id'] == $companyId) ? 'selected' : ''?>><?=$rowCompanyM['name'] ?></option>
+                                                                            <?php } ?>
+                                                                        </select>
+                                                                        <div class="invalid-feedback">
+                                                                            <?=$languageArray['please_fill_in_the_field_code'][$language] ?? 'Please fill in the field'?>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-md-3" style="<?= !$canViewAllPlants ? 'display:none' : '' ?>">
+                                                                        <label class="form-label small mb-1"><?=$languageArray['plant_code'][$language]?> <span class="text-danger">*</span></label>
+                                                                        <select class="form-control select2" id="plantId" name="plantId" required>
+                                                                            <option value="">-</option>
+                                                                            <?php while($rowPlantM=mysqli_fetch_assoc($plant2)){ ?>
+                                                                                <option value="<?=$rowPlantM['id'] ?>" <?= ($rowPlantM['id'] == $selectedPlantId) ? 'selected' : '' ?>><?=$rowPlantM['plant_code'] ?> - <?=$rowPlantM['name'] ?></option>
+                                                                            <?php } ?>
+                                                                        </select>
+                                                                        <div class="invalid-feedback">
+                                                                            <?=$languageArray['please_fill_in_the_field_code'][$language] ?? 'Please fill in the field'?>
+                                                                        </div>
+                                                                    </div>
                                                                     <div class="col-md-3">
                                                                         <label class="form-label small mb-1"><?=$languageArray['transaction_id_code'][$language]?> <span class="text-danger">*</span></label>
                                                                         <select class="form-control select2" id="weightId" name="weightId" required>
@@ -240,14 +285,6 @@ else{
                                                                         <label class="form-label small mb-1"><?=$languageArray['vehicle_no_code'][$language]?></label>
                                                                         <input type="text" class="form-control readonly-field" id="lorryNo" name="lorryNo" readonly>
                                                                     </div>
-                                                                    <div class="col-md-3">
-                                                                        <label class="form-label small mb-1"><?=$languageArray['company_code'][$language]?></label>
-                                                                        <input type="text" class="form-control readonly-field" id="companyDisplay" readonly>
-                                                                    </div>
-                                                                    <div class="col-md-3">
-                                                                        <label class="form-label small mb-1"><?=$languageArray['plant_code'][$language]?></label>
-                                                                        <input type="text" class="form-control readonly-field" id="plantDisplay" readonly>
-                                                                    </div>
                                                                     <div class="col-md-12">
                                                                         <label class="form-label small mb-1"><?=$languageArray['remarks_code'][$language]?></label>
                                                                         <textarea class="form-control" id="remarks" name="remarks" rows="3" placeholder="<?=$languageArray['enter_remarks_message_code'][$language]?>"></textarea>
@@ -255,8 +292,6 @@ else{
                                                                 </div>
                                                                 <input type="hidden" id="id" name="id">
                                                                 <input type="hidden" id="transactionId" name="transactionId">
-                                                                <input type="hidden" id="companyId" name="companyId">
-                                                                <input type="hidden" id="plantId" name="plantId">
                                                             </div>
                                                         </div>
                                                         
@@ -392,22 +427,6 @@ else{
                                                                 </button>
                                                                 <?php endif; ?>
 
-                                                                <!-- <?php if(hasModulePermission('Sawn Timber', 'Sawn Timber', ['download_template'])): ?>
-                                                                <a href="php/modules/sawnTimber/index.php?action=export&template=1" download>
-                                                                    <button type="button" class="btn btn-info waves-effect waves-light">
-                                                                        <i class="mdi mdi-file-import-outline align-middle me-1"></i>
-                                                                        <?=$languageArray['download_template_code'][$language]?>
-                                                                    </button>
-                                                                </a>
-                                                                <?php endif; ?>
-
-                                                                <?php if(hasModulePermission('Sawn Timber', 'Sawn Timber', ['upload_excel'])): ?>
-                                                                <button type="button" id="uploadExcel" class="btn btn-warning waves-effect waves-light">
-                                                                    <i class="ri-file-pdf-line align-middle me-1"></i>
-                                                                    <?=$languageArray['upload_excel_code'][$language]?>
-                                                                </button>
-                                                                <?php endif; ?> -->
-
                                                                 <?php if(hasModulePermission('Sawn Timber', 'Sawn Timber', ['cancelled'])): ?>
                                                                 <button type="button" id="multiDeactivate" class="btn btn-warning waves-effect waves-light">
                                                                     <i class="ri-delete-bin-fill align-middle me-1"></i>
@@ -430,9 +449,9 @@ else{
                                                                 <tr>
                                                                     <th><input type="checkbox" id="selectAllCheckbox" class="selectAllCheckbox"></th>
                                                                     <th><?=$languageArray['record_date_code'][$language]?></th>
-                                                                    <th><?=$languageArray['transaction_id_code'][$language]?></th>
                                                                     <th><?=$languageArray['company_code'][$language]?></th>
                                                                     <th><?=$languageArray['plant_code'][$language]?></th>
+                                                                    <th><?=$languageArray['transaction_id_code'][$language]?></th>
                                                                     <th><?=$languageArray['customer_code'][$language]?> / <?=$languageArray['supplier_code'][$language]?></th>
                                                                     <th><?=$languageArray['total_pcs_code'][$language]?></th>
                                                                     <th><?=$languageArray['total_tons_code'][$language]?></th>
@@ -485,8 +504,6 @@ else{
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
     <script src="assets/js/pages/datatables.init.js"></script>
-    <!-- Additional js -->
-    <script src="assets/js/additional.js"></script>
 
     <script type="text/html" id="detailRowTemplate">
         <tr class="detail-row">
@@ -531,19 +548,19 @@ else{
                         <input type="text" class="form-control form-control-sm card-bundle" placeholder="Bundle">
                     </div>
                     <div class="col-md-1">
-                        <label class="form-label small text-muted mb-0"><?=$languageArray['thick_code'][$language]?></label>
+                        <label class="form-label small text-muted mb-0"><?=$languageArray['thick_code'][$language]?> (m) <span class="text-danger">*</span></label>
                         <input type="number" step="0.0001" class="form-control form-control-sm card-thick" placeholder="0">
                     </div>
                     <div class="col-md-1">
-                        <label class="form-label small text-muted mb-0"><?=$languageArray['width_code'][$language]?></label>
+                        <label class="form-label small text-muted mb-0"><?=$languageArray['width_code'][$language]?> (m) <span class="text-danger">*</span></label>
                         <input type="number" step="0.0001" class="form-control form-control-sm card-width" placeholder="0">
                     </div>
                     <div class="col-md-1">
-                        <label class="form-label small text-muted mb-0"><?=$languageArray['length_code'][$language]?></label>
+                        <label class="form-label small text-muted mb-0"><?=$languageArray['length_code'][$language]?> (m) <span class="text-danger">*</span></label>
                         <input type="number" step="0.0001" class="form-control form-control-sm card-length" placeholder="0">
                     </div>
                     <div class="col-md-1">
-                        <label class="form-label small text-muted mb-0"><?=$languageArray['pieces_code'][$language]?></label>
+                        <label class="form-label small text-muted mb-0"><?=$languageArray['pieces_code'][$language]?> <span class="text-danger">*</span></label>
                         <input type="number" step="1" class="form-control form-control-sm card-pieces" placeholder="0">
                     </div>
                     <div class="col-md-2">
@@ -711,10 +728,7 @@ else{
             $('#sawnTimberForm')[0].reset();
             $('#sawnTimberForm').removeClass('was-validated');
             $('#sawnTimberForm .is-invalid').removeClass('is-invalid');
-            $('#companyDisplay').val('');
-            $('#plantDisplay').val('');
-            $('#companyId').val('');
-            $('#plantId').val('');
+            $('#companyId, #plantId').trigger('change.select2');
             $('#weightId').val('').trigger('change');
             $('#transactionStatus').val('');
             $('#transactionDate').val('');
@@ -749,6 +763,11 @@ else{
             });
         });
 
+        // Reload transaction list when company or plant changes
+        $('#companyId, #plantId').on('change', function() {
+            loadSawnTimberWeighing();
+        });
+
         // Handle weight dropdown change
         $('#weightId').on('change', function() {
             var selectedOption = $(this).find('option:selected');
@@ -761,10 +780,6 @@ else{
                 $('#deliveredTo').val(selectedOption.data('destination') || '');
                 $('#lorryNo').val(selectedOption.data('lorry-no') || '');
                 $('#doNo').val(selectedOption.data('do-no') || '');
-                $('#companyDisplay').val(selectedOption.data('company-name') || '');
-                $('#plantDisplay').val(selectedOption.data('plant-display') || '');
-                $('#companyId').val(selectedOption.data('company-id') || '');
-                $('#plantId').val(selectedOption.data('plant-id') || '');
                 var transDate = selectedOption.data('transaction-date');
                 if (transDate) {
                     var d = new Date(transDate);
@@ -779,10 +794,6 @@ else{
                 $('#deliveredTo').val('');
                 $('#lorryNo').val('');
                 $('#doNo').val('');
-                $('#companyDisplay').val('');
-                $('#plantDisplay').val('');
-                $('#companyId').val('');
-                $('#plantId').val('');
             }
         });
 
@@ -817,7 +828,8 @@ else{
                 toDate: $('#toDateSearch').val(),
                 company: $('#companySearch').val(),
                 plant: $('#plantSearch').val(),
-                transactionId: $('#transactionIdSearch').val()
+                transactionId: $('#transactionIdSearch').val(),
+                customerSupplier: $('#customerSupplierSearch').val()
             });
             window.location = 'php/modules/sawnTimber/index.php?action=export&' + params;
         });
@@ -840,93 +852,6 @@ else{
                 }
             });
         });
-
-        // $('#uploadExcel').on('click', function(){
-        //     $('#previewTable').html('');
-        //     $('#fileInput').val('');
-        //     $('#uploadModal').modal('show');
-
-        //     $('#uploadForm').validate({
-        //         errorElement: 'span',
-        //         errorPlacement: function (error, element) {
-        //             error.addClass('invalid-feedback');
-        //             element.closest('.form-group').append(error);
-        //         },
-        //         highlight: function (element, errorClass, validClass) {
-        //             $(element).addClass('is-invalid');
-        //         },
-        //         unhighlight: function (element, errorClass, validClass) {
-        //             $(element).removeClass('is-invalid');
-        //         }
-        //     });
-        // });
-
-        // $('#uploadModal').find('#previewButton').on('click', function(){
-        //     var fileInput = document.getElementById('fileInput');
-        //     var file = fileInput.files[0];
-        //     var reader = new FileReader();
-            
-        //     reader.onload = function(e) {
-        //         var data = e.target.result;
-        //         displayPreview(data);
-        //     };
-
-        //     reader.readAsBinaryString(file);
-        // });
-
-        // $('#submitUpload').on('click', function(){
-        //     $('#spinnerLoading').show();
-        //     var formData = $('#uploadForm').serializeArray();
-        //     var data = [];
-        //     var rowIndex = -1;
-        //     formData.forEach(function(field) {
-        //         var match = field.name.match(/([a-zA-Z0-9]+)\[(\d+)\]/);
-        //         if (match) {
-        //             var fieldName = match[1];
-        //             var index = parseInt(match[2], 10);
-        //             if (index !== rowIndex) {
-        //                 rowIndex = index;
-        //                 data.push({});
-        //             }
-        //             data[index][fieldName] = field.value;
-        //         }
-        //     });
-
-        //     $.ajax({
-        //         url: 'php/modules/sawnTimber/uploadSawnTimber.php',
-        //         type: 'POST',
-        //         contentType: 'application/json',
-        //         data: JSON.stringify(data),
-        //         success: function(response) {
-        //             var obj = JSON.parse(response);
-        //             if (obj.status === 'success') {
-        //                 $('#spinnerLoading').hide();
-        //                 $('#uploadModal').modal('hide');
-        //                 toastr["success"](obj.message, "Success:");
-        //                 table.ajax.reload(null, false);
-        //             } 
-        //             else if (obj.status === 'failed') {
-        //                 $('#spinnerLoading').hide();
-        //                 toastr["error"](obj.message, "Failed:");
-        //             } 
-        //             else if (obj.status === 'error') {
-        //                 $('#spinnerLoading').hide();
-        //                 $('#uploadModal').modal('hide');
-        //                 table.ajax.reload(null, false);
-        //                 $('#errorModal').find('#errorList').empty();
-        //                 var errorMessage = obj.message;
-        //                 for (var i = 0; i < errorMessage.length; i++) {
-        //                     $('#errorModal').find('#errorList').append(`<li>${errorMessage[i]}</li>`);                            
-        //                 }
-        //                 $('#errorModal').modal('show');
-        //             } 
-        //             else {
-        //                 $('#spinnerLoading').hide();
-        //                 toastr["error"]("Failed to save", "Failed:");
-        //             }
-        //         }
-        //     });
-        // });
     });
 
     function renderTable() {
@@ -935,6 +860,7 @@ else{
         var companyI = $('#companySearch').val() || '';
         var plantI = $('#plantSearch').val() || '';
         var transactionIdI = $('#transactionIdSearch').val() || '';
+        var customerSupplierI = $('#customerSupplierSearch').val() || '';
 
         // Destroy the old Datatable if exists
         if ($.fn.DataTable.isDataTable('#sawnTimberTable')) {
@@ -957,6 +883,7 @@ else{
                     company: companyI,
                     plant: plantI,
                     transactionId: transactionIdI,
+                    customerSupplier: customerSupplierI,
                 }
             },
             'columns': [
@@ -969,9 +896,9 @@ else{
                     }
                 },
                 { data: 'record_date' },
-                { data: 'transaction_id' },
                 { data: 'company' },
                 { data: 'plant' },
+                { data: 'transaction_id' },
                 { data: 'customer_supplier' },
                 { data: 'total_pieces' },
                 { data: 'total_tons' },
@@ -1029,7 +956,7 @@ else{
                     <strong class="text-primary"><i class="ri-stack-line me-1"></i><?=$languageArray['details_code'][$language]?></strong>
                 </div>
             </div>
-            <table class="table table-sm table-bordered table-striped mb-0" style="font-size:12px;">
+            <table class="table table-bordered table-striped mb-0">
                 <thead style="background-color:#405189; color:#fff;">
                     <tr>
                         <th>#</th>
@@ -1075,7 +1002,7 @@ else{
                         <td>${d.width || '-'}</td>
                         <td>${d.length || '-'}</td>
                         <td>${d.pieces || '-'}</td>
-                        <td class="text-success fw-bold">${tons.toFixed(4)}</td>
+                        <td>${tons.toFixed(4)}</td>
                         <td>${kd > 0 ? kd.toFixed(2) : '-'}</td>
                         <td>${bundling > 0 ? bundling.toFixed(2) : '-'}</td>
                         <td>${grader > 0 ? grader.toFixed(2) : '-'}</td>
@@ -1091,10 +1018,10 @@ else{
                     <tr>
                         <td colspan="7" class="text-end"><?=$languageArray['total_code'][$language]?>:</td>
                         <td>${totalPieces}</td>
-                        <td style="color:#5eff5e;">${totalTons.toFixed(4)}</td>
-                        <td style="color:#ffeb3b;">${totalKd > 0 ? totalKd.toFixed(2) : '-'}</td>
-                        <td style="color:#ffeb3b;">${totalBundling > 0 ? totalBundling.toFixed(2) : '-'}</td>
-                        <td style="color:#ffeb3b;">${totalGrader > 0 ? totalGrader.toFixed(2) : '-'}</td>
+                        <td>${totalTons.toFixed(4)}</td>
+                        <td>${totalKd > 0 ? totalKd.toFixed(2) : '-'}</td>
+                        <td>${totalBundling > 0 ? totalBundling.toFixed(2) : '-'}</td>
+                        <td>${totalGrader > 0 ? totalGrader.toFixed(2) : '-'}</td>
                     </tr>
                 </tfoot>
             </table>
@@ -1104,7 +1031,10 @@ else{
     }
 
     function loadSawnTimberWeighing() {
-        $.get('php/modules/sawnTimber/index.php?action=getWeighing', function(data) {
+        $.post('php/modules/sawnTimber/index.php?action=getWeighing', {
+            company: $('#companyId').val() || '',
+            plant: $('#plantId').val() || ''
+        }, function(data) {
             var obj = JSON.parse(data);
             if (obj.status === 'success') {
                 var options = '<option value="">-</option>';
@@ -1124,7 +1054,9 @@ else{
                         ' data-plant-display="' + (item.plant_display || '') + '"' +
                         '>' + item.transaction_id + '</option>';
                 });
-                $('#weightId').html(options);
+                $('#weightId').html(options).trigger('change');
+            } else {
+                toastr.error(obj.message);
             }
         });
     }
@@ -1152,10 +1084,8 @@ else{
         detailRowCount = 0;
 
         $('#id').val(record.id || '');
-        $('#companyDisplay').val(record.company_name || '');
-        $('#plantDisplay').val(record.plant_display || '');
-        $('#companyId').val(record.company_id || '');
-        $('#plantId').val(record.plant_id || '');
+        $('#companyId').val(record.company_id || '').trigger('change.select2');
+        $('#plantId').val(record.plant_id || '').trigger('change.select2');
         $('#transactionId').val(record.transaction_id || '');
         $('#transactionStatus').val(record.transaction_status || '');
         $('#transactionDate').val(record.transaction_date ? record.transaction_date.split(' ')[0].split('-').reverse().join('-') : '');

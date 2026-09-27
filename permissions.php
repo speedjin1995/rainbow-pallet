@@ -220,7 +220,7 @@ $(function () {
         'processing': true,
         'serverSide': true,
         'serverMethod': 'post',
-        'ajax': { 'url': 'php/modules/permissions/loadPermissions.php' },
+        'ajax': { 'url': 'php/modules/permissions/index.php?action=getAll' },
         'columns': [
             {
                 data: 'id',
@@ -301,7 +301,7 @@ $(function () {
     $('#submitPermission').on('click', function() {
         if ($('#permissionForm').valid()) {
             $('#spinnerLoading').show();
-            $.post('php/modules/permissions/permissions.php', $('#permissionForm').serialize(), function(data) {
+            $.post('php/modules/permissions/index.php', $('#permissionForm').serialize() + '&action=' + ($('#permissionForm').find('#permissionId').val() ? 'update' : 'create'), function(data) {
                 var obj = JSON.parse(data);
                 if (obj.status === 'success') {
                     table.ajax.reload();
@@ -319,7 +319,7 @@ $(function () {
     $('#insertDefaultPermissions').on('click', function() {
         if (confirm('<?=$languageArray['insert_default_permissions_warning_code'][$language]?>')) {
             $('#spinnerLoading').show();
-            $.post('php/modules/permissions/insertDefaultPermissions.php', function(data) {
+            $.post('php/modules/permissions/index.php', {action: 'insertDefaults'}, function(data) {
                 var obj = JSON.parse(data);
                 if (obj.status === 'success') {
                     table.ajax.reload();
@@ -341,7 +341,7 @@ $(function () {
 
         if (selectedIds.length > 0) {
             if (confirm('<?=$languageArray['multi_delete_permissions_message_code'][$language]?>')) {
-                $.post('php/modules/permissions/deletePermission.php', { permissionID: selectedIds, type: 'MULTI' }, function(data) {
+                $.post('php/modules/permissions/index.php', { action: 'delete', permissionID: selectedIds, type: 'MULTI' }, function(data) {
                     var obj = JSON.parse(data);
                     if (obj.status === 'success') {
                         table.ajax.reload();
@@ -363,7 +363,7 @@ $(function () {
 
 function edit(id) {
     $('#spinnerLoading').show();
-    $.post('php/modules/permissions/getPermission.php', { id: id }, function(data) {
+    $.post('php/modules/permissions/index.php', { action: 'get', id: id }, function(data) {
         var obj = JSON.parse(data);
         if (obj.status === 'success') {
             $('#addModal').find('#permissionId').val(obj.message.id);
@@ -395,7 +395,7 @@ function edit(id) {
 function deactivate(id) {
     if (confirm('<?=$languageArray['delete_permissions_message_code'][$language]?>')) {
         $('#spinnerLoading').show();
-        $.post('php/modules/permissions/deletePermission.php', { permissionID: id }, function(data) {
+        $.post('php/modules/permissions/index.php', { action: 'delete', permissionID: id }, function(data) {
             var obj = JSON.parse(data);
             if (obj.status === 'success') {
                 table.ajax.reload();

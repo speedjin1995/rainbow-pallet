@@ -18,6 +18,7 @@ switch ($action) {
     case 'get':     $controller->get(); break;
     case 'getAll':  $controller->getAll(); break;
     case 'savePortSetup': $controller->savePortSetup(); break;
+    case 'list':    $controller->handleList(); break;
         echo json_encode(['status' => 'failed', 'message' => 'Invalid action']);
 }
 ?>

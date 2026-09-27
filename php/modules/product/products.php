@@ -1,7 +1,7 @@
 <?php
 session_start();
 require_once '../../db_connect.php';
-require_once '../../requires/functions.php';
+require_once '../../services/BaseService.php';
 
 if (!isset($_SESSION['id'])) {
     echo '<script type="text/javascript">location.href = "../login.php";</script>';
@@ -44,13 +44,13 @@ if (isset($_POST['productCode'])) {
             // Get current product_code and name before update
             $oldCode = null;
             $oldName = null;
-            $stmt = $db->prepare('SELECT product_code, name FROM Product WHERE id = ?');
+            $stmt = $db->prepare('SELECT product_code, name, company FROM Product WHERE id = ?');
             if (!$stmt) {
                 throw new Exception($db->error);
             }
             $stmt->bind_param('s', $productId);
             $stmt->execute();
-            $stmt->bind_result($oldCode, $oldName);
+            $stmt->bind_result($oldCode, $oldName, $oldCompany);
             $stmt->fetch();
             $stmt->close();
 
@@ -67,12 +67,12 @@ if (isset($_POST['productCode'])) {
 
             // Update related tables if product code is changed
             if ($oldCode !== null && $oldCode !== $productCode) {
-                updateMasterDataCodeValue($db, $oldCode, $productCode, 'Product');
+                (new BaseService($db, $username))->updateMasterDataCodeValue($oldCode, $productCode, 'Product', $oldCompany);
             }
 
             // Update related tables if product name is changed
             if ($oldName !== null && $oldName !== $productName) {
-                updateMasterDataNameValue($db, $oldName, $productName, 'Product');
+                (new BaseService($db, $username))->updateMasterDataNameValue($oldName, $productName, 'Product', $oldCompany);
             }
 
             $stmt->close();

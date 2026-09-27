@@ -1,11 +1,23 @@
 <?php include 'layouts/session.php'; ?>
 <?php include 'layouts/head-main.php'; ?>
 <?php
+    $companyId = $_SESSION['company_id'];
     if (!hasModulePermission('Master Data', 'Product Category', ['view'])){
         header('Location: no-permission.php');
         exit;
     }
-    $companies = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
+
+    if (!hasModulePermission('Master Data', 'Product Category', ['view_all_companies'])){
+        // Get companies
+        $company_ids = implode(',', array_map('intval', $_SESSION['company_ids']));
+        $companies = $db->query("SELECT * FROM Company WHERE status = 0 AND id IN ($company_ids) ORDER BY name");
+        $companies2 = $db->query("SELECT * FROM Company WHERE status = 0 AND id IN ($company_ids) ORDER BY name");
+        $companies3 = $db->query("SELECT * FROM Company WHERE status = 0 AND id IN ($company_ids) ORDER BY name");
+    }else{
+        $companies = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
+        $companies2 = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
+        $companies3 = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
+    }
 ?>
 
 <head>
@@ -75,7 +87,45 @@
                                 <!--end col-->
                             </div>
                             <!--end row-->
-                            
+
+                            <div class="col-xxl-12 col-lg-12">
+                                <div class="card">
+                                    <div class="card-header fs-5 text-white" href="#collapseSearch" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="collapseSearch" style="background-color: #405189; cursor:pointer;">
+                                        <i class="mdi mdi-chevron-down pull-right"></i>
+                                        <?=$languageArray['search_records_code'][$language] ?? 'Search Records'?>
+                                    </div>
+                                    <div id="collapseSearch" class="collapse" aria-labelledby="collapseSearch">
+                                        <div class="card-body">
+                                            <form action="javascript:void(0);">
+                                                <div class="row">
+                                                    <div class="col-3" <?= !hasModulePermission('Master Data', 'Product Category', ['view_all_companies']) ? "style='display:none'" : '' ?>>
+                                                        <div class="mb-3">
+                                                            <label class="form-label"><?=$languageArray['company_code'][$language]?></label>
+                                                            <select class="form-select select2" id="companySearch" name="companySearch" required>
+                                                                <?php while($rowCompany=mysqli_fetch_assoc($companies2)){ ?>
+                                                                    <option value="<?=$rowCompany['id'] ?>" <?=($rowCompany['id'] == $companyId) ? 'selected' : ''?>><?=$rowCompany['name'] ?></option>
+                                                                <?php } ?>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-3">
+                                                        <div class="mb-3">
+                                                            <label class="form-label"><?=$languageArray['category_name_code'][$language] ?? 'Category Name'?></label>
+                                                            <input type="text" class="form-control" id="categoryNameSearch" placeholder="<?=$languageArray['category_name_code'][$language] ?? 'Category Name'?>">
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-lg-12">
+                                                        <div class="text-end">
+                                                            <button type="submit" class="btn btn-success" id="filterSearch"><i class="bx bx-search-alt"></i> <?=$languageArray['search_code'][$language] ?? 'Search'?></button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="row">
                                 <div class="col-xl-3 col-md-6 add-new-weight">
 
@@ -95,12 +145,16 @@
                                                                 <div class="card bg-light">
                                                                     <div class="card-body">
                                                                         <div class="row">
-                                                                            <div class="col-xxl-12 col-lg-12 mb-3">
+                                                                            <div class="col-xxl-12 col-lg-12 mb-3" <?= !hasModulePermission('Master Data', 'Product Category', ['view_all_companies']) ? "style='display:none'" : '' ?>>
                                                                                 <div class="row">
                                                                                     <label for="company" class="col-sm-4 col-form-label"><?=$languageArray['company_code'][$language]?> <span class="text-danger">*</span></label>
                                                                                     <div class="col-sm-8">
                                                                                         <select class="form-select select2" id="company" name="company" required>
-                                                                                            <?php while($rowCompany=mysqli_fetch_assoc($companies)){ ?>
+                                                                                            <?php
+                                                                                                $companySawnTimberMap = [];
+                                                                                                while($rowCompany=mysqli_fetch_assoc($companies)){
+                                                                                                    $companySawnTimberMap[$rowCompany['id']] = $rowCompany['has_sawn_timber'] ?? 'N';
+                                                                                            ?>
                                                                                                 <option value="<?=$rowCompany['id'] ?>"><?=$rowCompany['name'] ?></option>
                                                                                             <?php } ?>
                                                                                         </select>
@@ -146,10 +200,21 @@
                                                                                             <!-- <option value="Local"><?=$languageArray['internal_transfer_code'][$language]?></option> -->
                                                                                             <option value="Port"><?=$languageArray['trx_to_port_code'][$language]?></option>
                                                                                             <option value="Misc"><?=$languageArray['miscellaneous_code'][$language]?></option>
-                                                                                        </select>  
+                                                                                        </select>
                                                                                         <div class="invalid-feedback">
                                                                                             <?=$languageArray['please_fill_in_the_field_code'][$language] ?? 'Please fill in the field'?>
                                                                                         </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="col-xxl-12 col-lg-12 mb-3" id="isSawnTimberWrapper" style="display:none">
+                                                                                <div class="row">
+                                                                                    <label for="isSawnTimber" class="col-sm-4 col-form-label"><?=$languageArray['sawn_timber_code'][$language] ?? 'Sawn Timber'?></label>
+                                                                                    <div class="col-sm-8">
+                                                                                        <select class="form-select" id="isSawnTimber" name="isSawnTimber">
+                                                                                            <option value="N"><?=$languageArray['no_code'][$language] ?? 'No'?></option>
+                                                                                            <option value="Y"><?=$languageArray['yes_code'][$language] ?? 'Yes'?></option>
+                                                                                        </select>
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
@@ -179,6 +244,16 @@
                                                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                     </div>
                                                     <div class="modal-body">
+                                                        <div class="row mb-3" <?= !hasModulePermission('Master Data', 'Product Category', ['view_all_companies']) ? "style='display:none'" : '' ?>>
+                                                            <label for="uploadCompany" class="col-sm-2 col-form-label"><?=$languageArray['company_code'][$language]?> <span class="text-danger">*</span></label>
+                                                            <div class="col-sm-4">
+                                                                <select class="form-select select2" id="uploadCompany" name="uploadCompany" required>
+                                                                    <?php while($rowCompany=mysqli_fetch_assoc($companies3)){ ?>
+                                                                        <option value="<?=$rowCompany['id'] ?>" <?=($rowCompany['id'] == $companyId) ? 'selected' : ''?>><?=$rowCompany['name'] ?></option>
+                                                                    <?php } ?>
+                                                                </select>
+                                                            </div>
+                                                        </div>
                                                         <input type="file" id="fileInput">
                                                         <button type="button" id="previewButton"><?=$languageArray['preview_data_code'][$language] ?? 'Preview Data'?></button>
                                                         <div id="previewTable" style="overflow: auto;"></div>
@@ -204,6 +279,33 @@
                                                             <ol id="errorList" class="text-danger mt-2" style="padding-left: 20px;"></ol>
                                                         </div>
                                                     </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal fade" id="reassignModal" tabindex="-1" role="dialog" aria-labelledby="reassignModalTitle" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-scrollable modal-lg">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="reassignModalTitle"><?=$languageArray['reassign_category_code'][$language] ?? 'Reassign Category'?></h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p class="text-muted"><?=$languageArray['reassign_category_desc_code'][$language] ?? 'The categories below are still assigned to items. Please select a new category for these items before deleting.'?></p>
+                                                    <table class="table table-bordered align-middle mb-0">
+                                                        <thead class="table-light">
+                                                            <tr>
+                                                                <th style="width:25%"><?=$languageArray['category_code'][$language] ?? 'Category'?></th>
+                                                                <th style="width:40%"><?=$languageArray['items_code'][$language] ?? 'Items'?></th>
+                                                                <th style="width:35%"><?=$languageArray['new_category_code'][$language] ?? 'New Category'?> <span class="text-danger">*</span></th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="reassignTableBody"></tbody>
+                                                    </table>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-light" data-bs-dismiss="modal"><?=$languageArray['close_code'][$language] ?? 'Close'?></button>
+                                                    <button type="button" class="btn btn-danger" id="confirmReassignDelete"><i class="ri-delete-bin-fill align-middle me-1"></i> <?=$languageArray['delete_code'][$language] ?? 'Delete'?></button>
                                                 </div>
                                             </div>
                                         </div>
@@ -269,6 +371,7 @@
                                                                     <!-- <th><?=$languageArray['local_code'][$language] ?? 'Local'?></th> -->
                                                                     <th><?=$languageArray['trx_to_port_code'][$language] ?? 'Transfer to Port'?></th>
                                                                     <th><?=$languageArray['miscellaneous_code'][$language] ?? 'Misc'?></th>
+                                                                    <th><?=$languageArray['sawn_timber_code'][$language] ?? 'Sawn Timber'?></th>
                                                                     <th><?=$languageArray['status_code'][$language] ?? 'Status'?></th>
                                                                     <th><?=$languageArray['action_code'][$language] ?? 'Action'?></th>
                                                                 </tr>
@@ -327,13 +430,47 @@
 var table;
 var permissions = <?= json_encode($_SESSION['permissions'] ?? []) ?>;
 var isSADMIN = <?= json_encode($_SESSION['roles'] == 'SADMIN') ?>;
+var sessionCompanyId = <?= intval($_SESSION['company_id'] ?? 0) ?>;
+var companySawnTimberMap = <?= json_encode($companySawnTimberMap ?? []) ?>;
+var pendingDeleteIds = null;
+var pendingDeleteType = null;
+var reassignLang = {
+    pleaseSelect: <?= json_encode($languageArray['please_select_code'][$language] ?? 'Please Select') ?>,
+    selectNewCategory: <?= json_encode($languageArray['please_select_new_category_code'][$language] ?? 'Please select a new category for all tied items.') ?>,
+    noOtherCategory: <?= json_encode($languageArray['no_other_category_code'][$language] ?? 'No other category available for this company. Please create one first.') ?>
+};
 
 $(function () {
     // Initialize all Select2 elements in the modal
-    $('.select2').select2({
+    $('#collapseSearch .select2').select2({
+        allowClear: true,
+        placeholder: "Please Select",
+        dropdownParent: $('#collapseSearch') // Ensures dropdown is not cut off
+    });
+
+    // Initialize all Select2 elements in the modal
+    $('#addModal .select2').select2({
         allowClear: true,
         placeholder: "Please Select",
         dropdownParent: $('#addModal') // Ensures dropdown is not cut off
+    });
+
+    // Initialize all Select2 elements in the upload modal
+    $('#uploadModal .select2').select2({
+        allowClear: true,
+        placeholder: "Please Select",
+        dropdownParent: $('#uploadModal') // Ensures dropdown is not cut off
+    });
+
+    // Show the Sawn Timber field only when the selected company has Sawn Timber tied to it
+    $('#addModal').find('#company').on('change', function(){
+        var companyId = $(this).val();
+        if (companySawnTimberMap[companyId] === 'Y') {
+            $('#isSawnTimberWrapper').show();
+        } else {
+            $('#isSawnTimberWrapper').hide();
+            $('#isSawnTimber').val('N');
+        }
     });
 
     // Apply custom styling to Select2 elements in addModal
@@ -353,85 +490,12 @@ $(function () {
         checkboxes.prop('checked', $(this).prop('checked')).trigger('change');
     });
 
-    table = $("#productCategoryTable").DataTable({
-        "responsive": true,
-        "autoWidth": false,
-        'processing': true,
-        'serverSide': true,
-        'serverMethod': 'post',
-        'ajax': {
-            'url':'php/modules/productCategory/index.php',
-            'data': { action: 'getAll' }
-        },
-        'columns': [
-            {
-                data: 'id',
-                className: 'select-checkbox',
-                orderable: false,
-                render: function (data, type, row) {
-                    return '<input type="checkbox" class="select-checkbox" id="checkbox_' + data + '" value="'+data+'"/>';
-                }
-            },
-            { data: 'company_name' },
-            { data: 'category_name' },
-            { data: 'post_to_sql' },
-            { data: 'is_sales' },
-            { data: 'is_purchase' },
-            // { data: 'is_local' },
-            { data: 'is_port' },
-            { data: 'is_misc' },
-            {
-                data: 'id',
-                render: function ( data, type, row ) {
-                    if (row.status == '1'){
-                        return '<button title="Reactivate" type="button" id="reactivate'+data+'" onclick="reactivate('+data+')" class="btn btn-warning btn-sm">Reactivate</button>';
-                    }else{
-                        return 'Active';
-                    }
-                }
-            },
-            { 
-                data: 'id',
-                render: function ( data, type, row ) {
-                    if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Product Category'] && ['edit', 'cancelled'].some(p => permissions['Master Data']['Product Category'].includes(p)))) {
-                        var buttons = `
-                            <div class="dropdown d-inline-block">
-                                <button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="ri-more-fill align-middle"></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end">`;
+    renderTable();
 
-                        if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Product Category'] && permissions['Master Data']['Product Category'].includes('edit'))) {
-                            buttons += `
-                                    <li>
-                                        <a class="dropdown-item edit-item-btn" id="edit${data}" onclick="edit(${data})">
-                                            <i class="ri-pencil-fill align-bottom me-2 text-muted"></i> <?=$languageArray['edit_code'][$language] ?? 'Edit'?>
-                                        </a>
-                                    </li>`;
-                        }
-
-                        if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Product Category'] && permissions['Master Data']['Product Category'].includes('cancelled'))) {
-                            buttons += `
-                                    <li>
-                                        <a class="dropdown-item remove-item-btn" id="deactivate${data}" onclick="deactivate(${data})">
-                                            <i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i> <?=$languageArray['delete_code'][$language] ?? 'Delete'?>
-                                        </a>
-                                    </li>`;
-                        }
-
-                        buttons += `
-                                </ul>
-                            </div>`;
-
-                        return buttons;
-                    }
-
-                    return '';
-                }
-            }
-        ]       
+    $('#filterSearch').on('click', function() {
+        renderTable();
     });
-    
+
     $('#submitProductCategory').on('click', function(){
         if($('#productCategoryForm').valid()){
             $('#spinnerLoading').show();
@@ -457,10 +521,11 @@ $(function () {
 
     $('#addProductCategory').on('click', function(){
         $('#addModal').find('#id').val("");
-        $('#addModal').find('#company').val(1).trigger('change');
+        $('#addModal').find('#company').val(sessionCompanyId).trigger('change');
         $('#addModal').find('#categoryName').val("");
         $('#addModal').find('#postToSql').val("");
         $('#addModal').find('#transactionStatus').val(null).trigger('change');
+        $('#addModal').find('#isSawnTimber').val("N");
 
         // Remove Validation Error Message
         $('#addModal .is-invalid').removeClass('is-invalid');
@@ -500,9 +565,12 @@ $(function () {
         }
         });
 
+        // Company is only used for users with view_all_companies; backend enforces session company otherwise
+        var uploadCompany = $('#uploadModal').find('#uploadCompany').val() || '';
+
         // Send the JSON array to the server
         $.ajax({
-            url: 'php/modules/productCategory/index.php?action=upload',
+            url: 'php/modules/productCategory/index.php?action=upload&company=' + encodeURIComponent(uploadCompany),
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(data),
@@ -540,6 +608,7 @@ $(function () {
     $('#uploadExcel').on('click', function(){
         $('#previewTable').html('');
         $('#fileInput').val('');
+        $('#uploadModal').find('#uploadCompany').val(sessionCompanyId).trigger('change');
         $('#uploadModal').modal('show');
 
         $('#uploadForm').validate({
@@ -582,34 +651,127 @@ $(function () {
         });
 
         if (selectedIds.length > 0) {
-            if (confirm('Are you sure you want to delete these product categories?')) {
-                $.post('php/modules/productCategory/index.php', {action: 'delete', id: selectedIds, type: 'MULTI'}, function(data){
-                    var obj = JSON.parse(data);
-                    
-                    if(obj.status === 'success'){
-                        table.ajax.reload();
-                        toastr["success"](obj.message, "Success:");
-                        $('#spinnerLoading').hide();
-                    }
-                    else if(obj.status === 'failed'){
-                        toastr["error"](obj.message, "Failed:");
-                        $('#spinnerLoading').hide();
-                    }
-                    else{
-                        toastr["error"]("Something wrong when activate", "Failed:");
-                        $('#spinnerLoading').hide();
-                    }
-                });
-            }
+            // Ask user to reassign tied items first, otherwise continue with normal delete
+            checkTiedItems(selectedIds, 'MULTI', function(){
+                if (confirm('Are you sure you want to delete these product categories?')) {
+                    $.post('php/modules/productCategory/index.php', {action: 'delete', id: selectedIds, type: 'MULTI'}, function(data){
+                        var obj = JSON.parse(data);
 
-            $('#spinnerLoading').hide();
-        } 
+                        if(obj.status === 'success'){
+                            table.ajax.reload();
+                            toastr["success"](obj.message, "Success:");
+                            $('#spinnerLoading').hide();
+                        }
+                        else if(obj.status === 'failed'){
+                            toastr["error"](obj.message, "Failed:");
+                            $('#spinnerLoading').hide();
+                        }
+                        else{
+                            toastr["error"]("Something wrong when activate", "Failed:");
+                            $('#spinnerLoading').hide();
+                        }
+                    });
+                }
+
+                $('#spinnerLoading').hide();
+            });
+        }
         else {
             alert("Please select at least one product categories to delete.");
             $('#spinnerLoading').hide();
         }     
     });
 });
+
+function renderTable(){
+    var companyId = $('#companySearch').val() || '';
+    var categoryName = $('#categoryNameSearch').val() || '';
+
+    // Destroy old DataTables if exist
+    if ($.fn.DataTable.isDataTable('#productCategoryTable')) {
+        $("#productCategoryTable").DataTable().clear().destroy();
+    }
+
+    table = $("#productCategoryTable").DataTable({
+        "responsive": true,
+        "autoWidth": false,
+        'processing': true,
+        'serverSide': true,
+        'serverMethod': 'post',
+        'ajax': {
+            'url':'php/modules/productCategory/index.php',
+            'data': { action: 'getAll', companyId: companyId, categoryName: categoryName }
+        },
+        'columns': [
+            {
+                data: 'id',
+                className: 'select-checkbox',
+                orderable: false,
+                render: function (data, type, row) {
+                    return '<input type="checkbox" class="select-checkbox" id="checkbox_' + data + '" value="'+data+'"/>';
+                }
+            },
+            { data: 'company_name' },
+            { data: 'category_name' },
+            { data: 'post_to_sql' },
+            { data: 'is_sales' },
+            { data: 'is_purchase' },
+            // { data: 'is_local' },
+            { data: 'is_port' },
+            { data: 'is_misc' },
+            { data: 'is_sawn_timber' },
+            {
+                data: 'id',
+                render: function ( data, type, row ) {
+                    if (row.status == '1'){
+                        return '<button title="Reactivate" type="button" id="reactivate'+data+'" onclick="reactivate('+data+')" class="btn btn-warning btn-sm">Reactivate</button>';
+                    }else{
+                        return 'Active';
+                    }
+                }
+            },
+            {
+                data: 'id',
+                render: function ( data, type, row ) {
+                    if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Product Category'] && ['edit', 'cancelled'].some(p => permissions['Master Data']['Product Category'].includes(p)))) {
+                        var buttons = `
+                            <div class="dropdown d-inline-block">
+                                <button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="ri-more-fill align-middle"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">`;
+
+                        if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Product Category'] && permissions['Master Data']['Product Category'].includes('edit'))) {
+                            buttons += `
+                                    <li>
+                                        <a class="dropdown-item edit-item-btn" id="edit${data}" onclick="edit(${data})">
+                                            <i class="ri-pencil-fill align-bottom me-2 text-muted"></i> <?=$languageArray['edit_code'][$language] ?? 'Edit'?>
+                                        </a>
+                                    </li>`;
+                        }
+
+                        if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Product Category'] && permissions['Master Data']['Product Category'].includes('cancelled'))) {
+                            buttons += `
+                                    <li>
+                                        <a class="dropdown-item remove-item-btn" id="deactivate${data}" onclick="deactivate(${data})">
+                                            <i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i> <?=$languageArray['delete_code'][$language] ?? 'Delete'?>
+                                        </a>
+                                    </li>`;
+                        }
+
+                        buttons += `
+                                </ul>
+                            </div>`;
+
+                        return buttons;
+                    }
+
+                    return '';
+                }
+            }
+        ]
+    });
+}
 
 function edit(id){
     $('#spinnerLoading').show();
@@ -618,7 +780,6 @@ function edit(id){
         var obj = JSON.parse(data);
         if(obj.status === 'success'){
             $('#addModal').find('#id').val(obj.data.id);
-            $('#addModal').find('#company').val(obj.data.company).trigger('change');
             $('#addModal').find('#categoryName').val(obj.data.category_name);
             $('#addModal').find('#postToSql').val(obj.data.post_to_sql);
 
@@ -630,6 +791,10 @@ function edit(id){
             if (obj.data.is_port === 'Y') transactionStatus.push('Port');
             if (obj.data.is_misc === 'Y') transactionStatus.push('Misc');
             $('#addModal').find('#transactionStatus').val(transactionStatus).trigger('change');
+            // Set isSawnTimber before the company change handler runs, so that handler
+            // has the final say on visibility/reset if the company has no Sawn Timber tied
+            $('#addModal').find('#isSawnTimber').val(obj.data.is_sawn_timber === 'Y' ? 'Y' : 'N');
+            $('#addModal').find('#company').val(obj.data.company).trigger('change');
 
             // Remove Validation Error Message
             $('#addModal .is-invalid').removeClass('is-invalid');
@@ -664,27 +829,146 @@ function edit(id){
 
 function deactivate(id){
     $('#spinnerLoading').show();
-    if (confirm('Are you sure you want to delete this category?')) {
-        $.post('php/modules/productCategory/index.php', {action: 'delete', id: id}, function(data){
-            var obj = JSON.parse(data);
+    // Ask user to reassign tied items first, otherwise continue with normal delete
+    checkTiedItems(id, null, function(){
+        if (confirm('Are you sure you want to delete this category?')) {
+            $.post('php/modules/productCategory/index.php', {action: 'delete', id: id}, function(data){
+                var obj = JSON.parse(data);
 
-            if(obj.status === 'success'){
-                table.ajax.reload();
-                $('#spinnerLoading').hide();
-                toastr["success"](obj.message, "Success:");
-            }
-            else if(obj.status === 'failed'){
-                $('#spinnerLoading').hide();
-                toastr["error"](obj.message, "Failed:");
-            }
-            else{
-                $('#spinnerLoading').hide();
-                toastr["error"](obj.message, "Failed:");
-            }
-        });
-    }
-    $('#spinnerLoading').hide();
+                if(obj.status === 'success'){
+                    table.ajax.reload();
+                    $('#spinnerLoading').hide();
+                    toastr["success"](obj.message, "Success:");
+                }
+                else if(obj.status === 'failed'){
+                    $('#spinnerLoading').hide();
+                    toastr["error"](obj.message, "Failed:");
+                }
+                else{
+                    $('#spinnerLoading').hide();
+                    toastr["error"](obj.message, "Failed:");
+                }
+            });
+        }
+        $('#spinnerLoading').hide();
+    });
 }
+
+function checkTiedItems(ids, type, onNoItems){
+    $('#spinnerLoading').show();
+    $.post('php/modules/productCategory/index.php', {action: 'checkItems', id: ids}, function(data){
+        var obj = JSON.parse(data);
+        $('#spinnerLoading').hide();
+
+        if(obj.status === 'success'){
+            if (obj.data.length > 0) {
+                openReassignModal(ids, type, obj.data);
+            } else {
+                onNoItems();
+            }
+        }
+        else{
+            toastr["error"](obj.message, "Failed:");
+        }
+    }).fail(function(){
+        $('#spinnerLoading').hide();
+        toastr["error"]("Something went wrong!", "Failed:");
+    });
+}
+
+function openReassignModal(ids, type, categories){
+    pendingDeleteIds = ids;
+    pendingDeleteType = type;
+
+    var tbody = $('#reassignTableBody').empty();
+    var maxPreview = 10;
+
+    categories.forEach(function(category){
+        // Item preview, text() is used so names are escaped
+        var itemCell = $('<td>');
+        itemCell.append($('<span class="badge bg-primary me-1">').text(category.items.length));
+        var itemNames = category.items.slice(0, maxPreview).map(function(item){
+            return item.product_code + ' - ' + item.name;
+        });
+        if (category.items.length > maxPreview) {
+            itemNames.push('... (+' + (category.items.length - maxPreview) + ')');
+        }
+        itemCell.append($('<div class="small text-muted mt-1">').text(itemNames.join(', ')));
+
+        var select = $('<select class="form-select select2 reassign-select">').attr('data-category-id', category.id);
+        select.append($('<option value="">').text(reassignLang.pleaseSelect));
+        category.options.forEach(function(option){
+            select.append($('<option>').val(option.id).text(option.category_name));
+        });
+
+        var selectCell = $('<td>').append(select);
+        if (category.options.length === 0) {
+            selectCell.append($('<div class="small text-danger mt-1">').text(reassignLang.noOtherCategory));
+        }
+
+        tbody.append($('<tr>').append($('<td>').text(category.category_name), itemCell, selectCell));
+    });
+
+    $('#reassignModal .reassign-select').select2({
+        placeholder: reassignLang.pleaseSelect,
+        dropdownParent: $('#reassignModal')
+    });
+
+    $('#reassignModal .select2-container .select2-selection--single').css({
+        'padding-top': '4px',
+        'padding-bottom': '4px',
+        'height': 'auto'
+    });
+
+    $('#reassignModal').modal('show');
+}
+
+$(document).on('click', '#confirmReassignDelete', function(){
+    var reassign = {};
+    var isValid = true;
+
+    $('#reassignModal .reassign-select').each(function(){
+        var newCategory = $(this).val();
+        if (!newCategory) {
+            isValid = false;
+        }
+        reassign[$(this).attr('data-category-id')] = newCategory;
+    });
+
+    if (!isValid) {
+        toastr["error"](reassignLang.selectNewCategory, "Failed:");
+        return;
+    }
+
+    var btn = $(this);
+    btn.prop('disabled', true);
+    $('#spinnerLoading').show();
+
+    var postData = {action: 'delete', id: pendingDeleteIds, reassign: reassign};
+    if (pendingDeleteType) {
+        postData.type = pendingDeleteType;
+    }
+
+    $.post('php/modules/productCategory/index.php', postData, function(data){
+        var obj = JSON.parse(data);
+        $('#spinnerLoading').hide();
+        btn.prop('disabled', false);
+
+        if(obj.status === 'success'){
+            $('#reassignModal').modal('hide');
+            $('#selectAllCheckbox').prop('checked', false);
+            table.ajax.reload();
+            toastr["success"](obj.message, "Success:");
+        }
+        else{
+            toastr["error"](obj.message, "Failed:");
+        }
+    }).fail(function(){
+        $('#spinnerLoading').hide();
+        btn.prop('disabled', false);
+        toastr["error"]("Something went wrong!", "Failed:");
+    });
+});
 
 function displayPreview(data) {
     // Parse the Excel data
@@ -700,8 +984,8 @@ function displayPreview(data) {
     // Get the headers
     var headers = jsonData[0];
 
-    // Ensure we handle cases where there may be less than 3 column
-    while (headers.length < 3) {
+    // Ensure we handle cases where there may be less than 2 column
+    while (headers.length < 2) {
         headers.push('');
     }
 
@@ -717,12 +1001,12 @@ function displayPreview(data) {
         htmlTable += '<tr>';
         var rowData = jsonData[i];
 
-        // Ensure we handle cases where there may be less than 3 cell in a row
-        while (rowData.length < 3) {
+        // Ensure we handle cases where there may be less than 2 cell in a row
+        while (rowData.length < 2) {
             rowData.push('');
         }
 
-        for (var j = 0; j < 3; j++) {
+        for (var j = 0; j < 2; j++) {
             var cellData = rowData[j];
             var formattedData = cellData;
 

@@ -1,11 +1,23 @@
 <?php include 'layouts/session.php'; ?>
 <?php include 'layouts/head-main.php'; ?>
 <?php
+    $companyId = $_SESSION['company_id'];
     if (!hasModulePermission('Master Data', 'Customer', ['view'])){
         header('Location: no-permission.php');
         exit;
     }
-    $companies = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
+
+    if (!hasModulePermission('Master Data', 'Customer', ['view_all_companies'])){
+        // Get companies
+        $company_ids = implode(',', array_map('intval', $_SESSION['company_ids']));
+        $companies = $db->query("SELECT * FROM Company WHERE status = 0 AND id IN ($company_ids) ORDER BY name");
+        $companies2 = $db->query("SELECT * FROM Company WHERE status = 0 AND id IN ($company_ids) ORDER BY name");
+        $companies3 = $db->query("SELECT * FROM Company WHERE status = 0 AND id IN ($company_ids) ORDER BY name");
+    }else{
+        $companies = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
+        $companies2 = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
+        $companies3 = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
+    }
 ?>
 
 <head>
@@ -68,6 +80,50 @@
                             </div>
                             <!--end row-->
 
+                            <div class="col-xxl-12 col-lg-12">
+                                <div class="card">
+                                    <div class="card-header fs-5 text-white" href="#collapseSearch" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="collapseSearch" style="background-color: #405189; cursor:pointer;">
+                                        <i class="mdi mdi-chevron-down pull-right"></i>
+                                        <?=$languageArray['search_records_code'][$language]?>
+                                    </div>
+                                    <div id="collapseSearch" class="collapse" aria-labelledby="collapseSearch">
+                                        <div class="card-body">
+                                            <form action="javascript:void(0);">
+                                                <div class="row">
+                                                    <div class="col-3" <?= !hasModulePermission('Master Data', 'Customer', ['view_all_companies']) ? "style='display:none'" : '' ?>>
+                                                        <div class="mb-3">
+                                                            <label class="form-label"><?=$languageArray['company_code'][$language]?></label>
+                                                            <select class="form-select select2" id="companySearch" name="companySearch" required>
+                                                                <?php while($rowCompany=mysqli_fetch_assoc($companies2)){ ?>
+                                                                    <option value="<?=$rowCompany['id'] ?>" <?=($rowCompany['id'] == $companyId) ? 'selected' : ''?>><?=$rowCompany['name'] ?></option>
+                                                                <?php } ?>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-3">
+                                                        <div class="mb-3">
+                                                            <label class="form-label"><?=$languageArray['customer_code_code'][$language]?></label>
+                                                            <input type="text" class="form-control" id="customerCodeSearch" placeholder="<?=$languageArray['customer_code_code'][$language]?>">
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-3">
+                                                        <div class="mb-3">
+                                                            <label class="form-label"><?=$languageArray['customer_name_code'][$language]?></label>
+                                                            <input type="text" class="form-control" id="customerNameSearch" placeholder="<?=$languageArray['customer_name_code'][$language]?>">
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-lg-12">
+                                                        <div class="text-end">
+                                                            <button type="submit" class="btn btn-success" id="filterSearch"><i class="bx bx-search-alt"></i> <?=$languageArray['search_code'][$language]?></button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="row">
                                 <div class="col-xl-3 col-md-6 add-new-weight">
 
@@ -87,7 +143,7 @@
                                                                 <div class="card bg-light">
                                                                     <div class="card-body">
                                                                         <div class="row">
-                                                                            <div class="col-xxl-12 col-lg-12 mb-3">
+                                                                            <div class="col-xxl-12 col-lg-12 mb-3" <?= !hasModulePermission('Master Data', 'Customer', ['view_all_companies']) ? "style='display:none'" : '' ?>>
                                                                                 <div class="row">
                                                                                     <label for="company" class="col-sm-4 col-form-label"><?=$languageArray['company_code'][$language]?> <span class="text-danger">*</span></label>
                                                                                     <div class="col-sm-8">
@@ -244,6 +300,16 @@
                                                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                     </div>
                                                     <div class="modal-body">
+                                                        <div class="row mb-3" <?= !hasModulePermission('Master Data', 'Customer', ['view_all_companies']) ? "style='display:none'" : '' ?>>
+                                                            <label for="uploadCompany" class="col-sm-2 col-form-label"><?=$languageArray['company_code'][$language]?> <span class="text-danger">*</span></label>
+                                                            <div class="col-sm-4">
+                                                                <select class="form-select select2" id="uploadCompany" name="uploadCompany" required>
+                                                                    <?php while($rowCompany=mysqli_fetch_assoc($companies3)){ ?>
+                                                                        <option value="<?=$rowCompany['id'] ?>" <?=($rowCompany['id'] == $companyId) ? 'selected' : ''?>><?=$rowCompany['name'] ?></option>
+                                                                    <?php } ?>
+                                                                </select>
+                                                            </div>
+                                                        </div>
                                                         <input type="file" id="fileInput">
                                                         <button type="button" id="previewButton"><?=$languageArray['preview_data_code'][$language]?></button>
                                                         <div id="previewTable" style="overflow: auto;"></div>
@@ -397,11 +463,19 @@
 var table;
 var permissions = <?= json_encode($_SESSION['permissions'] ?? []) ?>;
 var isSADMIN = <?= json_encode($_SESSION['roles'] == 'SADMIN') ?>;
+var sessionCompanyId = <?= intval($_SESSION['company_id'] ?? 0) ?>;
 
 $(function () {
     $('#selectAllCheckbox').on('change', function() {
         var checkboxes = $('#customerTable tbody input[type="checkbox"]');
         checkboxes.prop('checked', $(this).prop('checked')).trigger('change');
+    });
+    
+    // Initialize all Select2 elements in the modal
+    $('#collapseSearch .select2').select2({
+        allowClear: true,
+        placeholder: "Please Select",
+        dropdownParent: $('#collapseSearch') // Ensures dropdown is not cut off
     });
     
     // Initialize all Select2 elements in the modal
@@ -411,17 +485,236 @@ $(function () {
         dropdownParent: $('#addModal') // Ensures dropdown is not cut off
     });
 
+    // Initialize all Select2 elements in the upload modal
+    $('#uploadModal .select2').select2({
+        allowClear: true,
+        placeholder: "Please Select",
+        dropdownParent: $('#uploadModal') // Ensures dropdown is not cut off
+    });
+
     // Apply custom styling to Select2 elements in addModal
-    $('#addModal .select2-container .select2-selection--single').css({
+    $('.select2-container .select2-selection--single').css({
         'padding-top': '4px',
         'padding-bottom': '4px',
         'height': 'auto'
     });
 
-    $('#addModal .select2-container .select2-selection__arrow').css({
+    $('.select2-container .select2-selection__arrow').css({
         'padding-top': '33px',
         'height': 'auto'
     });
+
+    renderTable();
+
+    $('#filterSearch').on('click', function() {
+        renderTable();
+    });
+    
+    $('#submitCustomer').on('click', function(){
+        if($('#customerForm').valid()){
+            $('#spinnerLoading').show();
+            $.post('php/modules/customer/index.php', $('#customerForm').serialize() + '&action=save', function(data){
+                var obj = JSON.parse(data); 
+                if(obj.status === 'success')
+                {
+                    table.ajax.reload();
+                    $('#spinnerLoading').hide();
+                    $('#addModal').modal('hide');
+                    toastr["success"](obj.message, "Success:");
+                }
+                else if(obj.status === 'failed')
+                {
+                    $('#spinnerLoading').hide();
+                    toastr["error"](obj.message, "Failed:");
+                }
+                else
+                {
+
+                }
+            });
+        }
+    });
+
+    $('#uploadCustomers').on('click', function(){
+        $('#spinnerLoading').show();
+        var formData = $('#uploadForm').serializeArray();
+        var data = [];
+        var rowIndex = -1;
+        formData.forEach(function(field) {
+        var match = field.name.match(/([a-zA-Z0-9]+)\[(\d+)\]/);
+        if (match) {
+            var fieldName = match[1];
+            var index = parseInt(match[2], 10);
+            if (index !== rowIndex) {
+            rowIndex = index;
+            data.push({});
+            }
+            data[index][fieldName] = field.value;
+        }
+        });
+
+        // Company is only used for users with view_all_companies; backend enforces session company otherwise
+        var uploadCompany = $('#uploadModal').find('#uploadCompany').val() || '';
+
+        // Send the JSON array to the server
+        $.ajax({
+            url: 'php/modules/customer/index.php?action=upload&company=' + encodeURIComponent(uploadCompany),
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function(response) {
+                var obj = JSON.parse(response);
+                if (obj.status === 'success') {
+                    $('#spinnerLoading').hide();
+                    $('#uploadModal').modal('hide');
+                    toastr["success"](obj.message, "Success:");
+                    $('#customerTable').DataTable().ajax.reload(null, false);
+                } 
+                else if (obj.status === 'failed') {
+                    $('#spinnerLoading').hide();
+                    toastr["error"](obj.message, "Failed:");
+                } 
+                else if (obj.status === 'error') {
+                    $('#spinnerLoading').hide();
+                    $('#uploadModal').modal('hide');
+                    $('#customerTable').DataTable().ajax.reload(null, false);
+                    $('#errorModal').find('#errorList').empty();
+                    var errorMessage = obj.message;
+                    for (var i = 0; i < errorMessage.length; i++) {
+                        $('#errorModal').find('#errorList').append(`<li>${errorMessage[i]}</li>`);                            
+                    }
+                    $('#errorModal').modal('show');
+                } 
+                else {
+                    $('#spinnerLoading').hide();
+                    toastr["error"]("Failed to save", "Failed:");
+                }
+            }
+        });
+    });
+
+    $('#addCustomers').on('click', function(){
+        $('#addModal').find('#id').val("");
+        $('#addModal').find('#company').val(sessionCompanyId).trigger('change');
+        $('#addModal').find('#customerCode').val("");
+        $('#addModal').find('#companyName').val("");
+        $('#addModal').find('#companyRegNo').val("");
+        $('#addModal').find('#newRegNo').val("");
+        $('#addModal').find('#addressLine1').val("");
+        $('#addModal').find('#addressLine2').val("");
+        $('#addModal').find('#addressLine3').val("");
+        $('#addModal').find('#addressLine4').val("");
+        $('#addModal').find('#phoneNo').val("");
+        $('#addModal').find('#faxNo').val("");
+        $('#addModal').find('#contactName').val("");
+        $('#addModal').find('#icNo').val("");
+        $('#addModal').find('#tinNo').val("");
+
+        // Remove Validation Error Message
+        $('#addModal .is-invalid').removeClass('is-invalid');
+
+        $('#addModal').modal('show');
+        
+        $('#customerForm').validate({
+            errorElement: 'span',
+            errorPlacement: function (error, element) {
+                error.addClass('invalid-feedback');
+                element.closest('.form-group').append(error);
+            },
+            highlight: function (element, errorClass, validClass) {
+                $(element).addClass('is-invalid');
+            },
+            unhighlight: function (element, errorClass, validClass) {
+                $(element).removeClass('is-invalid');
+            }
+        });
+    });
+
+    $('#uploadExcel').on('click', function(){
+        $('#previewTable').html('');
+        $('#fileInput').val('');
+        $('#uploadModal').find('#uploadCompany').val(sessionCompanyId).trigger('change');
+        $('#uploadModal').modal('show');
+
+        $('#uploadForm').validate({
+            errorElement: 'span',
+            errorPlacement: function (error, element) {
+                error.addClass('invalid-feedback');
+                element.closest('.form-group').append(error);
+            },
+            highlight: function (element, errorClass, validClass) {
+                $(element).addClass('is-invalid');
+            },
+            unhighlight: function (element, errorClass, validClass) {
+                $(element).removeClass('is-invalid');
+            }
+        });
+    });
+
+    $('#uploadModal').find('#previewButton').on('click', function(){
+        var fileInput = document.getElementById('fileInput');
+        var file = fileInput.files[0];
+        var reader = new FileReader();
+        
+        reader.onload = function(e) {
+            var data = e.target.result;
+            // Process data and display preview
+            displayPreview(data);
+        };
+
+        reader.readAsBinaryString(file);
+    });
+
+    $('#multiDeactivate').on('click', function () {
+        $('#spinnerLoading').show();
+        var selectedIds = []; // An array to store the selected 'id' values
+
+        $("#customerTable tbody input[type='checkbox']").each(function () {
+            if (this.checked) {
+                selectedIds.push($(this).val());
+            }
+        });
+
+        if (selectedIds.length > 0) {
+            if (confirm('Are you sure you want to delete these customers?')) {
+                $.post('php/modules/customer/index.php', {userID: selectedIds, type: 'MULTI', action: 'delete'}, function(data){
+                    var obj = JSON.parse(data);
+                    
+                    if(obj.status === 'success'){
+                        table.ajax.reload();
+                        toastr["success"](obj.message, "Success:");
+                        $('#spinnerLoading').hide();
+                    }
+                    else if(obj.status === 'failed'){
+                        toastr["error"](obj.message, "Failed:");
+                        $('#spinnerLoading').hide();
+                    }
+                    else{
+                        toastr["error"]("Something wrong when activate", "Failed:");
+                        $('#spinnerLoading').hide();
+                    }
+                });
+            }
+
+            $('#spinnerLoading').hide();
+        } 
+        else {
+            // Optionally, you can display a message or take another action if no IDs are selected
+            alert("Please select at least one customer to delete.");
+            $('#spinnerLoading').hide();
+        }     
+    });
+});
+
+function renderTable(){
+    var companyId = $('#companySearch').val() || '';
+    var customerCode = $('#customerCodeSearch').val() || '';
+    var customerName = $('#customerNameSearch').val() || '';
+
+    // Destroy old DataTables if exist
+    if ($.fn.DataTable.isDataTable('#customerTable')) {
+        $("#customerTable").DataTable().clear().destroy();
+    }
 
     table = $("#customerTable").DataTable({
         "responsive": true,
@@ -431,7 +724,7 @@ $(function () {
         'serverMethod': 'post',
         'ajax': {
             'url':'php/modules/customer/index.php',
-            'data': { action: 'filter' }
+            'data': { action: 'filter', companyId: companyId, customerCode: customerCode, customerName: customerName }
         },
         'rowCallback': function(row, data) {
             if (data.is_manual === 'Y') {
@@ -512,198 +805,7 @@ $(function () {
             }
         ]       
     });
-    
-    $('#submitCustomer').on('click', function(){
-        if($('#customerForm').valid()){
-            $('#spinnerLoading').show();
-            $.post('php/modules/customer/index.php', $('#customerForm').serialize() + '&action=save', function(data){
-                var obj = JSON.parse(data); 
-                if(obj.status === 'success')
-                {
-                    table.ajax.reload();
-                    $('#spinnerLoading').hide();
-                    $('#addModal').modal('hide');
-                    toastr["success"](obj.message, "Success:");
-                }
-                else if(obj.status === 'failed')
-                {
-                    $('#spinnerLoading').hide();
-                    toastr["error"](obj.message, "Failed:");
-                }
-                else
-                {
-
-                }
-            });
-        }
-    });
-
-    $('#uploadCustomers').on('click', function(){
-        $('#spinnerLoading').show();
-        var formData = $('#uploadForm').serializeArray();
-        var data = [];
-        var rowIndex = -1;
-        formData.forEach(function(field) {
-        var match = field.name.match(/([a-zA-Z0-9]+)\[(\d+)\]/);
-        if (match) {
-            var fieldName = match[1];
-            var index = parseInt(match[2], 10);
-            if (index !== rowIndex) {
-            rowIndex = index;
-            data.push({});
-            }
-            data[index][fieldName] = field.value;
-        }
-        });
-
-        // Send the JSON array to the server
-        $.ajax({
-            url: 'php/modules/customer/index.php?action=upload',
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify(data),
-            success: function(response) {
-                var obj = JSON.parse(response);
-                if (obj.status === 'success') {
-                    $('#spinnerLoading').hide();
-                    $('#uploadModal').modal('hide');
-                    toastr["success"](obj.message, "Success:");
-                    $('#customerTable').DataTable().ajax.reload(null, false);
-                } 
-                else if (obj.status === 'failed') {
-                    $('#spinnerLoading').hide();
-                    toastr["error"](obj.message, "Failed:");
-                } 
-                else if (obj.status === 'error') {
-                    $('#spinnerLoading').hide();
-                    $('#uploadModal').modal('hide');
-                    $('#customerTable').DataTable().ajax.reload(null, false);
-                    $('#errorModal').find('#errorList').empty();
-                    var errorMessage = obj.message;
-                    for (var i = 0; i < errorMessage.length; i++) {
-                        $('#errorModal').find('#errorList').append(`<li>${errorMessage[i]}</li>`);                            
-                    }
-                    $('#errorModal').modal('show');
-                } 
-                else {
-                    $('#spinnerLoading').hide();
-                    toastr["error"]("Failed to save", "Failed:");
-                }
-            }
-        });
-    });
-
-    $('#addCustomers').on('click', function(){
-        $('#addModal').find('#id').val("");
-        $('#addModal').find('#company').val(1).trigger('change');
-        $('#addModal').find('#customerCode').val("");
-        $('#addModal').find('#companyName').val("");
-        $('#addModal').find('#companyRegNo').val("");
-        $('#addModal').find('#newRegNo').val("");
-        $('#addModal').find('#addressLine1').val("");
-        $('#addModal').find('#addressLine2').val("");
-        $('#addModal').find('#addressLine3').val("");
-        $('#addModal').find('#addressLine4').val("");
-        $('#addModal').find('#phoneNo').val("");
-        $('#addModal').find('#faxNo').val("");
-        $('#addModal').find('#contactName').val("");
-        $('#addModal').find('#icNo').val("");
-        $('#addModal').find('#tinNo').val("");
-
-        // Remove Validation Error Message
-        $('#addModal .is-invalid').removeClass('is-invalid');
-
-        $('#addModal').modal('show');
-        
-        $('#customerForm').validate({
-            errorElement: 'span',
-            errorPlacement: function (error, element) {
-                error.addClass('invalid-feedback');
-                element.closest('.form-group').append(error);
-            },
-            highlight: function (element, errorClass, validClass) {
-                $(element).addClass('is-invalid');
-            },
-            unhighlight: function (element, errorClass, validClass) {
-                $(element).removeClass('is-invalid');
-            }
-        });
-    });
-
-    $('#uploadExcel').on('click', function(){
-        $('#previewTable').html('');
-        $('#fileInput').val('');
-        $('#uploadModal').modal('show');
-
-        $('#uploadForm').validate({
-            errorElement: 'span',
-            errorPlacement: function (error, element) {
-                error.addClass('invalid-feedback');
-                element.closest('.form-group').append(error);
-            },
-            highlight: function (element, errorClass, validClass) {
-                $(element).addClass('is-invalid');
-            },
-            unhighlight: function (element, errorClass, validClass) {
-                $(element).removeClass('is-invalid');
-            }
-        });
-    });
-
-    $('#uploadModal').find('#previewButton').on('click', function(){
-        var fileInput = document.getElementById('fileInput');
-        var file = fileInput.files[0];
-        var reader = new FileReader();
-        
-        reader.onload = function(e) {
-            var data = e.target.result;
-            // Process data and display preview
-            displayPreview(data);
-        };
-
-        reader.readAsBinaryString(file);
-    });
-
-    $('#multiDeactivate').on('click', function () {
-        $('#spinnerLoading').show();
-        var selectedIds = []; // An array to store the selected 'id' values
-
-        $("#customerTable tbody input[type='checkbox']").each(function () {
-            if (this.checked) {
-                selectedIds.push($(this).val());
-            }
-        });
-
-        if (selectedIds.length > 0) {
-            if (confirm('Are you sure you want to delete these customers?')) {
-                $.post('php/modules/customer/index.php', {userID: selectedIds, type: 'MULTI', action: 'delete'}, function(data){
-                    var obj = JSON.parse(data);
-                    
-                    if(obj.status === 'success'){
-                        table.ajax.reload();
-                        toastr["success"](obj.message, "Success:");
-                        $('#spinnerLoading').hide();
-                    }
-                    else if(obj.status === 'failed'){
-                        toastr["error"](obj.message, "Failed:");
-                        $('#spinnerLoading').hide();
-                    }
-                    else{
-                        toastr["error"]("Something wrong when activate", "Failed:");
-                        $('#spinnerLoading').hide();
-                    }
-                });
-            }
-
-            $('#spinnerLoading').hide();
-        } 
-        else {
-            // Optionally, you can display a message or take another action if no IDs are selected
-            alert("Please select at least one customer to delete.");
-            $('#spinnerLoading').hide();
-        }     
-    });
-});
+}
 
 function edit(id){
     $('#spinnerLoading').show();
@@ -795,9 +897,9 @@ function displayPreview(data) {
     // Get the headers
     var headers = jsonData[0];
 
-    // Ensure we handle cases where there may be less than 13 columns
-    while (headers.length < 13) {
-        headers.push(''); // Adding empty headers to reach 13 columns
+    // Ensure we handle cases where there may be less than 12 columns
+    while (headers.length < 12) {
+        headers.push(''); // Adding empty headers to reach 12 columns
     }
 
     // Create HTML table headers
@@ -812,12 +914,12 @@ function displayPreview(data) {
         htmlTable += '<tr>';
         var rowData = jsonData[i];
 
-        // Ensure we handle cases where there may be less than 13 cells in a row
-        while (rowData.length < 13) {
-            rowData.push(''); // Adding empty cells to reach 13 columns
+        // Ensure we handle cases where there may be less than 12 cells in a row
+        while (rowData.length < 12) {
+            rowData.push(''); // Adding empty cells to reach 12 columns
         }
 
-        for (var j = 0; j < 13; j++) {
+        for (var j = 0; j < 12; j++) {
             var cellData = rowData[j];
             var formattedData = cellData;
 

@@ -3625,3 +3625,321 @@ CREATE OR REPLACE TRIGGER `TRG_UPD_USER` BEFORE UPDATE ON `Users` FOR EACH ROW B
 END
 $$
 DELIMITER ;
+
+-- 24/09/2026 --
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('profile_info_code', 'Profile Information', '个人资料信息', 'Maklumat Profil', 'प्रोफाइल जानकारी');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('update_profile_code', 'Update Profile', '更新个人资料', 'Kemas Kini Profil', 'प्रोफाइल अपडेट गर्नुहोस्');
+
+ALTER TABLE `Users` ADD `company_id` TEXT NULL AFTER `plant_id`;
+ALTER TABLE `Users_Log` ADD `company_id` TEXT NULL AFTER `plant_id`;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_USER` AFTER INSERT ON `Users` FOR EACH ROW 
+INSERT INTO Users_Log (
+    user_id, employee_code, username, name, useremail, role, plant_id, company_id, languages, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.employee_code, NEW.username, NEW.name, NEW.useremail, NEW.role, NEW.plant_id, NEW.company_id, NEW.languages, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_USER` BEFORE UPDATE ON `Users` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Skip trigger if session variable is set
+    IF @skip_user_trigger = 1 THEN
+        SET @skip_user_trigger = NULL;
+    ELSE
+        -- Check if status = 1, set action_id to 3, otherwise set to 2
+        IF NEW.status = 1 THEN
+            SET action_value = 3;
+        ELSE
+            SET action_value = 2;
+        END IF;
+
+        -- Insert into Users_Log table
+        INSERT INTO Users_Log (
+            user_id, employee_code, username, name, useremail, role, plant_id, company_id, languages, action_id, action_by, event_date
+        ) 
+        VALUES (
+            NEW.id, NEW.employee_code, NEW.username, NEW.name, NEW.useremail, NEW.role, NEW.plant_id, NEW.company_id, NEW.languages, action_value, NEW.modified_by, NEW.modified_date
+        );
+    END IF;
+END
+$$
+DELIMITER ;
+
+ALTER TABLE `Destination` ADD `company` INT(11) NULL AFTER `description`;
+ALTER TABLE `Destination_Log` ADD `company` INT(11) NULL AFTER `description`;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_DESTINATION` AFTER INSERT ON `Destination` FOR EACH ROW 
+INSERT INTO Destination_Log (
+    destination_id, destination_code, name, description, company, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.destination_code, NEW.name, NEW.description, NEW.company, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_DESTINATION` BEFORE UPDATE ON `Destination` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Check if status = 1, set action_id to 3, otherwise set to 2
+    IF NEW.status = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Destination_Log table
+    INSERT INTO Destination_Log (
+        destination_id, destination_code, name, description, company, action_id, action_by, event_date
+    ) 
+    VALUES (
+        NEW.id, NEW.destination_code, NEW.name, NEW.description, NEW.company, action_value, NEW.modified_by, NEW.modified_date
+    );
+END
+$$
+DELIMITER ;
+
+ALTER TABLE `Units` ADD `company` INT(11) NULL AFTER `unit`;
+ALTER TABLE `Units_Log` ADD `company` INT(11) NULL AFTER `unit`;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_UNITS` AFTER INSERT ON `Units` FOR EACH ROW INSERT INTO Units_Log (
+    unit_id, unit, company, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.unit, NEW.company, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_UNITS` BEFORE UPDATE ON `Units` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Check if status = 1, set action_id to 3, otherwise set to 2
+    IF NEW.status = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Units_Log table
+    INSERT INTO Units_Log (
+        unit_id, unit, company, action_id, action_by, event_date
+    ) 
+    VALUES (
+        NEW.id, NEW.unit, NEW.company, action_value, NEW.modified_by, NEW.modified_date
+    );
+END
+$$
+DELIMITER ;
+
+ALTER TABLE `Vehicle` ADD `company` INT(11) NULL AFTER `is_manual`;
+ALTER TABLE `Vehicle_Log` ADD `company` INT(11) NULL AFTER `is_manual`;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_VEH` AFTER INSERT ON `Vehicle` FOR EACH ROW 
+INSERT INTO Vehicle_Log (
+    vehicle_id, veh_number, vehicle_weight, transporter_code, transporter_name, customer_code, customer_name, supplier_code, supplier_name, is_manual, company, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.veh_number, NEW.vehicle_weight, NEW.transporter_code, NEW.transporter_name, NEW.customer_code, NEW.customer_name, NEW.supplier_code, NEW.supplier_name, NEW.is_manual, NEW.company, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_VEH` BEFORE UPDATE ON `Vehicle` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Check if status = 1, set action_id to 3, otherwise set to 2
+    IF NEW.status = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Vehicle_Log table
+    INSERT INTO Vehicle_Log (
+        vehicle_id, veh_number, vehicle_weight, transporter_code, transporter_name, customer_code, customer_name, supplier_code, supplier_name, is_manual, company, action_id, action_by, event_date
+    ) 
+    VALUES (
+        NEW.id, NEW.veh_number, NEW.vehicle_weight, NEW.transporter_code, NEW.transporter_name, NEW.customer_code, NEW.customer_name, NEW.supplier_code, NEW.supplier_name, NEW.is_manual, NEW.company, action_value, NEW.modified_by, NEW.modified_date
+    );
+END
+$$
+DELIMITER ;
+
+ALTER TABLE `Location` ADD `company` INT(11) NULL AFTER `plant_id`;
+ALTER TABLE `Location_Log` ADD `company` INT(11) NULL AFTER `plant_id`;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_LOCATION` AFTER INSERT ON `Location` FOR EACH ROW INSERT INTO Location_Log (
+    location_id, location_code, location_name, port_id, weighing_count, plant_id, company, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.location_code, NEW.location_name, NEW.port_id, NEW.weighing_count, NEW.plant_id, NEW.company, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_LOCATION` BEFORE UPDATE ON `Location` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Check if status = 1, set action_id to 3, otherwise set to 2
+    IF NEW.status = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Location_Log table
+    INSERT INTO Location_Log (
+        location_id, location_code, location_name, port_id, weighing_count, plant_id, company, action_id, action_by, event_date
+    ) 
+    VALUES (
+        NEW.id, NEW.location_code, NEW.location_name, NEW.port_id, NEW.weighing_count, NEW.plant_id, NEW.company, action_value, NEW.modified_by, NEW.modified_date
+    );
+END
+$$
+DELIMITER ;
+
+ALTER TABLE `Product_Categories` ADD `is_sawn_timber` VARCHAR(1) NOT NULL DEFAULT 'N' AFTER `is_misc`;
+ALTER TABLE `Product_Categories_Log` ADD `is_sawn_timber` VARCHAR(1) NOT NULL DEFAULT 'N' AFTER `is_misc`;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_PROD_CAT` AFTER INSERT ON `Product_Categories` FOR EACH ROW INSERT INTO Product_Categories_Log (
+    category_id, category_name, post_to_sql, is_sales, is_purchase, is_local, is_port, is_misc, is_sawn_timber, company, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.category_name, NEW.post_to_sql, NEW.is_sales, NEW.is_purchase, NEW.is_local, NEW.is_port, NEW.is_misc, NEW.is_sawn_timber, NEW.company, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_PROD_CAT` BEFORE UPDATE ON `Product_Categories` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Check if status = 1, set action_id to 3, otherwise set to 2
+    IF NEW.status = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Product_Categories_Log table
+    INSERT INTO Product_Categories_Log (
+        category_id, category_name, post_to_sql, is_sales, is_purchase, is_local, is_port, is_misc, is_sawn_timber, company, action_id, action_by, event_date
+    ) 
+    VALUES (
+        NEW.id, NEW.category_name, NEW.post_to_sql, NEW.is_sales, NEW.is_purchase, NEW.is_local, NEW.is_port, NEW.is_misc, NEW.is_sawn_timber, NEW.company, action_value, NEW.modified_by, NEW.modified_date
+    );
+END
+$$
+DELIMITER ;
+
+ALTER TABLE `Company` ADD `has_sawn_timber` VARCHAR(1) NOT NULL DEFAULT 'N' AFTER `mobile_no`;
+ALTER TABLE `Company_Log` ADD `has_sawn_timber` VARCHAR(1) NOT NULL DEFAULT 'N' AFTER `mobile_no`;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_COMPANY` AFTER INSERT ON `Company` FOR EACH ROW INSERT INTO Company_Log (
+    company_id, company_code, company_reg_no, new_reg_no, name, address_line_1, address_line_2, address_line_3, phone_no, fax_no, tin_no, email, mobile_no, has_sawn_timber, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.company_code, NEW.company_reg_no, NEW.new_reg_no, NEW.name, NEW.address_line_1, NEW.address_line_2, NEW.address_line_3, NEW.phone_no, NEW.fax_no, NEW.tin_no, NEW.email, NEW.mobile_no, NEW.has_sawn_timber, 1, NEW.created_by, NOW()
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_COMPANY` BEFORE UPDATE ON `Company` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Check if status = 1, set action_id to 3, otherwise set to 2
+    IF NEW.status = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Company_Log table
+    INSERT INTO Company_Log (
+        company_id, company_code, company_reg_no, new_reg_no, name, address_line_1, address_line_2, address_line_3, phone_no, fax_no, tin_no, email, mobile_no, has_sawn_timber, action_id, action_by, event_date
+    ) 
+    VALUES (
+        NEW.id, NEW.company_code, NEW.company_reg_no, NEW.new_reg_no, NEW.name, NEW.address_line_1, NEW.address_line_2, NEW.address_line_3, NEW.phone_no, NEW.fax_no, NEW.tin_no, NEW.email, NEW.mobile_no, NEW.has_sawn_timber, action_value, NEW.modified_by, NOW()
+    );
+END
+$$
+DELIMITER ;
+
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('reassign_category_code', 'Reassign Category', '重新分配类别', 'Tetapkan Semula Kategori', 'வகையை மறுஒதுக்கீடு செய்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('reassign_category_desc_code', 'The categories below are still assigned to items. Please select a new category for these items before deleting.', '以下类别仍被物品使用。删除前请为这些物品选择新的类别。', 'Kategori di bawah masih ditetapkan kepada item. Sila pilih kategori baharu untuk item ini sebelum memadam.', 'கீழே உள்ள வகைகள் இன்னும் பொருட்களுக்கு ஒதுக்கப்பட்டுள்ளன. நீக்குவதற்கு முன் இந்தப் பொருட்களுக்கு புதிய வகையைத் தேர்ந்தெடுக்கவும்.');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('new_category_code', 'New Category', '新类别', 'Kategori Baharu', 'புதிய வகை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('please_select_new_category_code', 'Please select a new category for all tied items.', '请为所有相关物品选择新的类别。', 'Sila pilih kategori baharu untuk semua item berkaitan.', 'தொடர்புடைய அனைத்து பொருட்களுக்கும் புதிய வகையைத் தேர்ந்தெடுக்கவும்.');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('no_other_category_code', 'No other category available for this company. Please create one first.', '该公司没有其他可用类别，请先创建一个。', 'Tiada kategori lain untuk syarikat ini. Sila cipta satu dahulu.', 'இந்த நிறுவனத்திற்கு வேறு வகை இல்லை. முதலில் ஒன்றை உருவாக்கவும்.');
+
+ALTER TABLE `Sawn_Timber_Detail_Log` ADD `header_log_id` INT(11) NULL AFTER `header_id`;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_SAWN_TIMBER_HEADER` AFTER INSERT ON `Sawn_Timber_Header` FOR EACH ROW
+BEGIN
+    INSERT INTO Sawn_Timber_Header_Log (
+        header_id, weight_id, company_id, plant_id, transaction_id, record_date, remarks, status, action_id, action_by, event_date
+    ) VALUES (
+        NEW.id, NEW.weight_id, NEW.company_id, NEW.plant_id, NEW.transaction_id, NEW.record_date, NEW.remarks, NEW.status, 1, NEW.created_by, NEW.created_date
+    );
+
+    -- Picked up by the detail triggers of the same save
+    SET @sawn_timber_header_log_id = LAST_INSERT_ID();
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_SAWN_TIMBER_HEADER` BEFORE UPDATE ON `Sawn_Timber_Header` FOR EACH ROW
+BEGIN
+    DECLARE action_value INT;
+
+    IF NEW.status = '1' AND OLD.status <> '1' THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    INSERT INTO Sawn_Timber_Header_Log (
+        header_id, weight_id, company_id, plant_id, transaction_id, record_date, remarks, status, action_id, action_by, event_date
+    ) VALUES (
+        NEW.id, NEW.weight_id, NEW.company_id, NEW.plant_id, NEW.transaction_id, NEW.record_date, NEW.remarks, NEW.status, action_value, NEW.modified_by, NEW.modified_date
+    );
+
+    -- Picked up by the detail triggers of the same save
+    SET @sawn_timber_header_log_id = LAST_INSERT_ID();
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_SAWN_TIMBER_DETAIL` AFTER INSERT ON `Sawn_Timber_Detail` FOR EACH ROW
+INSERT INTO Sawn_Timber_Detail_Log (
+    detail_id, header_id, header_log_id, species, lot, bundle, thick, width, length, pieces, tons, kd_charges, bundling_charges, grader_fees, action_id, action_by, event_date
+) VALUES (
+    NEW.id, NEW.header_id, @sawn_timber_header_log_id, NEW.species, NEW.lot, NEW.bundle, NEW.thick, NEW.width, NEW.length, NEW.pieces, NEW.tons, NEW.kd_charges, NEW.bundling_charges, NEW.grader_fees, 1, COALESCE(@sawn_timber_action_by, 'system'), NOW()
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_DEL_SAWN_TIMBER_DETAIL` BEFORE DELETE ON `Sawn_Timber_Detail` FOR EACH ROW
+INSERT INTO Sawn_Timber_Detail_Log (
+    detail_id, header_id, header_log_id, species, lot, bundle, thick, width, length, pieces, tons, kd_charges, bundling_charges, grader_fees, action_id, action_by, event_date
+) VALUES (
+    OLD.id, OLD.header_id, @sawn_timber_header_log_id, OLD.species, OLD.lot, OLD.bundle, OLD.thick, OLD.width, OLD.length, OLD.pieces, OLD.tons, OLD.kd_charges, OLD.bundling_charges, OLD.grader_fees, 3, COALESCE(@sawn_timber_action_by, 'system'), NOW()
+)
+$$
+DELIMITER ;
+
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('lines_after_save_code', 'Lines After Save', '保存后的明细', 'Baris Selepas Simpan', 'சேமித்த பின் வரிகள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('removed_lines_code', 'Removed Lines', '已移除的明细', 'Baris Dibuang', 'நீக்கப்பட்ட வரிகள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('changed_code', 'Changed', '已更改', 'Diubah', 'மாற்றப்பட்டது');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('no_line_changes_code', 'No line changes in this save', '此次保存没有明细变更', 'Tiada perubahan baris dalam simpanan ini', 'இந்தச் சேமிப்பில் வரி மாற்றங்கள் இல்லை');

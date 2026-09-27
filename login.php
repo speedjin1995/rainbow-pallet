@@ -2,7 +2,6 @@
 // Initialize the session
 session_start();
 require_once 'php/requires/lookup.php';
-$companies = include(dirname(__DIR__, 1) . '/license.php');
 
 // Check if the user is already logged in, if yes then redirect him to index page
 if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
@@ -18,8 +17,6 @@ $username_err = $password_err = "";
 
 // Processing form data when form is submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    
-
     // Check if username is empty
     if (empty(trim($_POST["username"]))) {
         $username_err = "Please enter username.";
@@ -34,20 +31,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $password = trim($_POST["password"]);
     }
 
-    // Check if company is empty
-    if (empty(trim($_POST["company"]))) {
-        $company = "SPM";
-    } else {
-        $company = trim($_POST["company"]);
-    }
-
-    $_SESSION["company"] = $company;
+    $_SESSION["company"] = "rainbowpallet";
 
     // Validate credentials
     if (empty($username_err) && empty($password_err)) {
         require_once "layouts/config.php";
         // Prepare a select statement
-        $sql = "SELECT id, employee_code, username, password, role, plant_id, languages FROM Users WHERE username = ?";
+        $sql = "SELECT id, employee_code, username, password, role, plant_id, company_id, languages FROM Users WHERE username = ? AND status = 0";
         
         if ($stmt = mysqli_prepare($link, $sql)) {
             // Bind variables to the prepared statement as parameters
@@ -64,10 +54,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 // Check if username exists, if yes then verify password
                 if (mysqli_stmt_num_rows($stmt) == 1) {
                     // Bind result variables
-                    mysqli_stmt_bind_result($stmt, $id, $code, $username, $hashed_password, $roles, $plant, $language);
+                    mysqli_stmt_bind_result($stmt, $id, $code, $username, $hashed_password, $roles, $plant, $company, $language);
                     if (mysqli_stmt_fetch($stmt)) {
                         if (password_verify($password, $hashed_password)) {
                             $plantlist = array();
+                            $companyList = array();
 
                             // Store data in session variables
                             $_SESSION["loggedin"] = true;
@@ -88,11 +79,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             else{
                                 $_SESSION['plant_id']=$plant;
                             }
+                            
+                            if($company != null){
+                                $company_ids = json_decode($company, true);
+                                $_SESSION['company_ids']=$company_ids;
+                            }
+                            else{
+                                $_SESSION['company_ids']=$company;
+                            }
 
                             $_SESSION['plant']=$plantlist;
 
                             if($roles == 'SADMIN'){
                                 $_SESSION['location_id'] = 1;
+                                $_SESSION['company_id'] = 1;
                                 // Redirect user to welcome page
                                 header("location: index.php");
                             }
@@ -173,17 +173,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                     </div>
                                     <div class="p-2 mt-4">
                                         <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
-                                            <div class="mb-3">
-                                                <label for="company" class="form-label">Company</label>
-                                                <select class="form-select" id="company" name="company">
-                                                    <?php foreach ($companies as $key => $name): ?>
-                                                        <option value="<?= htmlspecialchars($key) ?>" <?= (isset($_POST['company']) && $_POST['company'] == $key) ? 'selected' : '' ?>>
-                                                            <?= htmlspecialchars($name) ?>
-                                                        </option>
-                                                    <?php endforeach; ?>
-                                                </select>
-                                            </div>
-
                                             <div class="mb-3 <?php echo (!empty($username_err)) ? 'has-error' : ''; ?>">
                                                 <label for="username" class="form-label">Username</label>
                                                 <input type="text" class="form-control" name="username" id="username" placeholder="Enter username">

@@ -180,7 +180,18 @@
                                                                                     </div>
                                                                                 </div>
                                                                             </div>                                                                        
-                                                                            <input type="hidden" class="form-control" id="id" name="id">                                                                        
+                                                                            <div class="col-xxl-12 col-lg-12 mb-3">
+                                                                                <div class="row">
+                                                                                    <label for="hasSawnTimber" class="col-sm-4 col-form-label"><?=$languageArray['sawn_timber_code'][$language] ?? 'Sawn Timber'?></label>
+                                                                                    <div class="col-sm-8">
+                                                                                        <select class="form-select" id="hasSawnTimber" name="hasSawnTimber">
+                                                                                            <option value="N"><?=$languageArray['no_code'][$language] ?? 'No'?></option>
+                                                                                            <option value="Y"><?=$languageArray['yes_code'][$language] ?? 'Yes'?></option>
+                                                                                        </select>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <input type="hidden" class="form-control" id="id" name="id">
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -299,6 +310,7 @@
                                                                     <th><?=$languageArray['fax_code'][$language]?></th>
                                                                     <th><?=$languageArray['tin_code'][$language]?></th>
                                                                     <th><?=$languageArray['mobile_no_code'][$language]?></th>
+                                                                    <th><?=$languageArray['sawn_timber_code'][$language] ?? 'Sawn Timber'?></th>
                                                                     <th><?=$languageArray['status_code'][$language]?></th>
                                                                     <th><?=$languageArray['action_code'][$language]?></th>
                                                                 </tr>
@@ -395,6 +407,12 @@ $(function () {
             { data: 'tin_no' },
             { data: 'mobile_no' },
             {
+                data: 'has_sawn_timber',
+                render: function (data, type, row) {
+                    return data === 'Y' ? '<span class="badge bg-success">Yes</span>' : '<span class="badge bg-secondary">No</span>';
+                }
+            },
+            {
                 data: 'id',
                 render: function ( data, type, row ) {
                     if (row.status == '1'){
@@ -481,6 +499,7 @@ $(function () {
         $('#addModal').find('#faxNo').val("");
         $('#addModal').find('#tinNo').val("");
         $('#addModal').find('#mobileNo').val("");
+        $('#addModal').find('#hasSawnTimber').val("N");
 
         // Remove Validation Error Message
         $('#addModal .is-invalid').removeClass('is-invalid');
@@ -650,6 +669,7 @@ function edit(id){
             $('#addModal').find('#faxNo').val(obj.message.fax_no);
             $('#addModal').find('#tinNo').val(obj.message.tin_no);
             $('#addModal').find('#mobileNo').val(obj.message.mobile_no);
+            $('#addModal').find('#hasSawnTimber').val(obj.message.has_sawn_timber === 'Y' ? 'Y' : 'N');
 
             // Remove Validation Error Message
             $('#addModal .is-invalid').removeClass('is-invalid');

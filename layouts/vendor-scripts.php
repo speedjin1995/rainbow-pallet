@@ -7,3 +7,5 @@
 <script src="assets/js/plugins.js"></script>
 <script src="plugins/sheets/xlsx.full.min.js"></script>
 <script src="plugins/toastr/toastr.min.js"></script>
+<!-- Shared helpers (date formatting, null-safe display) -->
+<script src="assets/js/additional.js"></script>

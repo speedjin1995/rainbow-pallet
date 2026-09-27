@@ -1,6 +1,7 @@
 <?php
     $hasWeighingView = hasPermission('Weighing', ['view', 'create', 'edit']);
-    $hasSawnTimberView = hasPermission('Sawn Timber', ['view', 'create', 'edit']);
+    $canViewAllCompanies = hasModulePermission('Sawn Timber', 'Sawn Timber', ['view_all_companies']);
+    $hasSawnTimberView = hasPermission('Sawn Timber', ['view', 'create', 'edit']) && ($canViewAllCompanies || (($currentCompanyHasSawnTimber ?? 'N') === 'Y'));
     $hasAccountingView = hasPermission('Accounting', ['view', 'create', 'edit']);
     $hasMasterDataView = hasPermission('Master Data', ['view', 'create', 'edit']);
     $hasReportView = hasPermission('Reports', ['view', 'create', 'edit']);
@@ -321,10 +322,7 @@
                                 </li>  -->
                                 <li class="nav-item">
                                     <a href="myProfile.php" class="nav-link"><?=$languageArray['profile_code'][$language]?></a>
-                                </li> 
-                                <li class="nav-item">
-                                    <a href="ChangePassword.php" class="nav-link"><?=$languageArray['change_password_code'][$language]?></a>
-                                </li>                                 
+                                </li>
                             </li>
                         </ul>
                     </div>

@@ -3,9 +3,20 @@
 <?php
     include 'php/db_connect.php';
 
+    $companyId = $_SESSION['company_id'];
     if (!hasModulePermission('Master Data', 'Locations', ['view'])){
         header('Location: no-permission.php');
         exit;
+    }
+
+    if (!hasModulePermission('Master Data', 'Locations', ['view_all_companies'])){
+        // Get companies
+        $company_ids = implode(',', array_map('intval', $_SESSION['company_ids']));
+        $companies = $db->query("SELECT * FROM Company WHERE status = 0 AND id IN ($company_ids) ORDER BY name");
+        $companies2 = $db->query("SELECT * FROM Company WHERE status = 0 AND id IN ($company_ids) ORDER BY name");
+    }else{
+        $companies = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
+        $companies2 = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
     }
 
     $plant = $db->query("SELECT * FROM Plant WHERE status = '0'");
@@ -70,6 +81,50 @@
                             <button type="button" hidden id="successBtn" data-toast data-toast-text="Welcome Back ! This is a Toast Notification" data-toast-gravity="top" data-toast-position="center" data-toast-duration="3000" data-toast-close="close" class="btn btn-light w-xs">Top Center</button>
                             <button type="button" hidden id="failBtn" data-toast data-toast-text="Welcome Back ! This is a Toast Notification" data-toast-gravity="top" data-toast-position="center" data-toast-duration="3000" data-toast-close="close" class="btn btn-light w-xs">Top Center</button>
 
+                            <div class="col-xxl-12 col-lg-12">
+                                <div class="card">
+                                    <div class="card-header fs-5 text-white" href="#collapseSearch" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="collapseSearch" style="background-color: #405189; cursor:pointer;">
+                                        <i class="mdi mdi-chevron-down pull-right"></i>
+                                        <?=$languageArray['search_records_code'][$language] ?? 'Search Records'?>
+                                    </div>
+                                    <div id="collapseSearch" class="collapse" aria-labelledby="collapseSearch">
+                                        <div class="card-body">
+                                            <form action="javascript:void(0);">
+                                                <div class="row">
+                                                    <div class="col-3" <?= !hasModulePermission('Master Data', 'Locations', ['view_all_companies']) ? "style='display:none'" : '' ?>>
+                                                        <div class="mb-3">
+                                                            <label class="form-label"><?=$languageArray['company_code'][$language]?></label>
+                                                            <select class="form-select select2" id="companySearch" name="companySearch" required>
+                                                                <?php while($rowCompany=mysqli_fetch_assoc($companies2)){ ?>
+                                                                    <option value="<?=$rowCompany['id'] ?>" <?=($rowCompany['id'] == $companyId) ? 'selected' : ''?>><?=$rowCompany['name'] ?></option>
+                                                                <?php } ?>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-3">
+                                                        <div class="mb-3">
+                                                            <label class="form-label"><?=$languageArray['location_code_code'][$language]?></label>
+                                                            <input type="text" class="form-control" id="locationCodeSearch" placeholder="<?=$languageArray['location_code_code'][$language]?>">
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-3">
+                                                        <div class="mb-3">
+                                                            <label class="form-label"><?=$languageArray['location_name_code'][$language]?></label>
+                                                            <input type="text" class="form-control" id="locationNameSearch" placeholder="<?=$languageArray['location_name_code'][$language]?>">
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-lg-12">
+                                                        <div class="text-end">
+                                                            <button type="submit" class="btn btn-success" id="filterSearch"><i class="bx bx-search-alt"></i> <?=$languageArray['search_code'][$language] ?? 'Search'?></button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="row">
                                 <div class="col-xl-3 col-md-6 add-new-weight">
 
@@ -89,9 +144,24 @@
                                                                 <div class="card bg-light">
                                                                     <div class="card-body">
                                                                         <div class="row">
+                                                                            <div class="col-xxl-12 col-lg-12 mb-3" <?= !hasModulePermission('Master Data', 'Locations', ['view_all_companies']) ? "style='display:none'" : '' ?>>
+                                                                                <div class="row">
+                                                                                    <label for="company" class="col-sm-4 col-form-label"><?=$languageArray['company_code'][$language]?> <span class="text-danger">*</span></label>
+                                                                                    <div class="col-sm-8">
+                                                                                        <select class="form-select select2" id="company" name="company" required>
+                                                                                            <?php while($rowCompany=mysqli_fetch_assoc($companies)){ ?>
+                                                                                                <option value="<?=$rowCompany['id'] ?>"><?=$rowCompany['name'] ?></option>
+                                                                                            <?php } ?>
+                                                                                        </select>
+                                                                                        <div class="invalid-feedback">
+                                                                                            <?=$languageArray['please_fill_in_the_field_code'][$language]?>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
                                                                             <div class="col-xxl-12 col-lg-12 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="locationCode" class="col-sm-4 col-form-label"><?=$languageArray['location_code_code'][$language]?> <span class="text-danger">*</span></label>
+                                                                                    <label for="locationCode"class="col-sm-4 col-form-label"><?=$languageArray['location_code_code'][$language]?> <span class="text-danger">*</span></label>
                                                                                     <div class="col-sm-8">
                                                                                         <input type="text" class="form-control" id="locationCode" name="locationCode" placeholder="Location Code" required>
                                                                                         <div class="invalid-feedback">
@@ -116,6 +186,7 @@
                                                                                     <label for="plant" class="col-sm-4 col-form-label"><?=$languageArray['plant_code'][$language]?> <span class="text-danger">*</span></label>
                                                                                     <div class="col-sm-8">
                                                                                         <select id="plant" name="plant" class="form-select select2" required>
+                                                                                            <option value=""></option>
                                                                                             <?php while($rowPlant=mysqli_fetch_assoc($plant)){ ?>
                                                                                                 <option value="<?=$rowPlant['id'] ?>"><?=$rowPlant['name'] ?></option>
                                                                                             <?php } ?>
@@ -302,6 +373,7 @@
                                                             <thead>
                                                                 <tr>
                                                                     <!-- <th><input type="checkbox" id="selectAllCheckbox" class="selectAllCheckbox"></th> -->
+                                                                    <th><?=$languageArray['company_code'][$language]?></th>
                                                                     <th><?=$languageArray['location_code_code'][$language]?></th>
                                                                     <th><?=$languageArray['location_name_code'][$language]?></th>
                                                                     <th><?=$languageArray['weighing_count_code'][$language]?></th>
@@ -364,8 +436,35 @@
 var table;
 var permissions = <?= json_encode($_SESSION['permissions'] ?? []) ?>;
 var isSADMIN = <?= json_encode($_SESSION['roles'] == 'SADMIN') ?>;
+var sessionCompanyId = <?= intval($_SESSION['company_id'] ?? 0) ?>;
 
 $(function () {
+    // Initialize all Select2 elements in the modal
+    $('#collapseSearch .select2').select2({
+        allowClear: true,
+        placeholder: "Please Select",
+        dropdownParent: $('#collapseSearch') // Ensures dropdown is not cut off
+    });
+
+    // Initialize all Select2 elements in the modal
+    $('#addModal .select2').select2({
+        allowClear: true,
+        placeholder: "Please Select",
+        dropdownParent: $('#addModal') // Ensures dropdown is not cut off
+    });
+
+    // Apply custom styling to Select2 elements in addModal
+    $('.select2-container .select2-selection--single').css({
+        'padding-top': '4px',
+        'padding-bottom': '4px',
+        'height': 'auto'
+    });
+
+    $('.select2-container .select2-selection__arrow').css({
+        'padding-top': '33px',
+        'height': 'auto'
+    });
+
     $.post('http://127.0.0.1:5002/getcomport', function(data){
         var decoded = JSON.parse(data);
         var options = '';
@@ -382,76 +481,12 @@ $(function () {
     //     checkboxes.prop('checked', $(this).prop('checked')).trigger('change');
     // });
 
-    table = $("#locationTable").DataTable({
-        "responsive": true,
-        "autoWidth": false,
-        'processing': true,
-        'serverSide': true,
-        'serverMethod': 'post',
-        'ajax': {
-            'url':'php/modules/locations/index.php?action=getAll'
-        },
-        'columns': [
-            // {
-            //     // Add a checkbox with a unique ID for each row
-            //     data: 'id', // Assuming 'serialNo' is a unique identifier for each row
-            //     className: 'select-checkbox',
-            //     orderable: false,
-            //     render: function (data, type, row) {
-            //         return '<input type="checkbox" class="select-checkbox" id="checkbox_' + data + '" value="'+data+'"/>';
-            //     }
-            // },
-            { data: 'location_code' },
-            { data: 'location_name' },
-            { data: 'weighing_count' },
-            { data: 'plant' },
-            { 
-                data: 'id',
-                render: function ( data, type, row ) {
-                    if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Locations'] && ['edit', 'cancelled'].some(p => permissions['Master Data']['Locations'].includes(p)))) {
-                        var buttons = `
-                            <div class="dropdown d-inline-block">
-                                <button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="ri-more-fill align-middle"></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end">`;
+    renderTable();
 
-                        if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Locations'] && permissions['Master Data']['Locations'].includes('edit'))) {
-                            buttons += `
-                                    <li>
-                                        <a class="dropdown-item edit-item-btn" id="edit${data}" onclick="edit(${data})">
-                                            <i class="ri-pencil-fill align-bottom me-2 text-muted"></i> Edit Location
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item" id="portSetup${data}" onclick="openPortSetup(${data})">
-                                            <i class="ri-settings-3-line align-bottom me-2 text-muted"></i> Port Setup
-                                        </a>
-                                    </li>`;
-                        }
-
-                        if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Locations'] && permissions['Master Data']['Locations'].includes('cancelled'))) {
-                            buttons += `
-                                    <li>
-                                        <a class="dropdown-item remove-item-btn" id="deactivate${data}" onclick="deactivate(${data})">
-                                            <i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i> Delete
-                                        </a>
-                                    </li>`;
-                        }
-
-                        buttons += `
-                                </ul>
-                            </div>`;
-
-                        return buttons;
-                    }
-
-                    return '';
-                }
-            }
-        ]       
+    $('#filterSearch').on('click', function() {
+        renderTable();
     });
-    
+
     $('#submitLocation').on('click', function(){
         if($('#locationForm').valid()){
             $('#spinnerLoading').show();
@@ -499,6 +534,7 @@ $(function () {
 
     $('#addLocation').on('click', function(){
         $('#addModal').find('#id').val("");
+        $('#addModal').find('#company').val(sessionCompanyId).trigger('change');
         $('#addModal').find('#locationCode').val("");
         $('#addModal').find('#locationName').val("");
         $('#addModal').find('#plant').val("");
@@ -525,6 +561,89 @@ $(function () {
     });
 });
 
+function renderTable(){
+    var companyId = $('#companySearch').val() || '';
+    var locationCode = $('#locationCodeSearch').val() || '';
+    var locationName = $('#locationNameSearch').val() || '';
+
+    // Destroy old DataTables if exist
+    if ($.fn.DataTable.isDataTable('#locationTable')) {
+        $("#locationTable").DataTable().clear().destroy();
+    }
+
+    table = $("#locationTable").DataTable({
+        "responsive": true,
+        "autoWidth": false,
+        'processing': true,
+        'serverSide': true,
+        'serverMethod': 'post',
+        'ajax': {
+            'url':'php/modules/locations/index.php',
+            'data': { action: 'getAll', companyId: companyId, locationCode: locationCode, locationName: locationName }
+        },
+        'columns': [
+            // {
+            //     // Add a checkbox with a unique ID for each row
+            //     data: 'id', // Assuming 'serialNo' is a unique identifier for each row
+            //     className: 'select-checkbox',
+            //     orderable: false,
+            //     render: function (data, type, row) {
+            //         return '<input type="checkbox" class="select-checkbox" id="checkbox_' + data + '" value="'+data+'"/>';
+            //     }
+            // },
+            { data: 'company_name' },
+            { data: 'location_code' },
+            { data: 'location_name' },
+            { data: 'weighing_count' },
+            { data: 'plant' },
+            {
+                data: 'id',
+                render: function ( data, type, row ) {
+                    if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Locations'] && ['edit', 'cancelled'].some(p => permissions['Master Data']['Locations'].includes(p)))) {
+                        var buttons = `
+                            <div class="dropdown d-inline-block">
+                                <button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="ri-more-fill align-middle"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">`;
+
+                        if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Locations'] && permissions['Master Data']['Locations'].includes('edit'))) {
+                            buttons += `
+                                    <li>
+                                        <a class="dropdown-item edit-item-btn" id="edit${data}" onclick="edit(${data})">
+                                            <i class="ri-pencil-fill align-bottom me-2 text-muted"></i> Edit Location
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" id="portSetup${data}" onclick="openPortSetup(${data})">
+                                            <i class="ri-settings-3-line align-bottom me-2 text-muted"></i> Port Setup
+                                        </a>
+                                    </li>`;
+                        }
+
+                        if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Locations'] && permissions['Master Data']['Locations'].includes('cancelled'))) {
+                            buttons += `
+                                    <li>
+                                        <a class="dropdown-item remove-item-btn" id="deactivate${data}" onclick="deactivate(${data})">
+                                            <i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i> Delete
+                                        </a>
+                                    </li>`;
+                        }
+
+                        buttons += `
+                                </ul>
+                            </div>`;
+
+                        return buttons;
+                    }
+
+                    return '';
+                }
+            }
+        ]
+    });
+}
+
 function edit(id){
     $('#spinnerLoading').show();
     $.post('php/modules/locations/index.php', {action: 'get', id: id}, function(data)
@@ -532,6 +651,7 @@ function edit(id){
         var obj = JSON.parse(data);
         if(obj.status === 'success'){
             $('#addModal').find('#id').val(obj.message.id);
+            $('#addModal').find('#company').val(obj.message.company).trigger('change');
             $('#addModal').find('#locationCode').val(obj.message.location_code);
             $('#addModal').find('#locationName').val(obj.message.location_name);
             $('#addModal').find('#plant').val(obj.message.plant_id);

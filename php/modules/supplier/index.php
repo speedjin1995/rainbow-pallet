@@ -22,6 +22,9 @@ switch ($action) {
     case 'upload':
         $controller->handleUpload();
         break;
+    case 'list':
+        $controller->handleList();
+        break;
     default:
         echo json_encode(['status' => 'failed', 'message' => 'Invalid action']);
 }

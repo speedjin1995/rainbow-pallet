@@ -10,30 +10,25 @@ if (!hasModulePermission('User Management', 'User Setup', ['view'])){
 $id = $_SESSION['id'];
 $name = $_SESSION["username"];
 
-$query = "SELECT role_code, role_name from roles WHERE role_code <> 'SADMIN' AND deleted = '0'";
-
-if($_SESSION["roles"] == 'ADMIN'){
-    $query = "SELECT role_code, role_name from roles WHERE role_code <> 'SADMIN' AND role_code <> 'ADMIN' AND deleted = '0'";
+if($_SESSION["roles"] == 'SADMIN'){
+    $roles = $db->query("SELECT role_code, role_name from roles WHERE role_code <> 'SADMIN' AND deleted = '0'");
+}else{
+    $roles = $db->query("SELECT role_code, role_name from roles WHERE role_code <> 'SADMIN' AND role_code <> 'ADMIN' AND deleted = '0'");
 }
 
-$stmt2 = $db->prepare($query);
-mysqli_stmt_execute($stmt2);
-mysqli_stmt_store_result($stmt2);
-mysqli_stmt_bind_result($stmt2, $code, $name);
-
-// Pull plants
-if($_SESSION["roles"] != 'ADMIN' && $_SESSION["roles"] != 'SADMIN'){
+if (!hasModulePermission('User Management', 'User Setup', ['view_all_plants'])){
     $username = implode("', '", $_SESSION["plant"]);
-    $query4 = "SELECT id, name FROM Plant WHERE status = '0' and plant_code IN ('$username')";
-}
-else{
-    $query4 = "SELECT id, name FROM Plant WHERE status = '0'";
+    $plants = $db->query("SELECT * FROM Plant WHERE status = '0' AND plant_code IN ('$username') ORDER BY name ASC");
+}else{
+    $plants = $db->query("SELECT * FROM Plant WHERE status = '0' ORDER BY name ASC");
 }
 
-$stmt4 = $db->prepare($query4);
-mysqli_stmt_execute($stmt4);
-mysqli_stmt_store_result($stmt4);
-mysqli_stmt_bind_result($stmt4, $pcode, $pname);
+if (!hasModulePermission('User Management', 'User Setup', ['view_all_companies'])){
+    // $username = implode("', '", $_SESSION["plant"]);
+    // $plants = $db->query("SELECT * FROM Plant WHERE status = '0' AND plant_code IN ('$username') ORDER BY name ASC");
+}else{
+    $companies = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
+}
 ?>
 
 <head>
@@ -130,6 +125,7 @@ mysqli_stmt_bind_result($stmt4, $pcode, $pname);
                                                         <th><?=$languageArray['email_code'][$language]?></th>
                                                         <th><?=$languageArray['role_code'][$language]?></th>
                                                         <th><?=$languageArray['plant_name_code'][$language]?></th>
+                                                        <th><?=$languageArray['company_code'][$language]?></th>
                                                         <th><?=$languageArray['action_code'][$language]?></th>
                                                     </tr>
                                                 </thead>
@@ -165,7 +161,7 @@ mysqli_stmt_bind_result($stmt4, $pcode, $pname);
                                             <input type="hidden" class="form-control" id="id" name="id"> 
                                             <div class="col-12 mb-3">
                                                 <div class="row">
-                                                    <label for="employeeCode" class="col-sm-4 col-form-label"><?=$languageArray['employee_code_code'][$language]?> *</label>
+                                                    <label for="employeeCode" class="col-sm-4 col-form-label"><?=$languageArray['employee_code_code'][$language]?> <span class="text-danger">*</span></label>
                                                     <div class="col-sm-8">
                                                         <input type="text" class="form-control" id="employeeCode" name="employeeCode" placeholder="<?=$languageArray['employee_code_code'][$language]?>" required>
                                                         <div class="invalid-feedback">
@@ -176,7 +172,7 @@ mysqli_stmt_bind_result($stmt4, $pcode, $pname);
                                             </div>
                                             <div class="col-12 mb-3">
                                                 <div class="row">
-                                                <label for="username" class="col-sm-4 col-form-label"><?=$languageArray['username_code'][$language]?> *</label>
+                                                <label for="username" class="col-sm-4 col-form-label"><?=$languageArray['username_code'][$language]?> <span class="text-danger">*</span></label>
                                                     <div class="col-sm-8">
                                                         <input type="text" class="form-control" id="username" name="username" placeholder="<?=$languageArray['username_code'][$language]?>" required>
                                                         <div class="invalid-feedback">
@@ -187,7 +183,7 @@ mysqli_stmt_bind_result($stmt4, $pcode, $pname);
                                             </div>
                                             <div class="col-12 mb-3">
                                                 <div class="row">
-                                                <label for="name" class="col-sm-4 col-form-label"><?=$languageArray['name_code'][$language]?> *</label>
+                                                <label for="name" class="col-sm-4 col-form-label"><?=$languageArray['name_code'][$language]?> <span class="text-danger">*</span></label>
                                                     <div class="col-sm-8">
                                                         <input type="text" class="form-control" id="name" name="name" placeholder="<?=$languageArray['name_code'][$language]?>" required>
                                                         <div class="invalid-feedback">
@@ -206,29 +202,41 @@ mysqli_stmt_bind_result($stmt4, $pcode, $pname);
                                             </div>
                                             <div class="col-12 mb-3">
                                                 <div class="row">
-                                                    <label for="roles" class="col-sm-4 col-form-label"><?=$languageArray['role_code'][$language]?> *</label>
+                                                    <label for="roles" class="col-sm-4 col-form-label"><?=$languageArray['role_code'][$language]?> <span class="text-danger">*</span></label>
                                                     <div class="col-sm-8">
                                                         <select id="roles" name="roles" class="select2" required>
                                                             <option select="selected" value="">Please Select</option>
-                                                            <?php while(mysqli_stmt_fetch($stmt2)){ ?>
-                                                                <option value="<?=$code ?>"><?=$name ?></option>
-                                                            <?php } ?>
+                                                            <?php while ($role = $roles->fetch_assoc()): ?>
+                                                            <option value="<?=$role['role_code']?>"><?=$role['role_name']?></option>
+                                                            <?php endwhile; ?>
                                                         </select>
                                                     </div>
                                                 </div>
                                             </div>
                                             <div class="col-12 mb-3">
                                                 <div class="row">
-                                                    <label for="plantId" class="col-sm-4 col-form-label"><?=$languageArray['plant_code'][$language]?></label>
+                                                    <label for="plantId" class="col-sm-4 col-form-label"><?=$languageArray['plant_code'][$language]?> <span class="text-danger">*</span></label>
                                                     <div class="col-sm-8">
-                                                        <select id="plantId" name="plantId[]" class="form-control" multiple="multiple">
-                                                            <?php while(mysqli_stmt_fetch($stmt4)){ ?>
-                                                                <option value="<?=$pcode ?>"><?=$pname ?></option>
+                                                        <select id="plantId" name="plantId[]" class="form-control select2-multiple" multiple="multiple" required>
+                                                            <?php while ($plant = $plants->fetch_assoc()): ?>
+                                                            <option value="<?=$plant['id']?>"><?=$plant['name']?></option>
+                                                            <?php endwhile; ?>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-12 mb-3">
+                                                <div class="row">
+                                                    <label for="company" class="col-sm-4 col-form-label"><?=$languageArray['company_code'][$language]?> <span class="text-danger">*</span></label>
+                                                    <div class="col-sm-8">
+                                                        <select id="company" name="company[]" class="form-control select2-multiple" multiple="multiple" required>
+                                                            <?php while($rowCompany=mysqli_fetch_assoc($companies)){ ?>
+                                                                <option value="<?=$rowCompany['id'] ?>"><?=$rowCompany['name'] ?></option>
                                                             <?php } ?>
                                                         </select>
                                                     </div>
                                                 </div>
-                                            </div>                                              
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -334,25 +342,6 @@ mysqli_stmt_bind_result($stmt4, $pcode, $pname);
             dropdownParent: $('#addModal') // Ensures dropdown is not cut off
         });
 
-        // Initialize plantId elements in the modal
-        $('#addModal #plantId').select2({
-            allowClear: true,
-            multiple: true,
-            dropdownParent: $('#addModal') // Ensures dropdown is not cut off
-        });
-
-        $("#plantId").on("select2:select change", function () {
-            $(".select2-selection__choice").css({
-                "background-color": "rgb(64, 81, 137)",
-                "color": "white"
-            });
-
-            $(".select2-selection__choice__remove").css({
-                "color": "white"
-            });
-        });
-
-
         // Apply custom styling to Select2 elements in addModal
         $('#addModal .select2-container .select2-selection--single').css({
             'padding-top': '4px',
@@ -365,6 +354,24 @@ mysqli_stmt_bind_result($stmt4, $pcode, $pname);
             'height': 'auto'
         });
         
+        // Initialize plantId elements in the modal
+        $('#addModal .select2-multiple').select2({
+            allowClear: true,
+            multiple: true,
+            dropdownParent: $('#addModal') // Ensures dropdown is not cut off
+        });
+
+        $(".select2-multiple").on("select2:select change", function () {
+            $(".select2-selection__choice").css({
+                "background-color": "rgb(64, 81, 137)",
+                "color": "white"
+            });
+
+            $(".select2-selection__choice__remove").css({
+                "color": "white"
+            });
+        });
+
         table = $("#usersTable").DataTable({
             "responsive": true,
             "autoWidth": false,
@@ -372,7 +379,7 @@ mysqli_stmt_bind_result($stmt4, $pcode, $pname);
             'serverSide': true,
             'serverMethod': 'post',
             'ajax': {
-                'url':'php/modules/user/loadMembers.php'
+                'url':'php/modules/user/index.php?action=getAll'
             },
             'columns': [
                 {
@@ -391,6 +398,15 @@ mysqli_stmt_bind_result($stmt4, $pcode, $pname);
                 { data: 'role' },
                 { 
                     data: 'plant',
+                    render: function(data, type, row) {
+                        if (Array.isArray(data)) {
+                            return data.join(', ');
+                        }
+                        return data || '';
+                    }
+                },
+                { 
+                    data: 'company',
                     render: function(data, type, row) {
                         if (Array.isArray(data)) {
                             return data.join(', ');
@@ -473,7 +489,7 @@ mysqli_stmt_bind_result($stmt4, $pcode, $pname);
             });
             if($('#memberForm').valid()){
                 $('#spinnerLoading').show();
-                $.post('php/modules/user/users.php', $('#memberForm').serialize(), function(data){
+                $.post('php/modules/user/index.php', $('#memberForm').serialize() + '&action=' + ($('#memberForm').find('#id').val() ? 'update' : 'create'), function(data){
                     var obj = JSON.parse(data);
                     if(obj.status === 'success') {
                         table.ajax.reload();
@@ -501,6 +517,7 @@ mysqli_stmt_bind_result($stmt4, $pcode, $pname);
             $('#addModal').find('#useremail').val("");
             $('#addModal').find('#roles').val("");
             $('#addModal').find('#plantId').val('').trigger('change');
+            $('#addModal').find('#company').val('').trigger('change');
 
             // Remove Validation Error Message
             $('#addModal .is-invalid').removeClass('is-invalid');
@@ -550,7 +567,7 @@ mysqli_stmt_bind_result($stmt4, $pcode, $pname);
 
             // Send the JSON array to the server
             $.ajax({
-                url: 'php/modules/user/uploadUser.php',
+                url: 'php/modules/user/index.php?action=upload',
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify(data),
@@ -631,7 +648,7 @@ mysqli_stmt_bind_result($stmt4, $pcode, $pname);
 
             if (selectedIds.length > 0) {
                 if (confirm('Are you sure you want to delete these users?')) {
-                    $.post('php/modules/user/deleteUser.php', {userID: selectedIds, type: 'MULTI'}, function(data){
+                    $.post('php/modules/user/index.php', {action: 'delete', userID: selectedIds, type: 'MULTI'}, function(data){
                         var obj = JSON.parse(data);
                         
                         if(obj.status === 'success'){
@@ -662,7 +679,7 @@ mysqli_stmt_bind_result($stmt4, $pcode, $pname);
 
     function edit(id){
         $('#spinnerLoading').show();
-        $.post('php/modules/user/getUser.php', {userID: id}, function(data){
+        $.post('php/modules/user/index.php', {action: 'get', userID: id}, function(data){
             var obj = JSON.parse(data);
             
             if(obj.status === 'success'){
@@ -671,8 +688,9 @@ mysqli_stmt_bind_result($stmt4, $pcode, $pname);
                 $('#addModal').find('#username').val(obj.message.username);
                 $('#addModal').find('#name').val(obj.message.name);
                 $('#addModal').find('#useremail').val(obj.message.useremail);
-                $('#addModal').find('#roles').val(obj.message.role_code).trigger("change");
-                $("#addModal").find("#plantId").val(JSON.parse(obj.message.plant)).trigger("change");
+                $('#addModal').find('#roles').val(obj.message.role).trigger("change");
+                $("#addModal").find("#plantId").val(JSON.parse(obj.message.plant_id)).trigger("change");
+                $("#addModal").find("#company").val(JSON.parse(obj.message.company_id)).trigger("change");
 
                 // Remove Validation Error Message
                 $('#addModal .is-invalid').removeClass('is-invalid');
@@ -706,7 +724,7 @@ mysqli_stmt_bind_result($stmt4, $pcode, $pname);
     function deactivate(id){
         $('#spinnerLoading').show();
         if (confirm('Are you sure you want to delete this user?')) {
-        $.post('php/modules/user/deleteUser.php', {userID: id}, function(data){
+        $.post('php/modules/user/index.php', {action: 'delete', userID: id}, function(data){
                 var obj = JSON.parse(data);
 
                 if(obj.status === 'success'){
@@ -812,7 +830,7 @@ mysqli_stmt_bind_result($stmt4, $pcode, $pname);
     function resetPassword(id) {
         if (!confirm('<?=$languageArray['confirm_reset_password_code'][$language] ?? 'Are you sure you want to reset this user password to 123456?'?>')) return;
         $('#spinnerLoading').show();
-        $.post('php/modules/user/resetPassword.php', {userID: id}, function(data) {
+        $.post('php/modules/user/index.php', {action: 'resetPassword', userID: id}, function(data) {
             var obj = JSON.parse(data);
             if (obj.status === 'success') {
                 toastr["success"](obj.message, "Success:");

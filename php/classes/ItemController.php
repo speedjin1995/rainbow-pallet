@@ -2,6 +2,11 @@
 require_once __DIR__ . '/BaseController.php';
 require_once __DIR__ . '/../services/ItemService.php';
 
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+
 /**
  * Item Controller
  * Handles all CRUD operations for Items (Products)
@@ -15,6 +20,16 @@ class ItemController extends BaseController {
         $this->itemService = new ItemService($db, $username);
     }
     
+    public function handleList() {
+        $companyId = intval($this->getPost('company'));
+        if ($companyId <= 0) {
+            $this->failed('Invalid company');
+        }
+        $list = $this->itemService->getListByCompany($companyId);
+        echo json_encode(['status' => 'success', 'data' => $list]);
+        exit();
+    }
+
     /**
      * Get all items (for DataTables)
      */
@@ -96,19 +111,111 @@ class ItemController extends BaseController {
     }
     
     /**
+     * Download the Excel upload template, with Category/UOM as dropdown lists
+     * pulled from the user's own Product_Categories/Units (unless view_all_companies)
+     */
+    public function downloadTemplate() {
+        require_once __DIR__ . '/../../vendor/autoload.php';
+
+        $filename = 'Item_Template.xlsx';
+        $headers = ['Item Code', 'Item Name', 'Description', 'Category', 'UOM'];
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Items');
+
+        $column = 1;
+        foreach ($headers as $header) {
+            $sheet->setCellValue([$column, 1], $header);
+            $sheet->getColumnDimensionByColumn($column)->setAutoSize(true);
+            $column++;
+        }
+        $sheet->getStyle('A1:E1')->getFont()->setBold(true);
+
+        // Determine company scope for the dropdown lists
+        if (hasModulePermission('Master Data', 'Items', ['view_all_companies'])) {
+            $companyId = isset($_GET['company']) && $_GET['company'] !== '' ? intval($_GET['company']) : null;
+        } else {
+            // Never trust frontend value for restricted users
+            $companyId = $_SESSION['company_id'] ?? null;
+        }
+
+        $lists = $this->itemService->getDropdownLists($companyId);
+
+        $listSheet = $spreadsheet->createSheet();
+        $listSheet->setTitle('Dropdown Lists');
+        $listSheet->setSheetState(Worksheet::SHEETSTATE_HIDDEN);
+
+        foreach ($lists['categories'] as $index => $value) {
+            $listSheet->setCellValue('A'.($index + 1), $value);
+        }
+        foreach ($lists['units'] as $index => $value) {
+            $listSheet->setCellValue('B'.($index + 1), $value);
+        }
+
+        if (!empty($lists['categories'])) {
+            $this->addDropdownList($sheet, 'D2:D500', "'Dropdown Lists'!\$A\$1:\$A\$".count($lists['categories']));
+        }
+        if (!empty($lists['units'])) {
+            $this->addDropdownList($sheet, 'E2:E500', "'Dropdown Lists'!\$B\$1:\$B\$".count($lists['units']));
+        }
+
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header("Content-Disposition: attachment; filename=\"$filename\"");
+        header('Cache-Control: max-age=0');
+
+        $writer = new Xlsx($spreadsheet);
+        $writer->save('php://output');
+        exit;
+    }
+
+    private function addDropdownList($sheet, $range, $formula) {
+        foreach ($sheet->rangeToArray($range, null, true, true, true) as $rowNumber => $row) {
+            foreach ($row as $column => $value) {
+                $validation = $sheet->getCell($column.$rowNumber)->getDataValidation();
+                $validation->setType(DataValidation::TYPE_LIST);
+                $validation->setErrorStyle(DataValidation::STYLE_STOP);
+                $validation->setAllowBlank(true);
+                $validation->setShowInputMessage(true);
+                $validation->setShowErrorMessage(true);
+                $validation->setShowDropDown(true);
+                $validation->setFormula1($formula);
+            }
+        }
+    }
+
+    /**
      * Upload items from Excel
      */
     public function upload() {
         $data = json_decode(file_get_contents('php://input'), true);
-        
+
+        // Determine company on the backend - never trust frontend value for restricted users
+        if (hasModulePermission('Master Data', 'Items', ['view_all_companies'])) {
+            $companyId = isset($_GET['company']) ? intval($_GET['company']) : 0;
+        } else {
+            $companyId = isset($_SESSION['company_id']) ? intval($_SESSION['company_id']) : 0;
+        }
+
+        if ($companyId <= 0) {
+            $this->failed('Please select a company');
+        }
+
+        $company = searchCompanyById($companyId, $this->db);
+        if (empty($company) || $company['status'] != '0') {
+            $this->failed('Company not found');
+        }
+
         try {
-            $result = $this->itemService->upload($data);
+            $result = $this->itemService->upload($data, $companyId);
             
-            if (count($result['errors']) > 0 && $result['successCount'] > 0) {
+            if (count($result['errors']) > 0) {
                 echo json_encode(['status' => 'error', 'message' => $result['errors']]);
                 exit();
-            } elseif (count($result['errors']) > 0) {
-                $this->failed(implode(', ', $result['errors']));
             } else {
                 $this->success("{$result['successCount']} records imported successfully");
             }

@@ -1,6 +1,5 @@
 <?php
 require_once __DIR__ . '/BaseService.php';
-require_once __DIR__ . '/../requires/functions.php';
 require_once __DIR__ . '/../requires/lookup.php';
 
 class SupplierService extends BaseService {
@@ -11,11 +10,25 @@ class SupplierService extends BaseService {
         $draw       = $post['draw'];
         $columnName = $post['columns'][$post['order'][0]['column']]['data'] ?? 'supplier_code';
         $sortOrder  = $post['order'][0]['dir'] ?? 'asc';
+        // company_name is a computed column (not a real DB column), sort by company instead
+        if ($columnName === 'company_name') $columnName = 'company';
         $search     = mysqli_real_escape_string($this->db, $post['search']['value']);
+        $companyId  = isset($post['companyId']) ? intval($post['companyId']) : 0;
+        $supplierCode = isset($post['supplierCode']) ? mysqli_real_escape_string($this->db, $post['supplierCode']) : '';
+        $supplierName = isset($post['supplierName']) ? mysqli_real_escape_string($this->db, $post['supplierName']) : '';
 
         $q = '';
         if ($search !== '') {
             $q = " AND (name LIKE '%{$search}%' OR company_reg_no LIKE '%{$search}%' OR supplier_code LIKE '%{$search}%')";
+        }
+        if ($companyId > 0) {
+            $q .= " AND company={$companyId}";
+        }
+        if ($supplierCode !== '') {
+            $q .= " AND supplier_code LIKE '%{$supplierCode}%'";
+        }
+        if ($supplierName !== '') {
+            $q .= " AND name LIKE '%{$supplierName}%'";
         }
 
         $totalRes = $this->db->query("SELECT COUNT(*) as c FROM Supplier");
@@ -71,8 +84,22 @@ class SupplierService extends BaseService {
         return $row;
     }
 
+    public function getListByCompany($companyId) {
+        $stmt = $this->db->prepare("SELECT supplier_code, name FROM Supplier WHERE company = ? AND status = '0' ORDER BY name");
+        if (!$stmt) throw new Exception($this->db->error);
+        $stmt->bind_param('i', $companyId);
+        if (!$stmt->execute()) throw new Exception($stmt->error);
+        $result = $stmt->get_result();
+        $list = [];
+        while ($row = $result->fetch_assoc()) {
+            $list[] = $row;
+        }
+        $stmt->close();
+        return $list;
+    }
+
     public function save($f) {
-        if ($this->isDuplicateCode($f['supplierCode'], $f['supplierId'])) {
+        if ($this->isDuplicateCode($f['supplierCode'], $f['company'], $f['supplierId'])) {
             throw new Exception('Supplier code already exists');
         }
 
@@ -86,10 +113,10 @@ class SupplierService extends BaseService {
             $stmt->close();
 
             if ($old['supplier_code'] !== $f['supplierCode']) {
-                updateMasterDataCodeValue($this->db, $old['supplier_code'], $f['supplierCode'], 'Supplier');
+                $this->updateMasterDataCodeValue($old['supplier_code'], $f['supplierCode'], 'Supplier', $old['company']);
             }
             if ($old['name'] !== $f['companyName']) {
-                updateMasterDataNameValue($this->db, $old['name'], $f['companyName'], 'Supplier');
+                $this->updateMasterDataNameValue($old['name'], $f['companyName'], 'Supplier', $old['company']);
             }
         } else {
             $stmt = $this->db->prepare("INSERT INTO Supplier (company, supplier_code, company_reg_no, new_reg_no, name, address_line_1, address_line_2, address_line_3, phone_no, fax_no, contact_name, ic_no, tin_no, payment_term, payment_term_period, account_no, created_by, modified_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
@@ -113,13 +140,13 @@ class SupplierService extends BaseService {
         $stmt->close();
     }
 
-    public function upload($data) {
+    public function upload($data, $companyId) {
         $errors = [];
         $status = '0';
+        $company = $companyId;
 
         foreach ($data as $index => $row) {
-            $companyName = !empty($row['Company']) ? trim($row['Company']) : '';
-            $code      = !empty($row['Code']) ? trim($row['Code']) : '';
+            $code     = !empty($row['Code']) ? trim($row['Code']) : '';
             $name      = !empty($row['Name']) ? trim($row['Name']) : '';
             $regNo     = !empty($row['RegNo']) ? trim($row['RegNo']) : '';
             $newRegNo  = !empty($row['NewRegNo']) ? trim($row['NewRegNo']) : '';
@@ -142,18 +169,8 @@ class SupplierService extends BaseService {
                 continue;
             }
 
-            // Lookup company by name
-            $company = null;
-            if (!empty($companyName)) {
-                $company = searchCompanyIdByName($companyName, $this->db);
-                if (empty($company)) {
-                    $errors[] = "Row {$rowNum}: Company '{$companyName}' not found.";
-                    continue;
-                }
-            }
-
-            $chk = $this->db->prepare("SELECT id FROM Supplier WHERE supplier_code=? AND status=?");
-            $chk->bind_param('ss', $code, $status);
+            $chk = $this->db->prepare("SELECT id FROM Supplier WHERE supplier_code=? AND company=? AND status=?");
+            $chk->bind_param('sss', $code, $company, $status);
             $chk->execute();
             $exists = $chk->get_result()->fetch_assoc();
             $chk->close();
@@ -172,39 +189,51 @@ class SupplierService extends BaseService {
         return $errors;
     }
 
-    public function autoRegisterSupplier($supplierName) {
+    /**
+     * Auto register supplier from manual input, within the given company
+     * @return array|null ['supplier_code' => code, 'name' => name], or null when the name / company is blank
+     */
+    public function autoRegisterSupplier($supplierName, $companyId) {
+        if ($this->isBlankValue($supplierName) || $this->isInvalidCompanyId($companyId)) {
+            return null;
+        }
         $supplierName = trim($supplierName);
-        
-        $stmt = $this->db->prepare("SELECT supplier_code FROM Supplier WHERE name=? AND status='0'");
-        $stmt->bind_param('s', $supplierName);
-        $stmt->execute();
+        $companyId = (int) $companyId;
+
+        // Reuse the company's existing supplier with this name
+        $stmt = $this->db->prepare("SELECT supplier_code FROM Supplier WHERE name=? AND company=? AND status='0'");
+        if (!$stmt) throw new Exception($this->db->error);
+        $stmt->bind_param('si', $supplierName, $companyId);
+        if (!$stmt->execute()) throw new Exception($stmt->error);
         $row = $stmt->get_result()->fetch_assoc();
         $stmt->close();
-        
+
         if ($row) {
             return ['supplier_code' => $row['supplier_code'], 'name' => $supplierName];
         }
-        
+
         $supplierCode = 'S' . date('ymdHis') . rand(100, 999);
         $isManual = 'Y';
-        
-        $stmt = $this->db->prepare("INSERT INTO Supplier (supplier_code, name, is_manual, created_by) VALUES (?, ?, ?, ?)");
-        $stmt->bind_param('ssss', $supplierCode, $supplierName, $isManual, $this->username);
-        $stmt->execute();
+
+        $stmt = $this->db->prepare("INSERT INTO Supplier (company, supplier_code, name, is_manual, created_by) VALUES (?, ?, ?, ?, ?)");
+        if (!$stmt) throw new Exception($this->db->error);
+        $stmt->bind_param('issss', $companyId, $supplierCode, $supplierName, $isManual, $this->username);
+        if (!$stmt->execute()) throw new Exception($stmt->error);
         $stmt->close();
-        
+
         return ['supplier_code' => $supplierCode, 'name' => $supplierName];
     }
 
-    private function isDuplicateCode($code, $excludeId = null) {
-        $sql = "SELECT id FROM Supplier WHERE supplier_code=? AND status='0'";
+    private function isDuplicateCode($code, $company, $excludeId = null) {
+        // Duplicate check is scoped to the same company (<=> is null-safe)
+        $sql = "SELECT id FROM Supplier WHERE supplier_code=? AND company <=> ? AND status='0'";
         if ($excludeId) {
             $sql .= " AND id != ?";
             $stmt = $this->db->prepare($sql);
-            $stmt->bind_param('si', $code, $excludeId);
+            $stmt->bind_param('ssi', $code, $company, $excludeId);
         } else {
             $stmt = $this->db->prepare($sql);
-            $stmt->bind_param('s', $code);
+            $stmt->bind_param('ss', $code, $company);
         }
         $stmt->execute();
         $stmt->store_result();

@@ -14,22 +14,36 @@ class ItemService extends BaseService {
         $start = $post['start'] ?? 0;
         $length = $post['length'] ?? 10;
         $searchValue = isset($post['search']['value']) ? mysqli_real_escape_string($this->db, $post['search']['value']) : '';
-        
+        $companyId  = isset($post['companyId']) ? intval($post['companyId']) : 0;
+        $itemCode = isset($post['itemCode']) ? mysqli_real_escape_string($this->db, $post['itemCode']) : '';
+        $itemName = isset($post['itemName']) ? mysqli_real_escape_string($this->db, $post['itemName']) : '';
+
         $columnIndex = $post['order'][0]['column'] ?? 0;
         $columnName = $post['columns'][$columnIndex]['data'] ?? 'id';
         $columnSortOrder = $post['order'][0]['dir'] ?? 'asc';
-        
+        // company_name is a computed column (not a real DB column), sort by company instead
+        if ($columnName === 'company_name') $columnName = 'p.company';
+
         // Total records
         $totalQuery = "SELECT COUNT(*) as total FROM {$this->table} WHERE status = 0";
         $totalResult = $this->db->query($totalQuery);
         $totalRecords = $totalResult->fetch_assoc()['total'];
-        
+
         // Search filter
         $searchQuery = "";
         if ($searchValue != '') {
             $searchQuery = " AND (p.product_code LIKE '%{$searchValue}%' OR p.name LIKE '%{$searchValue}%' OR p.description LIKE '%{$searchValue}%' OR c.category_name LIKE '%{$searchValue}%')";
         }
-        
+        if ($companyId > 0) {
+            $searchQuery .= " AND p.company={$companyId}";
+        }
+        if ($itemCode !== '') {
+            $searchQuery .= " AND p.product_code LIKE '%{$itemCode}%'";
+        }
+        if ($itemName !== '') {
+            $searchQuery .= " AND p.name LIKE '%{$itemName}%'";
+        }
+
         // Filtered records
         $filteredQuery = "SELECT COUNT(*) as total FROM {$this->table} p LEFT JOIN Product_Categories c ON p.category = c.id WHERE p.status = 0 {$searchQuery}";
         $filteredResult = $this->db->query($filteredQuery);
@@ -68,13 +82,13 @@ class ItemService extends BaseService {
         $high = $post['high'] ?? 0;
         $low = $post['low'] ?? 0;
         
-        // Check duplicate
-        if ($this->isDuplicate('product_code', $productCode)) {
+        // Check duplicate (scoped to the same company)
+        if ($this->isDuplicate('product_code', $productCode, $company)) {
             throw new Exception('Product code already exists');
         }
-        
+
         $this->db->begin_transaction();
-        
+
         $stmt = $this->db->prepare("INSERT INTO {$this->table} (company, product_code, name, category, uom, description, variance, high, low, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         if (!$stmt) {
             throw new Exception($this->db->error);
@@ -112,13 +126,26 @@ class ItemService extends BaseService {
         $high = $post['high'] ?? 0;
         $low = $post['low'] ?? 0;
         
-        // Check duplicate (exclude current record)
-        if ($this->isDuplicate('product_code', $productCode, $id)) {
+        // Check duplicate (scoped to the same company, exclude current record)
+        if ($this->isDuplicate('product_code', $productCode, $company, $id)) {
             throw new Exception('Product code already exists');
         }
-        
+
         $this->db->begin_transaction();
-        
+
+        // Get old values before update
+        $stmt = $this->db->prepare("SELECT product_code, name, company FROM {$this->table} WHERE id = ?");
+        if (!$stmt) {
+            throw new Exception($this->db->error);
+        }
+        $stmt->bind_param('s', $id);
+        if (!$stmt->execute()) {
+            throw new Exception($stmt->error);
+        }
+        $stmt->bind_result($oldCode, $oldName, $oldCompany);
+        $stmt->fetch();
+        $stmt->close();
+
         $stmt = $this->db->prepare("UPDATE {$this->table} SET company=?, product_code=?, name=?, category=?, uom=?, description=?, variance=?, high=?, low=?, modified_by=? WHERE id=?");
         if (!$stmt) {
             throw new Exception($this->db->error);
@@ -134,9 +161,20 @@ class ItemService extends BaseService {
         
         // Handle UOM Conversion (smart update)
         $this->syncUomConversion($id, $post);
-        
+
+        // Cascade code/name changes to the weighing records of the item's company.
+        // Items are used as both sales products and purchase raw materials, so update both.
+        foreach (['Product', 'Raw Material'] as $module) {
+            if ($oldCode !== null && $oldCode !== $productCode) {
+                $this->updateMasterDataCodeValue($oldCode, $productCode, $module, $oldCompany);
+            }
+            if ($oldName !== null && $oldName !== $productName) {
+                $this->updateMasterDataNameValue($oldName, $productName, $module, $oldCompany);
+            }
+        }
+
         $this->db->commit();
-        
+
         return ['id' => $id];
     }
     
@@ -312,18 +350,18 @@ class ItemService extends BaseService {
     /**
      * Upload items from Excel
      */
-    public function upload($data) {
+    public function upload($data, $companyId) {
         if (empty($data)) {
             throw new Exception('No data provided');
         }
-        
+
         $errors = [];
         $successCount = 0;
-        
+        $company = $companyId;
+
         foreach ($data as $index => $row) {
             $rowNum = $index + 2;
-            
-            $companyName = isset($row['Company']) ? trim($row['Company']) : '';
+
             $productCode = isset($row['ItemCode']) ? trim($row['ItemCode']) : null;
             $productName = isset($row['ItemName']) ? trim($row['ItemName']) : null;
             $description = isset($row['Description']) ? trim($row['Description']) : null;
@@ -339,16 +377,6 @@ class ItemService extends BaseService {
             if (empty($productName)) {
                 $errors[] = "Row {$rowNum}: Item Name is required";
                 continue;
-            }
-            
-            // Lookup company by name
-            $company = null;
-            if (!empty($companyName)) {
-                $company = searchCompanyIdByName($companyName, $this->db);
-                if (empty($company)) {
-                    $errors[] = "Row {$rowNum}: Company '{$companyName}' not found.";
-                    continue;
-                }
             }
             
             // Lookup category by name
@@ -371,8 +399,8 @@ class ItemService extends BaseService {
                 }
             }
             
-            // Check duplicate
-            if ($this->isDuplicate('product_code', $productCode)) {
+            // Check duplicate (scoped to the same company)
+            if ($this->isDuplicate('product_code', $productCode, $company)) {
                 $errors[] = "Row {$rowNum}: Item Code '{$productCode}' already exists";
                 continue;
             }
@@ -393,17 +421,68 @@ class ItemService extends BaseService {
     }
     
     /**
+     * Get Category/UOM dropdown lists for the Excel upload template
+     * @param string|int|null $companyId - when set, restricts the lists to that company; null means all companies
+     * @return array ['categories' => [...names], 'units' => [...names]]
+     */
+    public function getDropdownLists($companyId = null) {
+        $companyFilter = '';
+        if (!empty($companyId)) {
+            $companyId = mysqli_real_escape_string($this->db, $companyId);
+            $companyFilter = " AND company IN ({$companyId})";
+        }
+
+        $lists = [];
+
+        $result = $this->db->query("SELECT category_name FROM Product_Categories WHERE status = '0'{$companyFilter} ORDER BY category_name ASC");
+        $lists['categories'] = [];
+        while ($row = $result->fetch_assoc()) {
+            $lists['categories'][] = $row['category_name'];
+        }
+
+        $result = $this->db->query("SELECT unit FROM Units WHERE status = '0'{$companyFilter} ORDER BY unit ASC");
+        $lists['units'] = [];
+        while ($row = $result->fetch_assoc()) {
+            $lists['units'][] = $row['unit'];
+        }
+
+        return $lists;
+    }
+
+    public function getListByCompany($companyId) {
+        $stmt = $this->db->prepare("SELECT p.id, p.product_code, p.name, p.high, p.low, p.variance, p.description,
+            IFNULL(c.is_sales, 'Y') as is_sales,
+            IFNULL(c.is_purchase, 'Y') as is_purchase,
+            IFNULL(c.is_local, 'Y') as is_local,
+            IFNULL(c.is_port, 'Y') as is_port,
+            IFNULL(c.is_misc, 'Y') as is_misc
+            FROM {$this->table} p LEFT JOIN Product_Categories c ON p.category = c.id
+            WHERE p.company = ? AND p.status = '0' ORDER BY p.name");
+        if (!$stmt) throw new Exception($this->db->error);
+        $stmt->bind_param('i', $companyId);
+        if (!$stmt->execute()) throw new Exception($stmt->error);
+        $result = $stmt->get_result();
+        $list = [];
+        while ($row = $result->fetch_assoc()) {
+            $list[] = $row;
+        }
+        $stmt->close();
+        return $list;
+    }
+
+    /**
      * Check for duplicate value
      */
-    private function isDuplicate($column, $value, $excludeId = null) {
-        $query = "SELECT id FROM {$this->table} WHERE {$column} = ? AND status = 0";
+    private function isDuplicate($column, $value, $company, $excludeId = null) {
+        // Duplicate check is scoped to the same company (<=> is null-safe)
+        $query = "SELECT id FROM {$this->table} WHERE {$column} = ? AND company <=> ? AND status = 0";
         if ($excludeId) {
             $query .= " AND id != ?";
             $stmt = $this->db->prepare($query);
-            $stmt->bind_param('si', $value, $excludeId);
+            $stmt->bind_param('ssi', $value, $company, $excludeId);
         } else {
             $stmt = $this->db->prepare($query);
-            $stmt->bind_param('s', $value);
+            $stmt->bind_param('ss', $value, $company);
         }
         $stmt->execute();
         $result = $stmt->get_result();
@@ -418,31 +497,37 @@ class ItemService extends BaseService {
      * @param string $entityType - 'Customer' for product, 'Supplier' for raw material
      * @return array - ['product_code' => code, 'name' => name]
      */
-    public function autoRegisterProduct($productName, $entityType) {
+    public function autoRegisterProduct($productName, $entityType, $companyId) {
+        if ($this->isBlankValue($productName) || $this->isInvalidCompanyId($companyId)) {
+            return null;
+        }
         $productName = trim($productName);
-        
-        // Check if product already exists
-        $stmt = $this->db->prepare("SELECT product_code FROM Product WHERE name=? AND entity_type=? AND status='0'");
-        $stmt->bind_param('ss', $productName, $entityType);
-        $stmt->execute();
+        $companyId = (int) $companyId;
+
+        // Reuse the company's existing item with this name (items serve as both products and raw materials)
+        $stmt = $this->db->prepare("SELECT product_code FROM Product WHERE name=? AND company=? AND status='0'");
+        if (!$stmt) throw new Exception($this->db->error);
+        $stmt->bind_param('si', $productName, $companyId);
+        if (!$stmt->execute()) throw new Exception($stmt->error);
         $row = $stmt->get_result()->fetch_assoc();
         $stmt->close();
-        
+
         if ($row) {
             return ['product_code' => $row['product_code'], 'name' => $productName];
         }
-        
-        // Generate product code
+
+        // Generate product code - P for products, R for raw materials
         $prefix = ($entityType === 'Customer') ? 'P' : 'R';
         $productCode = $prefix . date('ymdHis') . rand(100, 999);
         $isManual = 'Y';
         $status = '0';
-        
-        $stmt = $this->db->prepare("INSERT INTO Product (product_code, name, entity_type, is_manual, status, created_by) VALUES (?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param('ssssss', $productCode, $productName, $entityType, $isManual, $status, $this->username);
-        $stmt->execute();
+
+        $stmt = $this->db->prepare("INSERT INTO Product (company, product_code, name, is_manual, status, created_by) VALUES (?, ?, ?, ?, ?, ?)");
+        if (!$stmt) throw new Exception($this->db->error);
+        $stmt->bind_param('isssss', $companyId, $productCode, $productName, $isManual, $status, $this->username);
+        if (!$stmt->execute()) throw new Exception($stmt->error);
         $stmt->close();
-        
+
         return ['product_code' => $productCode, 'name' => $productName];
     }
 }

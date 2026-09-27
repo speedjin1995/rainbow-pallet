@@ -1,12 +1,23 @@
 <?php include 'layouts/session.php'; ?>
 <?php include 'layouts/head-main.php'; ?>
 <?php
+    $companyId = $_SESSION['company_id'];
     if (!hasModulePermission('Master Data', 'Projects', ['view'])){
         header('Location: no-permission.php');
         exit;
     }
 
-    $company = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
+    if (!hasModulePermission('Master Data', 'Projects', ['view_all_companies'])){
+        // Get companies
+        $company_ids = implode(',', array_map('intval', $_SESSION['company_ids']));
+        $company = $db->query("SELECT * FROM Company WHERE status = 0 AND id IN ($company_ids) ORDER BY name");
+        $companies2 = $db->query("SELECT * FROM Company WHERE status = 0 AND id IN ($company_ids) ORDER BY name");
+        $companies3 = $db->query("SELECT * FROM Company WHERE status = 0 AND id IN ($company_ids) ORDER BY name");
+    }else{
+        $company = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
+        $companies2 = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
+        $companies3 = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
+    }
 ?>
 
 <head>
@@ -76,7 +87,51 @@
                                 <!--end col-->
                             </div>
                             <!--end row-->
-                            
+
+                            <div class="col-xxl-12 col-lg-12">
+                                <div class="card">
+                                    <div class="card-header fs-5 text-white" href="#collapseSearch" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="collapseSearch" style="background-color: #405189; cursor:pointer;">
+                                        <i class="mdi mdi-chevron-down pull-right"></i>
+                                        <?=$languageArray['search_records_code'][$language] ?? 'Search Records'?>
+                                    </div>
+                                    <div id="collapseSearch" class="collapse" aria-labelledby="collapseSearch">
+                                        <div class="card-body">
+                                            <form action="javascript:void(0);">
+                                                <div class="row">
+                                                    <div class="col-3" <?= !hasModulePermission('Master Data', 'Projects', ['view_all_companies']) ? "style='display:none'" : '' ?>>
+                                                        <div class="mb-3">
+                                                            <label class="form-label"><?=$languageArray['company_code'][$language]?></label>
+                                                            <select class="form-select select2" id="companySearch" name="companySearch" required>
+                                                                <?php while($rowCompany=mysqli_fetch_assoc($companies2)){ ?>
+                                                                    <option value="<?=$rowCompany['id'] ?>" <?=($rowCompany['id'] == $companyId) ? 'selected' : ''?>><?=$rowCompany['name'] ?></option>
+                                                                <?php } ?>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-3">
+                                                        <div class="mb-3">
+                                                            <label class="form-label"><?=$languageArray['project_code_code'][$language] ?? 'Project Code'?></label>
+                                                            <input type="text" class="form-control" id="projectCodeSearch" placeholder="<?=$languageArray['project_code_code'][$language] ?? 'Project Code'?>">
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-3">
+                                                        <div class="mb-3">
+                                                            <label class="form-label"><?=$languageArray['description_code'][$language] ?? 'Description'?></label>
+                                                            <input type="text" class="form-control" id="projectDescriptionSearch" placeholder="<?=$languageArray['description_code'][$language] ?? 'Description'?>">
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-lg-12">
+                                                        <div class="text-end">
+                                                            <button type="submit" class="btn btn-success" id="filterSearch"><i class="bx bx-search-alt"></i> <?=$languageArray['search_code'][$language] ?? 'Search'?></button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="row">
                                 <div class="col-xl-3 col-md-6 add-new-weight">
 
@@ -96,7 +151,7 @@
                                                                 <div class="card bg-light">
                                                                     <div class="card-body">
                                                                         <div class="row">
-                                                                            <div class="col-xxl-12 col-lg-12 mb-3">
+                                                                            <div class="col-xxl-12 col-lg-12 mb-3" <?= !hasModulePermission('Master Data', 'Projects', ['view_all_companies']) ? "style='display:none'" : '' ?>>
                                                                                 <div class="row">
                                                                                     <label for="company" class="col-sm-4 col-form-label"><?=$languageArray['company_code'][$language]?> <span class="text-danger">*</span></label>
                                                                                     <div class="col-sm-8">
@@ -156,6 +211,16 @@
                                                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                     </div>
                                                     <div class="modal-body">
+                                                        <div class="row mb-3" <?= !hasModulePermission('Master Data', 'Projects', ['view_all_companies']) ? "style='display:none'" : '' ?>>
+                                                            <label for="uploadCompany" class="col-sm-2 col-form-label"><?=$languageArray['company_code'][$language]?> <span class="text-danger">*</span></label>
+                                                            <div class="col-sm-4">
+                                                                <select class="form-select select2" id="uploadCompany" name="uploadCompany" required>
+                                                                    <?php while($rowCompany=mysqli_fetch_assoc($companies3)){ ?>
+                                                                        <option value="<?=$rowCompany['id'] ?>" <?=($rowCompany['id'] == $companyId) ? 'selected' : ''?>><?=$rowCompany['name'] ?></option>
+                                                                    <?php } ?>
+                                                                </select>
+                                                            </div>
+                                                        </div>
                                                         <input type="file" id="fileInput">
                                                         <button type="button" id="previewButton"><?=$languageArray['preview_data_code'][$language] ?? 'Preview Data'?></button>
                                                         <div id="previewTable" style="overflow: auto;"></div>
@@ -238,9 +303,9 @@
                                                             <thead>
                                                                 <tr>
                                                                     <th><input type="checkbox" id="selectAllCheckbox" class="selectAllCheckbox"></th>
+                                                                    <th><?=$languageArray['company_code'][$language] ?? 'Company'?></th>
                                                                     <th><?=$languageArray['project_code_code'][$language] ?? 'Project Code'?></th>
                                                                     <th><?=$languageArray['description_code'][$language] ?? 'Description'?></th>
-                                                                    <th><?=$languageArray['company_code'][$language] ?? 'Company'?></th>
                                                                     <th><?=$languageArray['status_code'][$language] ?? 'Status'?></th>
                                                                     <th><?=$languageArray['action_code'][$language] ?? 'Action'?></th>
                                                                 </tr>
@@ -298,13 +363,28 @@
         var table;
         var permissions = <?= json_encode($_SESSION['permissions'] ?? []) ?>;
         var isSADMIN = <?= json_encode($_SESSION['roles'] == 'SADMIN') ?>;
+        var sessionCompanyId = <?= intval($_SESSION['company_id'] ?? 0) ?>;
 
         $(function () {
             // Initialize all Select2 elements in the modal
-            $('.select2').select2({
+            $('#collapseSearch .select2').select2({
+                allowClear: true,
+                placeholder: "Please Select",
+                dropdownParent: $('#collapseSearch') // Ensures dropdown is not cut off
+            });
+
+            // Initialize all Select2 elements in the modal
+            $('#addModal .select2').select2({
                 allowClear: true,
                 placeholder: "Please Select",
                 dropdownParent: $('#addModal') // Ensures dropdown is not cut off
+            });
+
+            // Initialize all Select2 elements in the upload modal
+            $('#uploadModal .select2').select2({
+                allowClear: true,
+                placeholder: "Please Select",
+                dropdownParent: $('#uploadModal') // Ensures dropdown is not cut off
             });
 
             // Apply custom styling to Select2 elements in addModal
@@ -324,80 +404,12 @@
                 checkboxes.prop('checked', $(this).prop('checked')).trigger('change');
             });
 
-            table = $("#projectTable").DataTable({
-                "responsive": true,
-                "autoWidth": false,
-                'processing': true,
-                'serverSide': true,
-                'serverMethod': 'post',
-                'ajax': {
-                    'url':'php/modules/project/index.php',
-                    'data': { action: 'getAll' }
-                },
-                'columns': [
-                    {
-                        data: 'id',
-                        className: 'select-checkbox',
-                        orderable: false,
-                        render: function (data, type, row) {
-                            return '<input type="checkbox" class="select-checkbox" id="checkbox_' + data + '" value="'+data+'"/>';
-                        }
-                    },
-                    { data: 'project_code' },
-                    { data: 'project_description' },
-                    { data: 'company_name' },
-                    {
-                        data: 'id',
-                        render: function ( data, type, row ) {
-                            if (row.status == '1'){
-                                return '<button title="Reactivate" type="button" id="reactivate'+data+'" onclick="reactivate('+data+')" class="btn btn-warning btn-sm">Reactivate</button>';
-                            }else{
-                                return 'Active';
-                            }
-                        }
-                    },
-                    { 
-                        data: 'id',
-                        render: function ( data, type, row ) {
-                            if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Projects'] && ['edit', 'cancelled'].some(p => permissions['Master Data']['Projects'].includes(p)))) {
-                                var buttons = `
-                                    <div class="dropdown d-inline-block">
-                                        <button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                            <i class="ri-more-fill align-middle"></i>
-                                        </button>
-                                        <ul class="dropdown-menu dropdown-menu-end">`;
+            renderTable();
 
-                                if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Projects'] && permissions['Master Data']['Projects'].includes('edit'))) {
-                                    buttons += `
-                                            <li>
-                                                <a class="dropdown-item edit-item-btn" id="edit${data}" onclick="edit(${data})">
-                                                    <i class="ri-pencil-fill align-bottom me-2 text-muted"></i> <?=$languageArray['edit_code'][$language] ?? 'Edit'?>
-                                                </a>
-                                            </li>`;
-                                }
-
-                                if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Projects'] && permissions['Master Data']['Projects'].includes('cancelled'))) {
-                                    buttons += `
-                                            <li>
-                                                <a class="dropdown-item remove-item-btn" id="deactivate${data}" onclick="deactivate(${data})">
-                                                    <i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i> <?=$languageArray['delete_code'][$language] ?? 'Delete'?>
-                                                </a>
-                                            </li>`;
-                                }
-
-                                buttons += `
-                                        </ul>
-                                    </div>`;
-
-                                return buttons;
-                            }
-
-                            return '';
-                        }
-                    }
-                ]       
+            $('#filterSearch').on('click', function() {
+                renderTable();
             });
-            
+
             $('#submitProject').on('click', function(){
                 if($('#projectForm').valid()){
                     $('#spinnerLoading').show();
@@ -425,7 +437,7 @@
                 $('#addModal').find('#id').val("");
                 $('#addModal').find('#projectCode').val("");
                 $('#addModal').find('#projectDescription').val("");
-                $('#addModal').find('#company').val(1).trigger('change');
+                $('#addModal').find('#company').val(sessionCompanyId).trigger('change');
 
                 // Remove Validation Error Message
                 $('#addModal .is-invalid').removeClass('is-invalid');
@@ -465,9 +477,12 @@
                 }
                 });
 
+                // Company is only used for users with view_all_companies; backend enforces session company otherwise
+                var uploadCompany = $('#uploadModal').find('#uploadCompany').val() || '';
+
                 // Send the JSON array to the server
                 $.ajax({
-                    url: 'php/modules/project/index.php?action=upload',
+                    url: 'php/modules/project/index.php?action=upload&company=' + encodeURIComponent(uploadCompany),
                     type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify(data),
@@ -505,6 +520,7 @@
             $('#uploadExcel').on('click', function(){
                 $('#previewTable').html('');
                 $('#fileInput').val('');
+                $('#uploadModal').find('#uploadCompany').val(sessionCompanyId).trigger('change');
                 $('#uploadModal').modal('show');
 
                 $('#uploadForm').validate({
@@ -575,6 +591,91 @@
                 }     
             });
         });
+
+        function renderTable(){
+            var companyId = $('#companySearch').val() || '';
+            var projectCode = $('#projectCodeSearch').val() || '';
+            var projectDescription = $('#projectDescriptionSearch').val() || '';
+
+            // Destroy old DataTables if exist
+            if ($.fn.DataTable.isDataTable('#projectTable')) {
+                $("#projectTable").DataTable().clear().destroy();
+            }
+
+            table = $("#projectTable").DataTable({
+                "responsive": true,
+                "autoWidth": false,
+                'processing': true,
+                'serverSide': true,
+                'serverMethod': 'post',
+                'ajax': {
+                    'url':'php/modules/project/index.php',
+                    'data': { action: 'getAll', companyId: companyId, projectCode: projectCode, projectDescription: projectDescription }
+                },
+                'columns': [
+                    {
+                        data: 'id',
+                        className: 'select-checkbox',
+                        orderable: false,
+                        render: function (data, type, row) {
+                            return '<input type="checkbox" class="select-checkbox" id="checkbox_' + data + '" value="'+data+'"/>';
+                        }
+                    },
+                    { data: 'company_name' },
+                    { data: 'project_code' },
+                    { data: 'project_description' },
+                    {
+                        data: 'id',
+                        render: function ( data, type, row ) {
+                            if (row.status == '1'){
+                                return '<button title="Reactivate" type="button" id="reactivate'+data+'" onclick="reactivate('+data+')" class="btn btn-warning btn-sm">Reactivate</button>';
+                            }else{
+                                return 'Active';
+                            }
+                        }
+                    },
+                    {
+                        data: 'id',
+                        render: function ( data, type, row ) {
+                            if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Projects'] && ['edit', 'cancelled'].some(p => permissions['Master Data']['Projects'].includes(p)))) {
+                                var buttons = `
+                                    <div class="dropdown d-inline-block">
+                                        <button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="ri-more-fill align-middle"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">`;
+
+                                if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Projects'] && permissions['Master Data']['Projects'].includes('edit'))) {
+                                    buttons += `
+                                            <li>
+                                                <a class="dropdown-item edit-item-btn" id="edit${data}" onclick="edit(${data})">
+                                                    <i class="ri-pencil-fill align-bottom me-2 text-muted"></i> <?=$languageArray['edit_code'][$language] ?? 'Edit'?>
+                                                </a>
+                                            </li>`;
+                                }
+
+                                if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Projects'] && permissions['Master Data']['Projects'].includes('cancelled'))) {
+                                    buttons += `
+                                            <li>
+                                                <a class="dropdown-item remove-item-btn" id="deactivate${data}" onclick="deactivate(${data})">
+                                                    <i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i> <?=$languageArray['delete_code'][$language] ?? 'Delete'?>
+                                                </a>
+                                            </li>`;
+                                }
+
+                                buttons += `
+                                        </ul>
+                                    </div>`;
+
+                                return buttons;
+                            }
+
+                            return '';
+                        }
+                    }
+                ]
+            });
+        }
 
         function edit(id){
             $('#spinnerLoading').show();
@@ -656,9 +757,9 @@
             // Get the headers
             var headers = jsonData[0];
 
-            // Ensure we handle cases where there may be less than 3 columns
-            while (headers.length < 3) {
-                headers.push(''); // Adding empty headers to reach 3 columns
+            // Ensure we handle cases where there may be less than 2 columns
+            while (headers.length < 2) {
+                headers.push(''); // Adding empty headers to reach 2 columns
             }
 
             // Create HTML table headers
@@ -673,12 +774,12 @@
                 htmlTable += '<tr>';
                 var rowData = jsonData[i];
 
-                // Ensure we handle cases where there may be less than 3 cells in a row
-                while (rowData.length < 3) {
-                    rowData.push(''); // Adding empty cells to reach 3 columns
+                // Ensure we handle cases where there may be less than 2 cells in a row
+                while (rowData.length < 2) {
+                    rowData.push(''); // Adding empty cells to reach 2 columns
                 }
 
-                for (var j = 0; j < 3; j++) {
+                for (var j = 0; j < 2; j++) {
                     var cellData = rowData[j];
                     var formattedData = cellData;
 

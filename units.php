@@ -1,9 +1,22 @@
 <?php include 'layouts/session.php'; ?>
 <?php include 'layouts/head-main.php'; ?>
 <?php
+    $companyId = $_SESSION['company_id'];
     if (!hasModulePermission('Master Data', 'Units', ['view'])){
         header('Location: no-permission.php');
         exit;
+    }
+
+    if (!hasModulePermission('Master Data', 'Units', ['view_all_companies'])){
+        // Get companies
+        $company_ids = implode(',', array_map('intval', $_SESSION['company_ids']));
+        $companies = $db->query("SELECT * FROM Company WHERE status = 0 AND id IN ($company_ids) ORDER BY name");
+        $companies2 = $db->query("SELECT * FROM Company WHERE status = 0 AND id IN ($company_ids) ORDER BY name");
+        $companies3 = $db->query("SELECT * FROM Company WHERE status = 0 AND id IN ($company_ids) ORDER BY name");
+    }else{
+        $companies = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
+        $companies2 = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
+        $companies3 = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
     }
 ?>
 
@@ -49,7 +62,45 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
+                            <div class="col-xxl-12 col-lg-12">
+                                <div class="card">
+                                    <div class="card-header fs-5 text-white" href="#collapseSearch" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="collapseSearch" style="background-color: #405189; cursor:pointer;">
+                                        <i class="mdi mdi-chevron-down pull-right"></i>
+                                        <?=$languageArray['search_records_code'][$language] ?? 'Search Records'?>
+                                    </div>
+                                    <div id="collapseSearch" class="collapse" aria-labelledby="collapseSearch">
+                                        <div class="card-body">
+                                            <form action="javascript:void(0);">
+                                                <div class="row">
+                                                    <div class="col-3" <?= !hasModulePermission('Master Data', 'Units', ['view_all_companies']) ? "style='display:none'" : '' ?>>
+                                                        <div class="mb-3">
+                                                            <label class="form-label"><?=$languageArray['company_code'][$language] ?? 'Company'?></label>
+                                                            <select class="form-select select2" id="companySearch" name="companySearch" required>
+                                                                <?php while($rowCompany=mysqli_fetch_assoc($companies2)){ ?>
+                                                                    <option value="<?=$rowCompany['id'] ?>" <?=($rowCompany['id'] == $companyId) ? 'selected' : ''?>><?=$rowCompany['name'] ?></option>
+                                                                <?php } ?>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-3">
+                                                        <div class="mb-3">
+                                                            <label class="form-label"><?=$languageArray['unit_code'][$language] ?? 'Unit'?></label>
+                                                            <input type="text" class="form-control" id="unitNameSearch" placeholder="<?=$languageArray['unit_code'][$language] ?? 'Unit'?>">
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-lg-12">
+                                                        <div class="text-end">
+                                                            <button type="submit" class="btn btn-success" id="filterSearch"><i class="bx bx-search-alt"></i> <?=$languageArray['search_code'][$language] ?? 'Search'?></button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="row">
                                 <div class="col-xl-3 col-md-6 add-new-weight">
 
@@ -68,9 +119,24 @@
                                                                 <div class="card bg-light">
                                                                     <div class="card-body">
                                                                         <div class="row">
+                                                                            <div class="col-xxl-12 col-lg-12 mb-3" <?= !hasModulePermission('Master Data', 'Units', ['view_all_companies']) ? "style='display:none'" : '' ?>>
+                                                                                <div class="row">
+                                                                                    <label for="company" class="col-sm-4 col-form-label"><?=$languageArray['company_code'][$language] ?? 'Company'?> <span class="text-danger">*</span></label>
+                                                                                    <div class="col-sm-8">
+                                                                                        <select class="form-select select2" id="company" name="company" required>
+                                                                                            <?php while($rowCompany=mysqli_fetch_assoc($companies)){ ?>
+                                                                                                <option value="<?=$rowCompany['id'] ?>"><?=$rowCompany['name'] ?></option>
+                                                                                            <?php } ?>
+                                                                                        </select>
+                                                                                        <div class="invalid-feedback">
+                                                                                            <?=$languageArray['please_fill_in_the_field_code'][$language] ?? 'Please fill in the field'?>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
                                                                             <div class="col-xxl-12 col-lg-12 mb-3">
                                                                                 <div class="row">
-                                                                                    <label for="unit" class="col-sm-4 col-form-label"><?=$languageArray['unit_code'][$language] ?? 'Unit'?> <span class="text-danger">*</span></label>
+                                                                                    <label for="unit"class="col-sm-4 col-form-label"><?=$languageArray['unit_code'][$language] ?? 'Unit'?> <span class="text-danger">*</span></label>
                                                                                     <div class="col-sm-8">
                                                                                         <input type="text" class="form-control" id="unit" name="unit" placeholder="<?=$languageArray['unit_code'][$language] ?? 'Unit'?>" required>
                                                                                         <div class="invalid-feedback">
@@ -106,6 +172,16 @@
                                                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                     </div>
                                                     <div class="modal-body">
+                                                        <div class="row mb-3" <?= !hasModulePermission('Master Data', 'Units', ['view_all_companies']) ? "style='display:none'" : '' ?>>
+                                                            <label for="uploadCompany" class="col-sm-2 col-form-label"><?=$languageArray['company_code'][$language] ?? 'Company'?> <span class="text-danger">*</span></label>
+                                                            <div class="col-sm-4">
+                                                                <select class="form-select select2" id="uploadCompany" name="uploadCompany" required>
+                                                                    <?php while($rowCompany=mysqli_fetch_assoc($companies3)){ ?>
+                                                                        <option value="<?=$rowCompany['id'] ?>" <?=($rowCompany['id'] == $companyId) ? 'selected' : ''?>><?=$rowCompany['name'] ?></option>
+                                                                    <?php } ?>
+                                                                </select>
+                                                            </div>
+                                                        </div>
                                                         <input type="file" id="fileInput">
                                                         <button type="button" id="previewButton"><?=$languageArray['preview_data_code'][$language] ?? 'Preview Data'?></button>
                                                         <div id="previewTable" style="overflow: auto;"></div>
@@ -188,6 +264,7 @@
                                                             <thead>
                                                                 <tr>
                                                                     <th><input type="checkbox" id="selectAllCheckbox" class="selectAllCheckbox"></th>
+                                                                    <th><?=$languageArray['company_code'][$language] ?? 'Company'?></th>
                                                                     <th><?=$languageArray['unit_code'][$language] ?? 'Unit'?></th>
                                                                     <th><?=$languageArray['status_code'][$language] ?? 'Status'?></th>
                                                                     <th><?=$languageArray['action_code'][$language] ?? 'Action'?></th>
@@ -235,6 +312,7 @@
 var table;
 var permissions = <?= json_encode($_SESSION['permissions'] ?? []) ?>;
 var isSADMIN = <?= json_encode($_SESSION['roles'] == 'SADMIN') ?>;
+var sessionCompanyId = <?= intval($_SESSION['company_id'] ?? 0) ?>;
 
 $(function () {
     $('#selectAllCheckbox').on('change', function() {
@@ -242,78 +320,45 @@ $(function () {
         checkboxes.prop('checked', $(this).prop('checked')).trigger('change');
     });
 
-    table = $("#unitTable").DataTable({
-        "responsive": true,
-        "autoWidth": false,
-        'processing': true,
-        'serverSide': true,
-        'serverMethod': 'post',
-        'ajax': {
-            'url':'php/modules/unit/index.php',
-            'data': { action: 'getAll' }
-        },
-        'columns': [
-            {
-                data: 'id',
-                className: 'select-checkbox',
-                orderable: false,
-                render: function (data, type, row) {
-                    return '<input type="checkbox" class="select-checkbox" id="checkbox_' + data + '" value="'+data+'"/>';
-                }
-            },
-            { data: 'unit' },
-            {
-                data: 'id',
-                render: function ( data, type, row ) {
-                    if (row.status == '1'){
-                        return '<button title="Reactivate" type="button" id="reactivate'+data+'" onclick="reactivate('+data+')" class="btn btn-warning btn-sm">Reactivate</button>';
-                    }else{
-                        return 'Active';
-                    }
-                }
-            },
-            { 
-                data: 'id',
-                render: function ( data, type, row ) {
-                    if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Units'] && ['edit', 'cancelled'].some(p => permissions['Master Data']['Units'].includes(p)))) {
-                        var buttons = `
-                            <div class="dropdown d-inline-block">
-                                <button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="ri-more-fill align-middle"></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end">`;
-
-                        if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Units'] && permissions['Master Data']['Units'].includes('edit'))) {
-                            buttons += `
-                                    <li>
-                                        <a class="dropdown-item edit-item-btn" id="edit${data}" onclick="edit(${data})">
-                                            <i class="ri-pencil-fill align-bottom me-2 text-muted"></i> <?=$languageArray['edit_code'][$language] ?? 'Edit'?>
-                                        </a>
-                                    </li>`;
-                        }
-
-                        if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Units'] && permissions['Master Data']['Units'].includes('cancelled'))) {
-                            buttons += `
-                                    <li>
-                                        <a class="dropdown-item remove-item-btn" id="deactivate${data}" onclick="deactivate(${data})">
-                                            <i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i> <?=$languageArray['delete_code'][$language] ?? 'Delete'?>
-                                        </a>
-                                    </li>`;
-                        }
-
-                        buttons += `
-                                </ul>
-                            </div>`;
-
-                        return buttons;
-                    }
-
-                    return '';
-                }
-            }
-        ]       
+    // Initialize all Select2 elements in the modal
+    $('#collapseSearch .select2').select2({
+        allowClear: true,
+        placeholder: "Please Select",
+        dropdownParent: $('#collapseSearch') // Ensures dropdown is not cut off
     });
-    
+
+    // Initialize all Select2 elements in the modal
+    $('#addModal .select2').select2({
+        allowClear: true,
+        placeholder: "Please Select",
+        dropdownParent: $('#addModal') // Ensures dropdown is not cut off
+    });
+
+    // Initialize all Select2 elements in the upload modal
+    $('#uploadModal .select2').select2({
+        allowClear: true,
+        placeholder: "Please Select",
+        dropdownParent: $('#uploadModal') // Ensures dropdown is not cut off
+    });
+
+    // Apply custom styling to Select2 elements
+    $('.select2-container .select2-selection--single').css({
+        'padding-top': '4px',
+        'padding-bottom': '4px',
+        'height': 'auto'
+    });
+
+    $('.select2-container .select2-selection__arrow').css({
+        'padding-top': '33px',
+        'height': 'auto'
+    });
+
+    renderTable();
+
+    $('#filterSearch').on('click', function() {
+        renderTable();
+    });
+
     $('#submitUnit').on('click', function(){
         if($('#unitForm').valid()){
             $('#spinnerLoading').show();
@@ -336,6 +381,7 @@ $(function () {
 
     $('#addUnit').on('click', function(){
         $('#addModal').find('#id').val("");
+        $('#addModal').find('#company').val(sessionCompanyId).trigger('change');
         $('#addModal').find('#unit').val("");
         $('#addModal .is-invalid').removeClass('is-invalid');
         $('#addModal').modal('show');
@@ -373,8 +419,11 @@ $(function () {
             }
         });
 
+        // Company is only used for users with view_all_companies; backend enforces session company otherwise
+        var uploadCompany = $('#uploadModal').find('#uploadCompany').val() || '';
+
         $.ajax({
-            url: 'php/modules/unit/index.php?action=upload',
+            url: 'php/modules/unit/index.php?action=upload&company=' + encodeURIComponent(uploadCompany),
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(data),
@@ -408,6 +457,7 @@ $(function () {
     $('#uploadExcel').on('click', function(){
         $('#previewTable').html('');
         $('#fileInput').val('');
+        $('#uploadModal').find('#uploadCompany').val(sessionCompanyId).trigger('change');
         $('#uploadModal').modal('show');
     });
 
@@ -459,6 +509,89 @@ $(function () {
     });
 });
 
+function renderTable(){
+    var companyId = $('#companySearch').val() || '';
+    var unitName = $('#unitNameSearch').val() || '';
+
+    // Destroy old DataTables if exist
+    if ($.fn.DataTable.isDataTable('#unitTable')) {
+        $("#unitTable").DataTable().clear().destroy();
+    }
+
+    table = $("#unitTable").DataTable({
+        "responsive": true,
+        "autoWidth": false,
+        'processing': true,
+        'serverSide': true,
+        'serverMethod': 'post',
+        'ajax': {
+            'url':'php/modules/unit/index.php',
+            'data': { action: 'getAll', companyId: companyId, unitName: unitName }
+        },
+        'columns': [
+            {
+                data: 'id',
+                className: 'select-checkbox',
+                orderable: false,
+                render: function (data, type, row) {
+                    return '<input type="checkbox" class="select-checkbox" id="checkbox_' + data + '" value="'+data+'"/>';
+                }
+            },
+            { data: 'company_name' },
+            { data: 'unit' },
+            {
+                data: 'id',
+                render: function ( data, type, row ) {
+                    if (row.status == '1'){
+                        return '<button title="Reactivate" type="button" id="reactivate'+data+'" onclick="reactivate('+data+')" class="btn btn-warning btn-sm">Reactivate</button>';
+                    }else{
+                        return 'Active';
+                    }
+                }
+            },
+            {
+                data: 'id',
+                render: function ( data, type, row ) {
+                    if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Units'] && ['edit', 'cancelled'].some(p => permissions['Master Data']['Units'].includes(p)))) {
+                        var buttons = `
+                            <div class="dropdown d-inline-block">
+                                <button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="ri-more-fill align-middle"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">`;
+
+                        if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Units'] && permissions['Master Data']['Units'].includes('edit'))) {
+                            buttons += `
+                                    <li>
+                                        <a class="dropdown-item edit-item-btn" id="edit${data}" onclick="edit(${data})">
+                                            <i class="ri-pencil-fill align-bottom me-2 text-muted"></i> <?=$languageArray['edit_code'][$language] ?? 'Edit'?>
+                                        </a>
+                                    </li>`;
+                        }
+
+                        if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Units'] && permissions['Master Data']['Units'].includes('cancelled'))) {
+                            buttons += `
+                                    <li>
+                                        <a class="dropdown-item remove-item-btn" id="deactivate${data}" onclick="deactivate(${data})">
+                                            <i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i> <?=$languageArray['delete_code'][$language] ?? 'Delete'?>
+                                        </a>
+                                    </li>`;
+                        }
+
+                        buttons += `
+                                </ul>
+                            </div>`;
+
+                        return buttons;
+                    }
+
+                    return '';
+                }
+            }
+        ]
+    });
+}
+
 function edit(id){
     $('#spinnerLoading').show();
     $.post('php/modules/unit/index.php', {action: 'get', id: id}, function(data)
@@ -466,6 +599,7 @@ function edit(id){
         var obj = JSON.parse(data);
         if(obj.status === 'success'){
             $('#addModal').find('#id').val(obj.data.id);
+            $('#addModal').find('#company').val(obj.data.company).trigger('change');
             $('#addModal').find('#unit').val(obj.data.unit);
             $('#addModal .is-invalid').removeClass('is-invalid');
             $('#addModal').modal('show');

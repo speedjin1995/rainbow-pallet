@@ -538,8 +538,6 @@ $vehicle = $db->query("SELECT * FROM Vehicle WHERE status = '0'");
     <script src="plugins/datatables-buttons/js/buttons.print.min.js"></script>
     <script src="plugins/datatables-buttons/js/buttons.html5.min.js"></script>
     <script src="assets/js/pages/datatables.init.js"></script>
-    <!-- Additional js -->
-    <script src="assets/js/additional.js"></script>
 
     <script type="text/javascript">
 
@@ -1019,23 +1017,23 @@ $vehicle = $db->query("SELECT * FROM Vehicle WHERE status = '0'");
         <!-- Weighing Section -->
         <div class="row">
             <div class="col-6">
-                <p><strong>COMPANY:</strong> ${row.company_code} - ${row.company_name}</p>
-                <p><strong>SUPPLIER:</strong> ${row.supplier_code} - ${row.supplier_name}</p>
-                <p><strong>SITE:</strong> ${row.site_code} - ${row.site_name}</p>
-                <p><strong>AGENT:</strong> ${row.agent_code} - ${row.agent_name}</p>
-                <p><strong>DESTINATION:</strong> ${row.destination_code} - ${row.destination_name}</p>
-                <p><strong>RAW MATERIAL:</strong> ${row.raw_mat_code} - ${row.raw_mat_name}</p>
-                <p><strong>PLANT:</strong> ${row.plant_code} - ${row.plant_name}</p>
-                <p><strong>REMARKS:</strong> ${row.remarks}</p>
+                <p><strong>COMPANY:</strong> ${displayPair(row.company_code, row.company_name)}</p>
+                <p><strong>SUPPLIER:</strong> ${displayPair(row.supplier_code, row.supplier_name)}</p>
+                <p><strong>SITE:</strong> ${displayPair(row.site_code, row.site_name)}</p>
+                <p><strong>AGENT:</strong> ${displayPair(row.agent_code, row.agent_name)}</p>
+                <p><strong>DESTINATION:</strong> ${displayPair(row.destination_code, row.destination_name)}</p>
+                <p><strong>RAW MATERIAL:</strong> ${displayPair(row.raw_mat_code, row.raw_mat_name)}</p>
+                <p><strong>PLANT:</strong> ${displayPair(row.plant_code, row.plant_name)}</p>
+                <p><strong>REMARKS:</strong> ${displayValue(row.remarks)}</p>
             </div>
             <div class="col-6">
-                <p><strong>ORDER DATE:</strong> ${row.order_date}</p>
-                <p><strong>P/O ORDER:</strong> ${row.po_no}</p>
-                <p><strong>TRANSPORTER:</strong> ${row.transporter_code} - ${row.transporter_name}</p>
-                <p><strong>VEHICLE NO:</strong> ${row.veh_number}</p>
-                <p><strong>EX-QUARRY / DELIVERED:</strong> ${row.exquarry_or_delivered}</p>
-                <p><strong>SUPPLIER QUANTITY:</strong> ${row.order_quantity} KG</p>
-                <p><strong>BALANCE:</strong> ${row.balance} KG</p>
+                <p><strong>ORDER DATE:</strong> ${displayValue(row.order_date)}</p>
+                <p><strong>P/O ORDER:</strong> ${displayValue(row.po_no)}</p>
+                <p><strong>TRANSPORTER:</strong> ${displayPair(row.transporter_code, row.transporter_name)}</p>
+                <p><strong>VEHICLE NO:</strong> ${displayValue(row.veh_number)}</p>
+                <p><strong>EX-QUARRY / DELIVERED:</strong> ${displayValue(row.exquarry_or_delivered)}</p>
+                <p><strong>SUPPLIER QUANTITY:</strong> ${displayUnit(row.order_quantity, 'KG')}</p>
+                <p><strong>BALANCE:</strong> ${displayUnit(row.balance, 'KG')}</p>
             </div>
         </div>`;
 
@@ -1061,13 +1059,13 @@ $vehicle = $db->query("SELECT * FROM Vehicle WHERE status = '0'");
 
                     returnString += `
                         <tr>
-                            <td>${weights[i].transaction_id}</td>
-                            <td>${weights[i].raw_mat_code}</td>
-                            <td>${weights[i].raw_mat_name}</td>
-                            <td>${weights[i].delivery_no}</td>
-                            <td>${weights[i].lorry_plate_no1}</td>
-                            <td>${weights[i].nett_weight1} KG</td>
-                            <td>${weights[i].created_by}</td>
+                            <td>${displayValue(weights[i].transaction_id)}</td>
+                            <td>${displayValue(weights[i].raw_mat_code)}</td>
+                            <td>${displayValue(weights[i].raw_mat_name)}</td>
+                            <td>${displayValue(weights[i].delivery_no)}</td>
+                            <td>${displayValue(weights[i].lorry_plate_no1)}</td>
+                            <td>${displayUnit(weights[i].nett_weight1, 'KG')}</td>
+                            <td>${displayValue(weights[i].created_by)}</td>
                             <td>
                                 <div class="col-auto">
                                     <button title="Print" type="button" id="print${weights[i].id}" onclick="print('${weights[i].id}')" class="btn btn-info btn-sm">

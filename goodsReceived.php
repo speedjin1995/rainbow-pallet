@@ -8,21 +8,38 @@ if (!hasModulePermission('Accounting', 'Goods Received', ['view'])){
     exit;
 }
 
-$plantId = $_SESSION['plant'];
+$plantId = $_SESSION['plant_id'];
 $selectedPlantId = $_SESSION['selected_plant_id'] ?? null;
 
-$company = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
-$vehicles = $db->query("SELECT DISTINCT veh_number FROM Vehicle WHERE status = '0' ORDER BY veh_number ASC");
-$vehicles2 = $db->query("SELECT * FROM Vehicle WHERE status = '0' ORDER BY veh_number ASC");
-$supplier = $db->query("SELECT * FROM Supplier WHERE status = '0' ORDER BY name ASC");
-$supplier2 = $db->query("SELECT * FROM Supplier WHERE status = '0' ORDER BY name ASC");
-$rawMaterial = $db->query("SELECT p.*, IFNULL(c.is_sales, 'Y') as is_sales, IFNULL(c.is_purchase, 'Y') as is_purchase, IFNULL(c.is_local, 'Y') as is_local, IFNULL(c.is_port, 'Y') as is_port, IFNULL(c.is_misc, 'Y') as is_misc FROM Product p LEFT JOIN Product_Categories c ON p.category = c.id WHERE p.status = '0' ORDER BY p.name ASC");
-$rawMaterial2 = $db->query("SELECT p.*, IFNULL(c.is_sales, 'Y') as is_sales, IFNULL(c.is_purchase, 'Y') as is_purchase, IFNULL(c.is_local, 'Y') as is_local, IFNULL(c.is_port, 'Y') as is_port, IFNULL(c.is_misc, 'Y') as is_misc FROM Product p LEFT JOIN Product_Categories c ON p.category = c.id WHERE p.status = '0' ORDER BY p.name ASC");
+$companyId = $_SESSION['company_id'];
+if (!hasModulePermission('Accounting', 'Goods Received', ['view_all_companies'])){
+    // Get companies
+    $company_ids = implode(',', array_map('intval', $_SESSION['company_ids']));
+    $company = $db->query("SELECT * FROM Company WHERE status = 0 AND id IN ($company_ids) ORDER BY name");
+    // Only the selected company's suppliers and raw materials
+    $selectedCompanyId = intval($companyId);
+    $supplier = $db->query("SELECT * FROM Supplier WHERE status = '0' AND company IN ($selectedCompanyId) ORDER BY name ASC");
+    $supplier2 = $db->query("SELECT * FROM Supplier WHERE status = '0' AND company IN ($selectedCompanyId) ORDER BY name ASC");
+    $rawMaterial = $db->query("SELECT p.*, IFNULL(c.is_sales, 'Y') as is_sales, IFNULL(c.is_purchase, 'Y') as is_purchase, IFNULL(c.is_local, 'Y') as is_local, IFNULL(c.is_port, 'Y') as is_port, IFNULL(c.is_misc, 'Y') as is_misc FROM Product p LEFT JOIN Product_Categories c ON p.category = c.id WHERE p.status = '0' AND p.company IN ($selectedCompanyId) ORDER BY p.name ASC");
+    $rawMaterial2 = $db->query("SELECT p.*, IFNULL(c.is_sales, 'Y') as is_sales, IFNULL(c.is_purchase, 'Y') as is_purchase, IFNULL(c.is_local, 'Y') as is_local, IFNULL(c.is_port, 'Y') as is_port, IFNULL(c.is_misc, 'Y') as is_misc FROM Product p LEFT JOIN Product_Categories c ON p.category = c.id WHERE p.status = '0' AND p.company IN ($selectedCompanyId) ORDER BY p.name ASC");
+}else{
+    $company = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
+    $supplier = $db->query("SELECT * FROM Supplier WHERE status = '0' ORDER BY name ASC");
+    $supplier2 = $db->query("SELECT * FROM Supplier WHERE status = '0' ORDER BY name ASC");
+    $rawMaterial = $db->query("SELECT p.*, IFNULL(c.is_sales, 'Y') as is_sales, IFNULL(c.is_purchase, 'Y') as is_purchase, IFNULL(c.is_local, 'Y') as is_local, IFNULL(c.is_port, 'Y') as is_port, IFNULL(c.is_misc, 'Y') as is_misc FROM Product p LEFT JOIN Product_Categories c ON p.category = c.id WHERE p.status = '0' ORDER BY p.name ASC");
+    $rawMaterial2 = $db->query("SELECT p.*, IFNULL(c.is_sales, 'Y') as is_sales, IFNULL(c.is_purchase, 'Y') as is_purchase, IFNULL(c.is_local, 'Y') as is_local, IFNULL(c.is_port, 'Y') as is_port, IFNULL(c.is_misc, 'Y') as is_misc FROM Product p LEFT JOIN Product_Categories c ON p.category = c.id WHERE p.status = '0' ORDER BY p.name ASC");
+}
 
 $plantName = '-';
 $plantCode = '-';
 if (!hasModulePermission('Accounting', 'Goods Received', ['view_all_plants'])){
-    $plant = searchPlantById($selectedPlantId, $db);
+    if (!empty($selectedPlantId)){
+        // Locked to the plant selected at login - backend restricts "-" to this plant only
+        $plant = searchPlantById($selectedPlantId, $db);
+    }else{
+        // No plant selected - list every plant the user is tied to
+        $plant = searchPlantsByIds($plantId ?? [], $db);
+    }
 
     $stmt2 = $db->prepare("SELECT * from Plant WHERE id = ?");
     $stmt2->bind_param('s', $selectedPlantId);
@@ -36,6 +53,13 @@ if (!hasModulePermission('Accounting', 'Goods Received', ['view_all_plants'])){
 }
 else{
     $plant = $db->query("SELECT * FROM Plant WHERE status = '0'");
+}
+
+// Weighing modal component - used to edit / print the GR's weighings, which are Purchase
+$canEditWeight = hasModulePermission('Weighing', 'Purchase', ['edit']);
+$canPrintWeight = hasModulePermission('Weighing', 'Purchase', ['print']);
+if ($canEditWeight || $canPrintWeight) {
+    require_once "components/weighingModal/data.php";
 }
 ?>
 
@@ -68,6 +92,16 @@ else{
 
         .modal-header {
             padding: var(1rem, 1rem) !important;
+        }
+
+        .number-spinner::-webkit-inner-spin-button,
+        .number-spinner::-webkit-outer-spin-button {
+            -webkit-appearance: auto;
+            opacity: 1;
+        }
+
+        .number-spinner {
+            -moz-appearance: number-input;
         }
     </style>
 </head>
@@ -117,14 +151,30 @@ else{
                                                             <input type="date" class="form-control" data-provider="flatpickr" id="toDateSearch">
                                                         </div>
                                                     </div><!--end col-->
-                                                    <div class="col-3">
+                                                    <div class="col-3" <?= !hasModulePermission('Accounting', 'Goods Received', ['view_all_companies']) ? "style='display:none'" : '' ?>>
                                                         <div class="mb-3">
                                                             <label for="companySearch" class="form-label"><?=$languageArray['company_code'][$language]?></label>
                                                             <select class="form-select select2" id="companySearch" name="companySearch" required>
                                                                 <?php while($rowCompany=mysqli_fetch_assoc($company)){ ?>
-                                                                    <option value="<?=$rowCompany['id'] ?>" <?=$rowCompany['id'] == 1 ? 'selected' : ''?>><?=$rowCompany['name'] ?></option>
+                                                                    <option value="<?=$rowCompany['id'] ?>" <?=($rowCompany['id'] == $companyId) ? 'selected' : ''?>><?=$rowCompany['name'] ?></option>
                                                                 <?php } ?>
                                                             </select>           
+                                                        </div>
+                                                    </div><!--end col-->
+                                                    <div class="col-3">
+                                                        <div class="mb-3">
+                                                            <label for="paymentTermSearch" class="form-label"><?=$languageArray['payment_term_code'][$language]?></label>
+                                                            <select id="paymentTermSearch" class="form-select select2">
+                                                                <option selected>-</option>
+                                                                <option value="Cash"><?=$languageArray['cash_code'][$language]?></option>
+                                                                <option value="Term"><?=$languageArray['term_code'][$language]?></option>
+                                                            </select>
+                                                        </div>
+                                                    </div><!--end col-->
+                                                    <div class="col-3" id="paymentTermPeriodSearchDisplay" style="display:none">
+                                                        <div class="mb-3">
+                                                            <label for="paymentTermPeriodSearch" class="form-label"><?=$languageArray['payment_term_period_code'][$language]?></label>
+                                                            <input type="number" class="form-control number-spinner" id="paymentTermPeriodSearch" name="paymentTermPeriodSearch" min="0" step="1" placeholder="<?=$languageArray['payment_term_period_code'][$language]?>">
                                                         </div>
                                                     </div><!--end col-->
 
@@ -134,7 +184,7 @@ else{
                                                             <select id="supplierSearch" class="form-select select2">
                                                                 <option selected>-</option>
                                                                 <?php while($rowSF=mysqli_fetch_assoc($supplier2)){ ?>
-                                                                    <option value="<?=$rowSF['supplier_code'] ?>"><?=$rowSF['name'] ?></option>
+                                                                    <option value="<?=$rowSF['supplier_code'] ?>" data-payment-term="<?=$rowSF['payment_term'] ?>"><?=$rowSF['name'] ?></option>
                                                                 <?php } ?>
                                                             </select>
                                                         </div>
@@ -235,6 +285,10 @@ else{
                                     </div> <!-- end .h-100-->
                                 </div> <!-- end col -->
                             </div><!-- container-fluid -->
+
+                            <?php if ($canEditWeight || $canPrintWeight): ?>
+                            <?php include 'components/weighingModal/modal.php'; ?>
+                            <?php endif; ?>
                         </div> <!-- end .h-100-->
                     </div> <!-- end col -->
                 </div>
@@ -273,8 +327,6 @@ else{
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
     <script src="assets/js/pages/datatables.init.js"></script>
-    <!-- Additional js -->
-    <script src="assets/js/additional.js"></script>
 
     <script type="text/javascript">
     var userRole = '<?=$_SESSION["roles"] ?>';
@@ -282,8 +334,20 @@ else{
     var permissions = <?= json_encode($_SESSION['permissions']) ?>;
     var isSADMIN = <?= json_encode($_SESSION['roles'] == 'SADMIN') ?>;
     var allRawMatSearchOptions = null;
+    var canEditWeight = <?= $canEditWeight ? 'true' : 'false' ?>;
+    var canPrintWeight = <?= $canPrintWeight ? 'true' : 'false' ?>;
+    var allSupplierSearchOptions = null;
 
     $(function () {
+        // Weighing modal: refresh the GR list after a weighing is saved
+        if (window.initWeighingModal) {
+            initWeighingModal({
+                onSaved: function(obj, withPrint){
+                    table.ajax.reload(null, false);
+                }
+            });
+        }
+
         const today = new Date();
         const tomorrow = new Date(today);
         const yesterday = new Date(today);
@@ -345,6 +409,11 @@ else{
             renderTable();
         });
 
+        $('#paymentTermSearch').on('change', function () {
+            filterSupplierDropdown();
+            togglePaymentTermPeriodSearch();
+        });
+
         // Add event listener for opening and closing details on row click
         $('#weightTable tbody').on('click', 'tr', function (e) {
             var tr = $(this); // The row that was clicked
@@ -374,10 +443,11 @@ else{
 
         // Post to SQL Handling
         $('#postSQL').on('click', function () {
-            $('#spinnerLoading').show();
             var fromDateI = $('#fromDateSearch').val();
             var toDateI = $('#toDateSearch').val();
             var companyI = $('#companySearch').val() || '';
+            var paymentTermI = $('#paymentTermSearch').val() || '';
+            var paymentTermPeriodI = $('#paymentTermPeriodSearch').val() || '';
             var supplierNoI = $('#supplierSearch').val() || '';
             var rawMatI = $('#rawMatSearch').val() || '';
             var plantI = $('#plantSearch').val() || '';
@@ -393,12 +463,16 @@ else{
 
             if (selectedIds.length > 0) {
                 if (confirm('Are you sure you want to post to SQL these items?')) {
-                    $.post('php/modules/goodsReceived/postGr.php', {
+                    $('#spinnerLoading').show();
+                    $.post('php/modules/goodsReceived/index.php', {
+                        action: 'post',
                         fromDate: fromDateI,
                         toDate: toDateI,
                         company: companyI,
+                        paymentTerm: paymentTermI,
+                        paymentTermPeriod: paymentTermPeriodI,
                         supplier: supplierNoI,
-                        rawMat: rawMatI,
+                        rawMaterial: rawMatI,
                         plant: plantI,
                         purchaseOrder: poI,
                         transactionId: transactionIdI,
@@ -422,17 +496,19 @@ else{
                         }
                     });
                 }
-
-                //$('#spinnerLoading').hide();
             } 
             else {
                 if (confirm('Are you sure you want to post to SQL?')) {
-                    $.post('php/modules/goodsReceived/postGr.php', {
+                    $('#spinnerLoading').show();
+                    $.post('php/modules/goodsReceived/index.php', {
+                        action: 'post',
                         fromDate: fromDateI,
                         toDate: toDateI,
                         company: companyI,
+                        paymentTerm: paymentTermI,
+                        paymentTermPeriod: paymentTermPeriodI,
                         supplier: supplierNoI,
-                        rawMat: rawMatI,
+                        rawMaterial: rawMatI,
                         plant: plantI,
                         purchaseOrder: poI,
                         transactionId: transactionIdI,
@@ -455,8 +531,6 @@ else{
                         }
                     });
                 }
-
-                //$('#spinnerLoading').hide();
             }     
         });
 
@@ -465,6 +539,8 @@ else{
             var fromDateI = $('#fromDateSearch').val();
             var toDateI = $('#toDateSearch').val();
             var companyI = $('#companySearch').val() || '';
+            var paymentTermI = $('#paymentTermSearch').val() || '';
+            var paymentTermPeriodI = $('#paymentTermPeriodSearch').val() || '';
             var supplierNoI = $('#supplierSearch').val() || '';
             var rawMatI = $('#rawMatSearch').val() || '';
             var plantI = $('#plantSearch').val() || '';
@@ -479,46 +555,25 @@ else{
             });
 
             if (selectedIds.length > 0) {
-                window.open("php/modules/goodsReceived/exportExcel.php?&isMulti=Y&fromDate="+fromDateI+"&toDate="+toDateI+"&company="+companyI+"&supplier="+supplierNoI+
-                "&rawMaterial="+rawMatI+"&plant="+plantI+"&purchaseOrder="+poI+"&transactionId="+transactionIdI+"&id="+selectedIds);
+                window.open("php/modules/goodsReceived/index.php?action=export&isMulti=Y&fromDate="+fromDateI+"&toDate="+toDateI+"&company="+companyI+"&supplier="+supplierNoI+
+                "&paymentTerm="+paymentTermI+"&paymentTermPeriod="+paymentTermPeriodI+"&rawMaterial="+rawMatI+"&plant="+plantI+"&purchaseOrder="+poI+"&transactionId="+transactionIdI+"&id="+selectedIds);
             } 
             else {
-                window.open("php/modules/goodsReceived/exportExcel.php?&isMulti=N&fromDate="+fromDateI+"&toDate="+toDateI+"&company="+companyI+"&supplier="+supplierNoI+"&rawMaterial="+rawMatI+"&plant="+plantI+"&purchaseOrder="+poI+"&transactionId="+transactionIdI);
-            }     
-        });
-
-        filterDropdownByTransactionStatus('#rawMatSearch', 'allRawMatSearchOptions', 'Purchase');
-    });
-
-    // Filter dropdown options based on transaction status
-    function filterDropdownByTransactionStatus(selector, allOptionsVar, status) {
-        if (!window[allOptionsVar]) {
-            window[allOptionsVar] = $(selector + ' option').clone(true);
-        }
-
-        var dataAttr = 'is-sales';
-        if (status === 'Sales') dataAttr = 'is-sales';
-        else if (status === 'Purchase') dataAttr = 'is-purchase';
-        else if (status === 'Port') dataAttr = 'is-port';
-        else if (status === 'Misc') dataAttr = 'is-misc';
-
-        $(selector).empty();
-        window[allOptionsVar].each(function() {
-            var $option = $(this).clone(true);
-            if ($option.val() === '-' || $option.val() === '') {
-                $(selector).append($option);
-            } else if ($option.data(dataAttr) === 'Y') {
-                $(selector).append($option);
+                window.open("php/modules/goodsReceived/index.php?action=export&isMulti=N&fromDate="+fromDateI+"&toDate="+toDateI+"&company="+companyI+"&supplier="+supplierNoI+"&paymentTerm="+paymentTermI+"&paymentTermPeriod="+paymentTermPeriodI+"&rawMaterial="+rawMatI+"&plant="+plantI+"&purchaseOrder="+poI+"&transactionId="+transactionIdI);
             }
         });
 
-        $(selector).val('-').trigger('change');
-    }
+        filterDropdownByTransactionStatus('#rawMatSearch', 'allRawMatSearchOptions', 'Purchase');
+        filterSupplierDropdown();
+        togglePaymentTermPeriodSearch();
+    });
 
     function renderTable() {
         var fromDateI = $('#fromDateSearch').val();
         var toDateI = $('#toDateSearch').val();
         var companyI = $('#companySearch').val() || '';
+        var paymentTermI = $('#paymentTermSearch').val() || '';
+        var paymentTermPeriodI = $('#paymentTermPeriodSearch').val() || '';
         var supplierNoI = $('#supplierSearch').val() || '';
         var rawMatI = $('#rawMatSearch').val() || '';
         var plantI = $('#plantSearch').val() || '';
@@ -539,11 +594,14 @@ else{
             'searching': false,
             'serverMethod': 'post',
             'ajax': {
-                'url': 'php/modules/goodsReceived/filterGr.php',
+                'url': 'php/modules/goodsReceived/index.php',
                 'data': {
+                    action: 'filter',
                     fromDate: fromDateI,
                     toDate: toDateI,
                     company: companyI,
+                    paymentTerm: paymentTermI,
+                    paymentTermPeriod: paymentTermPeriodI,
                     supplier: supplierNoI,
                     rawMaterial: rawMatI,
                     plant: plantI,
@@ -551,6 +609,7 @@ else{
                     transactionId: transactionIdI,
                 }
             },
+            'columnDefs': [{ targets: '_all', defaultContent: '' }], // show "" instead of null
             'columns': [
                 {
                     data: 'id',
@@ -576,16 +635,16 @@ else{
         <div class="row">
             <p><span><strong style="font-size:120%; text-decoration: underline;"><?=$languageArray['goods_received_information_code'][$language]?></strong></span><br>
             <div class="col-4">
-                <p><strong class="text-uppercase"><?=$languageArray['total_received_amount_code'][$language]?>:</strong> ${parseFloat(row.total_final_weight)/1000} MT</p>
+                <p><strong class="text-uppercase"><?=$languageArray['total_received_amount_code'][$language]?>:</strong> ${displayWeightMT(row.total_final_weight)}</p>
             </div>`;
 
             if (isSADMIN && row.weights && row.weights.length > 0) {
                 returnString += `
                     <div class="col-4">
-                        <p><strong class="text-uppercase"><?=$languageArray['unit_price_code'][$language]?>:</strong> RM ${row.weights[0].unit_price}</p>
+                        <p><strong class="text-uppercase"><?=$languageArray['unit_price_code'][$language]?>:</strong> RM ${displayValue(row.weights[0].unit_price)}</p>
                     </div>
                     <div class="col-4">
-                        <p><strong class="text-uppercase"><?=$languageArray['total_price_code'][$language]?>:</strong> RM ${parseFloat(parseFloat(row.weights[0].unit_price) * (parseFloat(row.total_final_weight)/1000)).toFixed(2)}</p>
+                        <p><strong class="text-uppercase"><?=$languageArray['total_price_code'][$language]?>:</strong> RM ${displayNumber(parseFloat(row.weights[0].unit_price) * (parseFloat(row.total_final_weight)/1000), 2)}</p>
                     </div>
                 `;
             }
@@ -607,9 +666,9 @@ else{
                         <th><?=$languageArray['tare_outgoing_code'][$language]?></th>
                         <th><?=$languageArray['outgoing_date_code'][$language]?></th>
                         <th><?=$languageArray['nett_weight_code'][$language]?></th>`;
-                        // if (isSADMIN) {
-                        //     returnString += `<th>Action</th>`;
-                        // }
+                        if (canEditWeight || canPrintWeight) {
+                            returnString += `<th><?=$languageArray['action_code'][$language]?></th>`;
+                        }
 
                         returnString += `</tr>
                 </thead>
@@ -620,24 +679,44 @@ else{
                     
                     returnString += `
                         <tr>
-                            <td>${weights[i].transaction_id}</td>
-                            <td>${weights[i].delivery_no}</td>
-                            <td>${weights[i].lorry_plate_no1}</td>
-                            <td>${weights[i].transporter}</td>
-                            <td>${weights[i].destination}</td>
-                            <td>${parseFloat(weights[i].gross_weight1)/1000} MT</td>
-                            <td>${weights[i].gross_weight1_date}</td>
-                            <td>${parseFloat(weights[i].tare_weight1)/1000} MT</td>
-                            <td>${weights[i].tare_weight1_date}</td>
-                            <td>${parseFloat(weights[i].nett_weight1)/1000} MT</td>`
-                            // if (isSADMIN) {
-                            //     returnString += `
-                            //     <td>
-                            //         <button title="Edit" type="button" id="edit${weights[i].id}" onclick="edit(${weights[i].id})" class="btn btn-warning btn-sm">
-                            //             <i class="fas fa-pen"></i>
-                            //         </button>
-                            //     </td>`;
-                            // }
+                            <td>${displayValue(weights[i].transaction_id)}</td>
+                            <td>${displayValue(weights[i].delivery_no)}</td>
+                            <td>${displayValue(weights[i].lorry_plate_no1)}</td>
+                            <td>${displayValue(weights[i].transporter)}</td>
+                            <td>${displayValue(weights[i].destination)}</td>
+                            <td>${displayWeightMT(weights[i].gross_weight1)}</td>
+                            <td>${displayValue(weights[i].gross_weight1_date)}</td>
+                            <td>${displayWeightMT(weights[i].tare_weight1)}</td>
+                            <td>${displayValue(weights[i].tare_weight1_date)}</td>
+                            <td>${displayWeightMT(weights[i].nett_weight1)}</td>`
+                            if (canEditWeight || canPrintWeight) {
+                                // stopPropagation: don't let the clicks reach the parent row's expand handler
+                                returnString += `
+                                <td>
+                                    <div class="row g-1 d-flex">`;
+
+                                if (canEditWeight) {
+                                    returnString += `
+                                        <div class="col-auto">
+                                            <button title="<?=$languageArray['edit_code'][$language]?>" type="button" id="editWeight${weights[i].id}" onclick="event.stopPropagation(); editWeight(${weights[i].id}, 'N')" class="btn btn-warning btn-sm">
+                                                <i class="fas fa-pen"></i>
+                                            </button>
+                                        </div>`;
+                                }
+
+                                if (canPrintWeight) {
+                                    returnString += `
+                                        <div class="col-auto">
+                                            <button title="<?=$languageArray['print_code'][$language]?>" type="button" id="printWeight${weights[i].id}" onclick="event.stopPropagation(); printWeight('${weights[i].id}', '${weights[i].transaction_status}')" class="btn btn-info btn-sm">
+                                                <i class="fas fa-print"></i>
+                                            </button>
+                                        </div>`;
+                                }
+
+                                returnString += `
+                                    </div>
+                                </td>`;
+                            }
                         returnString += `</tr>`;
                 }
 
@@ -648,6 +727,64 @@ else{
         
         return returnString;
     }
+
+    function togglePaymentTermPeriodSearch() {
+        var isTerm = $('#paymentTermSearch').val() === 'Term';
+        $('#paymentTermPeriodSearchDisplay').toggle(isTerm);
+        if (!isTerm) {
+            $('#paymentTermPeriodSearch').val('');
+        }
+    }
+
+    function filterSupplierDropdown() {
+        if (!allSupplierSearchOptions) {
+            allSupplierSearchOptions = $('#supplierSearch option').clone(true);
+        }
+
+        var paymentTerm = $('#paymentTermSearch').val() || '-';
+        $('#supplierSearch').empty();
+
+        allSupplierSearchOptions.each(function() {
+            var $option = $(this).clone(true);
+            if ($option.val() === '-' || $option.val() === '') {
+                $('#supplierSearch').append($option);
+            } else if (paymentTerm === '-' || $option.data('payment-term') == paymentTerm) {
+                $('#supplierSearch').append($option);
+            }
+        });
+
+        $('#supplierSearch').val('-').trigger('change');
+    }
+
+    // Filter dropdown options based on transaction status
+    function filterDropdownByTransactionStatus(selector, allOptionsVar, status) {
+        if (!window[allOptionsVar]) {
+            window[allOptionsVar] = $(selector + ' option').clone(true);
+        }
+
+        var dataAttr = 'is-sales';
+        if (status === 'Sales') dataAttr = 'is-sales';
+        else if (status === 'Purchase') dataAttr = 'is-purchase';
+        else if (status === 'Port') dataAttr = 'is-port';
+        else if (status === 'Misc') dataAttr = 'is-misc';
+
+        $(selector).empty();
+        window[allOptionsVar].each(function() {
+            var $option = $(this).clone(true);
+            if ($option.val() === '-' || $option.val() === '') {
+                $(selector).append($option);
+            } else if ($option.data(dataAttr) === 'Y') {
+                $(selector).append($option);
+            }
+        });
+
+        $(selector).val('-').trigger('change');
+    }
     </script>
+
+    <?php if ($canEditWeight || $canPrintWeight): ?>
+    <!-- Weighing modal component (after the page script so its Select2 / date picker setup runs last) -->
+    <?php include 'components/weighingModal/script.php'; ?>
+    <?php endif; ?>
 </body>
 </html>
