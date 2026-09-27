@@ -168,6 +168,29 @@
             applyTransactionStatusLayout($(this).val());
         });
 
+        // Preview the next DO No from the company / transaction status format; the real number is taken on save
+        inModal('#generateDoNo').on('click', function(){
+            var $btn = $(this);
+            $btn.prop('disabled', true);
+            $.post(WEIGHING_URL, {
+                action: 'previewDoNo',
+                companyId: inModal('#companyId').val(),
+                transactionStatus: inModal('#transactionStatus').val(),
+                transactionDate: inModal('#transactionDate').val()
+            }, function(data){
+                var obj = JSON.parse(data);
+                if (obj.status === 'success') {
+                    inModal('#deliveryNo').val(obj.message).data('generated', obj.message);
+                } else {
+                    notifyFailed(obj.message);
+                }
+            }).fail(function(){
+                notifyFailed('Something went wrong');
+            }).always(function(){
+                $btn.prop('disabled', false);
+            });
+        });
+
         inModal('#weightType').on('change', function(){
             applyWeightTypeLayout($(this).val());
         });
@@ -398,6 +421,7 @@
         inModal('#purchaseOrder').val("").trigger('change');
         inModal('#salesOrder').val("").trigger('change');
         inModal('#deliveryNo, #transporterCode').val("");
+        inModal('#deliveryNo').removeData('generated');
         inModal('#transporter').val("-").trigger('change');
         inModal('#project').val("-").trigger('change');
         inModal('#destinationCode, #plantCode').val("");
@@ -510,7 +534,7 @@
         // Order / delivery details
         inModal('#purchaseOrder').val(record.purchase_order);
         inModal('#invoiceNo').val(record.invoice_no);
-        inModal('#deliveryNo').val(record.delivery_no);
+        inModal('#deliveryNo').val(record.delivery_no).removeData('generated');
         inModal('#transporterCode').val(record.transporter_code);
         inModal('#transporter').val(record.transporter).trigger('change');
         inModal('#project').val(record.project_id).trigger('change');
@@ -1007,7 +1031,7 @@
     function fillFromEmptyContainer(record, weightType) {
         inModal('#project').val(record.project_id).trigger('change');
         inModal('#invoiceNo').val(record.invoice_no);
-        inModal('#deliveryNo').val(record.delivery_no);
+        inModal('#deliveryNo').val(record.delivery_no).removeData('generated');
         inModal('#purchaseOrder').val(record.purchase_order);
         inModal('#sealNo').val(record.seal_no);
 
@@ -1194,6 +1218,10 @@
 
         // Unchecked checkboxes are not serialized, so always send manualWeight
         var formData = inModal('#weightForm').serialize() + (inModal('#manualWeightToggle').is(':checked') ? '' : '&manualWeight=false');
+
+        // A generated DO No (not edited since) is replaced by the real next number on save; a typed one is kept
+        var generatedDoNo = inModal('#deliveryNo').data('generated');
+        formData += '&deliveryNoAuto=' + (generatedDoNo && inModal('#deliveryNo').val() === generatedDoNo ? '1' : '0');
 
         $.post(WEIGHING_URL, formData, function (data) {
             var obj = JSON.parse(data);

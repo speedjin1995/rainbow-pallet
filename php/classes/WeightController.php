@@ -2,14 +2,55 @@
 require_once __DIR__ . '/BaseController.php';
 require_once __DIR__ . '/../services/WeightService.php';
 require_once __DIR__ . '/../services/PrintService.php';
+require_once __DIR__ . '/../services/DocumentNumberService.php';
 
 class WeightController extends BaseController {
     protected $table = 'Weight';
     private $service;
+    private $documentNumberService;
 
     public function __construct($db) {
         parent::__construct($db);
         $this->service = new WeightService($db, $this->username);
+        $this->documentNumberService = new DocumentNumberService($db, $this->username);
+    }
+
+    // ─── DO No ────────────────────────────────────────────────────────────────────
+    // Next DO No for the Generate button, not consumed until the weighing is saved
+    public function handlePreviewDoNo() {
+        $companyId = hasPermission('Weighing', ['view_all_companies']) ? $this->getPost('companyId') : ($_SESSION['company_id'] ?? null);
+        $transactionStatus = $this->getPost('transactionStatus');
+        $transactionDate = $this->getPost('transactionDate');
+        $date = $transactionDate ? DateTime::createFromFormat('d-m-Y', $transactionDate) : null;
+
+        if (empty($companyId) || empty($transactionStatus)) {
+            $this->failed('Please select the company and transaction status');
+        }
+
+        try {
+            $doNo = $this->documentNumberService->preview($companyId, 'DO', $transactionStatus, $date ?: null);
+        } catch (Exception $e) {
+            error_log('Preview DO No: ' . $e->getMessage());
+            $this->failed('Something went wrong');
+        }
+
+        if ($doNo === null) {
+            $this->failed('No document number format set up for this company and transaction status');
+        }
+        $this->success($doNo);
+    }
+
+    /**
+     * DO No to save: a generated (preview) or blank DO No takes the next number from the company/status format,
+     * a typed DO No is kept as-is. Runs inside the save transaction so a failed save gives the number back.
+     */
+    private function resolveDeliveryNo($f) {
+        $isGenerated = ($f['deliveryNoAuto'] ?? '') === '1';
+        if (!$isGenerated && !empty($f['deliveryNo'])) {
+            return $f['deliveryNo'];
+        }
+        $doNo = $this->documentNumberService->allocate($f['companyId'], 'DO', $f['transactionStatus'], $f['transactionDate']);
+        return $doNo ?? $f['deliveryNo'];
     }
 
     // ─── Print ────────────────────────────────────────────────────────────────────
@@ -124,6 +165,7 @@ class WeightController extends BaseController {
             $f = $this->parseFields();
             $isUpdate = !empty($f['weightId']);
             $this->db->begin_transaction();
+            $f['deliveryNo'] = $this->resolveDeliveryNo($f);
             switch ($f['weightType']) {
                 case 'Empty Container':
                     $result = $isUpdate ? $this->service->updateEmptyContainer($f) : $this->service->saveEmptyContainer($f);
@@ -136,6 +178,7 @@ class WeightController extends BaseController {
                     break;
             }
             $this->db->commit();
+            $result['delivery_no'] = $f['deliveryNo'];
             $message = $isUpdate ? 'Updated Successfully!!' : 'Added Successfully!!';
             $this->success($message, $result);
         } catch (Exception $e) {
@@ -176,6 +219,7 @@ class WeightController extends BaseController {
         $f['indicatorId']           = $this->getPost('indicatorId');
         $f['invoiceNo']             = $this->getPost('invoiceNo');
         $f['deliveryNo']            = $this->getPost('deliveryNo');
+        $f['deliveryNoAuto']        = $this->getPost('deliveryNoAuto');
         $f['purchaseOrder']         = $this->getPost('purchaseOrder');
         $f['containerNo']           = $this->getPost('containerNo');
         $f['sealNo']                = $this->getPost('sealNo');

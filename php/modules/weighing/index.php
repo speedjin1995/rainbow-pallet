@@ -23,6 +23,7 @@ switch ($action) {
     case 'customerSideInfo':   $controller->handleCustomerSideInfo(); break;
     case 'delete':              $controller->handleDelete(); break;
     case 'reactivate':          $controller->handleReactivate(); break;
+    case 'previewDoNo':         $controller->handlePreviewDoNo(); break;
     default:
         if (!isset($_POST['transactionId'], $_POST['transactionStatus'], $_POST['weightType'], $_POST['transactionDate'], $_POST['grossIncoming'], $_POST['grossIncomingDate'], $_POST['manualWeight'], $_POST['plantCode'], $_POST['plant'], $_POST['companyId'])) {
             echo json_encode(['status' => 'failed', 'message' => 'Please fill in all the fields']);
