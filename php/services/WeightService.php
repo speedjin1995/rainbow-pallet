@@ -434,13 +434,14 @@ class WeightService extends BaseService {
     }
 
     public function getWeight($id, $format, $type, $acctType, $fromDate, $toDate) {
-        if ($format === 'EXPANDABLE' && $type === 'Log') {
-            $stmt = $this->db->prepare("SELECT * FROM Weight_Log WHERE id=?");
+        if ($format === 'EXPANDABLE' && ($type === 'Log' || $type === 'ContainerLog')) {
+            $logTable = ($type === 'ContainerLog') ? 'Weight_Container_Log' : 'Weight_Log';
+            $stmt = $this->db->prepare("SELECT * FROM {$logTable} WHERE id=?");
             $stmt->bind_param('s', $id);
             $stmt->execute();
             $row = $stmt->get_result()->fetch_assoc();
             $stmt->close();
-            return $row ? array_map(fn($v) => $v ?? '', $row) : null;
+            return $row ? $this->buildExpandableMessage($row, $acctType, $fromDate, $toDate) : null;
         }
 
         $table = ($type === 'Container') ? 'Weight_Container' : 'Weight';

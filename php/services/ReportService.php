@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/BaseService.php';
+require_once __DIR__ . '/../requires/lookup.php';
 
 class ReportService extends BaseService {
     // Weight.transaction_status => Reports permission module
@@ -745,6 +746,393 @@ class ReportService extends BaseService {
         </html>';
 
         return $html;
+    }
+
+    // ─── Audit Log ────────────────────────────────────────────────────────────────
+
+    /**
+     * Audit Log data category => log table setup
+     * from:    FROM clause (alias = log table alias when joined)
+     * search:  [request key, column, '=' | 'like']
+     * company: column linking the log to a company, 'json' = JSON id list, 'code' = company_code, null = not company based
+     */
+    private $auditLogConfig = [
+        'Company'          => ['from' => 'Company_Log', 'alias' => '', 'search' => ['companyCode', 'company_code', '='], 'company' => 'company_id',
+                               'columns' => ["Company Code", "Company Reg No", "New Reg No", "Company Name", "Address line 1", "Address line 2", "Address line 3", "Phone No", "Fax No", "Mobile No", "Email", "TIN No", "Action", "Action By", "Event Date"]],
+        'Customer'         => ['from' => 'Customer_Log', 'alias' => '', 'search' => ['customerCode', 'customer_code', '='], 'company' => 'company',
+                               'columns' => ["Customer Code", "Company Reg No", "New Reg No", "Customer Name", "Address line 1", "Address line 2", "Address line 3", "Address line 4", "Phone No", "Fax No", "Contact Name", "IC No", "TIN No", "Email", "Is Manual", "Company", "Action", "Action By", "Event Date"]],
+        'Destination'      => ['from' => 'Destination_Log', 'alias' => '', 'search' => ['destinationCode', 'destination_code', '='], 'company' => 'company',
+                               'columns' => ["Destination Code", "Destination Name", "Description", "Action", "Action By", "Event Date"]],
+        'Product'          => ['from' => 'Product_Log', 'alias' => '', 'search' => ['productCode', 'product_code', 'like'], 'company' => 'company',
+                               'columns' => ["Product Code", "Product Name", "Description", "Category", "UOM", "Variance Type", "High", "Low", "Is Manual", "Company", "Action", "Action By", "Event Date"]],
+        'Raw Materials'    => ['from' => 'Raw_Mat_Log', 'alias' => '', 'search' => ['rawMatCode', 'raw_mat_code', 'like'], 'company' => null,
+                               'columns' => ["Raw Material Code", "Raw Material Name", "Raw Material Price", "Description", "Variance Type", "High", "Low", "Type", "Action", "Action By", "Event Date"]],
+        'Supplier'         => ['from' => 'Supplier_Log sl LEFT JOIN Company c ON sl.company = c.id', 'alias' => 'sl', 'select' => 'sl.*, c.name AS company_name', 'search' => ['supplierCode', 'supplier_code', '='], 'company' => 'company',
+                               'columns' => ["Supplier Code", "Company Reg No", "New Reg No", "Supplier Name", "Address line 1", "Address line 2", "Address line 3", "Address line 4", "Phone No", "Fax No", "Contact Name", "IC No", "TIN No", "Payment Term", "Payment Term Period", "Account No", "Is Manual", "Company", "Action", "Action By", "Event Date"]],
+        'Vehicle'          => ['from' => 'Vehicle_Log', 'alias' => '', 'search' => ['vehicleNo', 'veh_number', '='], 'company' => 'company',
+                               'columns' => ["Vehicle No", "Vehicle Weight", "Transporter Code", "Transporter Name", "Customer Code", "Customer Name", "Supplier Code", "Supplier Name", "Is Manual", "Action", "Action By", "Event Date"]],
+        'Transporter'      => ['from' => 'Transporter_Log', 'alias' => '', 'search' => ['transporterCode', 'transporter_code', '='], 'company' => null,
+                               'columns' => ["Transporter Code", "Company Reg No", "Transporter Name", "Address line 1", "Address line 2", "Address line 3", "Phone No", "Fax No", "Action", "Action By", "Event Date"]],
+        'Unit'             => ['from' => 'Units_Log', 'alias' => '', 'search' => ['unit', 'unit', '='], 'company' => 'company',
+                               'columns' => ["Unit", "Action", "Action By", "Event Date"]],
+        'Product Category' => ['from' => 'Product_Categories_Log pcl LEFT JOIN Company c ON pcl.company = c.id', 'alias' => 'pcl', 'select' => 'pcl.*, c.name AS company_name', 'search' => ['productCategory', 'category_name', 'like'], 'company' => 'company',
+                               'columns' => ["Category Name", "Company", "Is Sales", "Is Purchase", "Is Local", "Is Port", "Is Misc", "Action", "Action By", "Event Date"]],
+        'Location'         => ['from' => 'Location_Log ll LEFT JOIN Plant p ON ll.plant_id = p.id', 'alias' => 'll', 'select' => 'll.*, p.name AS plant_name', 'search' => ['locationCode', 'location_code', '='], 'company' => 'company',
+                               'columns' => ["Location Code", "Location Name", "Plant", "Weighing Count", "Action", "Action By", "Event Date"]],
+        'Project'          => ['from' => 'Project_Log pl LEFT JOIN Company c ON pl.company = c.id', 'alias' => 'pl', 'select' => 'pl.*, c.name AS company_name', 'search' => ['projectCode', 'project_code', 'like'], 'company' => 'company',
+                               'columns' => ["Project Code", "Project Description", "Company", "Action", "Action By", "Event Date"]],
+        'User'             => ['from' => 'Users_Log', 'alias' => '', 'search' => ['userCode', 'username', 'like'], 'company' => 'json',
+                               'columns' => ["Employee Code", "Username", "Name", "Email", "Role", "Plant", "Language", "Action", "Action By", "Event Date"]],
+        'Plant'            => ['from' => 'Plant_Log', 'alias' => '', 'search' => ['plantCode', 'plant_code', 'like'], 'company' => null,
+                               'columns' => ["Plant Code", "Plant Name", "Address line 1", "Address line 2", "Address line 3", "Phone No", "Fax No", "Action", "Action By", "Event Date"]],
+        'Weight'           => ['from' => 'Weight_Log', 'alias' => '', 'search' => ['weight', 'transaction_id', 'like'], 'company' => 'company_id',
+                               'columns' => ["Transaction Id", "Weight Status", "Customer/Supplier", "Vehicle", "Product/Raw Material", "SO/PO", "DO", "Gross Incoming", "Incoming Date", "Tare Outgoing", "Outgoing Date", "Nett Weight", "Action", "Action By", "Event Date"]],
+        'Empty Container'  => ['from' => 'Weight_Container_Log', 'alias' => '', 'search' => ['emptyContainer', 'transaction_id', 'like'], 'company' => 'company_id',
+                               'columns' => ["Transaction Id", "Weight Status", "Customer/Supplier", "Vehicle", "Container No", "Product/Raw Material", "Gross Incoming", "Incoming Date", "Tare Outgoing", "Outgoing Date", "Nett Weight", "Action", "Action By", "Event Date"]],
+        'SO'               => ['from' => 'Sales_Order_Log', 'alias' => '', 'search' => ['custPoNo', 'order_no', 'like'], 'company' => 'code',
+                               'columns' => ["Company Code", "Company Name", "Customer Code", "Customer Name", "Site Code", "Site Name", "Sales Representative Code", "Sales Representative Name", "Destination Code", "Destination Name", "Product Code", "Product Name", "Plant Code", "Plant Name", "Transporter Code", "Transporter Name", "Vehicle No", "EXQ/Del", "Customer P/O No", "S/O No", "Order Date", "Order Quantity", "Balance", "Remarks", "Action", "Action By", "Event Date"]],
+        'PO'               => ['from' => 'Purchase_Order_Log', 'alias' => '', 'search' => ['poNo', 'po_no', 'like'], 'company' => 'code',
+                               'columns' => ["Company Code", "Company Name", "Supplier Code", "Supplier Name", "Site Code", "Site Name", "Sales Representative Code", "Sales Representative Name", "Destination Code", "Destination Name", "Raw Material Code", "Raw Material Name", "Plant Code", "Plant Name", "Transporter Code", "Transporter Name", "Vehicle No", "EXQ/Del", "P/O No", "Order Date", "Order Quantity", "Balance", "Remarks", "Action", "Action By", "Event Date"]],
+    ];
+
+    public function filterAuditLog($post) {
+        $type   = $post['selectedValue'] ?? '';
+        $config = $this->auditLogConfig[$type] ?? null;
+        if ($config === null) {
+            return ['columnNames' => [], 'dataTable' => []];
+        }
+
+        $prefix = $config['alias'] !== '' ? $config['alias'] . '.' : '';
+        $f = ['sql' => '', 'types' => '', 'values' => []];
+
+        $from = $this->toDbDate($post['fromDateSearch'] ?? '', '00:00:00');
+        if ($from !== null) {
+            $this->add($f, " AND {$prefix}event_date >= ?", 's', [$from]);
+        }
+        $to = $this->toDbDate($post['toDateSearch'] ?? '', '23:59:59');
+        if ($to !== null) {
+            $this->add($f, " AND {$prefix}event_date <= ?", 's', [$to]);
+        }
+
+        [$searchKey, $searchColumn, $searchOperator] = $config['search'];
+        $search = $this->value($post, $searchKey);
+        if ($search !== null) {
+            if ($searchOperator === 'like') {
+                $this->add($f, " AND {$prefix}{$searchColumn} LIKE ?", 's', ["%{$search}%"]);
+            } else {
+                $this->add($f, " AND {$prefix}{$searchColumn} = ?", 's', [$search]);
+            }
+        }
+
+        $companyId = $this->getAuditLogCompanyId($post['company'] ?? null);
+        if ($companyId > 0 && $config['company'] !== null) {
+            if ($config['company'] === 'json') {
+                $this->add($f, " AND {$prefix}company_id LIKE ?", 's', ['%"' . $companyId . '"%']);
+            } elseif ($config['company'] === 'code') {
+                $this->add($f, " AND {$prefix}company_code = (SELECT company_code FROM Company WHERE id = ?)", 'i', [$companyId]);
+            } else {
+                $this->add($f, " AND {$prefix}{$config['company']} = ?", 'i', [$companyId]);
+            }
+        }
+
+        $select = $config['select'] ?? '*';
+        $rows = $this->fetchAll("SELECT {$select} FROM {$config['from']} WHERE 1=1" . $f['sql'], $f['types'], $f['values']);
+
+        $data = [];
+        foreach ($rows as $row) {
+            $data[] = $this->mapAuditLogRow($type, $row);
+        }
+
+        return ['columnNames' => $config['columns'], 'dataTable' => $data];
+    }
+
+    // Determine company on the backend - never trust frontend value for restricted users
+    private function getAuditLogCompanyId($requestedCompany) {
+        if (hasModulePermission('Reports', 'Audit Log', ['view_all_companies'])) {
+            return ($requestedCompany !== null && $requestedCompany !== '' && $requestedCompany !== '-') ? intval($requestedCompany) : 0;
+        }
+        return intval($_SESSION['company_id'] ?? 0);
+    }
+
+    private function mapAuditLogRow($type, $row) {
+        $db = $this->db;
+        $isSales = ($row['transaction_status'] ?? '') == 'Sales';
+        $audit = [
+            "Action"    => searchActionNameById($row['action_id'], $db),
+            "Action By" => $row['action_by'] ?? '',
+            "Event Date"=> $row['event_date'] ?? '',
+        ];
+
+        switch ($type) {
+            case 'Company':
+                $mapped = [
+                    "Company Code"   => $row['company_code'] ?? '',
+                    "Company Reg No" => $row['company_reg_no'] ?? '',
+                    "New Reg No"     => $row['new_reg_no'] ?? '',
+                    "Company Name"   => $row['name'] ?? '',
+                    "Address line 1" => $row['address_line_1'] ?? '',
+                    "Address line 2" => $row['address_line_2'] ?? '',
+                    "Address line 3" => $row['address_line_3'] ?? '',
+                    "Phone No"       => $row['phone_no'] ?? '',
+                    "Fax No"         => $row['fax_no'] ?? '',
+                    "Mobile No"      => $row['mobile_no'] ?? '',
+                    "Email"          => $row['email'] ?? '',
+                    "TIN No"         => $row['tin_no'] ?? '',
+                ];
+                break;
+            case 'Customer':
+                $mapped = [
+                    "Customer Code"  => $row['customer_code'] ?? '',
+                    "Company Reg No" => $row['company_reg_no'] ?? '',
+                    "New Reg No"     => $row['new_reg_no'] ?? '',
+                    "Customer Name"  => $row['name'] ?? '',
+                    "Address line 1" => $row['address_line_1'] ?? '',
+                    "Address line 2" => $row['address_line_2'] ?? '',
+                    "Address line 3" => $row['address_line_3'] ?? '',
+                    "Address line 4" => $row['address_line_4'] ?? '',
+                    "Phone No"       => $row['phone_no'] ?? '',
+                    "Fax No"         => $row['fax_no'] ?? '',
+                    "Contact Name"   => $row['contact_name'] ?? '',
+                    "IC No"          => $row['ic_no'] ?? '',
+                    "TIN No"         => $row['tin_no'] ?? '',
+                    "Email"          => $row['email'] ?? '',
+                    "Is Manual"      => $row['is_manual'] ?? '',
+                    "Company"        => $row['company'] ? searchCompanyById($row['company'], $db)['name'] ?? '' : '',
+                ];
+                break;
+            case 'Destination':
+                $mapped = [
+                    "Destination Code" => $row['destination_code'] ?? '',
+                    "Destination Name" => $row['name'] ?? '',
+                    "Description"      => $row['description'] ?? '',
+                ];
+                break;
+            case 'Product':
+                $mapped = [
+                    "Product Code"  => $row['product_code'] ?? '',
+                    "Product Name"  => $row['name'] ?? '',
+                    "Description"   => $row['description'] ?? '',
+                    "Category"      => $row['category'] ? searchItemCategoryById($row['category'], $db)['category_name'] ?? '' : '',
+                    "UOM"           => $row['uom'] ? searchUnitById($row['uom'], $db)['unit'] ?? '' : '',
+                    "Variance Type" => $row['variance'] ?? '',
+                    "High"          => $row['high'] ?? '',
+                    "Low"           => $row['low'] ?? '',
+                    "Is Manual"     => $row['is_manual'] ?? '',
+                    "Company"       => $row['company'] ? searchCompanyById($row['company'], $db)['name'] ?? '' : '',
+                ];
+                break;
+            case 'Raw Materials':
+                $mapped = [
+                    "Raw Material Code"  => $row['raw_mat_code'] ?? '',
+                    "Raw Material Name"  => $row['name'] ?? '',
+                    "Raw Material Price" => $row['price'] ?? '',
+                    "Description"        => $row['description'] ?? '',
+                    "Variance Type"      => $row['variance'] ?? '',
+                    "High"               => $row['high'] ?? '',
+                    "Low"                => $row['low'] ?? '',
+                    "Type"               => $row['type'] ?? '',
+                ];
+                break;
+            case 'Supplier':
+                $mapped = [
+                    "Supplier Code"       => $row['supplier_code'] ?? '',
+                    "Company Reg No"      => $row['company_reg_no'] ?? '',
+                    "New Reg No"          => $row['new_reg_no'] ?? '',
+                    "Supplier Name"       => $row['name'] ?? '',
+                    "Address line 1"      => $row['address_line_1'] ?? '',
+                    "Address line 2"      => $row['address_line_2'] ?? '',
+                    "Address line 3"      => $row['address_line_3'] ?? '',
+                    "Address line 4"      => $row['address_line_4'] ?? '',
+                    "Phone No"            => $row['phone_no'] ?? '',
+                    "Fax No"              => $row['fax_no'] ?? '',
+                    "Contact Name"        => $row['contact_name'] ?? '',
+                    "IC No"               => $row['ic_no'] ?? '',
+                    "TIN No"              => $row['tin_no'] ?? '',
+                    "Payment Term"        => $row['payment_term'] ?? '',
+                    "Payment Term Period" => $row['payment_term_period'] ?? '',
+                    "Account No"          => $row['account_no'] ?? '',
+                    "Is Manual"           => $row['is_manual'] ?? '',
+                    "Company"             => $row['company'] ? searchCompanyById($row['company'], $db)['name'] ?? '' : '',
+                ];
+                break;
+            case 'Vehicle':
+                $mapped = [
+                    "Vehicle No"       => $row['veh_number'] ?? '',
+                    "Vehicle Weight"   => $row['vehicle_weight'] ?? '',
+                    "Transporter Code" => $row['transporter_code'] ?? '',
+                    "Transporter Name" => $row['transporter_name'] ?? '',
+                    "Customer Code"    => $row['customer_code'] ?? '',
+                    "Customer Name"    => $row['customer_name'] ?? '',
+                    "Supplier Code"    => $row['supplier_code'] ?? '',
+                    "Supplier Name"    => $row['supplier_name'] ?? '',
+                    "Is Manual"        => $row['is_manual'] ?? '',
+                ];
+                break;
+            case 'Transporter':
+                $mapped = [
+                    "Transporter Code" => $row['transporter_code'] ?? '',
+                    "Company Reg No"   => $row['company_reg_no'] ?? '',
+                    "Transporter Name" => $row['name'] ?? '',
+                    "Address line 1"   => $row['address_line_1'] ?? '',
+                    "Address line 2"   => $row['address_line_2'] ?? '',
+                    "Address line 3"   => $row['address_line_3'] ?? '',
+                    "Phone No"         => $row['phone_no'] ?? '',
+                    "Fax No"           => $row['fax_no'] ?? '',
+                ];
+                break;
+            case 'Unit':
+                $mapped = [
+                    "Unit" => $row['unit'] ?? '',
+                ];
+                break;
+            case 'Product Category':
+                $mapped = [
+                    "Category Name" => $row['category_name'] ?? '',
+                    "Company"       => $row['company_name'] ?? '',
+                    "Is Sales"      => $row['is_sales'] ?? '',
+                    "Is Purchase"   => $row['is_purchase'] ?? '',
+                    "Is Local"      => $row['is_local'] ?? '',
+                    "Is Port"       => $row['is_port'] ?? '',
+                    "Is Misc"       => $row['is_misc'] ?? '',
+                ];
+                break;
+            case 'Location':
+                $mapped = [
+                    "Location Code"  => $row['location_code'] ?? '',
+                    "Location Name"  => $row['location_name'] ?? '',
+                    "Plant"          => $row['plant_name'] ?? '',
+                    "Weighing Count" => $row['weighing_count'] ?? '',
+                ];
+                break;
+            case 'Project':
+                $mapped = [
+                    "Project Code"        => $row['project_code'] ?? '',
+                    "Project Description" => $row['project_description'] ?? '',
+                    "Company"             => $row['company_name'] ?? '',
+                ];
+                break;
+            case 'User':
+                $plantNames = '';
+                if (!empty($row['plant_id'])) {
+                    $plantIds = json_decode($row['plant_id'], true);
+                    if (is_array($plantIds)) {
+                        $plantNameArr = [];
+                        foreach ($plantIds as $pid) {
+                            $plantName = searchPlantNameById($pid, $db);
+                            if ($plantName) {
+                                $plantNameArr[] = $plantName;
+                            }
+                        }
+                        $plantNames = implode(', ', $plantNameArr);
+                    }
+                }
+                $mapped = [
+                    "Employee Code" => $row['employee_code'] ?? '',
+                    "Username"      => $row['username'] ?? '',
+                    "Name"          => $row['name'] ?? '',
+                    "Email"         => $row['useremail'] ?? '',
+                    "Role"          => $row['role'] ?? '',
+                    "Plant"         => $plantNames,
+                    "Language"      => $row['languages'] ?? '',
+                ];
+                break;
+            case 'Plant':
+                $mapped = [
+                    "Plant Code"     => $row['plant_code'] ?? '',
+                    "Plant Name"     => $row['name'] ?? '',
+                    "Address line 1" => $row['address_line_1'] ?? '',
+                    "Address line 2" => $row['address_line_2'] ?? '',
+                    "Address line 3" => $row['address_line_3'] ?? '',
+                    "Phone No"       => $row['phone_no'] ?? '',
+                    "Fax No"         => $row['fax_no'] ?? '',
+                ];
+                break;
+            case 'Weight':
+                $mapped = [
+                    "Transaction Id"       => $row['transaction_id'] ?? '',
+                    "Weight Status"        => $row['weight_type'] ?? '',
+                    "Customer/Supplier"    => ($isSales ? $row['customer_name'] : $row['supplier_name']) ?? '',
+                    "Vehicle"              => $row['lorry_plate_no1'] ?? '',
+                    "Product/Raw Material" => ($isSales ? $row['product_name'] : $row['raw_mat_name']) ?? '',
+                    "SO/PO"                => $row['purchase_order'] ?? '',
+                    "DO"                   => $row['delivery_no'] ?? '',
+                    "Gross Incoming"       => $row['gross_weight1'] ?? '',
+                    "Incoming Date"        => $row['gross_weight1_date'] ?? '',
+                    "Tare Outgoing"        => $row['tare_weight1'] ?? '',
+                    "Outgoing Date"        => $row['tare_weight1_date'] ?? '',
+                    "Nett Weight"          => $row['nett_weight1'] ?? '',
+                ];
+                break;
+            case 'Empty Container':
+                $mapped = [
+                    "Transaction Id"       => $row['transaction_id'] ?? '',
+                    "Weight Status"        => $row['weight_type'] ?? '',
+                    "Customer/Supplier"    => ($isSales ? $row['customer_name'] : $row['supplier_name']) ?? '',
+                    "Vehicle"              => $row['lorry_plate_no1'] ?? '',
+                    "Container No"         => $row['container_no'] ?? '',
+                    "Product/Raw Material" => ($isSales ? $row['product_name'] : $row['raw_mat_name']) ?? '',
+                    "Gross Incoming"       => $row['gross_weight1'] ?? '',
+                    "Incoming Date"        => $row['gross_weight1_date'] ?? '',
+                    "Tare Outgoing"        => $row['tare_weight1'] ?? '',
+                    "Outgoing Date"        => $row['tare_weight1_date'] ?? '',
+                    "Nett Weight"          => $row['nett_weight1'] ?? '',
+                ];
+                break;
+            case 'SO':
+            case 'PO':
+                $isSo = $type === 'SO';
+                $mapped = [
+                    "Company Code"                => $row['company_code'] ?? '',
+                    "Company Name"                => $row['company_name'] ?? '',
+                ];
+                if ($isSo) {
+                    $mapped["Customer Code"] = $row['customer_code'] ?? '';
+                    $mapped["Customer Name"] = $row['customer_name'] ?? '';
+                } else {
+                    $mapped["Supplier Code"] = $row['supplier_code'] ?? '';
+                    $mapped["Supplier Name"] = $row['supplier_name'] ?? '';
+                }
+                $mapped += [
+                    "Site Code"                   => $row['site_code'] ?? '',
+                    "Site Name"                   => $row['site_name'] ?? '',
+                    "Sales Representative Code"   => $row['agent_code'] ?? '',
+                    "Sales Representative Name"   => $row['agent_name'] ?? '',
+                    "Destination Code"            => $row['destination_code'] ?? '',
+                    "Destination Name"            => $row['destination_name'] ?? '',
+                ];
+                if ($isSo) {
+                    $mapped["Product Code"] = $row['product_code'] ?? '';
+                    $mapped["Product Name"] = $row['product_name'] ?? '';
+                } else {
+                    $mapped["Raw Material Code"] = $row['raw_mat_code'] ?? '';
+                    $mapped["Raw Material Name"] = $row['raw_mat_name'] ?? '';
+                }
+                $mapped += [
+                    "Plant Code"                  => $row['plant_code'] ?? '',
+                    "Plant Name"                  => $row['plant_name'] ?? '',
+                    "Transporter Code"            => $row['transporter_code'] ?? '',
+                    "Transporter Name"            => $row['transporter_name'] ?? '',
+                    "Vehicle No"                  => $row['veh_number'] ?? '',
+                    "EXQ/Del"                     => $row['exquarry_or_delivered'] ?? '',
+                ];
+                if ($isSo) {
+                    $mapped["Customer P/O No"] = $row['order_no'] ?? '';
+                    $mapped["S/O No"]          = $row['so_no'] ?? '';
+                } else {
+                    $mapped["P/O No"] = $row['po_no'] ?? '';
+                }
+                $mapped += [
+                    "Order Date"                  => $row['order_date'] ?? '',
+                    "Order Quantity"              => $row['order_quantity'] ?? '',
+                    "Balance"                     => $row['balance'] ?? '',
+                    "Remarks"                     => $row['remarks'] ?? '',
+                ];
+                break;
+            default:
+                $mapped = [];
+        }
+
+        return array_merge(['id' => $row['id']], $mapped, $audit);
     }
 }
 ?>

@@ -35,6 +35,19 @@ class ReportController extends BaseController {
         exit;
     }
 
+    public function handleFilterAuditLog() {
+        if (!hasModulePermission('Reports', 'Audit Log', ['view', 'create', 'edit'])) {
+            $this->failed('Unauthorized');
+        }
+
+        try {
+            echo json_encode($this->service->filterAuditLog($_POST));
+        } catch (mysqli_sql_exception $e) {
+            error_log('Audit log filter: ' . $e->getMessage());
+            $this->failed('Something went wrong');
+        }
+    }
+
     public function handleExportPdf() {
         try {
             $this->success($this->service->exportPdf($_POST));

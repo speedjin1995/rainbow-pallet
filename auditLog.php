@@ -1,6 +1,18 @@
 <?php include 'layouts/session.php'; ?>
 <?php include 'layouts/head-main.php'; ?>
 
+<?php
+$companyId = $_SESSION['company_id'];
+$viewAllCompanies = hasModulePermission('Reports', 'Audit Log', ['view_all_companies']);
+
+if (!$viewAllCompanies) {
+    $company_ids = implode(',', array_map('intval', $_SESSION['company_ids'] ?? [])) ?: '0';
+    $company = $db->query("SELECT * FROM Company WHERE status = 0 AND id IN ($company_ids) ORDER BY name");
+} else {
+    $company = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
+}
+?>
+
 <head>
     <title>Audit Log | Synctronix - Weighing System</title>
     <?php include 'layouts/title-meta.php'; ?>
@@ -225,8 +237,19 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="row">  
+                                            <div class="row">
                                                 <div class="col-3">
+                                                    <div id="companySearchDisplay" style="display:none">
+                                                        <div class="mb-3" <?= !$viewAllCompanies ? "style='display:none'" : '' ?>>
+                                                            <label for="companySearch" class="form-label"><?=$languageArray['company_code'][$language]?></label>
+                                                            <select id="companySearch" class="form-select select2">
+                                                                <option>-</option>
+                                                                <?php while($rowCompany = mysqli_fetch_assoc($company)){ ?>
+                                                                    <option value="<?=$rowCompany['id'] ?>" <?=($rowCompany['id'] == $companyId) ? 'selected' : ''?>><?=$rowCompany['name'] ?></option>
+                                                                <?php } ?>
+                                                            </select>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                                 <div class="col-3">
                                                 </div>
@@ -446,7 +469,35 @@
 var table;
 
 $(function () {
+    $('#companySearch').select2({
+        width: '100%',
+        allowClear: true,
+        placeholder: "Please Select",
+    });
+
+    // Apply custom styling to Select2 elements in search bar
+    $('.select2-container .select2-selection--single').css({
+        'padding-top': '4px',
+        'padding-bottom': '4px',
+        'height': 'auto'
+    });
+
+    $('.select2-container .select2-selection__arrow').css({
+        'padding-top': '33px',
+        'height': 'auto'
+    });
+
     $('#reportType').on('change', function(){
+        // Company category lists the companies themselves, so no company filter
+        if($(this).val() == "Company")
+        {
+            $('#companySearchDisplay').hide();
+        }
+        else
+        {
+            $('#companySearchDisplay').show();
+        }
+
         if($(this).val() == "Company")
         {
             $('.inputCode').hide();
@@ -573,13 +624,15 @@ $(function () {
             return;
         }
 
-        if ($('#reportType').val() == 'Weight'){
+        if ($('#reportType').val() == 'Weight' || $('#reportType').val() == 'Empty Container'){
+            var logType = $('#reportType').val() == 'Empty Container' ? 'ContainerLog' : 'Log';
+
             if (row.child.isShown()) {
                 // This row is already open - close it
                 row.child.hide();
                 tr.removeClass('shown');
             } else {
-                $.post('php/getWeight.php', { userID: row.data().id, format: 'EXPANDABLE', type: 'Log' }, function (data) {
+                $.post('php/modules/weighing/index.php', { action: 'getWeight', userID: row.data().id, format: 'EXPANDABLE', type: logType }, function (data) {
                     var obj = JSON.parse(data);
                     if (obj.status === 'success') {
                         row.child(format(obj.message)).show();
@@ -600,10 +653,12 @@ $(function () {
     // Function to update the DataTable
     function updateDataTable(selectedValue) {
         $.ajax({
-            url: "php/filterAuditLog.php",
+            url: "php/modules/report/index.php",
             type: "POST",
             data: {
+                action: 'filterAuditLog',
                 selectedValue: selectedValue,
+                company: selectedValue == 'Company' ? '' : ($('#companySearch').val() || ''),
                 fromDateSearch: $('#fromDateSearch').val(),
                 toDateSearch: $('#toDateSearch').val(),
                 companyCode: $('#companyCode').val(),
@@ -629,6 +684,11 @@ $(function () {
             },
             dataType: "json",
             success: function (response) {
+                if (response.status === 'failed') {
+                    toastr.error(response.message);
+                    return;
+                }
+
                 if ($.fn.DataTable.isDataTable("#dataTable")) {
                     $("#dataTable").DataTable().destroy();
                 }
@@ -661,59 +721,142 @@ $(function () {
 });
 
 function format (row) {
-    var custSupplier = '';
-    var productRawMat = '';
-    var orderSuppWeight = '';
+    var transactionStatus = '';
+    var weightType = '';
+    var hasCustomerSideInfo = row.cust_side_do_no || row.cust_side_first_weight || row.cust_side_second_weight || row.cust_side_mc || row.cust_side_nett_weight || row.weight_difference;
 
-    if (row.transaction_status == 'Sales'){
-        custSupplier = row.customer_code + '-' + row.customer_name;
-        productRawMat = row.product_code + '-' + row.product_name;
-        orderSuppWeight = row.order_weight;
-    }else{
-        custSupplier = row.supplier_code + '-' + row.supplier_name;
-        productRawMat = row.raw_mat_code + '-' + row.raw_mat_name;
-        orderSuppWeight = row.supplier_weight;
+    if (row.transaction_status == 'Sales') {
+        transactionStatus = '<?=$languageArray['dispatch_code'][$language]?>';
+    } else if (row.transaction_status == 'Purchase') {
+        transactionStatus = '<?=$languageArray['receiving_code'][$language]?>';
+    } else if (row.transaction_status == 'Local') {
+        transactionStatus = '<?=$languageArray['internal_transfer_code'][$language]?>';
+    } else if (row.transaction_status == 'Port') {
+        transactionStatus = '<?=$languageArray['trx_to_port_code'][$language]?>';
+    } else {
+        transactionStatus = '<?=$languageArray['miscellaneous_code'][$language]?>';
+    }
+
+    if (row.weight_type == 'Container') {
+        weightType = '<?=$languageArray['primer_mover_code'][$language]?>';
+    } else if (row.weight_type == 'Empty Container') {
+        weightType = '<?=$languageArray['primer_mover_container_code'][$language]?>';
+    } else if (row.weight_type == 'Normal') {
+        weightType = '<?=$languageArray['normal_weighing_code'][$language]?>';
+    } else if (row.weight_type == 'Different Container') {
+        weightType = '<?=$languageArray['primer_mover_different_bins_code'][$language]?>';
+    } else {
+        weightType = row.weight_type;
     }
 
     var returnString = `
+    <!-- Customer Section -->
+    <div class="row">
+        <div class="col-6">
+            <p><span><strong style="font-size:120%; text-decoration: underline;">Customer/Supplier</strong></span><br>
+            <p><strong>${displayValue(row.name)}</strong></p>
+            <p>${displayValue(row.address_line_1)}</p>
+            <p>${displayValue(row.address_line_2)}</p>
+            <p>${displayValue(row.address_line_3)}</p>
+            <p>TEL: ${displayValue(row.phone_no)} FAX: ${displayValue(row.fax_no)}</p>
+        </div>
+    </div>
+    <hr>
+    <!-- Delivery Order Section -->
+    <div class="row">
+        <p><span><strong style="font-size:120%; text-decoration: underline;">Delivery Order Information</strong></span><br>
+        <div class="col-6">
+            <p><strong>COMPANY:</strong> ${displayValue(row.company_name)}</p>
+            <p><strong>TRANSPORTER NAME:</strong> ${displayValue(row.transporter)}</p>
+            <p><strong>DESTINATION NAME:</strong> ${displayValue(row.destination)}</p>
+            <p><strong>PLANT NAME:</strong> ${displayValue(row.plant_name)}</p>`;
+            if (row.transaction_status == 'Purchase' || row.transaction_status == 'Local'){
+                returnString += `<p><strong>PURCHASE PRODUCT:</strong> ${displayValue(row.product_rawmat_name)}</p>`;
+            }else{
+                returnString += `<p><strong>SALES PRODUCT:</strong> ${displayValue(row.product_rawmat_name)}</p>`;
+            }
+    
+        returnString += `
+            <p><strong>PURCHASE ORDER:</strong> ${displayValue(row.purchase_order)}</p>
+            <p><strong>CONTAINER NO:</strong> ${displayValue(row.container_no)}</p>
+            <p><strong>CONTAINER NO 2:</strong> ${displayValue(row.container_no2)}</p>
+        </div>
+        <div class="col-6">
+            <p><strong>TRANSACTION ID:</strong> ${displayValue(row.transaction_id)}</p>
+            <p><strong>PROJECT:</strong> ${displayValue(row.project_code)}</p>
+            <p><strong>WEIGHT STATUS:</strong> ${transactionStatus}</p>
+            <p><strong>WEIGHT TYPE:</strong> ${weightType}</p>
+            <p><strong>DELIVERY NO:</strong> ${displayValue(row.delivery_no)}</p>
+            <p><strong>SEAL NO:</strong> ${displayValue(row.seal_no)}</p>
+            <p><strong>SEAL NO 2:</strong> ${displayValue(row.seal_no2)}</p>
+        </div>
+    </div>
+    <hr>
+
+    ${row.transaction_status == 'Purchase' ? `
+    <!-- Customer Side Section -->
+    <div class="row">
+        <p><span><strong style="font-size:120%; text-decoration: underline;">Customer Side</strong></span><br>
+        <div class="col-6">
+            <p><strong><?=$languageArray['customer_side_company_code'][$language]?>:</strong> ${row.customer_side_company || ''}</p>
+            <p><strong><?=$languageArray['customer_side_removal_pass_no_code'][$language]?>:</strong> ${row.customer_side_removal_pass_no || ''}</p>
+            <p><strong><?=$languageArray['customer_side_license_no_code'][$language]?>:</strong> ${row.customer_side_license_no || ''}</p>
+            <p><strong><?=$languageArray['customer_side_moisture_content_code'][$language]?>:</strong> ${row.customer_side_moisture_content || ''}</p>
+        </div>
+        <div class="col-6">
+            <p><strong><?=$languageArray['customer_side_officer_name_code'][$language]?>:</strong> ${row.customer_side_officer_name || ''}</p>
+            <p><strong><?=$languageArray['customer_side_rainbow_driver_code'][$language]?>:</strong> ${row.customer_side_rainbow_driver || ''}</p>
+            <p><strong><?=$languageArray['customer_side_time_in_code'][$language]?>:</strong> ${row.customer_side_time_in || ''}</p>
+            <p><strong><?=$languageArray['customer_side_time_out_code'][$language]?>:</strong> ${row.customer_side_time_out || ''}</p>
+        </div>
+    </div>
+    <hr>` : ''}
+
     <!-- Weighing Section -->
     <div class="row">
-        <div class="col-3">
-            <p><strong>TRANSACTION ID:</strong> ${displayValue(row.transaction_id)}</p>
-            <p><strong>CUSTOMER TYPE:</strong> ${displayValue(row.weight_type)}</p>
-            <p><strong>WEIGHT STATUS:</strong> ${displayValue(row.transaction_status)}</p>
-            <p><strong>TRANSACTION DATE:</strong> ${displayValue(row.transaction_date)}</p>
-            <p><strong>INVOICE NO:</strong> ${displayValue(row.invoice_no)}</p>
-            <p><strong>MANUAL WEIGHT:</strong> ${displayValue(row.manual_weight)}</p>
-            <p><strong>DELIVERY NO:</strong> ${displayValue(row.delivery_no)}</p>
-            <p><strong>SO/PO NO:</strong> ${displayValue(row.purchase_order)}</p>
-        </div>
-        <div class="col-3">
-            <p><strong>CONTAINER NO:</strong> ${displayValue(row.container_no)}</p>
-            <p><strong>CUSTOMER/SUPPLIER:</strong> ${custSupplier}</p>
-            <p><strong>PRODUCT/RAW MATERIAL:</strong> ${productRawMat}</p>
-            <p><strong>TRANSPORTER:</strong> ${displayPair(row.transporter_code, row.transporter)}</p>
-            <p><strong>DESTINATION:</strong> ${displayPair(row.destination_code, row.destination)}</p>
-            <p><strong>PLANT:</strong> ${displayPair(row.plant_code, row.plant_name)}</p>
-        </div>
-        <div class="col-3">
-            <p><strong>ORDER/SUPPLIER WEIGHT:</strong> ${orderSuppWeight}</p>
-            <p><strong>WEIGHT DIFFERENCE:</strong> ${displayValue(row.reduce_weight)}</p>
-            <p><strong>UNIT PRICE:</strong> ${displayValue(row.unit_price)}</p>
-            <p><strong>SUB-TOTAL PRICE:</strong> ${displayValue(row.sub_total)}</p>
-            <p><strong>SST (6%):</strong> ${displayValue(row.sst)}</p>
-            <p><strong>TOTAL PRICE:</strong> ${displayValue(row.total_price)}</p>
-        </div>
-        <div class="col-3">
+        <p><span><strong style="font-size:120%; text-decoration: underline;">Weighing Information</strong></span><br>
+        <!-- Normal -->
+        <div class="col-6">
             <p><strong>VEHICLE PLATE:</strong> ${displayValue(row.lorry_plate_no1)}</p>
-            <p><strong>IN WEIGHT:</strong> ${displayUnit(row.gross_weight1, 'KG')}</p>
-            <p><strong>IN DATE/TIME:</strong> ${displayValue(row.gross_weight1_date)}</p>
-            <p><strong>OUT WEIGHT:</strong> ${displayUnit(row.tare_weight1, 'KG')}</p>
-            <p><strong>OUT DATE/TIME:</strong> ${displayValue(row.tare_weight1_date)}</p>
-            <p><strong>NETT WEIGHT:</strong> ${displayUnit(row.nett_weight1, 'KG')}</p>
-            <p><strong>REMARK:</strong> ${displayValue(row.remarks)}</p>
+            <p><strong>IN WEIGHT:</strong> ${displayValue(row.gross_weight1)}</p>
+            <p><strong>IN DATE / TIME:</strong> ${displayValue(row.gross_weight1_date)}</p>
+            <p><strong>IN WEIGH BY:</strong> ${displayValue(row.gross_weight_by1)}</p>
+            <p><strong>OUT WEIGHT:</strong> ${displayValue(row.tare_weight1)}</p>
+            <p><strong>OUT DATE / TIME:</strong> ${displayValue(row.tare_weight1_date)}</p>
+            <p><strong>OUT WEIGH BY:</strong> ${displayValue(row.tare_weight_by1)}</p>
+            <p><strong>NETT WEIGHT:</strong> ${displayValue(row.nett_weight1)}</p>
+            <p><strong>SUB TOTAL WEIGHT:</strong> ${displayValue(row.final_weight)}</p>
         </div>
-    </div>`;
+        <!-- Container -->
+        <div class="col-6">
+            <p><strong>VEHICLE PLATE 2:</strong> ${displayValue(row.lorry_plate_no2)}</p>
+            <p><strong>IN WEIGHT 2:</strong> ${displayValue(row.gross_weight2)}</p>
+            <p><strong>IN DATE / TIME 2:</strong> ${displayValue(row.gross_weight2_date)}</p>
+            <p><strong>IN WEIGH BY 2:</strong> ${displayValue(row.gross_weight_by2)}</p>
+            <p><strong>OUT WEIGHT 2:</strong> ${displayValue(row.tare_weight2)}</p>
+            <p><strong>OUT DATE / TIME 2:</strong> ${displayValue(row.tare_weight2_date)}</p>
+            <p><strong>OUT WEIGH BY 2:</strong> ${displayValue(row.tare_weight_by2)}</p>
+            <p><strong>NETT WEIGHT 2:</strong> ${displayValue(row.nett_weight2)}</p>            
+            </div>
+    </div>
+    <hr>
+
+    ${hasCustomerSideInfo ? `
+    <!-- Customer Side Info Section -->
+    <div class="row">
+        <p><span><strong style="font-size:120%; text-decoration: underline;">Customer Side Info</strong></span><br>
+        <div class="col-6">
+            <p><strong><?=$languageArray['customer_side_do_no_code'][$language]?>:</strong> ${row.cust_side_do_no || ''}</p>
+            <p><strong><?=$languageArray['first_code'][$language]?> (KG):</strong> ${row.cust_side_first_weight || ''}</p>
+            <p><strong><?=$languageArray['second_code'][$language]?> (KG):</strong> ${row.cust_side_second_weight || ''}</p>
+        </div>
+        <div class="col-6">
+            <p><strong><?=$languageArray['customer_side_mc_code'][$language]?>:</strong> ${row.cust_side_mc || ''}</p>
+            <p><strong>Customer Side <?=$languageArray['nett_weight_code'][$language]?> (KG):</strong> ${row.cust_side_nett_weight || ''}</p>
+            <p><strong><?=$languageArray['weight_difference_code'][$language]?> (KG):</strong> ${row.weight_difference || ''}</p>
+        </div>
+    </div>` : ''}
+    `;
     
     return returnString;
 }

@@ -21,6 +21,9 @@ switch ($action) {
     case 'exportPdf':
         $controller->handleExportPdf();
         break;
+    case 'filterAuditLog':
+        $controller->handleFilterAuditLog();
+        break;
     default:
         echo json_encode(['status' => 'failed', 'message' => 'Invalid action']);
 }
