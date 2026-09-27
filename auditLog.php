@@ -58,9 +58,13 @@ if (!$viewAllCompanies) {
             <div class="container-fluid">
                 <div class="row">
                     <div class="col">
-                        <div>
-                            <div class="col-xxl-12 col-lg-12">
-                                <div class="card">
+                        <div class="col-xxl-12 col-lg-12">
+                            <div class="card">
+                                <div class="card-header fs-5 text-white" href="#collapseSearch" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="collapseSearch" style="background-color: #405189; cursor:pointer;">
+                                    <i class="mdi mdi-chevron-down pull-right"></i>
+                                    <?=$languageArray['search_records_code'][$language]?>
+                                </div>
+                                <div id="collapseSearch" class="collapse" aria-labelledby="collapseSearch">
                                     <div class="card-body">
                                         <form action="javascript:void(0);">
                                             <div class="row">
@@ -245,175 +249,173 @@ if (!$viewAllCompanies) {
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div class="col-3">
+                                                <div class="col-6">
                                                 </div>
-                                                <div class="col-3">
-                                                </div>                                                                                                                                                                                                                                                                                                                                        
                                                 <div class="col-3">
                                                     <div class="text-end mt-4">
                                                         <button type="button" class="btn btn-success" id="searchLog">
                                                             <i class="bx bx-search-alt"></i>
-                                                            <?=$languageArray['search_code'][$language]?></button>
+                                                            <?=$languageArray['search_code'][$language]?>
+                                                        </button>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </form>                                                                        
+                                        </form>
                                     </div>
                                 </div>
                             </div>
-                            
-                            <button type="button" hidden id="successBtn" data-toast data-toast-text="Welcome Back ! This is a Toast Notification" data-toast-gravity="top" data-toast-position="center" data-toast-duration="3000" data-toast-close="close" class="btn btn-light w-xs">Top Center</button>
-                            <button type="button" hidden id="failBtn" data-toast data-toast-text="Welcome Back ! This is a Toast Notification" data-toast-gravity="top" data-toast-position="center" data-toast-duration="3000" data-toast-close="close" class="btn btn-light w-xs">Top Center</button>
+                        </div>
+                        
+                        <button type="button" hidden id="successBtn" data-toast data-toast-text="Welcome Back ! This is a Toast Notification" data-toast-gravity="top" data-toast-position="center" data-toast-duration="3000" data-toast-close="close" class="btn btn-light w-xs">Top Center</button>
+                        <button type="button" hidden id="failBtn" data-toast data-toast-text="Welcome Back ! This is a Toast Notification" data-toast-gravity="top" data-toast-position="center" data-toast-duration="3000" data-toast-close="close" class="btn btn-light w-xs">Top Center</button>
 
-                            <div class="row">
-                                <div class="col-xl-3 col-md-6 add-new-weight">
+                        <div class="row">
+                            <div class="col-xl-3 col-md-6 add-new-weight">
 
-                                    <!-- /.modal-dialog -->
-                                    <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalScrollableTitle" aria-hidden="true">
-                                        <div class="modal-dialog modal-dialog-scrollable modal-lg">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title" id="exampleModalScrollableTitle"><?=$languageArray['add_new_code'][$language]?></h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-                                                    </button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <form role="form" id="transporterForm" class="needs-validation" novalidate autocomplete="off">
-                                                        <div class=" row col-12">
-                                                            <div class="col-xxl-12 col-lg-12">
-                                                                <div class="card bg-light">
-                                                                    <div class="card-body">
-                                                                        <div class="row">
-                                                                            <div class="col-xxl-12 col-lg-12 mb-3">
-                                                                                <div class="row">
-                                                                                    <label for="transporterCode" class="col-sm-4 col-form-label">Transporter Code</label>
-                                                                                    <div class="col-sm-8">
-                                                                                        <input type="text" class="form-control" id="transporterCode" name="transporterCode" placeholder="Transporter Code" required>
-                                                                                        <div class="invalid-feedback">
-                                                                                            Please fill in the field.
-                                                                                        </div>
+                                <!-- /.modal-dialog -->
+                                <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalScrollableTitle" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-scrollable modal-lg">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="exampleModalScrollableTitle"><?=$languageArray['add_new_code'][$language]?></h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                                                </button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <form role="form" id="transporterForm" class="needs-validation" novalidate autocomplete="off">
+                                                    <div class=" row col-12">
+                                                        <div class="col-xxl-12 col-lg-12">
+                                                            <div class="card bg-light">
+                                                                <div class="card-body">
+                                                                    <div class="row">
+                                                                        <div class="col-xxl-12 col-lg-12 mb-3">
+                                                                            <div class="row">
+                                                                                <label for="transporterCode" class="col-sm-4 col-form-label">Transporter Code</label>
+                                                                                <div class="col-sm-8">
+                                                                                    <input type="text" class="form-control" id="transporterCode" name="transporterCode" placeholder="Transporter Code" required>
+                                                                                    <div class="invalid-feedback">
+                                                                                        Please fill in the field.
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
-                                                                            <div class="col-xxl-12 col-lg-12 mb-3">
-                                                                                <div class="row">
-                                                                                    <label for="companyRegNo" class="col-sm-4 col-form-label">Company Reg No</label>
-                                                                                    <div class="col-sm-8">
-                                                                                        <input type="text" class="form-control" id="companyRegNo" name="companyRegNo" placeholder="Company Reg No">
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-xxl-12 col-lg-12 mb-3">
-                                                                                <div class="row">
-                                                                                    <label for="companyName" class="col-sm-4 col-form-label">Company Name</label>
-                                                                                    <div class="col-sm-8">
-                                                                                        <input type="text" class="form-control" id="companyName" name="companyName" placeholder="Customer Code">
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-xxl-12 col-lg-12 mb-3">
-                                                                                <div class="row">
-                                                                                    <label for="addressLine1" class="col-sm-4 col-form-label">Address Line 1</label>
-                                                                                    <div class="col-sm-8">
-                                                                                        <input type="text" class="form-control" id="addressLine1" name="addressLine1" placeholder="Address Line 1">
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-xxl-12 col-lg-12 mb-3">
-                                                                                <div class="row">
-                                                                                    <label for="addressLine2" class="col-sm-4 col-form-label">Address Line 2</label>
-                                                                                    <div class="col-sm-8">
-                                                                                        <input type="text" class="form-control" id="addressLine2" name="addressLine2" placeholder="Address Line 2">
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-xxl-12 col-lg-12 mb-3">
-                                                                                <div class="row">
-                                                                                    <label for="addressLine3" class="col-sm-4 col-form-label">Address Line 3</label>
-                                                                                    <div class="col-sm-8">
-                                                                                        <input type="text" class="form-control" id="addressLine3" name="addressLine3" placeholder="Address Line 3">
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-xxl-12 col-lg-12 mb-3">
-                                                                                <div class="row">
-                                                                                    <label for="phoneNo" class="col-sm-4 col-form-label">Phone No</label>
-                                                                                    <div class="col-sm-8">
-                                                                                        <input type="text" class="form-control" id="phoneNo" name="phoneNo" placeholder="Phone No">
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-xxl-12 col-lg-12 mb-3">
-                                                                                <div class="row">
-                                                                                    <label for="faxNo" class="col-sm-4 col-form-label">Fax No</label>
-                                                                                    <div class="col-sm-8">
-                                                                                        <input type="text" class="form-control" id="faxNo" name="faxNo" placeholder="Fax No">
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <input type="hidden" class="form-control" id="id" name="id">                                                                                                                                                         
                                                                         </div>
+                                                                        <div class="col-xxl-12 col-lg-12 mb-3">
+                                                                            <div class="row">
+                                                                                <label for="companyRegNo" class="col-sm-4 col-form-label">Company Reg No</label>
+                                                                                <div class="col-sm-8">
+                                                                                    <input type="text" class="form-control" id="companyRegNo" name="companyRegNo" placeholder="Company Reg No">
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="col-xxl-12 col-lg-12 mb-3">
+                                                                            <div class="row">
+                                                                                <label for="companyName" class="col-sm-4 col-form-label">Company Name</label>
+                                                                                <div class="col-sm-8">
+                                                                                    <input type="text" class="form-control" id="companyName" name="companyName" placeholder="Customer Code">
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="col-xxl-12 col-lg-12 mb-3">
+                                                                            <div class="row">
+                                                                                <label for="addressLine1" class="col-sm-4 col-form-label">Address Line 1</label>
+                                                                                <div class="col-sm-8">
+                                                                                    <input type="text" class="form-control" id="addressLine1" name="addressLine1" placeholder="Address Line 1">
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="col-xxl-12 col-lg-12 mb-3">
+                                                                            <div class="row">
+                                                                                <label for="addressLine2" class="col-sm-4 col-form-label">Address Line 2</label>
+                                                                                <div class="col-sm-8">
+                                                                                    <input type="text" class="form-control" id="addressLine2" name="addressLine2" placeholder="Address Line 2">
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="col-xxl-12 col-lg-12 mb-3">
+                                                                            <div class="row">
+                                                                                <label for="addressLine3" class="col-sm-4 col-form-label">Address Line 3</label>
+                                                                                <div class="col-sm-8">
+                                                                                    <input type="text" class="form-control" id="addressLine3" name="addressLine3" placeholder="Address Line 3">
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="col-xxl-12 col-lg-12 mb-3">
+                                                                            <div class="row">
+                                                                                <label for="phoneNo" class="col-sm-4 col-form-label">Phone No</label>
+                                                                                <div class="col-sm-8">
+                                                                                    <input type="text" class="form-control" id="phoneNo" name="phoneNo" placeholder="Phone No">
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="col-xxl-12 col-lg-12 mb-3">
+                                                                            <div class="row">
+                                                                                <label for="faxNo" class="col-sm-4 col-form-label">Fax No</label>
+                                                                                <div class="col-sm-8">
+                                                                                    <input type="text" class="form-control" id="faxNo" name="faxNo" placeholder="Fax No">
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <input type="hidden" class="form-control" id="id" name="id">                                                                                                                                                         
                                                                     </div>
                                                                 </div>
                                                             </div>
-
                                                         </div>
-                                                        
-                                                        <div class="col-lg-12">
-                                                            <div class="hstack gap-2 justify-content-end">
-                                                                <button type="button" class="btn btn-light" data-bs-dismiss="modal"><?=$languageArray['close_code'][$language]?></button>
-                                                                <button type="button" class="btn btn-success" id="submitTransporter"><?=$languageArray['submit_code'][$language]?></button>
-                                                            </div>
-                                                        </div><!--end col-->                                                               
-                                                    </form>
+
+                                                    </div>
+                                                    
+                                                    <div class="col-lg-12">
+                                                        <div class="hstack gap-2 justify-content-end">
+                                                            <button type="button" class="btn btn-light" data-bs-dismiss="modal"><?=$languageArray['close_code'][$language]?></button>
+                                                            <button type="button" class="btn btn-success" id="submitTransporter"><?=$languageArray['submit_code'][$language]?></button>
+                                                        </div>
+                                                    </div><!--end col-->                                                               
+                                                </form>
+                                            </div>
+                                        </div><!-- /.modal-content -->
+                                    </div><!-- /.modal-dialog -->
+                                </div><!-- /.modal -->
+
+                            </div>
+                        </div> <!-- end row-->
+
+                        <div class="row">
+                            <div class="col">
+                                <div class="h-100">
+                                    <!--datatable--> 
+                                    <div class="row">
+                                        <div class="col-lg-12">
+                                            <div class="card">
+                                                <div class="card-header">
+                                                    <div class="d-flex justify-content-between">
+                                                        <div>
+                                                            <h5 class="card-title mb-0"><?=$languageArray['previous_records_code'][$language]?></h5>
+                                                        </div>
+                                                        <!-- <div class="flex-shrink-0">
+                                                            <button type="button" id="addTransporter" class="btn btn-success waves-effect waves-light" data-bs-toggle="modal" data-bs-target="#addModal">
+                                                            <i class="ri-add-circle-line align-middle me-1"></i>
+                                                            <?=$languageArray['add_new_code'][$language]?>
+                                                            </button>
+                                                        </div>  -->
+                                                    </div> 
                                                 </div>
-                                            </div><!-- /.modal-content -->
-                                        </div><!-- /.modal-dialog -->
-                                    </div><!-- /.modal -->
-
-                                </div>
-                            </div> <!-- end row-->
-
-                            <div class="row">
-                                <div class="col">
-                                    <div class="h-100">
-                                        <!--datatable--> 
-                                        <div class="row">
-                                            <div class="col-lg-12">
-                                                <div class="card">
-                                                    <div class="card-header">
-                                                        <div class="d-flex justify-content-between">
-                                                            <div>
-                                                                <h5 class="card-title mb-0"><?=$languageArray['previous_records_code'][$language]?></h5>
-                                                            </div>
-                                                            <!-- <div class="flex-shrink-0">
-                                                                <button type="button" id="addTransporter" class="btn btn-success waves-effect waves-light" data-bs-toggle="modal" data-bs-target="#addModal">
-                                                                <i class="ri-add-circle-line align-middle me-1"></i>
-                                                                <?=$languageArray['add_new_code'][$language]?>
-                                                                </button>
-                                                            </div>  -->
-                                                        </div> 
-                                                    </div>
-                                                    <div class="card-body">
-                                                        <table id="dataTable" class="table table-bordered nowrap table-striped align-middle" style="width:100%">
-                                                            <thead>
-                                                                <tr id="headerRow">
-                                                                <!-- Column names will be dynamically updated here -->
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                <!-- Table rows will be dynamically updated here -->
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
+                                                <div class="card-body">
+                                                    <table id="dataTable" class="table table-bordered nowrap table-striped align-middle" style="width:100%">
+                                                        <thead>
+                                                            <tr id="headerRow">
+                                                            <!-- Column names will be dynamically updated here -->
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <!-- Table rows will be dynamically updated here -->
+                                                        </tbody>
+                                                    </table>
                                                 </div>
                                             </div>
-                                        </div><!--end row-->
-                                    </div> <!-- end .h-100-->
-                                </div> <!-- end col -->
-                            </div><!-- container-fluid -->
-
-                        </div> <!-- end .h-100-->
+                                        </div>
+                                    </div><!--end row-->
+                                </div> <!-- end .h-100-->
+                            </div> <!-- end col -->
+                        </div> <!-- end row-->
                     </div> <!-- end col -->
                 </div>
                 <!-- container-fluid -->
