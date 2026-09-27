@@ -852,6 +852,14 @@ class ReportService extends BaseService {
             'company' => 'json',
             'columns' => ["Employee Code", "Username", "Name", "Email", "Role", "Plant", "Language", "Action", "Action By", "Event Date"]
         ],
+        // Every login attempt (success and failed), written by login.php
+        'Login' => [
+            'from'    => 'Login_Log',
+            'alias'   => '',
+            'search'  => ['userCode', 'username', 'like'],
+            'company' => 'json',
+            'columns' => ["Username", "Employee Code", "Role", "Login Status", "Remarks", "IP Address", "User Agent", "Event Date"]
+        ],
         'Plant' => [
             'from'    => 'Plant_Log',
             'alias'   => '',
@@ -1143,6 +1151,18 @@ class ReportService extends BaseService {
                     "Plant"         => $plantNames,
                     "Language"      => $row['languages'] ?? '',
                 ];
+                break;
+            case 'Login':
+                // Failed attempts hold raw input from unauthenticated visitors - escape before DataTables renders it as HTML
+                $mapped = array_map(fn($v) => htmlspecialchars($v ?? '', ENT_QUOTES, 'UTF-8'), [
+                    "Username"      => $row['username'],
+                    "Employee Code" => $row['employee_code'],
+                    "Role"          => $row['role'],
+                    "Login Status"  => $row['login_status'],
+                    "Remarks"       => $row['remarks'],
+                    "IP Address"    => $row['ip_address'],
+                    "User Agent"    => $row['user_agent'],
+                ]);
                 break;
             case 'Plant':
                 $mapped = [

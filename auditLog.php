@@ -108,6 +108,7 @@ if (!$viewAllCompanies) {
                                                             <!-- <option value="Transporter"><?=$languageArray['transporter_code'][$language]?></option> -->
                                                             <!-- <option value="Plant"><?=$languageArray['plant_code'][$language]?></option> -->
                                                             <option value="User"><?=$languageArray['staff_code'][$language]?></option>
+                                                            <option value="Login"><?=$languageArray['login_code'][$language]?></option>
                                                             <option value="Weight"><?=$languageArray['weighing_code'][$language]?></option>
                                                             <option value="Empty Container"><?=$languageArray['empty_container_code'][$language]?></option>
                                                             <option value="Sawn Timber"><?=$languageArray['sawn_timber_code'][$language]?></option>
@@ -558,7 +559,7 @@ $(function () {
             $('.inputCode').hide();
             $('.transporterInput').show();
         }
-        else if($(this).val() == "User")
+        else if($(this).val() == "User" || $(this).val() == "Login")
         {
             $('.inputCode').hide();
             $('.userInput').show();
