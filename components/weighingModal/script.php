@@ -42,6 +42,7 @@
 
     var LANG = {
         pendingBin: "<?= $languageArray['pending_bin_code'][$language] ?>",
+        containerNo1: "<?= $languageArray['container_no1_code'][$language] ?>",
         dispatch: '<?=$languageArray['dispatch_code'][$language]?>',
         receiving: '<?=$languageArray['receiving_code'][$language]?>',
         trxToPort: '<?=$languageArray['trx_to_port_code'][$language]?>',
@@ -952,11 +953,18 @@
 
         showWeighingCards(weightType);
 
-        inModal('#containerNo1Label').text(isDifferentContainer ? LANG.pendingBin : "Container No 1");
+        // Only the label text changes so the required asterisk inside the label is kept
+        inModal('#containerNo1Text').text(isDifferentContainer ? LANG.pendingBin : LANG.containerNo1);
         inModal('#emptyContainerDisplay').toggle(usesPendingContainer);
         inModal('#containerDisplay').toggle(!usesPendingContainer);
         inModal('#containerNoInput').attr('required', weightType == 'Empty Container');
         inModal('#emptyContainerNo').attr('required', usesPendingContainer);
+
+        // Required asterisks: Empty Container = container no, Container = pending container,
+        // Different Container = pending container + replacement container, Normal = none
+        inModal('#containerRequired').toggle(weightType == 'Empty Container');
+        inModal('#emptyContainerRequired').toggle(usesPendingContainer);
+        inModal('#replacementContainerRequired').toggle(isDifferentContainer);
 
         // Different Container swaps the container 2 / seal fields for the replacement container fields
         inModal('#replacementContainerDisplay, #vehicleWeight2Display, #container2WeightDisplay, #containerNo2ReplaceDisplay, #sealNoReplaceDisplay, #sealNo2ReplaceDisplay').toggle(isDifferentContainer);

@@ -122,13 +122,13 @@
                                     </div>
                                     <div class="col-xxl-4 col-lg-4 mb-3">
                                         <div class="row" id="containerDisplay">
-                                            <label for="containerNoInput" class="col-sm-4 col-form-label"><?=$languageArray['container_no1_code'][$language]?></label>
+                                            <label for="containerNoInput" class="col-sm-4 col-form-label"><?=$languageArray['container_no1_code'][$language]?> <span class="text-danger" id="containerRequired">*</span></label>
                                             <div class="col-sm-8">
                                                 <input type="text" class="form-control" id="containerNoInput" name="containerNoInput" placeholder="<?=$languageArray['container_no_code'][$language]?>">
                                             </div>
                                         </div>
                                         <div class="row" id="emptyContainerDisplay" style="display:none" >
-                                            <label for="emptyContainerNo" class="col-sm-4 col-form-label" id="containerNo1Label"><?=$languageArray['container_no1_code'][$language]?></label>
+                                            <label for="emptyContainerNo" class="col-sm-4 col-form-label" id="containerNo1Label"><span id="containerNo1Text"><?=$languageArray['container_no1_code'][$language]?></span> <span class="text-danger" id="emptyContainerRequired">*</span></label>
                                             <div class="col-sm-8">
                                                 <select class="form-select select2" id="emptyContainerNo" name="emptyContainerNo">
                                                     <option selected="-">-</option>
@@ -286,7 +286,7 @@
                                     </div>
                                     <div class="col-xxl-4 col-lg-4 mb-3" id="replacementContainerDisplay" style="display:none">
                                         <div class="row">
-                                            <label for="replacementContainer" class="col-sm-4 col-form-label"><?=$languageArray['new_empty_bin_code'][$language]?></label>
+                                            <label for="replacementContainer" class="col-sm-4 col-form-label"><?=$languageArray['new_empty_bin_code'][$language]?> <span class="text-danger" id="replacementContainerRequired">*</span></label>
                                             <div class="col-sm-8">
                                                 <input type="text" class="form-control" id="replacementContainer" name="replacementContainer" placeholder="Replacement Container" required>
                                             </div>
