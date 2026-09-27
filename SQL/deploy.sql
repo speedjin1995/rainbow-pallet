@@ -4130,3 +4130,44 @@ DELIMITER ;
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('item_price_code', 'Item Price', '物品价格', 'Harga Item', 'பொருள் விலை');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('price_entries_code', 'Price Entries', '价格记录', 'Entri Harga', 'விலை பதிவுகள்');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('removed_entries_code', 'Removed Entries', '已移除的记录', 'Entri Dibuang', 'நீக்கப்பட்ட பதிவுகள்');
+
+CREATE TABLE IF NOT EXISTS `Document_Number` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `company_id` int(11) NOT NULL,
+  `transaction_status` varchar(20) NOT NULL,
+  `format` varchar(100) NOT NULL,
+  `digits` int(2) NOT NULL DEFAULT 3,
+  `reset_period` varchar(10) NOT NULL DEFAULT 'Monthly',
+  `status` int(1) NOT NULL DEFAULT 0,
+  `created_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_by` varchar(50) DEFAULT NULL,
+  `modified_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `modified_by` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Running number per format and period (ALL / yyyy / yyyymm depending on reset_period)
+CREATE TABLE IF NOT EXISTS `Document_Number_Counter` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `document_number_id` int(11) NOT NULL,
+  `period` varchar(10) NOT NULL,
+  `next_number` int(11) NOT NULL DEFAULT 1,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('document_number_code', 'Document Number', '单据编号', 'Nombor Dokumen', 'ஆவண எண்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('format_code', 'Format', '格式', 'Format', 'வடிவம்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('format_hint_code', 'Use {YYYY}, {YY}, {MM} for the date and {NUMBER} for the running number, e.g. RPS-{YY}{MM}/{NUMBER}', '日期使用 {YYYY}、{YY}、{MM}，流水号使用 {NUMBER}，例如 RPS-{YY}{MM}/{NUMBER}', 'Guna {YYYY}, {YY}, {MM} untuk tarikh dan {NUMBER} untuk nombor berjalan, cth. RPS-{YY}{MM}/{NUMBER}', 'தேதிக்கு {YYYY}, {YY}, {MM} மற்றும் தொடர் எண்ணுக்கு {NUMBER} பயன்படுத்தவும், எ.கா. RPS-{YY}{MM}/{NUMBER}');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('digits_code', 'Digits', '位数', 'Digit', 'இலக்கங்கள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('reset_period_code', 'Reset Period', '重置周期', 'Tempoh Set Semula', 'மீட்டமைப்பு காலம்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('never_code', 'Never', '从不', 'Tidak Pernah', 'ஒருபோதும் இல்லை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('yearly_code', 'Yearly', '每年', 'Tahunan', 'ஆண்டுதோறும்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('next_number_code', 'Next Number', '下一个编号', 'Nombor Seterusnya', 'அடுத்த எண்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('preview_code', 'Preview', '预览', 'Pratonton', 'முன்னோட்டம்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('generate_code', 'Generate', '生成', 'Jana', 'உருவாக்கு');
+
+ALTER TABLE `Document_Number` ADD `document_type` VARCHAR(10) NOT NULL DEFAULT 'DO' AFTER `company_id`;
+
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('document_type_code', 'Document Type', '单据类型', 'Jenis Dokumen', 'ஆவண வகை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('delivery_order_no_code', 'Delivery Order No', '送货单号', 'No. Pesanan Penghantaran', 'விநியோக ஆணை எண்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('purchase_order_no_code', 'Purchase Order No', '采购单号', 'No. Pesanan Belian', 'கொள்முதல் ஆணை எண்');

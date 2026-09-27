@@ -19,6 +19,8 @@ switch ($action) {
     case 'getAll':  $controller->getAll(); break;
     case 'upload':  $controller->upload(); break;
     case 'switch':  $controller->switchCompany(); break;
+    case 'getDocumentNumbers':  $controller->getDocumentNumbers(); break;
+    case 'saveDocumentNumbers': $controller->saveDocumentNumbers(); break;
     default:
         echo json_encode(['status' => 'failed', 'message' => 'Invalid action']);
 }

@@ -5,6 +5,25 @@
         header('Location: no-permission.php');
         exit;
     }
+
+    // Document number setup: transaction status value => label, reset period value => label
+    $statusLabels = [
+        'Sales' => $languageArray['dispatch_code'][$language],
+        'Purchase' => $languageArray['receiving_code'][$language],
+        // 'Local' => $languageArray['internal_transfer_code'][$language],
+        'Port' => $languageArray['trx_to_port_code'][$language],
+        'Misc' => $languageArray['miscellaneous_code'][$language],
+    ];
+    $resetLabels = [
+        'Never'   => $languageArray['never_code'][$language],
+        'Yearly'  => $languageArray['yearly_code'][$language],
+        'Monthly' => $languageArray['monthly_code'][$language],
+    ];
+    $documentTypeLabels = [
+        'DO'  => $languageArray['delivery_order_no_code'][$language],
+        'PO'  => $languageArray['purchase_order_no_code'][$language],
+        'INV' => $languageArray['invoice_no_code'][$language],
+    ];
 ?>
 
 <head>
@@ -29,6 +48,19 @@
     
     <?php include 'layouts/head-css.php'; ?>
 
+    <style>
+        .select2-multiple .select2-selection__choice {
+            background-color: rgb(64, 81, 137) !important;
+            color: white !important;
+            border-color: rgb(64, 81, 137) !important;
+        }
+        .select2-multiple .select2-selection__choice__remove {
+            color: white !important;
+        }
+        .select2-multiple .select2-selection__choice__remove:hover {
+            color: #ddd !important;
+        }
+    </style>
 </head>
 
 <?php include 'layouts/body.php'; ?>
@@ -208,6 +240,58 @@
                                             </div><!-- /.modal-content -->
                                         </div><!-- /.modal-dialog -->
                                     </div><!-- /.modal -->
+
+                                    <!-- Document Number Modal -->
+                                    <div class="modal fade" id="documentNumberModal" tabindex="-1" role="dialog" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-scrollable modal-xl">
+                                            <div class="modal-content">
+                                                <div class="modal-header py-2">
+                                                    <h5 class="modal-title"><?=$languageArray['document_number_code'][$language]?> - <span id="documentNumberCompanyName"></span></h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <input type="hidden" id="documentNumberCompanyId">
+                                                    <div class="row mb-3">
+                                                        <label for="documentType" class="col-sm-2 col-form-label"><?=$languageArray['document_type_code'][$language]?></label>
+                                                        <div class="col-sm-4">
+                                                            <select class="form-select" id="documentType">
+                                                                <?php foreach ($documentTypeLabels as $typeValue => $typeLabel): ?>
+                                                                    <option value="<?=$typeValue?>"><?=$typeLabel?></option>
+                                                                <?php endforeach; ?>
+                                                            </select>
+                                                        </div>
+                                                        <label for="documentStatuses" class="col-sm-2 col-form-label"><?=$languageArray['transaction_status_code'][$language]?></label>
+                                                        <div class="col-sm-4">
+                                                            <select class="form-select" id="documentStatuses" multiple="multiple" style="width: 100%;">
+                                                                <?php foreach ($statusLabels as $statusValue => $statusLabel): ?>
+                                                                    <option value="<?=$statusValue?>"><?=$statusLabel?></option>
+                                                                <?php endforeach; ?>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <p class="text-muted mb-2"><?=$languageArray['format_hint_code'][$language]?></p>
+                                                    <table class="table table-bordered align-middle">
+                                                        <thead>
+                                                            <tr>
+                                                                <th><?=$languageArray['transaction_status_code'][$language]?></th>
+                                                                <th><?=$languageArray['format_code'][$language]?></th>
+                                                                <th width="10%"><?=$languageArray['digits_code'][$language]?></th>
+                                                                <th width="14%"><?=$languageArray['reset_period_code'][$language]?></th>
+                                                                <th width="12%"><?=$languageArray['next_number_code'][$language]?></th>
+                                                                <th><?=$languageArray['preview_code'][$language]?></th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="documentNumberRows"></tbody>
+                                                    </table>
+                                                    <div class="hstack gap-2 justify-content-end">
+                                                        <button type="button" class="btn btn-light" data-bs-dismiss="modal"><?=$languageArray['close_code'][$language]?></button>
+                                                        <button type="button" class="btn btn-success" id="submitDocumentNumbers"><?=$languageArray['submit_code'][$language]?></button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <div class="modal fade" id="uploadModal" style="display:none">
                                         <div class="modal-dialog modal-xl" style="max-width: 90%;">
                                             <div class="modal-content">
@@ -369,6 +453,8 @@
 var table;
 var permissions = <?= json_encode($_SESSION['permissions'] ?? []) ?>;
 var isSADMIN = <?= json_encode($_SESSION['roles'] == 'SADMIN') ?>;
+var statusLabels = <?= json_encode($statusLabels) ?>;
+var resetLabels = <?= json_encode($resetLabels) ?>;
 
 $(function () {
     $('#selectAllCheckbox').on('change', function() {
@@ -438,6 +524,11 @@ $(function () {
                                     <li>
                                         <a class="dropdown-item edit-item-btn" id="edit${data}" onclick="edit(${data})">
                                             <i class="ri-pencil-fill align-bottom me-2 text-muted"></i> <?=$languageArray['edit_code'][$language]?>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" id="documentNumber${data}" onclick="manageDocumentNumbers(${data})">
+                                            <i class="ri-file-list-3-fill align-bottom me-2 text-muted"></i> <?=$languageArray['document_number_code'][$language]?>
                                         </a>
                                     </li>`;
                         }
@@ -649,6 +740,69 @@ $(function () {
             $('#spinnerLoading').hide();
         }     
     });
+    
+    $('#documentNumberRows').on('input change', 'input, select', function() {
+        updateDocumentNumberPreview($(this).closest('tr'));
+    });
+
+    $('#documentType').on('change', function() {
+        loadDocumentNumberRows(false);
+    });
+
+    $('#documentStatuses').select2({
+        placeholder: "Please Select",
+        dropdownParent: $('#documentNumberModal')
+    }).on('change', function() {
+        toggleDocumentNumberRows();
+    });
+    
+    // Select2 doesn't copy the select's classes, so tag its container for the .select2-multiple chip styling
+    $('#documentStatuses').next('.select2-container').addClass('select2-multiple');
+
+    $('#submitDocumentNumbers').on('click', function(){
+        var $btn = $(this);
+        var rows = [];
+        var missingFormat = false;
+        var selectedStatuses = $('#documentStatuses').val() || [];
+
+        // Unselected statuses are sent with a blank format, which removes their numbering
+        $('#documentNumberRows tr').each(function(){
+            var $row = $(this);
+            var isSelected = selectedStatuses.indexOf($row.data('status')) !== -1;
+            if (isSelected && $.trim($row.find('.doc-format').val()) === '') {
+                missingFormat = true;
+            }
+            rows.push({
+                transactionStatus: $row.data('status'),
+                format: isSelected ? $row.find('.doc-format').val() : '',
+                digits: $row.find('.doc-digits').val(),
+                resetPeriod: $row.find('.doc-reset').val(),
+                nextNumber: $row.find('.doc-next').val()
+            });
+        });
+
+        if (missingFormat) {
+            toastr["error"]("<?=$languageArray['please_fill_in_the_field_code'][$language]?>", "Failed:");
+            return;
+        }
+
+        $btn.prop('disabled', true);
+        $('#spinnerLoading').show();
+        $.post('php/modules/company/index.php', { action: 'saveDocumentNumbers', companyId: $('#documentNumberCompanyId').val(), documentType: $('#documentType').val(), data: JSON.stringify(rows) }, function(data){
+            var obj = JSON.parse(data);
+            if (obj.status === 'success') {
+                $('#documentNumberModal').modal('hide');
+                toastr["success"](obj.message, "Success:");
+            } else {
+                toastr["error"](obj.message, "Failed:");
+            }
+        }).fail(function(){
+            toastr["error"]("Something went wrong", "Failed:");
+        }).always(function(){
+            $btn.prop('disabled', false);
+            $('#spinnerLoading').hide();
+        });
+    });
 });
 
 function edit(id){
@@ -807,6 +961,90 @@ function reactivate(id) {
   }
 
   $('#spinnerLoading').hide();
+}
+
+// Document number formats of a company, opened on the first document type (Delivery Order No)
+function manageDocumentNumbers(id) {
+    var company = table.rows().data().toArray().find(function(row){ return row.id == id; });
+
+    $('#documentNumberCompanyId').val(id);
+    $('#documentNumberCompanyName').text(company ? company.name : '');
+    $('#documentType').prop('selectedIndex', 0);
+    loadDocumentNumberRows(true);
+}
+
+// One row per transaction status for the selected document type (blank format = no numbering)
+function loadDocumentNumberRows(showModal) {
+    $('#spinnerLoading').show();
+    $.post('php/modules/company/index.php', { action: 'getDocumentNumbers', companyId: $('#documentNumberCompanyId').val(), documentType: $('#documentType').val() }, function(data){
+        var obj = JSON.parse(data);
+        if (obj.status !== 'success') {
+            toastr["error"](obj.message, "Failed:");
+            return;
+        }
+
+        $('#documentNumberRows').html('');
+
+        $.each(obj.message, function(i, row){
+            var resetOptions = '';
+            $.each(resetLabels, function(value, label){
+                resetOptions += $('<option>').val(value).text(label).prop('selected', value === row.reset_period).prop('outerHTML');
+            });
+
+            var $row = $(`
+                <tr>
+                    <td class="doc-status"></td>
+                    <td><input type="text" class="form-control doc-format" placeholder="RPS-{YY}{MM}/{NUMBER}"></td>
+                    <td><input type="number" class="form-control doc-digits" min="1" max="10"></td>
+                    <td><select class="form-select doc-reset">${resetOptions}</select></td>
+                    <td><input type="number" class="form-control doc-next" min="1"></td>
+                    <td><input type="text" class="form-control doc-preview" readonly></td>
+                </tr>`);
+            $row.data('status', row.transaction_status);
+            $row.find('.doc-status').text(statusLabels[row.transaction_status] || row.transaction_status);
+            $row.find('.doc-format').val(row.format);
+            $row.find('.doc-digits').val(row.digits);
+            $row.find('.doc-next').val(row.next_number);
+            $('#documentNumberRows').append($row);
+            updateDocumentNumberPreview($row);
+        });
+
+        // Preselect the statuses that already have a format for this document type
+        var configured = $.map(obj.message, function(row){ return row.format !== '' ? row.transaction_status : null; });
+        $('#documentStatuses').val(configured).trigger('change');
+
+        if (showModal) {
+            $('#documentNumberModal').modal('show');
+        }
+    }).fail(function(){
+        toastr["error"]("Something went wrong", "Failed:");
+    }).always(function(){
+        $('#spinnerLoading').hide();
+    });
+}
+
+// Only the statuses selected in the dropdown are shown; hidden rows keep their values until saved
+function toggleDocumentNumberRows() {
+    var selectedStatuses = $('#documentStatuses').val() || [];
+    $('#documentNumberRows tr').each(function(){
+        $(this).toggle(selectedStatuses.indexOf($(this).data('status')) !== -1);
+    });
+}
+
+// Same token replacement as DocumentNumberService::render(), using today's date
+function updateDocumentNumberPreview($row) {
+    var format = $row.find('.doc-format').val() || '';
+    var digits = parseInt($row.find('.doc-digits').val(), 10) || 0;
+    var nextNumber = String(parseInt($row.find('.doc-next').val(), 10) || 1);
+    var today = new Date();
+    var year = String(today.getFullYear());
+    var month = String(today.getMonth() + 1).padStart(2, '0');
+
+    $row.find('.doc-preview').val(format === '' ? '' : format
+        .replace(/\{YYYY\}/g, year)
+        .replace(/\{YY\}/g, year.substring(2))
+        .replace(/\{MM\}/g, month)
+        .replace(/\{NUMBER\}/g, nextNumber.padStart(digits, '0')));
 }
 
 </script>
