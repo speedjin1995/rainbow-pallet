@@ -3943,3 +3943,26 @@ INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALU
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('removed_lines_code', 'Removed Lines', '已移除的明细', 'Baris Dibuang', 'நீக்கப்பட்ட வரிகள்');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('changed_code', 'Changed', '已更改', 'Diubah', 'மாற்றப்பட்டது');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('no_line_changes_code', 'No line changes in this save', '此次保存没有明细变更', 'Tiada perubahan baris dalam simpanan ini', 'இந்தச் சேமிப்பில் வரி மாற்றங்கள் இல்லை');
+
+-- 27/09/2026 --
+CREATE TABLE IF NOT EXISTS `Login_Log` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) DEFAULT NULL,
+  `employee_code` varchar(50) DEFAULT NULL,
+  `username` varchar(100) NOT NULL,
+  `role` varchar(50) DEFAULT NULL,
+  `company_id` text DEFAULT NULL,
+  `ip_address` varchar(45) DEFAULT NULL,
+  `user_agent` varchar(255) DEFAULT NULL,
+  `login_status` varchar(10) NOT NULL,
+  `remarks` varchar(255) DEFAULT NULL,
+  `action_id` int(11) NOT NULL,
+  `action_by` varchar(100) NOT NULL,
+  `event_date` datetime NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_login_log_username` (`username`),
+  KEY `idx_login_log_event_date` (`event_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('login_code', 'Login', '登录', 'Log Masuk', 'உள்நுழைவு');
+

@@ -11,6 +11,26 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
 // Include config file
 //require_once "layouts/config.php";
 
+// Record a login attempt in Login_Log - a logging failure must never block the login
+function insertLoginLog($link, $userId, $employeeCode, $username, $role, $companyIds, $loginStatus, $remarks) {
+    $ipAddress = $_SERVER['REMOTE_ADDR'] ?? '';
+    $userAgent = substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 255);
+    $username = substr($username, 0, 100);
+
+    $sql = "INSERT INTO Login_Log (user_id, employee_code, username, role, company_id, ip_address, user_agent, login_status, remarks, action_id, action_by, event_date)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 5, ?, NOW())";
+
+    if ($logStmt = mysqli_prepare($link, $sql)) {
+        mysqli_stmt_bind_param($logStmt, "isssssssss", $userId, $employeeCode, $username, $role, $companyIds, $ipAddress, $userAgent, $loginStatus, $remarks, $username);
+        if (!mysqli_stmt_execute($logStmt)) {
+            error_log('Login_Log insert failed: ' . mysqli_stmt_error($logStmt));
+        }
+        mysqli_stmt_close($logStmt);
+    } else {
+        error_log('Login_Log prepare failed: ' . mysqli_error($link));
+    }
+}
+
 // Define variables and initialize with empty values
 $username = $password = "";
 $username_err = $password_err = "";
@@ -90,6 +110,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                             $_SESSION['plant']=$plantlist;
 
+                            insertLoginLog($link, $id, $code, $username, $roles, $company, 'Success', null);
+
                             if($roles == 'SADMIN'){
                                 $_SESSION['location_id'] = 1;
                                 $_SESSION['company_id'] = 1;
@@ -102,11 +124,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         } else {
                             // Display an error message if password is not valid
                             $password_err = "The password you entered was not valid.";
+                            insertLoginLog($link, $id, $code, $username, $roles, $company, 'Failed', 'Invalid password');
                         }
                     }
                 } else {
                     // Display an error message if username doesn't exist
                     $username_err = "No account found with that username.";
+                    insertLoginLog($link, null, null, $username, null, null, 'Failed', 'Username not found');
                 }
             } else {
                 echo "Oops! Something went wrong. Please try again later.";
