@@ -757,43 +757,151 @@ class ReportService extends BaseService {
      * company: column linking the log to a company, 'json' = JSON id list, 'code' = company_code, null = not company based
      */
     private $auditLogConfig = [
-        'Company'          => ['from' => 'Company_Log', 'alias' => '', 'search' => ['companyCode', 'company_code', '='], 'company' => 'company_id',
-                               'columns' => ["Company Code", "Company Reg No", "New Reg No", "Company Name", "Address line 1", "Address line 2", "Address line 3", "Phone No", "Fax No", "Mobile No", "Email", "TIN No", "Action", "Action By", "Event Date"]],
-        'Customer'         => ['from' => 'Customer_Log', 'alias' => '', 'search' => ['customerCode', 'customer_code', '='], 'company' => 'company',
-                               'columns' => ["Customer Code", "Company Reg No", "New Reg No", "Customer Name", "Address line 1", "Address line 2", "Address line 3", "Address line 4", "Phone No", "Fax No", "Contact Name", "IC No", "TIN No", "Email", "Is Manual", "Company", "Action", "Action By", "Event Date"]],
-        'Destination'      => ['from' => 'Destination_Log', 'alias' => '', 'search' => ['destinationCode', 'destination_code', '='], 'company' => 'company',
-                               'columns' => ["Destination Code", "Destination Name", "Description", "Action", "Action By", "Event Date"]],
-        'Product'          => ['from' => 'Product_Log', 'alias' => '', 'search' => ['productCode', 'product_code', 'like'], 'company' => 'company',
-                               'columns' => ["Product Code", "Product Name", "Description", "Category", "UOM", "Variance Type", "High", "Low", "Is Manual", "Company", "Action", "Action By", "Event Date"]],
-        'Raw Materials'    => ['from' => 'Raw_Mat_Log', 'alias' => '', 'search' => ['rawMatCode', 'raw_mat_code', 'like'], 'company' => null,
-                               'columns' => ["Raw Material Code", "Raw Material Name", "Raw Material Price", "Description", "Variance Type", "High", "Low", "Type", "Action", "Action By", "Event Date"]],
-        'Supplier'         => ['from' => 'Supplier_Log sl LEFT JOIN Company c ON sl.company = c.id', 'alias' => 'sl', 'select' => 'sl.*, c.name AS company_name', 'search' => ['supplierCode', 'supplier_code', '='], 'company' => 'company',
-                               'columns' => ["Supplier Code", "Company Reg No", "New Reg No", "Supplier Name", "Address line 1", "Address line 2", "Address line 3", "Address line 4", "Phone No", "Fax No", "Contact Name", "IC No", "TIN No", "Payment Term", "Payment Term Period", "Account No", "Is Manual", "Company", "Action", "Action By", "Event Date"]],
-        'Vehicle'          => ['from' => 'Vehicle_Log', 'alias' => '', 'search' => ['vehicleNo', 'veh_number', '='], 'company' => 'company',
-                               'columns' => ["Vehicle No", "Vehicle Weight", "Transporter Code", "Transporter Name", "Customer Code", "Customer Name", "Supplier Code", "Supplier Name", "Is Manual", "Action", "Action By", "Event Date"]],
-        'Transporter'      => ['from' => 'Transporter_Log', 'alias' => '', 'search' => ['transporterCode', 'transporter_code', '='], 'company' => null,
-                               'columns' => ["Transporter Code", "Company Reg No", "Transporter Name", "Address line 1", "Address line 2", "Address line 3", "Phone No", "Fax No", "Action", "Action By", "Event Date"]],
-        'Unit'             => ['from' => 'Units_Log', 'alias' => '', 'search' => ['unit', 'unit', '='], 'company' => 'company',
-                               'columns' => ["Unit", "Action", "Action By", "Event Date"]],
-        'Product Category' => ['from' => 'Product_Categories_Log pcl LEFT JOIN Company c ON pcl.company = c.id', 'alias' => 'pcl', 'select' => 'pcl.*, c.name AS company_name', 'search' => ['productCategory', 'category_name', 'like'], 'company' => 'company',
-                               'columns' => ["Category Name", "Company", "Is Sales", "Is Purchase", "Is Local", "Is Port", "Is Misc", "Action", "Action By", "Event Date"]],
-        'Location'         => ['from' => 'Location_Log ll LEFT JOIN Plant p ON ll.plant_id = p.id', 'alias' => 'll', 'select' => 'll.*, p.name AS plant_name', 'search' => ['locationCode', 'location_code', '='], 'company' => 'company',
-                               'columns' => ["Location Code", "Location Name", "Plant", "Weighing Count", "Action", "Action By", "Event Date"]],
-        'Project'          => ['from' => 'Project_Log pl LEFT JOIN Company c ON pl.company = c.id', 'alias' => 'pl', 'select' => 'pl.*, c.name AS company_name', 'search' => ['projectCode', 'project_code', 'like'], 'company' => 'company',
-                               'columns' => ["Project Code", "Project Description", "Company", "Action", "Action By", "Event Date"]],
-        'User'             => ['from' => 'Users_Log', 'alias' => '', 'search' => ['userCode', 'username', 'like'], 'company' => 'json',
-                               'columns' => ["Employee Code", "Username", "Name", "Email", "Role", "Plant", "Language", "Action", "Action By", "Event Date"]],
-        'Plant'            => ['from' => 'Plant_Log', 'alias' => '', 'search' => ['plantCode', 'plant_code', 'like'], 'company' => null,
-                               'columns' => ["Plant Code", "Plant Name", "Address line 1", "Address line 2", "Address line 3", "Phone No", "Fax No", "Action", "Action By", "Event Date"]],
-        'Weight'           => ['from' => 'Weight_Log', 'alias' => '', 'search' => ['weight', 'transaction_id', 'like'], 'company' => 'company_id',
-                               'columns' => ["Transaction Id", "Weight Status", "Customer/Supplier", "Vehicle", "Product/Raw Material", "SO/PO", "DO", "Gross Incoming", "Incoming Date", "Tare Outgoing", "Outgoing Date", "Nett Weight", "Action", "Action By", "Event Date"]],
-        'Empty Container'  => ['from' => 'Weight_Container_Log', 'alias' => '', 'search' => ['emptyContainer', 'transaction_id', 'like'], 'company' => 'company_id',
-                               'columns' => ["Transaction Id", "Weight Status", "Customer/Supplier", "Vehicle", "Container No", "Product/Raw Material", "Gross Incoming", "Incoming Date", "Tare Outgoing", "Outgoing Date", "Nett Weight", "Action", "Action By", "Event Date"]],
-        'SO'               => ['from' => 'Sales_Order_Log', 'alias' => '', 'search' => ['custPoNo', 'order_no', 'like'], 'company' => 'code',
-                               'columns' => ["Company Code", "Company Name", "Customer Code", "Customer Name", "Site Code", "Site Name", "Sales Representative Code", "Sales Representative Name", "Destination Code", "Destination Name", "Product Code", "Product Name", "Plant Code", "Plant Name", "Transporter Code", "Transporter Name", "Vehicle No", "EXQ/Del", "Customer P/O No", "S/O No", "Order Date", "Order Quantity", "Balance", "Remarks", "Action", "Action By", "Event Date"]],
-        'PO'               => ['from' => 'Purchase_Order_Log', 'alias' => '', 'search' => ['poNo', 'po_no', 'like'], 'company' => 'code',
-                               'columns' => ["Company Code", "Company Name", "Supplier Code", "Supplier Name", "Site Code", "Site Name", "Sales Representative Code", "Sales Representative Name", "Destination Code", "Destination Name", "Raw Material Code", "Raw Material Name", "Plant Code", "Plant Name", "Transporter Code", "Transporter Name", "Vehicle No", "EXQ/Del", "P/O No", "Order Date", "Order Quantity", "Balance", "Remarks", "Action", "Action By", "Event Date"]],
+        'Company' => [
+            'from'    => 'Company_Log',
+            'alias'   => '',
+            'search'  => ['companyCode', 'company_code', '='],
+            'company' => 'company_id',
+            'columns' => ["Company Code", "Company Reg No", "New Reg No", "Company Name", "Address line 1", "Address line 2", "Address line 3", "Phone No", "Fax No", "Mobile No", "Email", "TIN No", "Action", "Action By", "Event Date"]
+        ],
+        'Customer' => [
+            'from'    => 'Customer_Log',
+            'alias'   => '',
+            'search'  => ['customerCode', 'customer_code', '='],
+            'company' => 'company',
+            'columns' => ["Customer Code", "Company Reg No", "New Reg No", "Customer Name", "Address line 1", "Address line 2", "Address line 3", "Address line 4", "Phone No", "Fax No", "Contact Name", "IC No", "TIN No", "Email", "Is Manual", "Company", "Action", "Action By", "Event Date"]
+        ],
+        'Destination' => [
+            'from'    => 'Destination_Log',
+            'alias'   => '',
+            'search'  => ['destinationCode', 'destination_code', '='],
+            'company' => 'company',
+            'columns' => ["Destination Code", "Destination Name", "Description", "Action", "Action By", "Event Date"]
+        ],
+        'Product' => [
+            'from'    => 'Product_Log',
+            'alias'   => '',
+            'search'  => ['productCode', 'product_code', 'like'],
+            'company' => 'company',
+            'columns' => ["Product Code", "Product Name", "Description", "Category", "UOM", "Variance Type", "High", "Low", "Is Manual", "Company", "Action", "Action By", "Event Date"]
+        ],
+        'Raw Materials' => [
+            'from'    => 'Raw_Mat_Log',
+            'alias'   => '',
+            'search'  => ['rawMatCode', 'raw_mat_code', 'like'],
+            'company' => null,
+            'columns' => ["Raw Material Code", "Raw Material Name", "Raw Material Price", "Description", "Variance Type", "High", "Low", "Type", "Action", "Action By", "Event Date"]
+        ],
+        'Supplier' => [
+            'from'    => 'Supplier_Log sl LEFT JOIN Company c ON sl.company = c.id',
+            'alias'   => 'sl',
+            'select'  => 'sl.*, c.name AS company_name',
+            'search'  => ['supplierCode', 'supplier_code', '='],
+            'company' => 'company',
+            'columns' => ["Supplier Code", "Company Reg No", "New Reg No", "Supplier Name", "Address line 1", "Address line 2", "Address line 3", "Address line 4", "Phone No", "Fax No", "Contact Name", "IC No", "TIN No", "Payment Term", "Payment Term Period", "Account No", "Is Manual", "Company", "Action", "Action By", "Event Date"]
+        ],
+        'Vehicle' => [
+            'from'    => 'Vehicle_Log',
+            'alias'   => '',
+            'search'  => ['vehicleNo', 'veh_number', '='],
+            'company' => 'company',
+            'columns' => ["Vehicle No", "Vehicle Weight", "Transporter Code", "Transporter Name", "Customer Code", "Customer Name", "Supplier Code", "Supplier Name", "Is Manual", "Action", "Action By", "Event Date"]
+        ],
+        'Transporter' => [
+            'from'    => 'Transporter_Log',
+            'alias'   => '',
+            'search'  => ['transporterCode', 'transporter_code', '='],
+            'company' => null,
+            'columns' => ["Transporter Code", "Company Reg No", "Transporter Name", "Address line 1", "Address line 2", "Address line 3", "Phone No", "Fax No", "Action", "Action By", "Event Date"]
+        ],
+        'Unit' => [
+            'from'    => 'Units_Log',
+            'alias'   => '',
+            'search'  => ['unit', 'unit', '='],
+            'company' => 'company',
+            'columns' => ["Unit", "Action", "Action By", "Event Date"]
+        ],
+        'Product Category' => [
+            'from'    => 'Product_Categories_Log pcl LEFT JOIN Company c ON pcl.company = c.id',
+            'alias'   => 'pcl',
+            'select'  => 'pcl.*, c.name AS company_name',
+            'search'  => ['productCategory', 'category_name', 'like'],
+            'company' => 'company',
+            'columns' => ["Category Name", "Company", "Is Sales", "Is Purchase", "Is Local", "Is Port", "Is Misc", "Action", "Action By", "Event Date"]
+        ],
+        'Location' => [
+            'from'    => 'Location_Log ll LEFT JOIN Plant p ON ll.plant_id = p.id',
+            'alias'   => 'll',
+            'select'  => 'll.*, p.name AS plant_name',
+            'search'  => ['locationCode', 'location_code', '='],
+            'company' => 'company',
+            'columns' => ["Location Code", "Location Name", "Plant", "Weighing Count", "Action", "Action By", "Event Date"]
+        ],
+        'Project' => [
+            'from'    => 'Project_Log pl LEFT JOIN Company c ON pl.company = c.id',
+            'alias'   => 'pl',
+            'select'  => 'pl.*, c.name AS company_name',
+            'search'  => ['projectCode', 'project_code', 'like'],
+            'company' => 'company',
+            'columns' => ["Project Code", "Project Description", "Company", "Action", "Action By", "Event Date"]
+        ],
+        'User' => [
+            'from'    => 'Users_Log',
+            'alias'   => '',
+            'search'  => ['userCode', 'username', 'like'],
+            'company' => 'json',
+            'columns' => ["Employee Code", "Username", "Name", "Email", "Role", "Plant", "Language", "Action", "Action By", "Event Date"]
+        ],
+        'Plant' => [
+            'from'    => 'Plant_Log',
+            'alias'   => '',
+            'search'  => ['plantCode', 'plant_code', 'like'],
+            'company' => null,
+            'columns' => ["Plant Code", "Plant Name", "Address line 1", "Address line 2", "Address line 3", "Phone No", "Fax No", "Action", "Action By", "Event Date"]
+        ],
+        'Weight' => [
+            'from'    => 'Weight_Log',
+            'alias'   => '',
+            'search'  => ['weight', 'transaction_id', 'like'],
+            'company' => 'company_id',
+            'columns' => ["Transaction Id", "Weight Status", "Customer/Supplier", "Vehicle", "Product/Raw Material", "SO/PO", "DO", "Gross Incoming", "Incoming Date", "Tare Outgoing", "Outgoing Date", "Nett Weight", "Action", "Action By", "Event Date"]
+        ],
+        'Empty Container' => [
+            'from'    => 'Weight_Container_Log',
+            'alias'   => '',
+            'search'  => ['emptyContainer', 'transaction_id', 'like'],
+            'company' => 'company_id',
+            'columns' => ["Transaction Id", "Weight Status", "Customer/Supplier", "Vehicle", "Container No", "Product/Raw Material", "Gross Incoming", "Incoming Date", "Tare Outgoing", "Outgoing Date", "Nett Weight", "Action", "Action By", "Event Date"]
+        ],
+        'SO' => [
+            'from'    => 'Sales_Order_Log',
+            'alias'   => '',
+            'search'  => ['custPoNo', 'order_no', 'like'],
+            'company' => 'code',
+            'columns' => ["Company Code", "Company Name", "Customer Code", "Customer Name", "Site Code", "Site Name", "Sales Representative Code", "Sales Representative Name", "Destination Code", "Destination Name", "Product Code", "Product Name", "Plant Code", "Plant Name", "Transporter Code", "Transporter Name", "Vehicle No", "EXQ/Del", "Customer P/O No", "S/O No", "Order Date", "Order Quantity", "Balance", "Remarks", "Action", "Action By", "Event Date"]
+        ],
+        'PO' => [
+            'from'    => 'Purchase_Order_Log',
+            'alias'   => '',
+            'search'  => ['poNo', 'po_no', 'like'],
+            'company' => 'code',
+            'columns' => ["Company Code", "Company Name", "Supplier Code", "Supplier Name", "Site Code", "Site Name", "Sales Representative Code", "Sales Representative Name", "Destination Code", "Destination Name", "Raw Material Code", "Raw Material Name", "Plant Code", "Plant Name", "Transporter Code", "Transporter Name", "Vehicle No", "EXQ/Del", "P/O No", "Order Date", "Order Quantity", "Balance", "Remarks", "Action", "Action By", "Event Date"]
+        ],
+        // One row per header save, line totals come from the detail logs written in the same save
+        'Sawn Timber' => [
+            'from'    => 'Sawn_Timber_Header_Log h
+                          LEFT JOIN Company c ON h.company_id = c.id
+                          LEFT JOIN Plant p ON h.plant_id = p.id
+                          LEFT JOIN (SELECT header_log_id, COUNT(*) AS line_count, SUM(pieces) AS total_pieces, SUM(tons) AS total_tons
+                                     FROM Sawn_Timber_Detail_Log WHERE action_id <> 3 GROUP BY header_log_id) d ON d.header_log_id = h.id',
+            'alias'   => 'h',
+            'select'  => 'h.*, c.name AS company_name, p.name AS plant_name, d.line_count, d.total_pieces, d.total_tons',
+            'search'  => ['sawnTimber', 'transaction_id', 'like'],
+            'company' => 'company_id',
+            'columns' => ["Transaction Id", "Company", "Plant", "Record Date", "Remarks", "Status", "Lines", "Total Pieces", "Total Tons", "Action", "Action By", "Event Date"]
+        ],
     ];
+
 
     public function filterAuditLog($post) {
         $type   = $post['selectedValue'] ?? '';
@@ -1128,11 +1236,74 @@ class ReportService extends BaseService {
                     "Remarks"                     => $row['remarks'] ?? '',
                 ];
                 break;
+            case 'Sawn Timber':
+                $mapped = [
+                    "Transaction Id" => $row['transaction_id'] ?? '',
+                    "Company"        => $row['company_name'] ?? '',
+                    "Plant"          => $row['plant_name'] ?? '',
+                    "Record Date"    => $row['record_date'] ?? '',
+                    "Remarks"        => $row['remarks'] ?? '',
+                    "Status"         => ($row['status'] ?? '') == '1' ? 'Deleted' : 'Active',
+                    "Lines"          => $row['line_count'] ?? '',
+                    "Total Pieces"   => $row['total_pieces'] ?? '',
+                    "Total Tons"     => $row['total_tons'] ?? '',
+                ];
+                break;
             default:
                 $mapped = [];
         }
 
         return array_merge(['id' => $row['id']], $mapped, $audit);
+    }
+
+    /**
+     * Detail lines of one Sawn Timber header log (one save).
+     * Every save deletes and re-inserts all lines, so lines are compared by content:
+     * an inserted line with no identical deleted line is new/changed, a deleted line with no identical inserted line is removed.
+     */
+    public function getSawnTimberLogDetails($headerLogId) {
+        $headers = $this->fetchAll("SELECT id, company_id FROM Sawn_Timber_Header_Log WHERE id = ?", 'i', [$headerLogId]);
+        if (empty($headers)) {
+            return null;
+        }
+
+        $companyId = $this->getAuditLogCompanyId(null);
+        if ($companyId > 0 && intval($headers[0]['company_id']) !== $companyId) {
+            return null;
+        }
+
+        $rows = $this->fetchAll(
+            "SELECT species, lot, bundle, thick, width, length, pieces, tons, kd_charges, bundling_charges, grader_fees, action_id
+             FROM Sawn_Timber_Detail_Log WHERE header_log_id = ? ORDER BY id ASC",
+            'i', [$headerLogId]
+        );
+
+        $lines = [];
+        $deleted = [];
+        foreach ($rows as $row) {
+            $actionId = intval($row['action_id']);
+            unset($row['action_id']);
+            $row = array_map(fn($v) => $v ?? '', $row);
+            if ($actionId === 3) {
+                $deleted[] = $row;
+            } else {
+                $lines[] = $row;
+            }
+        }
+
+        // Only an update has a previous set of lines to compare with
+        $compare = !empty($deleted);
+        $unmatched = $deleted;
+        foreach ($lines as &$line) {
+            $index = $compare ? array_search($line, $unmatched) : false;
+            if ($index !== false) {
+                unset($unmatched[$index]);
+            }
+            $line['is_changed'] = $compare && $index === false;
+        }
+        unset($line);
+
+        return ['lines' => $lines, 'removed' => array_values($unmatched)];
     }
 }
 ?>

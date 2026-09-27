@@ -3881,3 +3881,65 @@ INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALU
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('new_category_code', 'New Category', '新类别', 'Kategori Baharu', 'புதிய வகை');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('please_select_new_category_code', 'Please select a new category for all tied items.', '请为所有相关物品选择新的类别。', 'Sila pilih kategori baharu untuk semua item berkaitan.', 'தொடர்புடைய அனைத்து பொருட்களுக்கும் புதிய வகையைத் தேர்ந்தெடுக்கவும்.');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('no_other_category_code', 'No other category available for this company. Please create one first.', '该公司没有其他可用类别，请先创建一个。', 'Tiada kategori lain untuk syarikat ini. Sila cipta satu dahulu.', 'இந்த நிறுவனத்திற்கு வேறு வகை இல்லை. முதலில் ஒன்றை உருவாக்கவும்.');
+
+ALTER TABLE `Sawn_Timber_Detail_Log` ADD `header_log_id` INT(11) NULL AFTER `header_id`;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_SAWN_TIMBER_HEADER` AFTER INSERT ON `Sawn_Timber_Header` FOR EACH ROW
+BEGIN
+    INSERT INTO Sawn_Timber_Header_Log (
+        header_id, weight_id, company_id, plant_id, transaction_id, record_date, remarks, status, action_id, action_by, event_date
+    ) VALUES (
+        NEW.id, NEW.weight_id, NEW.company_id, NEW.plant_id, NEW.transaction_id, NEW.record_date, NEW.remarks, NEW.status, 1, NEW.created_by, NEW.created_date
+    );
+
+    -- Picked up by the detail triggers of the same save
+    SET @sawn_timber_header_log_id = LAST_INSERT_ID();
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_SAWN_TIMBER_HEADER` BEFORE UPDATE ON `Sawn_Timber_Header` FOR EACH ROW
+BEGIN
+    DECLARE action_value INT;
+
+    IF NEW.status = '1' AND OLD.status <> '1' THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    INSERT INTO Sawn_Timber_Header_Log (
+        header_id, weight_id, company_id, plant_id, transaction_id, record_date, remarks, status, action_id, action_by, event_date
+    ) VALUES (
+        NEW.id, NEW.weight_id, NEW.company_id, NEW.plant_id, NEW.transaction_id, NEW.record_date, NEW.remarks, NEW.status, action_value, NEW.modified_by, NEW.modified_date
+    );
+
+    -- Picked up by the detail triggers of the same save
+    SET @sawn_timber_header_log_id = LAST_INSERT_ID();
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_SAWN_TIMBER_DETAIL` AFTER INSERT ON `Sawn_Timber_Detail` FOR EACH ROW
+INSERT INTO Sawn_Timber_Detail_Log (
+    detail_id, header_id, header_log_id, species, lot, bundle, thick, width, length, pieces, tons, kd_charges, bundling_charges, grader_fees, action_id, action_by, event_date
+) VALUES (
+    NEW.id, NEW.header_id, @sawn_timber_header_log_id, NEW.species, NEW.lot, NEW.bundle, NEW.thick, NEW.width, NEW.length, NEW.pieces, NEW.tons, NEW.kd_charges, NEW.bundling_charges, NEW.grader_fees, 1, COALESCE(@sawn_timber_action_by, 'system'), NOW()
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_DEL_SAWN_TIMBER_DETAIL` BEFORE DELETE ON `Sawn_Timber_Detail` FOR EACH ROW
+INSERT INTO Sawn_Timber_Detail_Log (
+    detail_id, header_id, header_log_id, species, lot, bundle, thick, width, length, pieces, tons, kd_charges, bundling_charges, grader_fees, action_id, action_by, event_date
+) VALUES (
+    OLD.id, OLD.header_id, @sawn_timber_header_log_id, OLD.species, OLD.lot, OLD.bundle, OLD.thick, OLD.width, OLD.length, OLD.pieces, OLD.tons, OLD.kd_charges, OLD.bundling_charges, OLD.grader_fees, 3, COALESCE(@sawn_timber_action_by, 'system'), NOW()
+)
+$$
+DELIMITER ;
+
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('lines_after_save_code', 'Lines After Save', '保存后的明细', 'Baris Selepas Simpan', 'சேமித்த பின் வரிகள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('removed_lines_code', 'Removed Lines', '已移除的明细', 'Baris Dibuang', 'நீக்கப்பட்ட வரிகள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('changed_code', 'Changed', '已更改', 'Diubah', 'மாற்றப்பட்டது');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('no_line_changes_code', 'No line changes in this save', '此次保存没有明细变更', 'Tiada perubahan baris dalam simpanan ini', 'இந்தச் சேமிப்பில் வரி மாற்றங்கள் இல்லை');

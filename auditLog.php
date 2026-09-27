@@ -640,7 +640,25 @@ $(function () {
                     }
                 });
             }
-        }        
+        }
+        else if ($('#reportType').val() == 'Sawn Timber'){
+            if (row.child.isShown()) {
+                row.child.hide();
+                tr.removeClass('shown');
+            } else {
+                $.post('php/modules/report/index.php', { action: 'getSawnTimberLogDetails', userID: row.data().id }, function (data) {
+                    var obj = JSON.parse(data);
+                    if (obj.status === 'success') {
+                        row.child(formatSawnTimber(obj.message)).show();
+                        tr.addClass("shown");
+                    } else {
+                        toastr.error(obj.message);
+                    }
+                }).fail(function () {
+                    toastr.error('Something went wrong');
+                });
+            }
+        }
     });
 
     // Handle change event of the dropdown list
@@ -857,8 +875,73 @@ function format (row) {
         </div>
     </div>` : ''}
     `;
-    
+
     return returnString;
+}
+
+function formatSawnTimber(data) {
+    if (data.lines.length == 0 && data.removed.length == 0) {
+        return `<p class="text-muted mb-0"><?=$languageArray['no_line_changes_code'][$language]?></p>`;
+    }
+
+    var returnString = `
+    <p><span><strong style="font-size:120%; text-decoration: underline;"><?=$languageArray['lines_after_save_code'][$language]?></strong></span></p>
+    ${sawnTimberLineTable(data.lines)}`;
+
+    if (data.removed.length > 0) {
+        returnString += `
+        <p class="mt-3"><span><strong style="font-size:120%; text-decoration: underline;"><?=$languageArray['removed_lines_code'][$language]?></strong></span></p>
+        ${sawnTimberLineTable(data.removed)}`;
+    }
+
+    return returnString;
+}
+
+function sawnTimberLineTable(lines) {
+    var rows = '';
+    $.each(lines, function (i, line) {
+        var badge = line.is_changed ? ` <span class="badge bg-warning"><?=$languageArray['changed_code'][$language]?></span>` : '';
+        rows += `
+        <tr>
+            <td>${i + 1}${badge}</td>
+            <td>${escapeHtml(line.species)}</td>
+            <td>${escapeHtml(line.lot)}</td>
+            <td>${escapeHtml(line.bundle)}</td>
+            <td>${escapeHtml(line.thick)}</td>
+            <td>${escapeHtml(line.width)}</td>
+            <td>${escapeHtml(line.length)}</td>
+            <td>${escapeHtml(line.pieces)}</td>
+            <td>${escapeHtml(line.tons)}</td>
+            <td>${escapeHtml(line.kd_charges)}</td>
+            <td>${escapeHtml(line.bundling_charges)}</td>
+            <td>${escapeHtml(line.grader_fees)}</td>
+        </tr>`;
+    });
+
+    return `
+    <table class="table table-sm table-bordered mb-0">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th><?=$languageArray['species_code'][$language]?></th>
+                <th><?=$languageArray['lot_code'][$language]?></th>
+                <th><?=$languageArray['bundle_code'][$language]?></th>
+                <th><?=$languageArray['thick_code'][$language]?></th>
+                <th><?=$languageArray['width_code'][$language]?></th>
+                <th><?=$languageArray['length_code'][$language]?></th>
+                <th><?=$languageArray['pieces_code'][$language]?></th>
+                <th><?=$languageArray['tons_code'][$language]?></th>
+                <th><?=$languageArray['kd_charges_code'][$language]?></th>
+                <th><?=$languageArray['bundling_charges_code'][$language]?></th>
+                <th><?=$languageArray['grader_fees_code'][$language]?></th>
+            </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+    </table>`;
+}
+
+function escapeHtml(value) {
+    return $('<div>').text(value == null ? '' : value).html();
 }
 
 </script>

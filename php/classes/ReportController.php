@@ -48,6 +48,26 @@ class ReportController extends BaseController {
         }
     }
 
+    public function handleGetSawnTimberLogDetails() {
+        if (!hasModulePermission('Reports', 'Audit Log', ['view', 'create', 'edit'])) {
+            $this->failed('Unauthorized');
+        }
+
+        $headerLogId = intval($this->getRequiredPost('userID'));
+
+        try {
+            $data = $this->service->getSawnTimberLogDetails($headerLogId);
+        } catch (mysqli_sql_exception $e) {
+            error_log('Sawn timber log details: ' . $e->getMessage());
+            $this->failed('Something went wrong');
+        }
+
+        if ($data === null) {
+            $this->failed('Record not found');
+        }
+        $this->success($data);
+    }
+
     public function handleExportPdf() {
         try {
             $this->success($this->service->exportPdf($_POST));

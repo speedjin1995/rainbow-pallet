@@ -24,6 +24,9 @@ switch ($action) {
     case 'filterAuditLog':
         $controller->handleFilterAuditLog();
         break;
+    case 'getSawnTimberLogDetails':
+        $controller->handleGetSawnTimberLogDetails();
+        break;
     default:
         echo json_encode(['status' => 'failed', 'message' => 'Invalid action']);
 }

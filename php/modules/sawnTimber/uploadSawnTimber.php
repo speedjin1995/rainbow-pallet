@@ -91,6 +91,9 @@ try {
     $actionByStmt->execute();
     $actionByStmt->close();
 
+    // Header triggers set this to the new header log id, detail logs are linked to it
+    $db->query("SET @sawn_timber_header_log_id = NULL");
+
     foreach ($groups as $group) {
         $transactionId = $group['transaction_id'] ?: generateSawnTimberTransactionId($db);
         if (transactionIdExists($db, $transactionId)) {

@@ -328,6 +328,9 @@ class SawnTimberService extends BaseService {
             $actionByStmt->execute();
             $actionByStmt->close();
 
+            // Header triggers set this to the new header log id, detail logs are linked to it
+            $this->db->query("SET @sawn_timber_header_log_id = NULL");
+
             if (!empty($id)) {
                 // Update
                 $stmt = $this->db->prepare("UPDATE Sawn_Timber_Header SET company_id=?, plant_id=?, weight_id=?, transaction_id=?, record_date=?, remarks=?, modified_by=? WHERE id=?");
