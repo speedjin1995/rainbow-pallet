@@ -250,16 +250,18 @@ class WeightService extends BaseService {
         if ($companyFilter > 0) {
             $q .= " AND company_id = {$companyFilter}";
         }
-        foreach (['status' => 'transaction_status', 'customer' => 'customer_code', 'supplier' => 'supplier_code', 'invoice' => 'weight_type', 'product' => 'product_code', 'rawMaterial' => 'raw_mat_code', 'plant' => 'plant_code'] as $param => $col) {
+        foreach (['transactionStatus' => 'transaction_status', 'customer' => 'customer_code', 'supplier' => 'supplier_code', 'invoice' => 'weight_type', 'product' => 'product_code', 'rawMaterial' => 'raw_mat_code', 'plant' => 'plant_code'] as $param => $col) {
             if (!empty($post[$param]) && $post[$param] !== '-') {
                 $q .= " AND {$col} = '" . mysqli_real_escape_string($this->db, $post[$param]) . "'";
             }
         }
-        if (!empty($post['batch']) && $post['batch'] !== '-') {
-            if ($post['batch'] == 'Cancelled') {
+        if (!empty($post['status']) && $post['status'] !== '-') {
+            if ($post['status'] == 'Cancelled') {
                 $q .= " AND is_cancel = 'Y'";
-            } else {
-                $q .= " AND is_complete = '" . mysqli_real_escape_string($this->db, $post['batch']) . "'";
+            } else if ($post['status'] == 'Pending') {
+                $q .= " AND is_complete = 'N' AND is_cancel <> 'Y'";
+            } else if ($post['status'] == 'Complete') {
+                $q .= " AND is_complete = 'Y' AND is_cancel <> 'Y'";
             }
         }
         if (!empty($post['vehicle']) && $post['vehicle'] !== '-') {
@@ -494,8 +496,8 @@ class WeightService extends BaseService {
             } else {
                 if (!empty($id)) {
                     $cancel = 'Y';
-                    $stmt = $this->db->prepare("UPDATE Weight SET is_complete=?, is_cancel=?, cancelled_reason=? WHERE id IN ({$id})");
-                    $stmt->bind_param('sss', $cancel, $cancel, $cancelReason);
+                    $stmt = $this->db->prepare("UPDATE Weight SET is_cancel=?, cancelled_reason=? WHERE id IN ({$id})");
+                    $stmt->bind_param('ss', $cancel, $cancelReason);
                     if (!$stmt->execute()) throw new Exception($stmt->error);
                     $stmt->close();
                 }
@@ -516,8 +518,8 @@ class WeightService extends BaseService {
                 $stmt->close();
             } else {
                 $cancel = 'Y';
-                $stmt = $this->db->prepare("UPDATE Weight SET is_complete=?, is_cancel=?, cancelled_reason=? WHERE id=?");
-                $stmt->bind_param('ssss', $cancel, $cancel, $cancelReason, $id);
+                $stmt = $this->db->prepare("UPDATE Weight SET is_cancel=?, cancelled_reason=? WHERE id=?");
+                $stmt->bind_param('sss', $cancel, $cancelReason, $id);
                 if (!$stmt->execute()) throw new Exception($stmt->error);
                 $stmt->close();
             }
@@ -525,7 +527,7 @@ class WeightService extends BaseService {
     }
 
     public function reactivateWeight($id) {
-        $stmt = $this->db->prepare("UPDATE Weight SET is_cancel='N' WHERE id=? AND status='0' AND is_cancel='Y'");
+        $stmt = $this->db->prepare("UPDATE Weight SET is_cancel='N', cancelled_reason=NULL WHERE id=? AND status='0' AND is_cancel='Y'");
         if (!$stmt) throw new Exception($this->db->error);
         $stmt->bind_param('s', $id);
         if (!$stmt->execute()) throw new Exception($stmt->error);

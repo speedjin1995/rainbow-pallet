@@ -153,8 +153,8 @@ require_once "components/weighingModal/data.php";
                                                     </div><!--end col-->
                                                     <div class="col-3">
                                                         <div class="mb-3">
-                                                            <label for="statusSearch" class="form-label"><?=$languageArray['transaction_status_code'][$language]?></label>
-                                                            <select id="statusSearch" class="form-select select2">
+                                                            <label for="transactionStatusSearch" class="form-label"><?=$languageArray['transaction_status_code'][$language]?></label>
+                                                            <select id="transactionStatusSearch" class="form-select select2">
                                                                 <option selected>-</option>
                                                                 <?php if(hasModulePermission('Weighing', 'Sales', ['view'])) { ?>
                                                                     <option value="Sales"><?=$languageArray['dispatch_code'][$language]?></option>
@@ -234,11 +234,11 @@ require_once "components/weighingModal/data.php";
                                                     </div><!--end col-->
                                                     <div class="col-3">
                                                         <div class="mb-3">
-                                                            <label for="batchNoSearch" class="form-label"><?=$languageArray['status_code'][$language]?></label>
-                                                            <select id="batchNoSearch" class="form-select select2">
-                                                                <option value="N" selected><?=$languageArray['pending_code'][$language]?></option>
-                                                                <option value="Y"><?=$languageArray['complete_code'][$language]?></option>
-                                                                <option value="Cancelled">Cancelled</option>
+                                                            <label for="statusSearch" class="form-label"><?=$languageArray['status_code'][$language]?></label>
+                                                            <select id="statusSearch" class="form-select select2">
+                                                                <option value="Pending" selected><?=$languageArray['pending_code'][$language]?></option>
+                                                                <option value="Complete"><?=$languageArray['complete_code'][$language]?></option>
+                                                                <option value="Cancelled"><?=$languageArray['cancelled_code'][$language]?></option>
                                                             </select>
                                                         </div>
                                                     </div><!--end col-->                                                
@@ -686,12 +686,12 @@ require_once "components/weighingModal/data.php";
         $('#clearAllSearch').on('click', function(){
             fromDateSearchPicker.clear();
             toDateSearchPicker.clear();
-            $('#statusSearch').val('-').trigger('change');
+            $('#transactionStatusSearch').val('-').trigger('change');
             $('#customerNoSearch').val('-').trigger('change');
             $('#supplierSearch').val('-').trigger('change');
             $('#vehicleNo').val('');
             $('#invoiceNoSearch').val('-').trigger('change');
-            $('#batchNoSearch').val('N').trigger('change');
+            $('#statusSearch').val('N').trigger('change');
             $('#productSearch').val('-').trigger('change');
             $('#rawMatSearch').val('-').trigger('change');
             $('#plantSearch').val('-').trigger('change');
@@ -701,7 +701,7 @@ require_once "components/weighingModal/data.php";
             $('#invDelPoSearch').val('');
         });
 
-        $('#statusSearch').on('change', function(){
+        $('#transactionStatusSearch').on('change', function(){
             var status = $(this).val();
             filterDropdownByTransactionStatus('#productSearch', 'allProductSearchOptions', status);
             filterDropdownByTransactionStatus('#rawMatSearch', 'allRawMatSearchOptions', status);
@@ -853,24 +853,15 @@ require_once "components/weighingModal/data.php";
         $('#exportPdf').on('click', function(){
             var fromDateI = $('#fromDateSearch').val();
             var toDateI = $('#toDateSearch').val();
-            var statusI = $('#statusSearch').val() ? $('#statusSearch').val() : '';
+            var transactionStatusI = $('#transactionStatusSearch').val() ? $('#transactionStatusSearch').val() : '';
             var customerNoI = $('#customerNoSearch').val() ? $('#customerNoSearch').val() : '';
             var supplierNoI = $('#supplierSearch').val() ? $('#supplierSearch').val() : '';
             var vehicleNoI = $('#vehicleNo').val() ? $('#vehicleNo').val() : '';
             var invoiceNoI = $('#invoiceNoSearch').val() ? $('#invoiceNoSearch').val() : '';
-            var batchNoI = $('#batchNoSearch').val() ? $('#batchNoSearch').val() : '';
+            var statusI = $('#statusSearch').val() ? $('#statusSearch').val() : '';
             var productSearchI = $('#productSearch').val() ? $('#productSearch').val() : '';
             var rawMaterialI = $('#rawMatSearch').val() ? $('#rawMatSearch').val() : '';
             var plantNoI = $('#plantSearch').val() ? $('#plantSearch').val() : '';
-
-            if (batchNoI == 'N'){
-                batchNoI = 'Pending';
-            }else if (batchNoI == 'Y'){
-                batchNoI = 'Complete';
-            }else if (batchNoI == 'Cancelled'){
-                batchNoI = 'Cancelled';
-            }
-
             var selectedIds = []; // An array to store the selected 'id' values
 
             $("#weightTable tbody input[type='checkbox']").each(function () {
@@ -886,13 +877,13 @@ require_once "components/weighingModal/data.php";
                 $.post('php/modules/report/index.php?action=exportPdf', {
                     fromDate : fromDateI,
                     toDate : fromDateI,
-                    transactionStatus : statusI,
+                    transactionStatus : transactionStatusI,
                     company : $('#companySearch').val() || '',
                     customer : customerNoI,
                     supplier : supplierNoI,
                     vehicle : vehicleNoI,
                     weighingType : invoiceNoI,
-                    status : batchNoI,
+                    status : statusI,
                     product : productSearchI,
                     rawMat : rawMaterialI,
                     plant : plantNoI,
@@ -925,13 +916,13 @@ require_once "components/weighingModal/data.php";
                 $.post('php/modules/report/index.php?action=exportPdf', {
                     fromDate : fromDateI,
                     toDate : fromDateI,
-                    transactionStatus : statusI,
+                    transactionStatus : transactionStatusI,
                     company : $('#companySearch').val() || '',
                     customer : customerNoI,
                     supplier : supplierNoI,
                     vehicle : vehicleNoI,
                     weighingType : invoiceNoI,
-                    status : batchNoI,
+                    status : statusI,
                     product : productSearchI,
                     rawMat : rawMaterialI,
                     plant : plantNoI,
@@ -965,24 +956,15 @@ require_once "components/weighingModal/data.php";
         $('#exportExcel').on('click', function(){
             var fromDateI = $('#fromDateSearch').val();
             var toDateI = $('#toDateSearch').val();
-            var statusI = $('#statusSearch').val() ? $('#statusSearch').val() : '';
+            var transactionStatusI = $('#transactionStatusSearch').val() ? $('#transactionStatusSearch').val() : '';
             var customerNoI = $('#customerNoSearch').val() ? $('#customerNoSearch').val() : '';
             var supplierNoI = $('#supplierSearch').val() ? $('#supplierSearch').val() : '';
             var vehicleNoI = $('#vehicleNo').val() ? $('#vehicleNo').val() : '';
             var invoiceNoI = $('#invoiceNoSearch').val() ? $('#invoiceNoSearch').val() : '';
-            var batchNoI = $('#batchNoSearch').val() ? $('#batchNoSearch').val() : '';
+            var statusI = $('#statusSearch').val() ? $('#statusSearch').val() : '';
             var productSearchI = $('#productSearch').val() ? $('#productSearch').val() : '';
             var rawMaterialI = $('#rawMatSearch').val() ? $('#rawMatSearch').val() : '';
             var plantNoI = $('#plantSearch').val() ? $('#plantSearch').val() : '';
-            
-            if (batchNoI == 'N'){
-                batchNoI = 'Pending';
-            }else if (batchNoI == 'Y'){
-                batchNoI = 'Complete';
-            }else if (batchNoI == 'Cancelled'){
-                batchNoI = 'Cancelled';
-            }
-
             var selectedIds = []; // An array to store the selected 'id' values
 
             $("#weightTable tbody input[type='checkbox']").each(function () {
@@ -996,12 +978,12 @@ require_once "components/weighingModal/data.php";
 
             if (selectedIds.length > 0) {
                 window.open("php/modules/report/index.php?action=exportExcel&file=weight&fromDate="+fromDateI+"&toDate="+toDateI+
-                "&transactionStatus="+statusI+"&company="+encodeURIComponent($('#companySearch').val() || '')+"&customer="+customerNoI+"&supplier="+supplierNoI+"&vehicle="+vehicleNoI+
-                "&weighingType="+invoiceNoI+"&product="+productSearchI+"&rawMat="+rawMaterialI+"&plant="+plantNoI+"&status="+batchNoI+"&isMulti=Y&ids="+selectedIds);
+                "&transactionStatus="+transactionStatusI+"&company="+encodeURIComponent($('#companySearch').val() || '')+"&customer="+customerNoI+"&supplier="+supplierNoI+"&vehicle="+vehicleNoI+
+                "&weighingType="+invoiceNoI+"&product="+productSearchI+"&rawMat="+rawMaterialI+"&plant="+plantNoI+"&status="+statusI+"&isMulti=Y&ids="+selectedIds);
             }else{
                 window.open("php/modules/report/index.php?action=exportExcel&file=weight&fromDate="+fromDateI+"&toDate="+toDateI+
-                "&transactionStatus="+statusI+"&company="+encodeURIComponent($('#companySearch').val() || '')+"&customer="+customerNoI+"&supplier="+supplierNoI+"&vehicle="+vehicleNoI+
-                "&weighingType="+invoiceNoI+"&product="+productSearchI+"&rawMat="+rawMaterialI+"&plant="+plantNoI+"&status="+batchNoI+"&isMulti=N");
+                "&transactionStatus="+transactionStatusI+"&company="+encodeURIComponent($('#companySearch').val() || '')+"&customer="+customerNoI+"&supplier="+supplierNoI+"&vehicle="+vehicleNoI+
+                "&weighingType="+invoiceNoI+"&product="+productSearchI+"&rawMat="+rawMaterialI+"&plant="+plantNoI+"&status="+statusI+"&isMulti=N");
             }
         });
 
@@ -1147,7 +1129,7 @@ require_once "components/weighingModal/data.php";
 
             allProductSearchOptions = null;
             allRawMatSearchOptions = null;
-            var status = $('#statusSearch').val();
+            var status = $('#transactionStatusSearch').val();
             if (productFiltered) filterDropdownByTransactionStatus('#productSearch', 'allProductSearchOptions', status);
             if (rawMatFiltered) filterDropdownByTransactionStatus('#rawMatSearch', 'allRawMatSearchOptions', status);
         });
@@ -1194,13 +1176,13 @@ require_once "components/weighingModal/data.php";
     function renderTable() {
         var fromDateI = $('#fromDateSearch').val();
         var toDateI = $('#toDateSearch').val();
-        var statusI = $('#statusSearch').val() || '';
+        var transactionStatusI = $('#transactionStatusSearch').val() || '';
         var companyI = $('#companySearch').val() || '';
         var customerNoI = $('#customerNoSearch').val() || '';
         var supplierI = $('#supplierSearch').val() || '';
         var vehicleNoI = $('#vehicleNo').val() || '';
         var invoiceNoI = $('#invoiceNoSearch').val() || '';
-        var batchNoI = $('#batchNoSearch').val() || '';
+        var statusI = $('#statusSearch').val() || '';
         var productSearchI = $('#productSearch').val() || '';
         var rawMaterialI = $('#rawMatSearch').val() || '';
         var plantNoI = $('#plantSearch').val() || '';
@@ -1230,13 +1212,13 @@ require_once "components/weighingModal/data.php";
                     d.action = 'filterWeight';
                     d.fromDate = fromDateI;
                     d.toDate = toDateI;
-                    d.status = statusI;
+                    d.transactionStatus = transactionStatusI;
                     d.company = companyI;
                     d.customer = customerNoI;
                     d.supplier = supplierI;
                     d.vehicle = vehicleNoI;
                     d.invoice = invoiceNoI;
-                    d.batch = batchNoI;
+                    d.status = statusI;
                     d.product = productSearchI;
                     d.rawMaterial = rawMaterialI;
                     d.plant = plantNoI;
@@ -1308,14 +1290,14 @@ require_once "components/weighingModal/data.php";
                                 if (row.weight_type == 'Primer Mover + Container'){
                                     buttons += `
                                     <div class="col-auto">
-                                        <button title="Edit" type="button" id="edit${data}" onclick="edit(${data}, 'Y')" class="btn btn-warning btn-sm">
+                                        <button title="Edit" type="button" id="edit${data}" onclick="editWeight(${data}, 'Y')" class="btn btn-warning btn-sm">
                                             <i class="fas fa-pen"></i>
                                         </button>
                                     </div>`;
                                 }else{
                                     buttons += `
                                     <div class="col-auto">
-                                        <button title="Edit" type="button" id="edit${data}" onclick="edit(${data}, 'N')" class="btn btn-warning btn-sm">
+                                        <button title="Edit" type="button" id="edit${data}" onclick="editWeight(${data}, 'N')" class="btn btn-warning btn-sm">
                                             <i class="fas fa-pen"></i>
                                         </button>
                                     </div>`;
@@ -1326,14 +1308,14 @@ require_once "components/weighingModal/data.php";
                                         if (row.weight_type == 'Primer Mover + Container'){
                                             buttons += `
                                             <div class="col-auto">
-                                                <button title="Weight Out" type="button" id="edit${data}" onclick="edit(${data}, 'Y')" class="btn btn-warning btn-sm">
+                                                <button title="Weight Out" type="button" id="edit${data}" onclick="editWeight(${data}, 'Y')" class="btn btn-warning btn-sm">
                                                     <i class="fa-solid fa-weight-hanging"></i>
                                                 </button>
                                             </div>`;    
                                         }else{
                                             buttons += `
                                             <div class="col-auto">
-                                                <button title="Weight Out" type="button" id="edit${data}" onclick="edit(${data}, 'N')" class="btn btn-warning btn-sm">
+                                                <button title="Weight Out" type="button" id="edit${data}" onclick="editWeight(${data}, 'N')" class="btn btn-warning btn-sm">
                                                     <i class="fa-solid fa-weight-hanging"></i>
                                                 </button>
                                             </div>`;  
