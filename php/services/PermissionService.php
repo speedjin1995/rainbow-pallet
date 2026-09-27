@@ -228,6 +228,12 @@ class PermissionService extends BaseService {
                 ['Different Container Type', 'Weighing'],
                 ['Sawn Timber', 'Sawn Timber'],
             ]],
+            ['name' => 'reactivate', 'modules' => [
+                ['Sales', 'Weighing'], 
+                ['Purchase', 'Weighing'], 
+                ['Port', 'Weighing'], 
+                ['Miscellaneous', 'Weighing'],
+            ]],
             ['name' => 'weight_out', 'modules' => [
                 ['Sales', 'Weighing'], 
                 ['Purchase', 'Weighing'], 

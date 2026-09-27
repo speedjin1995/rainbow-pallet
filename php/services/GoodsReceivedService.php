@@ -298,6 +298,16 @@ class GoodsReceivedService extends BaseService {
             }
         }
 
+        $paymentTerm = isset($input['paymentTerm']) ? trim($input['paymentTerm']) : '';
+        if ($paymentTerm !== '' && $paymentTerm !== '-') {
+            $sql .= " AND supplier_code IN (SELECT supplier_code FROM Supplier WHERE payment_term = ?)"; $types .= 's'; $values[] = $paymentTerm;
+        }
+
+        $paymentTermPeriod = isset($input['paymentTermPeriod']) ? trim($input['paymentTermPeriod']) : '';
+        if ($paymentTermPeriod !== '' && $paymentTermPeriod !== '-') {
+            $sql .= " AND supplier_code IN (SELECT supplier_code FROM Supplier WHERE payment_term_period = ?)"; $types .= 's'; $values[] = $paymentTermPeriod;
+        }
+
         return ['sql' => $sql, 'types' => $types, 'values' => $values];
     }
 
