@@ -111,6 +111,54 @@ class ItemController extends BaseController {
     }
     
     /**
+     * Get item prices (product pricing + customer/supplier price entries)
+     */
+    public function getPrices() {
+        if (!hasModulePermission('Master Data', 'Items', ['manage_price'])) {
+            $this->failed('Unauthorized');
+        }
+
+        $id = intval($this->getRequiredPost('id'));
+
+        try {
+            $data = $this->itemService->getPrices($id);
+            if ($data) {
+                $this->success('Record found', ['data' => $data]);
+            } else {
+                $this->failed('Record not found');
+            }
+        } catch (Exception $e) {
+            error_log('Item get prices: ' . $e->getMessage());
+            $this->failed('Something went wrong');
+        }
+    }
+
+    /**
+     * Save item prices
+     */
+    public function savePrices() {
+        if (!hasModulePermission('Master Data', 'Items', ['manage_price'])) {
+            $this->failed('Unauthorized');
+        }
+
+        $id = intval($this->getRequiredPost('id'));
+        $data = json_decode($this->getRequiredPost('data'), true);
+        if (!is_array($data)) {
+            $this->failed('Invalid data');
+        }
+
+        try {
+            $this->itemService->savePrices($id, $data);
+            $this->success('Updated Successfully!!');
+        } catch (InvalidArgumentException $e) {
+            $this->failed($e->getMessage());
+        } catch (Exception $e) {
+            error_log('Item save prices: ' . $e->getMessage());
+            $this->failed('Something went wrong');
+        }
+    }
+
+    /**
      * Download the Excel upload template, with Category/UOM as dropdown lists
      * pulled from the user's own Product_Categories/Units (unless view_all_companies)
      */

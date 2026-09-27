@@ -908,6 +908,19 @@ class ReportService extends BaseService {
             'company' => 'company_id',
             'columns' => ["Transaction Id", "Company", "Plant", "Record Date", "Remarks", "Status", "Lines", "Total Pieces", "Total Tons", "Action", "Action By", "Event Date"]
         ],
+        // One row per Manage Prices save (Product_Log rows flagged is_price_save), entries come from Product_Price_Log
+        'Item Price' => [
+            'from'    => 'Product_Log pl
+                          LEFT JOIN Company c ON pl.company = c.id
+                          LEFT JOIN (SELECT product_log_id, COUNT(*) AS entry_count
+                                     FROM Product_Price_Log WHERE action_id <> 3 GROUP BY product_log_id) e ON e.product_log_id = pl.id',
+            'alias'   => 'pl',
+            'select'  => 'pl.*, c.name AS company_name, e.entry_count',
+            'where'   => "pl.is_price_save = 'Y'",
+            'search'  => ['itemPriceCode', 'product_code', 'like'],
+            'company' => 'company',
+            'columns' => ["Item Code", "Item Name", "Company", "Purchase Price", "Selling Price", "Price Entries", "Action", "Action By", "Event Date"]
+        ],
     ];
 
 
@@ -952,7 +965,8 @@ class ReportService extends BaseService {
         }
 
         $select = $config['select'] ?? '*';
-        $rows = $this->fetchAll("SELECT {$select} FROM {$config['from']} WHERE 1=1" . $f['sql'], $f['types'], $f['values']);
+        $where  = isset($config['where']) ? " AND {$config['where']}" : '';
+        $rows = $this->fetchAll("SELECT {$select} FROM {$config['from']} WHERE 1=1{$where}" . $f['sql'], $f['types'], $f['values']);
 
         $data = [];
         foreach ($rows as $row) {
@@ -1269,11 +1283,113 @@ class ReportService extends BaseService {
                     "Total Tons"     => $row['total_tons'] ?? '',
                 ];
                 break;
+            case 'Item Price':
+                $mapped = [
+                    "Item Code"      => $row['product_code'] ?? '',
+                    "Item Name"      => $row['name'] ?? '',
+                    "Company"        => $row['company_name'] ?? '',
+                    "Purchase Price" => $row['purchase_price'] ?? '',
+                    "Selling Price"  => $row['selling_price'] ?? '',
+                    "Price Entries"  => $row['entry_count'] ?? 0,
+                ];
+                break;
             default:
                 $mapped = [];
         }
 
         return array_merge(['id' => $row['id']], $mapped, $audit);
+    }
+
+    /**
+     * Price entries of one Manage Prices save (Product_Log id).
+     * Every save soft deletes and re-inserts all entries, so entries are compared by content (party, dates, type, tiers):
+     * a saved entry with no identical previous entry is new/changed, a previous entry with no identical saved entry is removed.
+     */
+    public function getItemPriceLogDetails($productLogId) {
+        $headers = $this->fetchAll("SELECT id, company FROM Product_Log WHERE id = ? AND is_price_save = 'Y'", 'i', [$productLogId]);
+        if (empty($headers)) {
+            return null;
+        }
+
+        $companyId = $this->getAuditLogCompanyId(null);
+        if ($companyId > 0 && intval($headers[0]['company']) !== $companyId) {
+            return null;
+        }
+
+        $priceRows = $this->fetchAll(
+            "SELECT price_id, party_type, party_id, date_from, date_to, price_type, action_id
+             FROM Product_Price_Log WHERE product_log_id = ? ORDER BY party_type, date_from, id",
+            'i', [$productLogId]
+        );
+        $tierRows = $this->fetchAll(
+            "SELECT price_id, qty_from, qty_to, purchase_price, selling_price, discount, discount_type, action_id
+             FROM Product_Price_Tier_Log WHERE product_log_id = ? ORDER BY qty_from, id",
+            'i', [$productLogId]
+        );
+
+        // Tiers per entry, kept apart for the removed (action 3) and saved versions of the entry
+        $tiersByPrice = [];
+        foreach ($tierRows as $tier) {
+            $key = $tier['price_id'] . '_' . (intval($tier['action_id']) === 3 ? 'removed' : 'saved');
+            unset($tier['price_id'], $tier['action_id']);
+            $tiersByPrice[$key][] = array_map(fn($v) => $v ?? '', $tier);
+        }
+
+        $partyNames = $this->getPartyNames($priceRows);
+
+        $entries = [];
+        $removed = [];
+        foreach ($priceRows as $row) {
+            $isRemoved = intval($row['action_id']) === 3;
+            $entry = [
+                'party_type' => $row['party_type'],
+                'party_name' => $partyNames[$row['party_type']][$row['party_id']] ?? '',
+                'date_from'  => date('d-m-Y', strtotime($row['date_from'])),
+                'date_to'    => date('d-m-Y', strtotime($row['date_to'])),
+                'price_type' => $row['price_type'],
+                'tiers'      => $tiersByPrice[$row['price_id'] . '_' . ($isRemoved ? 'removed' : 'saved')] ?? [],
+            ];
+            if ($isRemoved) {
+                $removed[] = $entry;
+            } else {
+                $entries[] = $entry;
+            }
+        }
+
+        // Only a save with previous entries has something to compare with
+        $compare = !empty($removed);
+        $unmatched = $removed;
+        foreach ($entries as &$entry) {
+            $index = $compare ? array_search($entry, $unmatched) : false;
+            if ($index !== false) {
+                unset($unmatched[$index]);
+            }
+            $entry['is_changed'] = $compare && $index === false;
+        }
+        unset($entry);
+
+        return ['entries' => $entries, 'removed' => array_values($unmatched)];
+    }
+
+    // Customer/Supplier names of the price log rows: [party_type => [id => "code - name"]]
+    private function getPartyNames($priceRows) {
+        $names = ['Customer' => [], 'Supplier' => []];
+        foreach (['Customer' => 'customer_code', 'Supplier' => 'supplier_code'] as $table => $codeColumn) {
+            $ids = array_values(array_unique(array_map('intval', array_column(
+                array_filter($priceRows, fn($r) => $r['party_type'] === $table), 'party_id'
+            ))));
+            if (empty($ids)) {
+                continue;
+            }
+            $rows = $this->fetchAll(
+                "SELECT id, {$codeColumn} AS code, name FROM {$table} WHERE id IN (" . implode(',', array_fill(0, count($ids), '?')) . ")",
+                str_repeat('i', count($ids)), $ids
+            );
+            foreach ($rows as $row) {
+                $names[$table][$row['id']] = $row['code'] . ' - ' . $row['name'];
+            }
+        }
+        return $names;
     }
 
     /**

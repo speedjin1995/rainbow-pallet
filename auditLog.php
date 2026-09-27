@@ -14,7 +14,7 @@ if (!$viewAllCompanies) {
 ?>
 
 <head>
-    <title>Audit Log | Synctronix - Weighing System</title>
+    <title><?=$languageArray['audit_log_code'][$language]?> | Synctronix - Weighing System</title>
     <?php include 'layouts/title-meta.php'; ?>
 
     <!-- jsvectormap css -->
@@ -59,20 +59,6 @@ if (!$viewAllCompanies) {
                 <div class="row">
                     <div class="col">
                         <div>
-                            <div class="row mb-3 pb-1">
-                                <div class="col-12">
-                                    <div class="d-flex align-items-lg-center flex-lg-row flex-column">
-                                        <div class="flex-grow-1">
-                                            <!--h4 class="fs-16 mb-1">Good Morning, Anna!</h4>
-                                            <p class="text-muted mb-0">Here's what's happening with your store
-                                                today.</p-->
-                                        </div>
-                                    </div><!-- end card header -->
-                                </div>
-                                <!--end col-->
-                            </div>
-                            <!--end row-->
-
                             <div class="col-xxl-12 col-lg-12">
                                 <div class="card">
                                     <div class="card-body">
@@ -101,6 +87,7 @@ if (!$viewAllCompanies) {
                                                             <option value="Unit"><?=$languageArray['units_code'][$language]?></option>
                                                             <option value="Product"><?=$languageArray['product_code'][$language]?></option>
                                                             <!-- <option value="Raw Materials"><?=$languageArray['raw_material_code'][$language]?></option> -->
+                                                            <option value="Item Price"><?=$languageArray['item_price_code'][$language]?></option>
                                                             <option value="Destination"><?=$languageArray['destination_code'][$language]?></option>
                                                             <option value="Location"><?=$languageArray['locations_code'][$language]?></option>
                                                             <option value="Vehicle"><?=$languageArray['vehicle_code'][$language]?></option>
@@ -197,6 +184,12 @@ if (!$viewAllCompanies) {
                                                     <div class="mb-3">
                                                         <label for="sawnTimber" class="form-label"><?=$languageArray['transaction_id_code'][$language]?></label>
                                                         <input type="text" class="form-control" placeholder="<?=$languageArray['transaction_id_code'][$language]?>" name="sawnTimber" id="sawnTimber">
+                                                    </div>
+                                                </div>
+                                                <div class="col-3 inputCode itemPriceInput" style="display:none">
+                                                    <div class="mb-3">
+                                                        <label for="itemPriceCode" class="form-label"><?=$languageArray['item_code_code'][$language]?></label>
+                                                        <input type="text" class="form-control" placeholder="<?=$languageArray['item_code_code'][$language]?>" name="itemPriceCode" id="itemPriceCode">
                                                     </div>
                                                 </div>
 
@@ -589,6 +582,11 @@ $(function () {
             $('.inputCode').hide();
             $('.sawnTimberInput').show();
         }
+        else if($(this).val() == "Item Price")
+        {
+            $('.inputCode').hide();
+            $('.itemPriceInput').show();
+        }
         else if($(this).val() == "SO")
         {
             $('.inputCode').hide();
@@ -660,6 +658,24 @@ $(function () {
                 });
             }
         }
+        else if ($('#reportType').val() == 'Item Price'){
+            if (row.child.isShown()) {
+                row.child.hide();
+                tr.removeClass('shown');
+            } else {
+                $.post('php/modules/report/index.php', { action: 'getItemPriceLogDetails', userID: row.data().id }, function (data) {
+                    var obj = JSON.parse(data);
+                    if (obj.status === 'success') {
+                        row.child(formatItemPrice(obj.message)).show();
+                        tr.addClass("shown");
+                    } else {
+                        toastr.error(obj.message);
+                    }
+                }).fail(function () {
+                    toastr.error('Something went wrong');
+                });
+            }
+        }
     });
 
     // Handle change event of the dropdown list
@@ -698,6 +714,7 @@ $(function () {
                 weight: $('#weight').val(),
                 emptyContainer: $('#emptyContainer').val(),
                 sawnTimber: $('#sawnTimber').val(),
+                itemPriceCode: $('#itemPriceCode').val(),
                 custPoNo: $('#custPoNo').val(),
                 poNo: $('#poNo').val(),
             },
@@ -943,6 +960,71 @@ function sawnTimberLineTable(lines) {
 
 function escapeHtml(value) {
     return $('<div>').text(value == null ? '' : value).html();
+}
+
+function formatItemPrice(data) {
+    if (data.entries.length == 0 && data.removed.length == 0) {
+        return `<p class="text-muted mb-0"><?=$languageArray['no_line_changes_code'][$language]?></p>`;
+    }
+
+    var returnString = `
+    <p><span><strong style="font-size:120%; text-decoration: underline;"><?=$languageArray['price_entries_code'][$language]?></strong></span></p>`;
+    $.each(data.entries, function (i, entry) {
+        returnString += itemPriceEntryBlock(entry);
+    });
+
+    if (data.removed.length > 0) {
+        returnString += `
+        <p class="mt-3"><span><strong style="font-size:120%; text-decoration: underline;"><?=$languageArray['removed_entries_code'][$language]?></strong></span></p>`;
+        $.each(data.removed, function (i, entry) {
+            returnString += itemPriceEntryBlock(entry);
+        });
+    }
+
+    return returnString;
+}
+
+function itemPriceEntryBlock(entry) {
+    var partyType = entry.party_type == 'Supplier' ? '<?=$languageArray['supplier_code'][$language]?>' : '<?=$languageArray['customer_code'][$language]?>';
+    var priceType = entry.price_type == 'Range' ? '<?=$languageArray['range_code'][$language]?>' : '<?=$languageArray['single_code'][$language]?>';
+    var badge = entry.is_changed ? ` <span class="badge bg-warning"><?=$languageArray['changed_code'][$language]?></span>` : '';
+
+    var rows = '';
+    $.each(entry.tiers, function (i, tier) {
+        var isPercent = tier.discount_type == 'Percent';
+        rows += `
+        <tr>
+            <td>${escapeHtml(tier.qty_from)}</td>
+            <td>${escapeHtml(tier.qty_to)}</td>
+            <td>${escapeHtml(tier.purchase_price)}</td>
+            <td>${escapeHtml(tier.selling_price)}</td>
+            <td>${isPercent ? '<?=$languageArray['percentage_code'][$language]?>' : '<?=$languageArray['amount_code'][$language]?>'}</td>
+            <td>${escapeHtml(tier.discount)}${isPercent ? '%' : ''}</td>
+        </tr>`;
+    });
+
+    return `
+    <div class="border rounded p-2 mb-2">
+        <p class="mb-2">
+            <strong>${partyType}:</strong> ${escapeHtml(entry.party_name)} &nbsp;|&nbsp;
+            <strong><?=$languageArray['from_date_code'][$language]?>:</strong> ${escapeHtml(entry.date_from)} &nbsp;|&nbsp;
+            <strong><?=$languageArray['to_date_code'][$language]?>:</strong> ${escapeHtml(entry.date_to)} &nbsp;|&nbsp;
+            <strong><?=$languageArray['type_code'][$language]?>:</strong> ${priceType}${badge}
+        </p>
+        <table class="table table-sm table-bordered mb-0">
+            <thead>
+                <tr>
+                    <th><?=$languageArray['qty_from_code'][$language]?></th>
+                    <th><?=$languageArray['qty_to_code'][$language]?></th>
+                    <th><?=$languageArray['purchase_price_code'][$language]?></th>
+                    <th><?=$languageArray['selling_price_code'][$language]?></th>
+                    <th><?=$languageArray['discount_type_code'][$language]?></th>
+                    <th><?=$languageArray['discount_code'][$language]?></th>
+                </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+        </table>
+    </div>`;
 }
 
 </script>

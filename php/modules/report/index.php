@@ -27,6 +27,9 @@ switch ($action) {
     case 'getSawnTimberLogDetails':
         $controller->handleGetSawnTimberLogDetails();
         break;
+    case 'getItemPriceLogDetails':
+        $controller->handleGetItemPriceLogDetails();
+        break;
     default:
         echo json_encode(['status' => 'failed', 'message' => 'Invalid action']);
 }

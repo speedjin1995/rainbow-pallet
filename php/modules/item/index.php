@@ -21,6 +21,8 @@ switch ($action) {
     case 'upload':    $controller->upload(); break;
     case 'downloadTemplate': $controller->downloadTemplate(); break;
     case 'list':      $controller->handleList(); break;
+    case 'getPrices': $controller->getPrices(); break;
+    case 'savePrices': $controller->savePrices(); break;
     default:
         echo json_encode(['status' => 'failed', 'message' => 'Invalid action']);
 }

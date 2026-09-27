@@ -3966,3 +3966,167 @@ CREATE TABLE IF NOT EXISTS `Login_Log` (
 
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('login_code', 'Login', '登录', 'Log Masuk', 'உள்நுழைவு');
 
+
+ALTER TABLE `Product` ADD `purchase_price` DECIMAL(15,2) NULL AFTER `uom`, ADD `selling_price` DECIMAL(15,2) NULL AFTER `purchase_price`;
+
+CREATE TABLE IF NOT EXISTS `Product_Price` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `product_id` int(11) NOT NULL,
+  `party_type` varchar(10) NOT NULL,
+  `party_id` int(11) NOT NULL,
+  `date_from` date NOT NULL,
+  `date_to` date NOT NULL,
+  `price_type` varchar(10) NOT NULL,
+  `status` int(1) NOT NULL DEFAULT 0,
+  `created_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_by` varchar(50) DEFAULT NULL,
+  `modified_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `modified_by` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `Product_Price_Tier` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `price_id` int(11) NOT NULL,
+  `qty_from` decimal(15,2) NOT NULL,
+  `qty_to` decimal(15,2) NOT NULL,
+  `purchase_price` decimal(15,2) DEFAULT NULL,
+  `selling_price` decimal(15,2) DEFAULT NULL,
+  `discount` decimal(15,2) NOT NULL DEFAULT 0,
+  `discount_type` varchar(10) NOT NULL DEFAULT 'Amount',
+  `status` int(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('manage_prices_code', 'Manage Prices', '管理价格', 'Urus Harga', 'விலைகளை நிர்வகி');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('product_pricing_code', 'Product Pricing', '产品定价', 'Harga Produk', 'பொருள் விலை நிர்ணயம்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('customer_supplier_pricing_code', 'Customer / Supplier Pricing', '客户/供应商定价', 'Harga Pelanggan / Pembekal', 'வாடிக்கையாளர் / வழங்குநர் விலை நிர்ணயம்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('purchase_price_code', 'Purchase Price', '采购价', 'Harga Belian', 'கொள்முதல் விலை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('selling_price_code', 'Selling Price', '销售价', 'Harga Jualan', 'விற்பனை விலை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('discount_code', 'Discount', '折扣', 'Diskaun', 'தள்ளுபடி');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('discount_type_code', 'Discount Type', '折扣类型', 'Jenis Diskaun', 'தள்ளுபடி வகை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('percentage_code', 'Percentage', '百分比', 'Peratus', 'சதவீதம்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('single_code', 'Single', '单一', 'Tunggal', 'ஒற்றை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('range_code', 'Range', '范围', 'Julat', 'வரம்பு');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('qty_from_code', 'Qty From', '数量从', 'Kuantiti Dari', 'அளவு முதல்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('qty_to_code', 'Qty To', '数量至', 'Kuantiti Hingga', 'அளவு வரை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('add_price_entry_code', 'Add Price Entry', '新增价格', 'Tambah Harga', 'விலையைச் சேர்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('add_tier_code', 'Add Tier', '新增级别', 'Tambah Peringkat', 'நிலையைச் சேர்');
+
+ALTER TABLE `Product_Log` ADD `purchase_price` DECIMAL(15,2) NULL AFTER `uom`, ADD `selling_price` DECIMAL(15,2) NULL AFTER `purchase_price`, ADD `is_price_save` CHAR(1) NOT NULL DEFAULT 'N' AFTER `company`;
+
+CREATE TABLE IF NOT EXISTS `Product_Price_Log` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `price_id` int(11) NOT NULL,
+  `product_id` int(11) NOT NULL,
+  `product_log_id` int(11) DEFAULT NULL,
+  `party_type` varchar(10) NOT NULL,
+  `party_id` int(11) NOT NULL,
+  `date_from` date NOT NULL,
+  `date_to` date NOT NULL,
+  `price_type` varchar(10) NOT NULL,
+  `status` int(1) NOT NULL DEFAULT 0,
+  `action_id` int(11) NOT NULL,
+  `action_by` varchar(50) DEFAULT NULL,
+  `event_date` datetime NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `Product_Price_Tier_Log` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `tier_id` int(11) NOT NULL,
+  `price_id` int(11) NOT NULL,
+  `product_log_id` int(11) DEFAULT NULL,
+  `qty_from` decimal(15,2) NOT NULL,
+  `qty_to` decimal(15,2) NOT NULL,
+  `purchase_price` decimal(15,2) DEFAULT NULL,
+  `selling_price` decimal(15,2) DEFAULT NULL,
+  `discount` decimal(15,2) NOT NULL DEFAULT 0,
+  `discount_type` varchar(10) NOT NULL,
+  `status` int(1) NOT NULL DEFAULT 0,
+  `action_id` int(11) NOT NULL,
+  `action_by` varchar(50) DEFAULT NULL,
+  `event_date` datetime NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_PRODUCT` AFTER INSERT ON `Product` FOR EACH ROW
+BEGIN
+    INSERT INTO Product_Log (
+        product_id, product_code, name, description, variance, high, low, category, uom, purchase_price, selling_price, is_manual, company, is_price_save, action_id, action_by, event_date
+    )
+    VALUES (
+        NEW.id, NEW.product_code, NEW.name, NEW.description, NEW.variance, NEW.high, NEW.low, NEW.category, NEW.uom, NEW.purchase_price, NEW.selling_price, NEW.is_manual, NEW.company, COALESCE(@product_price_save, 'N'), 1, NEW.created_by, NEW.created_date
+    );
+
+    -- Picked up by the price/tier triggers of the same price save
+    SET @product_log_id = LAST_INSERT_ID();
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_PRODUCT` BEFORE UPDATE ON `Product` FOR EACH ROW
+BEGIN
+    DECLARE action_value INT;
+
+    -- Check if status = 1, set action_id to 3, otherwise set to 2
+    IF NEW.status = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Product_Log table
+    INSERT INTO Product_Log (
+        product_id, product_code, name, description, variance, high, low, category, uom, purchase_price, selling_price, is_manual, company, is_price_save, action_id, action_by, event_date
+    )
+    VALUES (
+        NEW.id, NEW.product_code, NEW.name, NEW.description, NEW.variance, NEW.high, NEW.low, NEW.category, NEW.uom, NEW.purchase_price, NEW.selling_price, NEW.is_manual, NEW.company, COALESCE(@product_price_save, 'N'), action_value, NEW.modified_by, NEW.modified_date
+    );
+
+    -- Picked up by the price/tier triggers of the same price save
+    SET @product_log_id = LAST_INSERT_ID();
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_PRODUCT_PRICE` AFTER INSERT ON `Product_Price` FOR EACH ROW
+INSERT INTO Product_Price_Log (
+    price_id, product_id, product_log_id, party_type, party_id, date_from, date_to, price_type, status, action_id, action_by, event_date
+) VALUES (
+    NEW.id, NEW.product_id, @product_log_id, NEW.party_type, NEW.party_id, NEW.date_from, NEW.date_to, NEW.price_type, NEW.status, 1, NEW.created_by, NOW()
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_PRODUCT_PRICE` BEFORE UPDATE ON `Product_Price` FOR EACH ROW
+INSERT INTO Product_Price_Log (
+    price_id, product_id, product_log_id, party_type, party_id, date_from, date_to, price_type, status, action_id, action_by, event_date
+) VALUES (
+    NEW.id, NEW.product_id, @product_log_id, NEW.party_type, NEW.party_id, NEW.date_from, NEW.date_to, NEW.price_type, NEW.status, IF(NEW.status = 1 AND OLD.status <> 1, 3, 2), NEW.modified_by, NOW()
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_PRODUCT_PRICE_TIER` AFTER INSERT ON `Product_Price_Tier` FOR EACH ROW
+INSERT INTO Product_Price_Tier_Log (
+    tier_id, price_id, product_log_id, qty_from, qty_to, purchase_price, selling_price, discount, discount_type, status, action_id, action_by, event_date
+) VALUES (
+    NEW.id, NEW.price_id, @product_log_id, NEW.qty_from, NEW.qty_to, NEW.purchase_price, NEW.selling_price, NEW.discount, NEW.discount_type, NEW.status, 1, COALESCE(@product_price_action_by, 'system'), NOW()
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_PRODUCT_PRICE_TIER` BEFORE UPDATE ON `Product_Price_Tier` FOR EACH ROW
+INSERT INTO Product_Price_Tier_Log (
+    tier_id, price_id, product_log_id, qty_from, qty_to, purchase_price, selling_price, discount, discount_type, status, action_id, action_by, event_date
+) VALUES (
+    NEW.id, NEW.price_id, @product_log_id, NEW.qty_from, NEW.qty_to, NEW.purchase_price, NEW.selling_price, NEW.discount, NEW.discount_type, NEW.status, IF(NEW.status = 1 AND OLD.status <> 1, 3, 2), COALESCE(@product_price_action_by, 'system'), NOW()
+)
+$$
+DELIMITER ;
+
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('item_price_code', 'Item Price', '物品价格', 'Harga Item', 'பொருள் விலை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('price_entries_code', 'Price Entries', '价格记录', 'Entri Harga', 'விலை பதிவுகள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('removed_entries_code', 'Removed Entries', '已移除的记录', 'Entri Dibuang', 'நீக்கப்பட்ட பதிவுகள்');

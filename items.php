@@ -295,6 +295,57 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <!-- Manage Prices Modal -->
+                                    <div class="modal fade" id="priceModal" tabindex="-1" role="dialog" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-scrollable modal-xl">
+                                            <div class="modal-content">
+                                                <div class="modal-header py-2">
+                                                    <h5 class="modal-title"><?=$languageArray['manage_prices_code'][$language]?> - <span id="priceItemName"></span></h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <form role="form" id="priceForm" autocomplete="off">
+                                                        <input type="hidden" id="priceProductId">
+                                                        <div class="card bg-light">
+                                                            <div class="card-header">
+                                                                <h5 class="card-title mb-0"><?=$languageArray['product_pricing_code'][$language]?></h5>
+                                                            </div>
+                                                            <div class="card-body">
+                                                                <div class="row">
+                                                                    <div class="col-md-6 mb-3">
+                                                                        <label for="productPurchasePrice" class="form-label"><?=$languageArray['purchase_price_code'][$language]?></label>
+                                                                        <input type="number" class="form-control" id="productPurchasePrice" min="0" step="0.01" placeholder="0.00">
+                                                                    </div>
+                                                                    <div class="col-md-6 mb-3">
+                                                                        <label for="productSellingPrice" class="form-label"><?=$languageArray['selling_price_code'][$language]?></label>
+                                                                        <input type="number" class="form-control" id="productSellingPrice" min="0" step="0.01" placeholder="0.00">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="card bg-light">
+                                                            <div class="card-header">
+                                                                <div class="d-flex justify-content-between">
+                                                                    <h5 class="card-title mb-0"><?=$languageArray['customer_supplier_pricing_code'][$language]?></h5>
+                                                                    <button type="button" class="btn btn-success" id="addPriceEntry"><i class="ri-add-circle-line align-middle me-1"></i><?=$languageArray['add_price_entry_code'][$language]?></button>
+                                                                </div>
+                                                            </div>
+                                                            <div class="card-body" id="priceEntries"></div>
+                                                        </div>
+
+                                                        <div class="col-lg-12">
+                                                            <div class="hstack gap-2 justify-content-end">
+                                                                <button type="button" class="btn btn-light" data-bs-dismiss="modal"><?=$languageArray['close_code'][$language]?></button>
+                                                                <button type="button" class="btn btn-success" id="submitPrices"><?=$languageArray['submit_code'][$language]?></button>
+                                                            </div>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <div class="modal fade" id="uploadModal">
                                         <div class="modal-dialog modal-xl" style="max-width: 90%;">
                                             <div class="modal-content">
@@ -499,6 +550,83 @@
         </tr>
     </script>
 
+    <script type="text/html" id="priceEntryTemplate">
+        <div class="card border price-entry mb-3">
+            <div class="card-body">
+                <div class="row align-items-end">
+                    <div class="col-md-2 mb-2">
+                        <label class="form-label"><?=$languageArray['type_code'][$language]?></label>
+                        <select class="form-select party-type">
+                            <option value="Customer"><?=$languageArray['customer_code'][$language]?></option>
+                            <option value="Supplier"><?=$languageArray['supplier_code'][$language]?></option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label"><?=$languageArray['customer_supplier_code'][$language]?> <span class="text-danger">*</span></label>
+                        <select class="form-control party-id" style="width: 100%;"></select>
+                    </div>
+                    <div class="col-md-2 mb-2">
+                        <label class="form-label"><?=$languageArray['from_date_code'][$language]?> <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control date-from" placeholder="dd-mm-yyyy">
+                    </div>
+                    <div class="col-md-2 mb-2">
+                        <label class="form-label"><?=$languageArray['to_date_code'][$language]?> <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control date-to" placeholder="dd-mm-yyyy">
+                    </div>
+                    <div class="col-md-2 mb-2">
+                        <label class="form-label"><?=$languageArray['type_code'][$language]?></label>
+                        <select class="form-select price-type">
+                            <option value="Single"><?=$languageArray['single_code'][$language]?></option>
+                            <option value="Range"><?=$languageArray['range_code'][$language]?></option>
+                        </select>
+                    </div>
+                    <div class="col-md-1 mb-2 text-end">
+                        <button type="button" class="btn btn-danger remove-price-entry" title="<?=$languageArray['delete_code'][$language]?>"><i class="ri-delete-bin-line"></i></button>
+                    </div>
+                </div>
+                <table class="table table-sm table-bordered mb-2">
+                    <thead>
+                        <tr>
+                            <th><?=$languageArray['qty_from_code'][$language]?></th>
+                            <th><?=$languageArray['qty_to_code'][$language]?></th>
+                            <th><?=$languageArray['purchase_price_code'][$language]?></th>
+                            <th><?=$languageArray['selling_price_code'][$language]?></th>
+                            <th><?=$languageArray['discount_type_code'][$language]?></th>
+                            <th><?=$languageArray['discount_code'][$language]?></th>
+                            <th class="tier-action"><?=$languageArray['action_code'][$language]?></th>
+                        </tr>
+                    </thead>
+                    <tbody class="price-tiers"></tbody>
+                </table>
+                <button type="button" class="btn btn-sm btn-soft-success add-price-tier"><i class="ri-add-line align-middle me-1"></i><?=$languageArray['add_tier_code'][$language]?></button>
+            </div>
+        </div>
+    </script>
+
+    <script type="text/html" id="priceTierTemplate">
+        <tr class="price-tier">
+            <td><input type="number" class="form-control qty-from" min="0" step="any"></td>
+            <td><input type="number" class="form-control qty-to" min="0" step="any"></td>
+            <td><input type="number" class="form-control tier-purchase-price" min="0" step="0.01"></td>
+            <td><input type="number" class="form-control tier-selling-price" min="0" step="0.01"></td>
+            <td>
+                <select class="form-select tier-discount-type">
+                    <option value="Amount"><?=$languageArray['amount_code'][$language]?></option>
+                    <option value="Percent"><?=$languageArray['percentage_code'][$language]?> (%)</option>
+                </select>
+            </td>
+            <td>
+                <div class="input-group">
+                    <input type="number" class="form-control tier-discount" min="0" step="0.01" value="0">
+                    <div class="input-group-text tier-discount-unit" style="display:none">%</div>
+                </div>
+            </td>
+            <td class="text-center tier-action">
+                <button type="button" class="btn btn-sm btn-danger remove-price-tier"><i class="ri-delete-bin-line"></i></button>
+            </td>
+        </tr>
+    </script>
+
     <script type="text/javascript">
         var table;
         var permissions = <?= json_encode($_SESSION['permissions'] ?? []) ?>;
@@ -507,6 +635,7 @@
         var uomNoCount = 1;
         var sessionCompanyId = <?= intval($_SESSION['company_id'] ?? 0) ?>;
         var canViewAllCompanies = <?= json_encode(hasModulePermission('Master Data', 'Items', ['view_all_companies'])) ?>;
+        var priceParties = { Customer: [], Supplier: [] };
 
         $(function () {
             $('#selectAllCheckbox').on('change', function() {
@@ -854,7 +983,223 @@
                 uomRowCount++;
                 uomNoCount++;
             });
+
+            // ─── Manage Prices ───────────────────────────────────────────────
+            $('#addPriceEntry').on('click', function(){
+                addPriceEntry();
+            });
+
+            $('#priceEntries').on('click', '.remove-price-entry', function(){
+                $(this).closest('.price-entry').remove();
+            });
+
+            $('#priceEntries').on('change', '.party-type', function(){
+                loadPriceParties($(this).closest('.price-entry'), '');
+            });
+
+            $('#priceEntries').on('change', '.price-type', function(){
+                var $entry = $(this).closest('.price-entry');
+                $entry.find('.price-tiers').html('');
+                addPriceTier($entry);
+                togglePriceType($entry);
+            });
+
+            $('#priceEntries').on('change', '.tier-discount-type', function(){
+                toggleDiscountUnit($(this).closest('.price-tier'));
+            });
+
+            $('#priceEntries').on('click', '.add-price-tier', function(){
+                addPriceTier($(this).closest('.price-entry'));
+            });
+
+            $('#priceEntries').on('click', '.remove-price-tier', function(){
+                var $entry = $(this).closest('.price-entry');
+                if ($entry.find('.price-tier').length > 1) {
+                    $(this).closest('.price-tier').remove();
+                }
+            });
+
+            $('#submitPrices').on('click', function(){
+                var $btn = $(this);
+                var data = {
+                    purchasePrice: $('#productPurchasePrice').val(),
+                    sellingPrice: $('#productSellingPrice').val(),
+                    entries: []
+                };
+
+                $('#priceEntries .price-entry').each(function(){
+                    var $entry = $(this);
+                    var entry = {
+                        partyType: $entry.find('.party-type').val(),
+                        partyId: $entry.find('.party-id').val() || '',
+                        dateFrom: $entry.find('.date-from').val(),
+                        dateTo: $entry.find('.date-to').val(),
+                        priceType: $entry.find('.price-type').val(),
+                        tiers: []
+                    };
+
+                    $entry.find('.price-tier').each(function(){
+                        var $tier = $(this);
+                        entry.tiers.push({
+                            qtyFrom: $tier.find('.qty-from').val(),
+                            qtyTo: $tier.find('.qty-to').val(),
+                            purchasePrice: $tier.find('.tier-purchase-price').val(),
+                            sellingPrice: $tier.find('.tier-selling-price').val(),
+                            discount: $tier.find('.tier-discount').val(),
+                            discountType: $tier.find('.tier-discount-type').val()
+                        });
+                    });
+
+                    data.entries.push(entry);
+                });
+
+                $btn.prop('disabled', true);
+                $('#spinnerLoading').show();
+                $.post('php/modules/item/index.php', { action: 'savePrices', id: $('#priceProductId').val(), data: JSON.stringify(data) }, function(response){
+                    var obj = JSON.parse(response);
+                    if (obj.status === 'success') {
+                        $('#priceModal').modal('hide');
+                        toastr["success"](obj.message, "Success:");
+                    } else {
+                        toastr["error"](obj.message, "Failed:");
+                    }
+                }).fail(function(){
+                    toastr["error"]("Something went wrong", "Failed:");
+                }).always(function(){
+                    $btn.prop('disabled', false);
+                    $('#spinnerLoading').hide();
+                });
+            });
         });
+
+        function managePrices(id) {
+            $('#spinnerLoading').show();
+            $.post('php/modules/item/index.php', { action: 'getPrices', id: id }, function(response){
+                var obj = JSON.parse(response);
+                if (obj.status !== 'success') {
+                    toastr["error"](obj.message, "Failed:");
+                    return;
+                }
+
+                var priceData = obj.data;
+                priceParties = { Customer: priceData.customers, Supplier: priceData.suppliers };
+
+                $('#priceProductId').val(priceData.product.id);
+                $('#priceItemName').text(priceData.product.product_code + ' - ' + priceData.product.name);
+                $('#productPurchasePrice').val(priceData.product.purchase_price || '');
+                $('#productSellingPrice').val(priceData.product.selling_price || '');
+
+                $('#priceEntries').html('');
+                $.each(priceData.entries, function(i, entry){
+                    addPriceEntry(entry);
+                });
+
+                $('#priceModal').modal('show');
+            }).fail(function(){
+                toastr["error"]("Something went wrong", "Failed:");
+            }).always(function(){
+                $('#spinnerLoading').hide();
+            });
+        }
+
+        function addPriceEntry(entry) {
+            var $entry = $($('#priceEntryTemplate').html());
+            $('#priceEntries').append($entry);
+
+            $entry.find('.date-from').flatpickr({ dateFormat: "d-m-Y", defaultDate: entry ? entry.date_from : null });
+            $entry.find('.date-to').flatpickr({ dateFormat: "d-m-Y", defaultDate: entry ? entry.date_to : null });
+
+            if (entry) {
+                $entry.find('.party-type').val(entry.party_type);
+                $entry.find('.price-type').val(entry.price_type);
+            }
+            loadPriceParties($entry, entry ? entry.party_id : '');
+
+            if (entry && entry.tiers.length > 0) {
+                $.each(entry.tiers, function(i, tier){
+                    addPriceTier($entry, tier);
+                });
+            } else {
+                addPriceTier($entry);
+            }
+            togglePriceType($entry);
+        }
+
+        function addPriceTier($entry, tier) {
+            var $tier = $($('#priceTierTemplate').html());
+            if (tier) {
+                $tier.find('.qty-from').val(parseFloat(tier.qty_from));
+                $tier.find('.qty-to').val(parseFloat(tier.qty_to));
+                $tier.find('.tier-purchase-price').val(tier.purchase_price || '');
+                $tier.find('.tier-selling-price').val(tier.selling_price || '');
+                $tier.find('.tier-discount').val(tier.discount);
+                $tier.find('.tier-discount-type').val(tier.discount_type);
+            }
+            toggleDiscountUnit($tier);
+            $entry.find('.price-tiers').append($tier);
+            togglePriceType($entry);
+
+            // Apply custom styling to Select2 elements in addModal
+            $('.select2-container .select2-selection--single').css({
+                'padding-top': '4px',
+                'padding-bottom': '4px',
+                'height': 'auto'
+            });
+
+            $('.select2-container .select2-selection__arrow').css({
+                'padding-top': '33px',
+                'height': 'auto'
+            });
+        }
+
+        // Show % beside the discount when the discount type is Percentage
+        function toggleDiscountUnit($tier) {
+            $tier.find('.tier-discount-unit').toggle($tier.find('.tier-discount-type').val() === 'Percent');
+        }
+
+        // Single = one tier with qty fixed to 1, Range = editable qty tiers
+        function togglePriceType($entry) {
+            var isRange = $entry.find('.price-type').val() === 'Range';
+            $entry.find('.add-price-tier, .tier-action').toggle(isRange);
+            if (!isRange) {
+                $entry.find('.qty-from, .qty-to').val(1).prop('readonly', true);
+            } else {
+                $entry.find('.qty-from, .qty-to').prop('readonly', false);
+            }
+        }
+
+        function loadPriceParties($entry, selectedValue) {
+            var $party = $entry.find('.party-id');
+            var partyType = $entry.find('.party-type').val();
+
+            if ($party.hasClass('select2-hidden-accessible')) {
+                $party.select2('destroy');
+            }
+
+            $party.empty().append('<option value="">Please Select</option>');
+            $.each(priceParties[partyType] || [], function(i, party){
+                $party.append($('<option>').val(party.id).text(party.code + ' - ' + party.name));
+            });
+            $party.val(selectedValue ? String(selectedValue) : '');
+
+            $party.select2({
+                allowClear: true,
+                placeholder: "Please Select",
+                dropdownParent: $('#priceModal')
+            });
+
+            // Apply custom styling to Select2 elements in addModal
+            $('.select2-container .select2-selection--single').css({
+                'padding-top': '4px',
+                'padding-bottom': '4px',
+                'height': 'auto'
+            });
+
+            $('.select2-container .select2-selection__arrow').css({
+                'padding-top': '33px',
+                'height': 'auto'
+            });
+        }
 
         function renderTable(){
             var companyId = $('#companySearch').val() || '';
@@ -910,7 +1255,7 @@
                     {
                         data: 'id',
                         render: function ( data, type, row ) {
-                            if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Items'] && ['edit', 'cancelled'].some(p => permissions['Master Data']['Items'].includes(p)))) {
+                            if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Items'] && ['edit', 'cancelled', 'manage_price'].some(p => permissions['Master Data']['Items'].includes(p)))) {
                                 var buttons = `
                                     <div class="dropdown d-inline-block">
                                         <button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -923,6 +1268,15 @@
                                             <li>
                                                 <a class="dropdown-item edit-item-btn" id="edit${data}" onclick="edit(${data})">
                                                     <i class="ri-pencil-fill align-bottom me-2 text-muted"></i> <?=$languageArray['edit_code'][$language]?>
+                                                </a>
+                                            </li>`;
+                                }
+
+                                if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Items'] && permissions['Master Data']['Items'].includes('manage_price'))) {
+                                    buttons += `
+                                            <li>
+                                                <a class="dropdown-item" id="managePrices${data}" onclick="managePrices(${data})">
+                                                    <i class="ri-price-tag-3-fill align-bottom me-2 text-muted"></i> <?=$languageArray['manage_prices_code'][$language]?>
                                                 </a>
                                             </li>`;
                                 }

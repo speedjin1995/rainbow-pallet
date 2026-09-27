@@ -348,6 +348,280 @@ class ItemService extends BaseService {
     }
     
     /**
+     * Item prices: product pricing, customer/supplier price entries with their qty tiers,
+     * and the customers/suppliers of the item's company for the party dropdown
+     */
+    public function getPrices($id) {
+        $product = $this->getPriceProduct($id);
+        if (!$product) {
+            return null;
+        }
+
+        $entries = [];
+        $stmt = $this->db->prepare("SELECT id, party_type, party_id, date_from, date_to, price_type FROM Product_Price WHERE product_id = ? AND status = 0 ORDER BY party_type, date_from, id");
+        if (!$stmt) throw new Exception($this->db->error);
+        $stmt->bind_param('i', $id);
+        if (!$stmt->execute()) throw new Exception($stmt->error);
+        $result = $stmt->get_result();
+        while ($row = $result->fetch_assoc()) {
+            $row['date_from'] = date('d-m-Y', strtotime($row['date_from']));
+            $row['date_to'] = date('d-m-Y', strtotime($row['date_to']));
+            $row['tiers'] = [];
+            $entries[$row['id']] = $row;
+        }
+        $stmt->close();
+
+        if (!empty($entries)) {
+            $ids = array_keys($entries);
+            $placeholders = implode(',', array_fill(0, count($ids), '?'));
+            $stmt = $this->db->prepare("SELECT price_id, qty_from, qty_to, purchase_price, selling_price, discount, discount_type FROM Product_Price_Tier WHERE status = 0 AND price_id IN ({$placeholders}) ORDER BY qty_from, id");
+            if (!$stmt) throw new Exception($this->db->error);
+            $stmt->bind_param(str_repeat('i', count($ids)), ...$ids);
+            if (!$stmt->execute()) throw new Exception($stmt->error);
+            $result = $stmt->get_result();
+            while ($row = $result->fetch_assoc()) {
+                $entries[$row['price_id']]['tiers'][] = $row;
+            }
+            $stmt->close();
+        }
+
+        return [
+            'product'   => $product,
+            'entries'   => array_values($entries),
+            'customers' => $this->getPriceParties('Customer', 'customer_code', $product['company']),
+            'suppliers' => $this->getPriceParties('Supplier', 'supplier_code', $product['company']),
+        ];
+    }
+
+    /**
+     * Save item prices. Price entries are replaced as a whole:
+     * existing entries/tiers are soft deleted and the submitted ones inserted.
+     */
+    public function savePrices($id, $data) {
+        $product = $this->getPriceProduct($id);
+        if (!$product) {
+            throw new InvalidArgumentException('Record not found');
+        }
+
+        $purchasePrice = $this->toPrice($data['purchasePrice'] ?? '', 'Purchase Price');
+        $sellingPrice = $this->toPrice($data['sellingPrice'] ?? '', 'Selling Price');
+        $entries = $this->validatePriceEntries($data['entries'] ?? [], $product['company']);
+
+        $this->db->begin_transaction();
+        try {
+            // For the log triggers: flag this Product_Log row as a price save, the Product triggers
+            // then set @product_log_id which the price/tier log rows link to
+            $stmt = $this->db->prepare("SET @product_log_id = NULL, @product_price_save = 'Y', @product_price_action_by = ?");
+            if (!$stmt) throw new Exception($this->db->error);
+            $stmt->bind_param('s', $this->username);
+            if (!$stmt->execute()) throw new Exception($stmt->error);
+            $stmt->close();
+
+            $stmt = $this->db->prepare("UPDATE {$this->table} SET purchase_price = ?, selling_price = ?, modified_by = ? WHERE id = ?");
+            if (!$stmt) throw new Exception($this->db->error);
+            $stmt->bind_param('ddsi', $purchasePrice, $sellingPrice, $this->username, $id);
+            if (!$stmt->execute()) throw new Exception($stmt->error);
+            $stmt->close();
+
+            // Only the Product_Log row above is a price save, not later edits on this connection
+            $this->db->query("SET @product_price_save = NULL");
+
+            $stmt = $this->db->prepare("UPDATE Product_Price_Tier SET status = 1 WHERE status = 0 AND price_id IN (SELECT id FROM Product_Price WHERE product_id = ? AND status = 0)");
+            if (!$stmt) throw new Exception($this->db->error);
+            $stmt->bind_param('i', $id);
+            if (!$stmt->execute()) throw new Exception($stmt->error);
+            $stmt->close();
+
+            $stmt = $this->db->prepare("UPDATE Product_Price SET status = 1, modified_by = ? WHERE product_id = ? AND status = 0");
+            if (!$stmt) throw new Exception($this->db->error);
+            $stmt->bind_param('si', $this->username, $id);
+            if (!$stmt->execute()) throw new Exception($stmt->error);
+            $stmt->close();
+
+            $entryStmt = $this->db->prepare("INSERT INTO Product_Price (product_id, party_type, party_id, date_from, date_to, price_type, created_by, modified_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+            $tierStmt = $this->db->prepare("INSERT INTO Product_Price_Tier (price_id, qty_from, qty_to, purchase_price, selling_price, discount, discount_type) VALUES (?, ?, ?, ?, ?, ?, ?)");
+            if (!$entryStmt || !$tierStmt) throw new Exception($this->db->error);
+
+            foreach ($entries as $entry) {
+                $entryStmt->bind_param('isisssss', $id, $entry['partyType'], $entry['partyId'], $entry['dateFrom'], $entry['dateTo'], $entry['priceType'], $this->username, $this->username);
+                if (!$entryStmt->execute()) throw new Exception($entryStmt->error);
+                $priceId = $entryStmt->insert_id;
+
+                foreach ($entry['tiers'] as $tier) {
+                    $tierStmt->bind_param('iddddds', $priceId, $tier['qtyFrom'], $tier['qtyTo'], $tier['purchasePrice'], $tier['sellingPrice'], $tier['discount'], $tier['discountType']);
+                    if (!$tierStmt->execute()) throw new Exception($tierStmt->error);
+                }
+            }
+            $entryStmt->close();
+            $tierStmt->close();
+
+            $this->db->commit();
+        } catch (Exception $e) {
+            $this->db->rollback();
+            $this->db->query("SET @product_price_save = NULL");
+            throw $e;
+        }
+    }
+
+    /**
+     * Product for price management, restricted to the user's companies without view_all_companies
+     */
+    private function getPriceProduct($id) {
+        $stmt = $this->db->prepare("SELECT id, company, product_code, name, purchase_price, selling_price FROM {$this->table} WHERE id = ? AND status = 0");
+        if (!$stmt) throw new Exception($this->db->error);
+        $stmt->bind_param('i', $id);
+        if (!$stmt->execute()) throw new Exception($stmt->error);
+        $product = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+
+        if (!$product) {
+            return null;
+        }
+
+        if (!hasModulePermission('Master Data', 'Items', ['view_all_companies'])) {
+            $allowed = array_map('intval', array_merge((array) ($_SESSION['company_ids'] ?? []), [$_SESSION['company_id'] ?? 0]));
+            if (!in_array(intval($product['company']), $allowed, true)) {
+                return null;
+            }
+        }
+
+        return $product;
+    }
+
+    private function getPriceParties($table, $codeColumn, $companyId) {
+        $stmt = $this->db->prepare("SELECT id, {$codeColumn} AS code, name FROM {$table} WHERE company = ? AND status = '0' ORDER BY name");
+        if (!$stmt) throw new Exception($this->db->error);
+        $stmt->bind_param('i', $companyId);
+        if (!$stmt->execute()) throw new Exception($stmt->error);
+        $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $stmt->close();
+        return $rows;
+    }
+
+    /**
+     * Validate and normalise submitted price entries.
+     * Single = one tier with qty 1, Range = qty tiers that must not overlap.
+     * Entries of the same customer/supplier must not have overlapping dates.
+     */
+    private function validatePriceEntries($entries, $companyId) {
+        if (!is_array($entries)) {
+            throw new InvalidArgumentException('Invalid price entries');
+        }
+
+        $validParties = [
+            'Customer' => array_column($this->getPriceParties('Customer', 'customer_code', $companyId), 'name', 'id'),
+            'Supplier' => array_column($this->getPriceParties('Supplier', 'supplier_code', $companyId), 'name', 'id'),
+        ];
+
+        $clean = [];
+        foreach (array_values($entries) as $i => $entry) {
+            $label = 'Price entry ' . ($i + 1);
+            $partyType = $entry['partyType'] ?? '';
+            $partyId = intval($entry['partyId'] ?? 0);
+            $priceType = $entry['priceType'] ?? '';
+
+            if (!isset($validParties[$partyType]) || !isset($validParties[$partyType][$partyId])) {
+                throw new InvalidArgumentException("{$label}: please select a valid customer/supplier");
+            }
+            if ($priceType !== 'Single' && $priceType !== 'Range') {
+                throw new InvalidArgumentException("{$label}: please select a type");
+            }
+
+            $dateFrom = DateTime::createFromFormat('!d-m-Y', trim($entry['dateFrom'] ?? ''));
+            $dateTo = DateTime::createFromFormat('!d-m-Y', trim($entry['dateTo'] ?? ''));
+            if (!$dateFrom || !$dateTo) {
+                throw new InvalidArgumentException("{$label}: please fill in the from and to date");
+            }
+            if ($dateFrom > $dateTo) {
+                throw new InvalidArgumentException("{$label}: from date cannot be after to date");
+            }
+
+            $tiers = is_array($entry['tiers'] ?? null) ? array_values($entry['tiers']) : [];
+            if (empty($tiers) || ($priceType === 'Single' && count($tiers) !== 1)) {
+                throw new InvalidArgumentException("{$label}: please fill in the prices");
+            }
+
+            $cleanTiers = [];
+            foreach ($tiers as $tier) {
+                if ($priceType === 'Single') {
+                    $qtyFrom = 1.0;
+                    $qtyTo = 1.0;
+                } else {
+                    $qtyFrom = $this->toQty($tier['qtyFrom'] ?? '', $label);
+                    $qtyTo = $this->toQty($tier['qtyTo'] ?? '', $label);
+                    if ($qtyFrom > $qtyTo) {
+                        throw new InvalidArgumentException("{$label}: qty from cannot be more than qty to");
+                    }
+                }
+
+                $purchasePrice = $this->toPrice($tier['purchasePrice'] ?? '', "{$label} purchase price");
+                $sellingPrice = $this->toPrice($tier['sellingPrice'] ?? '', "{$label} selling price");
+                if ($purchasePrice === null && $sellingPrice === null) {
+                    throw new InvalidArgumentException("{$label}: please fill in the purchase or selling price");
+                }
+
+                $discountType = ($tier['discountType'] ?? 'Amount') === 'Percent' ? 'Percent' : 'Amount';
+                $discount = $this->toPrice($tier['discount'] ?? '', "{$label} discount") ?? 0.0;
+                if ($discountType === 'Percent' && $discount > 100) {
+                    throw new InvalidArgumentException("{$label}: discount cannot be more than 100%");
+                }
+
+                $cleanTiers[] = [
+                    'qtyFrom' => $qtyFrom, 'qtyTo' => $qtyTo,
+                    'purchasePrice' => $purchasePrice, 'sellingPrice' => $sellingPrice,
+                    'discount' => $discount, 'discountType' => $discountType,
+                ];
+            }
+
+            usort($cleanTiers, fn($a, $b) => $a['qtyFrom'] <=> $b['qtyFrom']);
+            for ($t = 1; $t < count($cleanTiers); $t++) {
+                if ($cleanTiers[$t]['qtyFrom'] <= $cleanTiers[$t - 1]['qtyTo']) {
+                    throw new InvalidArgumentException("{$label}: qty ranges cannot overlap");
+                }
+            }
+
+            $clean[] = [
+                'partyType' => $partyType, 'partyId' => $partyId, 'partyName' => $validParties[$partyType][$partyId],
+                'priceType' => $priceType,
+                'dateFrom' => $dateFrom->format('Y-m-d'), 'dateTo' => $dateTo->format('Y-m-d'),
+                'tiers' => $cleanTiers,
+            ];
+        }
+
+        // Same customer/supplier cannot have two prices active on the same date
+        for ($a = 0; $a < count($clean); $a++) {
+            for ($b = $a + 1; $b < count($clean); $b++) {
+                if ($clean[$a]['partyType'] === $clean[$b]['partyType'] && $clean[$a]['partyId'] === $clean[$b]['partyId']
+                    && $clean[$a]['dateFrom'] <= $clean[$b]['dateTo'] && $clean[$b]['dateFrom'] <= $clean[$a]['dateTo']) {
+                    throw new InvalidArgumentException("Price entry " . ($a + 1) . " and " . ($b + 1) . " for {$clean[$a]['partyName']} have overlapping dates");
+                }
+            }
+        }
+
+        return $clean;
+    }
+
+    // Blank = null, otherwise a non-negative number
+    private function toPrice($value, $label) {
+        $value = trim((string) $value);
+        if ($value === '') {
+            return null;
+        }
+        if (!is_numeric($value) || $value < 0) {
+            throw new InvalidArgumentException("{$label} must be a positive number");
+        }
+        return round((float) $value, 2);
+    }
+
+    private function toQty($value, $label) {
+        $value = trim((string) $value);
+        if ($value === '' || !is_numeric($value) || $value <= 0) {
+            throw new InvalidArgumentException("{$label}: qty must be more than 0");
+        }
+        return (float) $value;
+    }
+
+    /**
      * Upload items from Excel
      */
     public function upload($data, $companyId) {
