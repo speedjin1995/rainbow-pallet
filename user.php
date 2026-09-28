@@ -24,8 +24,9 @@ if (!hasModulePermission('User Management', 'User Setup', ['view_all_plants'])){
 }
 
 if (!hasModulePermission('User Management', 'User Setup', ['view_all_companies'])){
-    // $username = implode("', '", $_SESSION["plant"]);
-    // $plants = $db->query("SELECT * FROM Plant WHERE status = '0' AND plant_code IN ('$username') ORDER BY name ASC");
+    // Only the companies assigned to this user
+    $company_ids = implode(',', array_map('intval', (array) ($_SESSION['company_ids'] ?? []))) ?: '0';
+    $companies = $db->query("SELECT * FROM Company WHERE status = '0' AND id IN ($company_ids) ORDER BY name ASC");
 }else{
     $companies = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
 }
@@ -126,7 +127,7 @@ if (!hasModulePermission('User Management', 'User Setup', ['view_all_companies']
                                                         <th><?=$languageArray['role_code'][$language]?></th>
                                                         <th><?=$languageArray['plant_name_code'][$language]?></th>
                                                         <th><?=$languageArray['company_code'][$language]?></th>
-                                                        <th><?=$languageArray['action_code'][$language]?></th>
+                                                        <th><?=$languageArray['action_code'][$language]?><?=actionPermissionNote([hasModulePermission('User Management', 'User Setup', ['edit']), hasModulePermission('User Management', 'User Setup', ['cancelled']), hasModulePermission('User Management', 'User Setup', ['reset_password'])])?></th>
                                                     </tr>
                                                 </thead>
                                             </table>

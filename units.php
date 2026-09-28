@@ -267,7 +267,7 @@
                                                                     <th><?=$languageArray['company_code'][$language] ?? 'Company'?></th>
                                                                     <th><?=$languageArray['unit_code'][$language] ?? 'Unit'?></th>
                                                                     <th><?=$languageArray['status_code'][$language] ?? 'Status'?></th>
-                                                                    <th><?=$languageArray['action_code'][$language] ?? 'Action'?></th>
+                                                                    <th><?=$languageArray['action_code'][$language] ?? 'Action'?><?=actionPermissionNote([hasModulePermission('Master Data', 'Units', ['edit']), hasModulePermission('Master Data', 'Units', ['cancelled'])])?></th>
                                                                 </tr>
                                                             </thead>
                                                         </table>

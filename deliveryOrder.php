@@ -248,7 +248,7 @@ if ($canEditWeight || $canPrintWeight) {
                                                                     <th><?=$languageArray['plant_code'][$language]?></th>
                                                                     <th><?=$languageArray['delivery_date_code'][$language]?></th>
                                                                     <th><?=$languageArray['total_delivery_amount_code'][$language]?></th>
-                                                                    <th><?=$languageArray['action_code'][$language]?></th>
+                                                                    <th><?=$languageArray['action_code'][$language]?><?=actionPermissionNote([hasModulePermission('Accounting', 'Delivery Order', ['post_to_sql'])])?></th>
                                                                 </tr>
                                                             </thead>
                                                         </table>
@@ -731,7 +731,7 @@ if ($canEditWeight || $canPrintWeight) {
                         <th><?=$languageArray['total_price_code'][$language]?></th>`;
                         }
                         if (canEditWeight || canPrintWeight) {
-                            returnString += `<th><?=$languageArray['action_code'][$language]?></th>`;
+                            returnString += `<th><?=$languageArray['action_code'][$language]?><?=actionPermissionNote([$canEditWeight, $canPrintWeight])?></th>`;
                         }
 
                     returnString += `</tr>

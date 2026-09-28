@@ -354,7 +354,7 @@
                                                                     <th><?=$languageArray['customer_code'][$language]?></th>
                                                                     <th><?=$languageArray['supplier_code'][$language]?></th>
                                                                     <th><?=$languageArray['status_code'][$language]?></th>
-                                                                    <th><?=$languageArray['action_code'][$language]?></th>
+                                                                    <th><?=$languageArray['action_code'][$language]?><?=actionPermissionNote([hasModulePermission('Master Data', 'Vehicles', ['edit']), hasModulePermission('Master Data', 'Vehicles', ['cancelled'])])?></th>
                                                                 </tr>
                                                             </thead>
                                                         </table>

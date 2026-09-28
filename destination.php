@@ -314,7 +314,7 @@
                                                                     <th><?=$languageArray['destination_name_code'][$language]?></th>
                                                                     <th><?=$languageArray['description_code'][$language]?></th>
                                                                     <th><?=$languageArray['status_code'][$language]?></th>
-                                                                    <th><?=$languageArray['action_code'][$language]?></th>
+                                                                    <th><?=$languageArray['action_code'][$language]?><?=actionPermissionNote([hasModulePermission('Master Data', 'Destination', ['edit']), hasModulePermission('Master Data', 'Destination', ['cancelled'])])?></th>
                                                                 </tr>
                                                             </thead>
                                                         </table>

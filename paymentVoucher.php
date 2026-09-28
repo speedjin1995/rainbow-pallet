@@ -207,7 +207,7 @@ $pvItem2 = $db->query("SELECT * FROM Pv_Items WHERE status = 0 ORDER BY item_nam
                                                                         <th><?=$languageArray['invoice_no_code'][$language]?></th>
                                                                         <th><?=$languageArray['outstanding_amount_code'][$language]?> (RM)</th>
                                                                         <th><?=$languageArray['status_code'][$language] ?? 'Status'?></th>
-                                                                        <th><?=$languageArray['action_code'][$language]?></th>
+                                                                        <th><?=$languageArray['action_code'][$language]?><?=actionPermissionNote([hasModulePermission('Accounting', 'Payment Voucher', ['approval']), hasModulePermission('Accounting', 'Payment Voucher', ['print']), hasModulePermission('Accounting', 'Payment Voucher', ['edit'])])?></th>
                                                                     </tr>
                                                                 </thead>
                                                             </table>

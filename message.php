@@ -171,7 +171,7 @@
                                                                     <th>中文</th>
                                                                     <th>Bahasa Malaysia</th>
                                                                     <th>नेपाली</th>
-                                                                    <th><?=$languageArray['action_code'][$language]?></th>
+                                                                    <th><?=$languageArray['action_code'][$language]?><?=actionPermissionNote([hasModulePermission('Master Data', 'Translation', ['edit']), hasModulePermission('Master Data', 'Translation', ['cancelled'])])?></th>
                                                                 </tr>
                                                             </thead>
                                                         </table>

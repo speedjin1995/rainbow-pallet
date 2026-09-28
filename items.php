@@ -529,7 +529,7 @@
                                                                     <th><?=$languageArray['category_code'][$language] ?? 'Category'?></th>
                                                                     <th><?=$languageArray['description_code'][$language] ?? 'Description'?></th>
                                                                     <th><?=$languageArray['status_code'][$language] ?? 'Status'?></th>
-                                                                    <th><?=$languageArray['action_code'][$language] ?? 'Action'?></th>
+                                                                    <th><?=$languageArray['action_code'][$language] ?? 'Action'?><?=actionPermissionNote([hasModulePermission('Master Data', 'Items', ['edit']), hasModulePermission('Master Data', 'Items', ['manage_price']), hasModulePermission('Master Data', 'Items', ['cancelled'])])?></th>
                                                                 </tr>
                                                             </thead>
                                                         </table>

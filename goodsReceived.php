@@ -697,7 +697,7 @@ $canUpdatePrice = hasModulePermission('Accounting', 'Goods Received', ['update_p
                         <th><?=$languageArray['total_price_code'][$language]?></th>`;
                         }
                         if (canEditWeight || canPrintWeight) {
-                            returnString += `<th><?=$languageArray['action_code'][$language]?></th>`;
+                            returnString += `<th><?=$languageArray['action_code'][$language]?><?=actionPermissionNote([$canEditWeight, $canPrintWeight])?></th>`;
                         }
 
                         returnString += `</tr>

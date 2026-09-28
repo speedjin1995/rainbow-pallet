@@ -396,7 +396,7 @@
                                                                     <th><?=$languageArray['mobile_no_code'][$language]?></th>
                                                                     <th><?=$languageArray['sawn_timber_code'][$language] ?? 'Sawn Timber'?></th>
                                                                     <th><?=$languageArray['status_code'][$language]?></th>
-                                                                    <th><?=$languageArray['action_code'][$language]?></th>
+                                                                    <th><?=$languageArray['action_code'][$language]?><?=actionPermissionNote([hasModulePermission('Master Data', 'Companies', ['edit']), hasModulePermission('Master Data', 'Companies', ['cancelled'])])?></th>
                                                                 </tr>
                                                             </thead>
                                                         </table>

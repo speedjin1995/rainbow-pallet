@@ -448,7 +448,7 @@
                                                                     <th><?=$languageArray['payment_term_code'][$language]?></th>
                                                                     <th><?=$languageArray['payment_term_period_code'][$language]?></th>
                                                                     <th><?=$languageArray['status_code'][$language]?></th>
-                                                                    <th><?=$languageArray['action_code'][$language]?></th>
+                                                                    <th><?=$languageArray['action_code'][$language]?><?=actionPermissionNote([hasModulePermission('Master Data', 'Supplier', ['edit']), hasModulePermission('Master Data', 'Supplier', ['cancelled'])])?></th>
                                                                 </tr>
                                                             </thead>
                                                         </table>

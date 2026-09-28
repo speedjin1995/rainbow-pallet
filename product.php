@@ -257,7 +257,7 @@
                                                                     <th><?=$languageArray['product_name_code'][$language]?></th>
                                                                     <th><?=$languageArray['description_code'][$language]?></th>
                                                                     <th><?=$languageArray['status_code'][$language]?></th>
-                                                                    <th><?=$languageArray['action_code'][$language]?></th>
+                                                                    <th><?=$languageArray['action_code'][$language]?><?=actionPermissionNote([hasModulePermission('Master Data', 'Products', ['edit']), hasModulePermission('Master Data', 'Products', ['cancelled'])])?></th>
                                                                 </tr>
                                                             </thead>
                                                         </table>

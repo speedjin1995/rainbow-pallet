@@ -147,7 +147,7 @@ $categories = $db->query("SELECT DISTINCT category FROM modules ORDER BY categor
                                                                     <th><input type="checkbox" id="selectAllCheckbox" class="selectAllCheckbox"></th>
                                                                     <th><?=$languageArray['module_name_code'][$language]?></th>
                                                                     <th><?=$languageArray['category_code'][$language]?></th>
-                                                                    <th><?=$languageArray['action_code'][$language]?></th>
+                                                                    <th><?=$languageArray['action_code'][$language]?><?=actionPermissionNote([hasModulePermission('User Management', 'Modules', ['edit']), hasModulePermission('User Management', 'Modules', ['cancelled'])])?></th>
                                                                 </tr>
                                                             </thead>
                                                         </table>

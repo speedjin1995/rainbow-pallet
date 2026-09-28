@@ -406,7 +406,7 @@
                                                                     <th><?=$languageArray['ic_code'][$language]?></th>
                                                                     <th><?=$languageArray['tin_code'][$language]?></th>
                                                                     <th><?=$languageArray['status_code'][$language]?></th>
-                                                                    <th><?=$languageArray['action_code'][$language]?></th>
+                                                                    <th><?=$languageArray['action_code'][$language]?><?=actionPermissionNote([hasModulePermission('Master Data', 'Customer', ['edit']), hasModulePermission('Master Data', 'Customer', ['cancelled'])])?></th>
                                                                 </tr>
                                                             </thead>
                                                         </table>

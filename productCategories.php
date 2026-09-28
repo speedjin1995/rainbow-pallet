@@ -373,7 +373,7 @@
                                                                     <th><?=$languageArray['miscellaneous_code'][$language] ?? 'Misc'?></th>
                                                                     <th><?=$languageArray['sawn_timber_code'][$language] ?? 'Sawn Timber'?></th>
                                                                     <th><?=$languageArray['status_code'][$language] ?? 'Status'?></th>
-                                                                    <th><?=$languageArray['action_code'][$language] ?? 'Action'?></th>
+                                                                    <th><?=$languageArray['action_code'][$language] ?? 'Action'?><?=actionPermissionNote([hasModulePermission('Master Data', 'Product Category', ['edit']), hasModulePermission('Master Data', 'Product Category', ['cancelled'])])?></th>
                                                                 </tr>
                                                             </thead>
                                                         </table>

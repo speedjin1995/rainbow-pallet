@@ -307,7 +307,7 @@
                                                                     <th><?=$languageArray['project_code_code'][$language] ?? 'Project Code'?></th>
                                                                     <th><?=$languageArray['description_code'][$language] ?? 'Description'?></th>
                                                                     <th><?=$languageArray['status_code'][$language] ?? 'Status'?></th>
-                                                                    <th><?=$languageArray['action_code'][$language] ?? 'Action'?></th>
+                                                                    <th><?=$languageArray['action_code'][$language] ?? 'Action'?><?=actionPermissionNote([hasModulePermission('Master Data', 'Projects', ['edit']), hasModulePermission('Master Data', 'Projects', ['cancelled'])])?></th>
                                                                 </tr>
                                                             </thead>
                                                         </table>

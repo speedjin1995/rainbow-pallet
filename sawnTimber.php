@@ -455,7 +455,7 @@ else{
                                                                     <th><?=$languageArray['customer_code'][$language]?> / <?=$languageArray['supplier_code'][$language]?></th>
                                                                     <th><?=$languageArray['total_pcs_code'][$language]?></th>
                                                                     <th><?=$languageArray['total_tons_code'][$language]?></th>
-                                                                    <th><?=$languageArray['action_code'][$language]?></th>
+                                                                    <th><?=$languageArray['action_code'][$language]?><?=actionPermissionNote([hasModulePermission('Sawn Timber', 'Sawn Timber', ['edit']), hasModulePermission('Sawn Timber', 'Sawn Timber', ['cancelled'])])?></th>
                                                                 </tr>
                                                             </thead>
                                                         </table>

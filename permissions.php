@@ -84,7 +84,7 @@ while($m = $modules->fetch_assoc()){
                                                         <th><input type="checkbox" id="selectAllCheckbox" class="selectAllCheckbox"></th>
                                                         <th><?=$languageArray['permission_name_code'][$language]?></th>
                                                         <th><?=$languageArray['applicable_module_code'][$language]?></th>
-                                                        <th><?=$languageArray['action_code'][$language]?></th>
+                                                        <th><?=$languageArray['action_code'][$language]?><?=actionPermissionNote([hasModulePermission('User Management', 'Permission', ['edit']), hasModulePermission('User Management', 'Permission', ['cancelled'])])?></th>
                                                     </tr>
                                                 </thead>
                                             </table>

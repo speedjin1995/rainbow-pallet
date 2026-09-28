@@ -72,6 +72,13 @@ function displayPair(code, name) {
     }).join(' - ');
 }
 
+// Action column permission note (actionPermissionNote() in php/requires/permissions.php).
+// Delegated from body so the icon's tooltip also works on copies DataTables Responsive adds
+// to a collapsed row, not just the one in the column header.
+if (window.bootstrap && bootstrap.Tooltip && document.body) {
+    new bootstrap.Tooltip(document.body, { selector: '.action-permission-note' });
+}
+
 // DataTables: show "" instead of null in every table cell (no "Requested unknown parameter" warning)
 if (window.jQuery) {
     jQuery(function ($) {

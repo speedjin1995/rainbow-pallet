@@ -288,7 +288,7 @@ if (!hasModulePermission('Reports', 'Miscellaneous', ['view_all_plants'])) {
                                                                     <th><?=$languageArray['tare_outgoing_code'][$language]?>2</th>
                                                                     <th><?=$languageArray['outgoing_date_code'][$language]?>2</th>
                                                                     <th><?=$languageArray['nett_weight_code'][$language]?>2</th>
-                                                                    <th><?=$languageArray['action_code'][$language]?></th>
+                                                                    <th><?=$languageArray['action_code'][$language]?><?=actionPermissionNote([hasModulePermission('Reports', 'Miscellaneous', ['print'])])?></th>
                                                                 </tr>
                                                             </thead>
                                                         </table>

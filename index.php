@@ -72,6 +72,18 @@ else{
 
 // Weighing modal component data ($wm* dropdown lists)
 require_once "components/weighingModal/data.php";
+
+// Action column note: a row's buttons (edit/print/cancelled/reactivate) depend on its own
+// transaction status, so this flags true if the user is missing any of them for any status they can view
+$weighingActionFlags = [];
+foreach (['Sales', 'Purchase', 'Local', 'Port', 'Miscellaneous'] as $weighingStatus) {
+    if (hasModulePermission('Weighing', $weighingStatus, ['view'])) {
+        $weighingActionFlags[] = hasModulePermission('Weighing', $weighingStatus, ['edit']);
+        $weighingActionFlags[] = hasModulePermission('Weighing', $weighingStatus, ['print']);
+        $weighingActionFlags[] = hasModulePermission('Weighing', $weighingStatus, ['cancelled']);
+        $weighingActionFlags[] = hasModulePermission('Weighing', $weighingStatus, ['reactivate']);
+    }
+}
 ?>
 
 <head>
@@ -518,7 +530,7 @@ require_once "components/weighingModal/data.php";
                                                                     <th><?=$languageArray['tare_outgoing_code'][$language]?> 2</th>
                                                                     <th><?=$languageArray['outgoing_date_code'][$language]?> 2</th>
                                                                     <th><?=$languageArray['nett_weight_code'][$language]?> 2</th>
-                                                                    <th><?=$languageArray['action_code'][$language]?></th>
+                                                                    <th><?=$languageArray['action_code'][$language]?><?=actionPermissionNote($weighingActionFlags)?></th>
                                                                 </tr>
                                                             </thead>
                                                         </table>
@@ -568,7 +580,7 @@ require_once "components/weighingModal/data.php";
                                                                     <th><?=$languageArray['tare_outgoing_code'][$language]?></th>
                                                                     <th><?=$languageArray['outgoing_date_code'][$language]?></th>
                                                                     <th><?=$languageArray['nett_weight_code'][$language]?></th>
-                                                                    <th><?=$languageArray['action_code'][$language]?></th>
+                                                                    <th><?=$languageArray['action_code'][$language]?><?=actionPermissionNote($weighingActionFlags)?></th>
                                                                 </tr>
                                                             </thead>
                                                         </table>

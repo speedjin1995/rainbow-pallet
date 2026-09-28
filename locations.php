@@ -378,7 +378,7 @@
                                                                     <th><?=$languageArray['location_name_code'][$language]?></th>
                                                                     <th><?=$languageArray['weighing_count_code'][$language]?></th>
                                                                     <th><?=$languageArray['plant_code'][$language]?></th>
-                                                                    <th><?=$languageArray['action_code'][$language]?></th>
+                                                                    <th><?=$languageArray['action_code'][$language]?><?=actionPermissionNote([hasModulePermission('Master Data', 'Locations', ['edit']), hasModulePermission('Master Data', 'Locations', ['cancelled'])])?></th>
                                                                 </tr>
                                                             </thead>
                                                         </table>

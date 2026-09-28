@@ -91,7 +91,7 @@ while($p = $permissionsResult->fetch_assoc()){
                                                         <th><?=$languageArray['role_code_code'][$language]?></th>
                                                         <th><?=$languageArray['role_name_code'][$language]?></th>
                                                         <th><?=$languageArray['status_code'][$language]?></th>
-                                                        <th><?=$languageArray['action_code'][$language]?></th>
+                                                        <th><?=$languageArray['action_code'][$language]?><?=actionPermissionNote([hasModulePermission('User Management', 'Role', ['edit']), hasModulePermission('User Management', 'Role', ['cancelled']), hasModulePermission('User Management', 'Role', ['assign_permissions'])])?></th>
                                                     </tr>
                                                 </thead>
                                             </table>
