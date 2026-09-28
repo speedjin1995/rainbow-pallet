@@ -8,4 +8,4 @@
 <script src="plugins/sheets/xlsx.full.min.js"></script>
 <script src="plugins/toastr/toastr.min.js"></script>
 <!-- Shared helpers (date formatting, null-safe display) -->
-<script src="assets/js/additional.js"></script>
+<script src="assets/js/additional.js?v=<?=filemtime(__DIR__ . '/../assets/js/additional.js')?>"></script>

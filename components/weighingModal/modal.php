@@ -228,7 +228,7 @@
                                         <div class="row">
                                             <label for="purchaseOrder" class="col-sm-4 col-form-label"><?=$languageArray['po_no_code'][$language]?></label>
                                             <div class="col-sm-8">
-                                                <input type="text" class="form-control" id="purchaseOrder" name="purchaseOrder">
+                                                <input type="text" class="form-control" id="purchaseOrder" name="purchaseOrder" placeholder="<?=$languageArray['purchase_order_no_code'][$language]?>">
                                             </div>
                                         </div>
                                     </div>
