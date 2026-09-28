@@ -888,6 +888,7 @@ function renderTable(){
             },
             { 
                 data: 'id',
+                responsivePriority: 1,
                 render: function ( data, type, row ) {
                     if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Supplier'] && ['edit', 'cancelled'].some(p => permissions['Master Data']['Supplier'].includes(p)))) {
                         var buttons = `

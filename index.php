@@ -1276,6 +1276,7 @@ foreach (['Sales', 'Purchase', 'Local', 'Port', 'Miscellaneous'] as $weighingSta
                 { 
                     data: 'id',
                     class: 'action-button',
+                    responsivePriority: 1,
                     render: function (data, type, row) {
                         var transactionKey = row.transaction_status;
                         if (transactionKey == 'Transfer To Port'){
@@ -1430,6 +1431,7 @@ foreach (['Sales', 'Purchase', 'Local', 'Port', 'Miscellaneous'] as $weighingSta
                 { 
                     data: 'id',
                     class: 'action-button',
+                    responsivePriority: 1,
                     render: function (data, type, row) {
                         var transactionKey = row.transaction_status;
                         if (transactionKey == 'Transfer To Port'){

@@ -417,6 +417,7 @@ if (!hasModulePermission('User Management', 'User Setup', ['view_all_companies']
                 },
                 { 
                     data: 'id',
+                    responsivePriority: 1,
                     render: function ( data, type, row ) {
                         if (isSADMIN || (permissions['User Management'] && permissions['User Management']['User Setup'] && ['edit', 'cancelled', 'reset_password'].some(p => permissions['User Management']['User Setup'].includes(p)))) {
                             var buttons = `

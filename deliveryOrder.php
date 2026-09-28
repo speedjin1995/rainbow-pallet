@@ -645,6 +645,7 @@ if ($canEditWeight || $canPrintWeight) {
                     data: 'id',
                     class: 'action-button',
                     orderable: false,
+                    responsivePriority: 1,
                     render: function (data, type, row) {
                         if (isSADMIN || (permissions['Accounting'] && permissions['Accounting']['Delivery Order'] && permissions['Accounting']['Delivery Order'].includes('post_to_sql'))) {
                             return `

@@ -598,6 +598,7 @@ function renderTable(){
             { data: 'plant' },
             {
                 data: 'id',
+                responsivePriority: 1,
                 render: function ( data, type, row ) {
                     if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Locations'] && ['edit', 'cancelled'].some(p => permissions['Master Data']['Locations'].includes(p)))) {
                         var buttons = `

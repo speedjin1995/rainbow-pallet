@@ -1180,6 +1180,7 @@
                     },
                     {
                         data: 'id',
+                        responsivePriority: 1,
                         render: function ( data, type, row ) {
                             if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Items'] && ['edit', 'cancelled', 'manage_price'].some(p => permissions['Master Data']['Items'].includes(p)))) {
                                 var buttons = `

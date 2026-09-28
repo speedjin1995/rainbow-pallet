@@ -335,6 +335,7 @@ $(function () {
             },
             { 
                 data: 'id',
+                responsivePriority: 1,
                 render: function ( data, type, row ) {
                     if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['PV Items'] && ['edit', 'cancelled'].some(p => permissions['Master Data']['PV Items'].includes(p)))) {
                         var buttons = `

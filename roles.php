@@ -275,6 +275,7 @@ $(function () {
             {
                 data: 'id',
                 orderable: false,
+                responsivePriority: 1,
                 render: function (data, type, row) {
                     var perms = (permissions['User Management'] && permissions['User Management']['Role']) || [];                    
                     if (isSADMIN || ['edit', 'cancelled', 'assign_permissions'].some(p => perms.includes(p))) {

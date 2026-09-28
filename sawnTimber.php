@@ -902,7 +902,7 @@ else{
                 { data: 'customer_supplier' },
                 { data: 'total_pieces' },
                 { data: 'total_tons' },
-                { data: 'id', orderable: false, className: 'sawn-action-cell', render: function(data) {
+                { data: 'id', orderable: false, className: 'sawn-action-cell', responsivePriority: 1, render: function(data) {
                     var buttons = '';
                     <?php if(hasModulePermission('Sawn Timber', 'Sawn Timber', ['edit'])): ?>
                     buttons += '<button class="btn btn-sm btn-warning me-1" onclick="editRecord(\'' + data + '\')"><i class="fas fa-pen"></i></button>';
