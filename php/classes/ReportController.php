@@ -41,7 +41,7 @@ class ReportController extends BaseController {
         }
 
         try {
-            echo json_encode($this->service->filterAuditLog($_POST));
+            echo json_encode($this->service->filterAuditLog($_POST, $_SESSION['language'] ?? 'en', $_SESSION['languageArray'] ?? []));
         } catch (mysqli_sql_exception $e) {
             error_log('Audit log filter: ' . $e->getMessage());
             $this->failed('Something went wrong');

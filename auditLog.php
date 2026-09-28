@@ -621,9 +621,9 @@ $(function () {
                 $('#dataTable tbody').empty();
 
                 // Generate column definitions dynamically
-                let columns = response.columnNames.map(column => ({
+                let columns = response.columnNames.map((column, i) => ({
                     data: column,
-                    title: column
+                    title: (response.columnTitles && response.columnTitles[i]) || column
                 }));
 
                 // Initialize DataTable with dynamic columns
@@ -676,42 +676,35 @@ function format (row) {
     <!-- Customer Section -->
     <div class="row">
         <div class="col-6">
-            <p><span><strong style="font-size:120%; text-decoration: underline;">Customer/Supplier</strong></span><br>
+            <p><span><strong style="font-size:120%; text-decoration: underline;"><?=$languageArray['customer_supplier_code'][$language]?></strong></span><br>
             <p><strong>${displayValue(row.name)}</strong></p>
             <p>${displayValue(row.address_line_1)}</p>
             <p>${displayValue(row.address_line_2)}</p>
             <p>${displayValue(row.address_line_3)}</p>
-            <p>TEL: ${displayValue(row.phone_no)} FAX: ${displayValue(row.fax_no)}</p>
+            <p><?=$languageArray['phone_code'][$language]?>: ${displayValue(row.phone_no)} <?=$languageArray['fax_code'][$language]?>: ${displayValue(row.fax_no)}</p>
         </div>
     </div>
     <hr>
     <!-- Delivery Order Section -->
     <div class="row">
-        <p><span><strong style="font-size:120%; text-decoration: underline;">Delivery Order Information</strong></span><br>
+        <p><span><strong style="font-size:120%; text-decoration: underline;"><?=$languageArray['delivery_order_information_code'][$language]?></strong></span><br>
         <div class="col-6">
-            <p><strong>COMPANY:</strong> ${displayValue(row.company_name)}</p>
-            <p><strong>TRANSPORTER NAME:</strong> ${displayValue(row.transporter)}</p>
-            <p><strong>DESTINATION NAME:</strong> ${displayValue(row.destination)}</p>
-            <p><strong>PLANT NAME:</strong> ${displayValue(row.plant_name)}</p>`;
-            if (row.transaction_status == 'Purchase' || row.transaction_status == 'Local'){
-                returnString += `<p><strong>PURCHASE PRODUCT:</strong> ${displayValue(row.product_rawmat_name)}</p>`;
-            }else{
-                returnString += `<p><strong>SALES PRODUCT:</strong> ${displayValue(row.product_rawmat_name)}</p>`;
-            }
-    
-        returnString += `
-            <p><strong>PURCHASE ORDER:</strong> ${displayValue(row.purchase_order)}</p>
-            <p><strong>CONTAINER NO:</strong> ${displayValue(row.container_no)}</p>
-            <p><strong>CONTAINER NO 2:</strong> ${displayValue(row.container_no2)}</p>
+            <p><strong><?=$languageArray['company_code'][$language]?>:</strong> ${displayValue(row.company_name)}</p>
+            <p><strong><?=$languageArray['destination_name_code'][$language]?>:</strong> ${displayValue(row.destination)}</p>
+            <p><strong><?=$languageArray['plant_name_code'][$language]?>:</strong> ${displayValue(row.plant_name)}</p>
+            <p><strong><?=$languageArray['product_code'][$language]?>:</strong> ${displayValue(row.product_rawmat_name)}</p>
+            <p><strong><?=$languageArray['purchase_order_no_code'][$language]?>:</strong> ${displayValue(row.purchase_order)}</p>
+            <p><strong><?=$languageArray['container_no_code'][$language]?>:</strong> ${displayValue(row.container_no)}</p>
+            <p><strong><?=$languageArray['container_no2_code'][$language]?>:</strong> ${displayValue(row.container_no2)}</p>
         </div>
         <div class="col-6">
-            <p><strong>TRANSACTION ID:</strong> ${displayValue(row.transaction_id)}</p>
-            <p><strong>PROJECT:</strong> ${displayValue(row.project_code)}</p>
-            <p><strong>WEIGHT STATUS:</strong> ${transactionStatus}</p>
-            <p><strong>WEIGHT TYPE:</strong> ${weightType}</p>
-            <p><strong>DELIVERY NO:</strong> ${displayValue(row.delivery_no)}</p>
-            <p><strong>SEAL NO:</strong> ${displayValue(row.seal_no)}</p>
-            <p><strong>SEAL NO 2:</strong> ${displayValue(row.seal_no2)}</p>
+            <p><strong><?=$languageArray['transaction_id_code'][$language]?>:</strong> ${displayValue(row.transaction_id)}</p>
+            <p><strong><?=$languageArray['project_code'][$language]?>:</strong> ${displayValue(row.project_code)}</p>
+            <p><strong><?=$languageArray['weight_status_code'][$language]?>:</strong> ${transactionStatus}</p>
+            <p><strong><?=$languageArray['weight_type_code'][$language]?>:</strong> ${weightType}</p>
+            <p><strong><?=$languageArray['delivery_no_code'][$language]?>:</strong> ${displayValue(row.delivery_no)}</p>
+            <p><strong><?=$languageArray['seal_no_code'][$language]?>:</strong> ${displayValue(row.seal_no)}</p>
+            <p><strong><?=$languageArray['seal_no2_code'][$language]?>:</strong> ${displayValue(row.seal_no2)}</p>
         </div>
     </div>
     <hr>
@@ -719,7 +712,7 @@ function format (row) {
     ${row.transaction_status == 'Purchase' ? `
     <!-- Customer Side Section -->
     <div class="row">
-        <p><span><strong style="font-size:120%; text-decoration: underline;">Customer Side</strong></span><br>
+        <p><span><strong style="font-size:120%; text-decoration: underline;"><?=$languageArray['customer_side_code'][$language]?></strong></span><br>
         <div class="col-6">
             <p><strong><?=$languageArray['customer_side_company_code'][$language]?>:</strong> ${row.customer_side_company || ''}</p>
             <p><strong><?=$languageArray['customer_side_removal_pass_no_code'][$language]?>:</strong> ${row.customer_side_removal_pass_no || ''}</p>
@@ -737,29 +730,29 @@ function format (row) {
 
     <!-- Weighing Section -->
     <div class="row">
-        <p><span><strong style="font-size:120%; text-decoration: underline;">Weighing Information</strong></span><br>
+        <p><span><strong style="font-size:120%; text-decoration: underline;"><?=$languageArray['weighing_information_code'][$language]?></strong></span><br>
         <!-- Normal -->
         <div class="col-6">
-            <p><strong>VEHICLE PLATE:</strong> ${displayValue(row.lorry_plate_no1)}</p>
-            <p><strong>IN WEIGHT:</strong> ${displayValue(row.gross_weight1)}</p>
-            <p><strong>IN DATE / TIME:</strong> ${displayValue(row.gross_weight1_date)}</p>
-            <p><strong>IN WEIGH BY:</strong> ${displayValue(row.gross_weight_by1)}</p>
-            <p><strong>OUT WEIGHT:</strong> ${displayValue(row.tare_weight1)}</p>
-            <p><strong>OUT DATE / TIME:</strong> ${displayValue(row.tare_weight1_date)}</p>
-            <p><strong>OUT WEIGH BY:</strong> ${displayValue(row.tare_weight_by1)}</p>
-            <p><strong>NETT WEIGHT:</strong> ${displayValue(row.nett_weight1)}</p>
-            <p><strong>SUB TOTAL WEIGHT:</strong> ${displayValue(row.final_weight)}</p>
+            <p><strong><?=$languageArray['vehicle_plate_no_code'][$language]?>:</strong> ${displayValue(row.lorry_plate_no1)}</p>
+            <p><strong><?=$languageArray['in_weight_code'][$language]?>:</strong> ${displayValue(row.gross_weight1)}</p>
+            <p><strong><?=$languageArray['in_datetime_code'][$language]?>:</strong> ${displayValue(row.gross_weight1_date)}</p>
+            <p><strong><?=$languageArray['in_weigh_by_code'][$language]?>:</strong> ${displayValue(row.gross_weight_by1)}</p>
+            <p><strong><?=$languageArray['out_weight_code'][$language]?>:</strong> ${displayValue(row.tare_weight1)}</p>
+            <p><strong><?=$languageArray['out_datetime_code'][$language]?>:</strong> ${displayValue(row.tare_weight1_date)}</p>
+            <p><strong><?=$languageArray['out_weigh_by_code'][$language]?>:</strong> ${displayValue(row.tare_weight_by1)}</p>
+            <p><strong><?=$languageArray['nett_weight_code'][$language]?>:</strong> ${displayValue(row.nett_weight1)}</p>
+            <p><strong><?=$languageArray['sub_total_weight_code'][$language]?>:</strong> ${displayValue(row.final_weight)}</p>
         </div>
         <!-- Container -->
         <div class="col-6">
-            <p><strong>VEHICLE PLATE 2:</strong> ${displayValue(row.lorry_plate_no2)}</p>
-            <p><strong>IN WEIGHT 2:</strong> ${displayValue(row.gross_weight2)}</p>
-            <p><strong>IN DATE / TIME 2:</strong> ${displayValue(row.gross_weight2_date)}</p>
-            <p><strong>IN WEIGH BY 2:</strong> ${displayValue(row.gross_weight_by2)}</p>
-            <p><strong>OUT WEIGHT 2:</strong> ${displayValue(row.tare_weight2)}</p>
-            <p><strong>OUT DATE / TIME 2:</strong> ${displayValue(row.tare_weight2_date)}</p>
-            <p><strong>OUT WEIGH BY 2:</strong> ${displayValue(row.tare_weight_by2)}</p>
-            <p><strong>NETT WEIGHT 2:</strong> ${displayValue(row.nett_weight2)}</p>            
+            <p><strong><?=$languageArray['vehicle_plate_no_code'][$language]?> 2:</strong> ${displayValue(row.lorry_plate_no2)}</p>
+            <p><strong><?=$languageArray['in_weight_code'][$language]?> 2:</strong> ${displayValue(row.gross_weight2)}</p>
+            <p><strong><?=$languageArray['in_datetime_code'][$language]?> 2:</strong> ${displayValue(row.gross_weight2_date)}</p>
+            <p><strong><?=$languageArray['in_weigh_by_code'][$language]?> 2:</strong> ${displayValue(row.gross_weight_by2)}</p>
+            <p><strong><?=$languageArray['out_weight_code'][$language]?> 2:</strong> ${displayValue(row.tare_weight2)}</p>
+            <p><strong><?=$languageArray['out_datetime_code'][$language]?> 2:</strong> ${displayValue(row.tare_weight2_date)}</p>
+            <p><strong><?=$languageArray['out_weigh_by_code'][$language]?> 2:</strong> ${displayValue(row.tare_weight_by2)}</p>
+            <p><strong><?=$languageArray['nett_weight_code'][$language]?> 2:</strong> ${displayValue(row.nett_weight2)}</p>
             </div>
     </div>
     <hr>
@@ -767,7 +760,7 @@ function format (row) {
     ${hasCustomerSideInfo ? `
     <!-- Customer Side Info Section -->
     <div class="row">
-        <p><span><strong style="font-size:120%; text-decoration: underline;">Customer Side Info</strong></span><br>
+        <p><span><strong style="font-size:120%; text-decoration: underline;"><?=$languageArray['customer_side_info_code'][$language]?></strong></span><br>
         <div class="col-6">
             <p><strong><?=$languageArray['customer_side_do_no_code'][$language]?>:</strong> ${row.cust_side_do_no || ''}</p>
             <p><strong><?=$languageArray['first_code'][$language]?> (KG):</strong> ${row.cust_side_first_weight || ''}</p>
@@ -775,7 +768,7 @@ function format (row) {
         </div>
         <div class="col-6">
             <p><strong><?=$languageArray['customer_side_mc_code'][$language]?>:</strong> ${row.cust_side_mc || ''}</p>
-            <p><strong>Customer Side <?=$languageArray['nett_weight_code'][$language]?> (KG):</strong> ${row.cust_side_nett_weight || ''}</p>
+            <p><strong><?=$languageArray['customer_side_nett_weight_code'][$language]?> (KG):</strong> ${row.cust_side_nett_weight || ''}</p>
             <p><strong><?=$languageArray['weight_difference_code'][$language]?> (KG):</strong> ${row.weight_difference || ''}</p>
         </div>
     </div>` : ''}

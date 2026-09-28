@@ -872,14 +872,14 @@ class ReportService extends BaseService {
             'alias'   => '',
             'search'  => ['weight', 'transaction_id', 'like'],
             'company' => 'company_id',
-            'columns' => ["Transaction Id", "Weight Status", "Customer/Supplier", "Vehicle", "Product/Raw Material", "SO/PO", "DO", "Gross Incoming", "Incoming Date", "Tare Outgoing", "Outgoing Date", "Nett Weight", "Action", "Action By", "Event Date"]
+            'columns' => ["Transaction Id", "Weight Status", "Customer/Supplier", "Vehicle", "Items", "SO/PO", "DO", "Gross Incoming", "Incoming Date", "Tare Outgoing", "Outgoing Date", "Nett Weight", "Action", "Action By", "Event Date"]
         ],
         'Empty Container' => [
             'from'    => 'Weight_Container_Log',
             'alias'   => '',
             'search'  => ['emptyContainer', 'transaction_id', 'like'],
             'company' => 'company_id',
-            'columns' => ["Transaction Id", "Weight Status", "Customer/Supplier", "Vehicle", "Container No", "Product/Raw Material", "Gross Incoming", "Incoming Date", "Tare Outgoing", "Outgoing Date", "Nett Weight", "Action", "Action By", "Event Date"]
+            'columns' => ["Transaction Id", "Weight Status", "Customer/Supplier", "Vehicle", "Container No", "Items", "Gross Incoming", "Incoming Date", "Tare Outgoing", "Outgoing Date", "Nett Weight", "Action", "Action By", "Event Date"]
         ],
         'SO' => [
             'from'    => 'Sales_Order_Log',
@@ -924,11 +924,61 @@ class ReportService extends BaseService {
     ];
 
 
-    public function filterAuditLog($post) {
+    // Audit log column name => language key (or [key, suffix]) for the translated table header
+    private $auditLogColumnKeys = [
+        "Account No" => 'account_no_code', "Action" => 'action_code', "Action By" => 'action_by_code',
+        "Address line 1" => ['address_line_code', ' 1'], "Address line 2" => ['address_line_code', ' 2'],
+        "Address line 3" => ['address_line_code', ' 3'], "Address line 4" => ['address_line_code', ' 4'],
+        "Category" => 'category_code', "Category Name" => 'category_name_code', "Company" => 'company_code',
+        "Company Code" => 'company_code_code', "Company Name" => 'company_name_code',
+        "Company Reg No" => 'company_reg_no_code', "Contact Name" => 'contact_name_code',
+        "Container No" => 'container_no_code', "Customer Code" => 'customer_code_code',
+        "Customer Name" => 'customer_name_code', "Customer/Supplier" => 'customer_supplier_code',
+        "Description" => 'description_code', "Destination Code" => 'destination_code_code',
+        "Destination Name" => 'destination_name_code', "DO" => 'do_no_code', "Email" => 'email_code',
+        "Employee Code" => 'employee_code_code', "Event Date" => 'event_date_code', "Fax No" => 'fax_code',
+        "Gross Incoming" => 'gross_incoming_code', "High" => 'high_code', "IC No" => 'ic_code',
+        "Incoming Date" => 'incoming_date_code', "IP Address" => 'ip_address_code', "Is Local" => 'is_local_code',
+        "Is Manual" => 'is_manual_code', "Is Misc" => 'is_misc_code', "Is Port" => 'is_port_code',
+        "Is Purchase" => 'is_purchase_code', "Is Sales" => 'is_sales_code', "Item Code" => 'item_code_code',
+        "Item Name" => 'item_name_code', "Language" => 'language_code', "Lines" => 'lines_code',
+        "Location Code" => 'location_code_code', "Location Name" => 'location_name_code',
+        "Login Status" => 'login_status_code', "Low" => 'low_code', "Mobile No" => 'mobile_no_code', "Name" => 'name_code',
+        "Nett Weight" => 'nett_weight_code', "New Reg No" => 'new_reg_no_code', "Outgoing Date" => 'outgoing_date_code',
+        "Payment Term" => 'payment_term_code', "Payment Term Period" => 'payment_term_period_code',
+        "Phone No" => 'phone_code', "Plant" => 'plant_code', "Price Entries" => 'price_entries_code',
+        "Product Code" => 'product_code_code', "Product Name" => 'product_name_code',
+        "Items" => 'items_code', "Project Code" => 'project_code_code',
+        "Project Description" => 'description_code', "Purchase Price" => 'purchase_price_code',
+        "Record Date" => 'record_date_code', "Remarks" => 'remarks_code', "Role" => 'role_code',
+        "Selling Price" => 'selling_price_code', "SO/PO" => 'so_po_code', "Status" => 'status_code',
+        "Supplier Code" => 'supplier_code_code', "Supplier Name" => 'supplier_name_code',
+        "Tare Outgoing" => 'tare_outgoing_code', "TIN No" => 'tin_code', "Total Pieces" => 'total_pieces_code',
+        "Total Tons" => 'total_tons_code', "Transaction Id" => 'transaction_id_code',
+        "Transporter Code" => 'transporter_code_code', "Transporter Name" => 'transporter_name_code', "Unit" => 'unit_code',
+        "UOM" => 'uom_code', "User Agent" => 'user_agent_code', "Username" => 'username_code',
+        "Variance Type" => 'variance_type_code', "Vehicle" => 'vehicle_no_code', "Vehicle No" => 'vehicle_no_code',
+        "Vehicle Weight" => 'vehicle_weight_code', "Weighing Count" => 'weighing_count_code',
+        "Weight Status" => 'weight_status_code',
+    ];
+
+    // Translated header per column; falls back to the column name when a key has no translation
+    private function translateAuditLogColumns($columns, $language, $languageArray) {
+        $titles = [];
+        foreach ($columns as $column) {
+            $key = $this->auditLogColumnKeys[$column] ?? null;
+            [$key, $suffix] = is_array($key) ? $key : [$key, ''];
+            $text = ($key !== null) ? ($languageArray[$key][$language] ?? '') : '';
+            $titles[] = $text !== '' ? $text . $suffix : $column;
+        }
+        return $titles;
+    }
+
+    public function filterAuditLog($post, $language = 'en', $languageArray = []) {
         $type   = $post['selectedValue'] ?? '';
         $config = $this->auditLogConfig[$type] ?? null;
         if ($config === null) {
-            return ['columnNames' => [], 'dataTable' => []];
+            return ['columnNames' => [], 'columnTitles' => [], 'dataTable' => []];
         }
 
         $prefix = $config['alias'] !== '' ? $config['alias'] . '.' : '';
@@ -973,7 +1023,11 @@ class ReportService extends BaseService {
             $data[] = $this->mapAuditLogRow($type, $row);
         }
 
-        return ['columnNames' => $config['columns'], 'dataTable' => $data];
+        return [
+            'columnNames'  => $config['columns'],
+            'columnTitles' => $this->translateAuditLogColumns($config['columns'], $language, $languageArray),
+            'dataTable'    => $data,
+        ];
     }
 
     // Determine company on the backend - never trust frontend value for restricted users
@@ -1196,7 +1250,7 @@ class ReportService extends BaseService {
                     "Weight Status"        => $row['weight_type'] ?? '',
                     "Customer/Supplier"    => ($isSales ? $row['customer_name'] : $row['supplier_name']) ?? '',
                     "Vehicle"              => $row['lorry_plate_no1'] ?? '',
-                    "Product/Raw Material" => ($isSales ? $row['product_name'] : $row['raw_mat_name']) ?? '',
+                    "Items" => ($isSales ? $row['product_name'] : $row['raw_mat_name']) ?? '',
                     "SO/PO"                => $row['purchase_order'] ?? '',
                     "DO"                   => $row['delivery_no'] ?? '',
                     "Gross Incoming"       => $row['gross_weight1'] ?? '',
@@ -1213,7 +1267,7 @@ class ReportService extends BaseService {
                     "Customer/Supplier"    => ($isSales ? $row['customer_name'] : $row['supplier_name']) ?? '',
                     "Vehicle"              => $row['lorry_plate_no1'] ?? '',
                     "Container No"         => $row['container_no'] ?? '',
-                    "Product/Raw Material" => ($isSales ? $row['product_name'] : $row['raw_mat_name']) ?? '',
+                    "Items" => ($isSales ? $row['product_name'] : $row['raw_mat_name']) ?? '',
                     "Gross Incoming"       => $row['gross_weight1'] ?? '',
                     "Incoming Date"        => $row['gross_weight1_date'] ?? '',
                     "Tare Outgoing"        => $row['tare_weight1'] ?? '',
