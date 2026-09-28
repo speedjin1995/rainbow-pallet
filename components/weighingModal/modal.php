@@ -21,7 +21,7 @@
                                         <div class="d-flex justify-content-between">
                                             <div>
                                                 <h3 class="ff-secondary fw-semibold text-white"><?=$languageArray['indicator_weight_code'][$language]?></h3>
-                                                <h2 class="mt-4 ff-secondary fw-semibold display-3 text-white"><span class="counter-value" id="indicatorWeight">0</span> Kg</h2>
+                                                <h2 class="mt-4 ff-secondary fw-semibold display-3 text-white"><span class="counter-value" id="indicatorWeight">0</span> kg</h2>
                                             </div>
                                             <div>
                                                 <div class="avatar-sm flex-shrink-0">
@@ -44,7 +44,7 @@
                                         <div class="d-flex justify-content-between">
                                             <div>
                                                 <h3 class="ff-secondary fw-semibold text-white"><?=$languageArray['final_weight_code'][$language]?></h3>
-                                                <h2 class="mt-4 ff-secondary fw-semibold display-3 text-white"><span class="counter-value" id="currentWeight">0</span> Kg</h2>
+                                                <h2 class="mt-4 ff-secondary fw-semibold display-3 text-white"><span class="counter-value" id="currentWeight">0</span> kg</h2>
                                             </div>
                                             <div>
                                                 <div class="avatar-sm flex-shrink-0">
@@ -435,7 +435,7 @@
                                     <div class="col-sm-8">
                                         <div class="input-group">
                                             <input type="number" class="form-control input-readonly" id="grossIncoming" name="grossIncoming" placeholder="0" required readonly>
-                                            <div class="input-group-text">Kg</div>
+                                            <div class="input-group-text">kg</div>
                                             <button class="input-group-text btn btn-success fs-5" id="grossCapture" type="button"><i class="mdi mdi-sync"></i></button>
                                             <div class="invalid-feedback">
                                                 <?=$languageArray['please_fill_in_the_field_code'][$language] ?? 'Please fill in the field'?>
@@ -462,7 +462,7 @@
                                                 <input class="form-check-input mt-0" id="manualOutgoing" name="manualOutgoing" type="checkbox" value="0" aria-label="Checkbox for following text input">
                                             </div>-->
                                             <input type="number" class="form-control input-readonly" id="tareOutgoing" name="tareOutgoing" placeholder="0" readonly>
-                                            <div class="input-group-text">Kg</div>
+                                            <div class="input-group-text">kg</div>
                                             <button class="input-group-text btn btn-success fs-5" id="tareCapture" type="button"><i class="mdi mdi-sync"></i></button>
                                         </div>                                                                                       
                                     </div>
@@ -478,7 +478,7 @@
                                     <div class="col-sm-8">
                                         <div class="input-group">
                                             <input type="number" class="form-control input-readonly" id="nettWeight" name="nettWeight" placeholder="0" readonly>
-                                            <div class="input-group-text">Kg</div>
+                                            <div class="input-group-text">kg</div>
                                         </div>
                                     </div>
                                 </div>
@@ -515,7 +515,7 @@
                                     <div class="col-sm-8">
                                         <div class="input-group">
                                             <input type="number" class="form-control input-readonly" id="vehicleWeight2" name="vehicleWeight2" placeholder="0">
-                                            <div class="input-group-text">Kg</div>
+                                            <div class="input-group-text">kg</div>
                                         </div>
                                     </div>
                                 </div>
@@ -524,7 +524,7 @@
                                     <div class="col-sm-8">
                                         <div class="input-group">
                                             <input type="number" class="form-control input-readonly" id="grossIncoming2" name="grossIncoming2" placeholder="0" readonly>
-                                            <div class="input-group-text">Kg</div>
+                                            <div class="input-group-text">kg</div>
                                             <button class="input-group-text btn btn-success fs-5" id="grossCapture2"><i class="mdi mdi-sync" type="button"></i></button>
                                         </div>
                                     </div>
@@ -540,7 +540,7 @@
                                     <div class="col-sm-8">
                                         <div class="input-group">
                                             <input type="number" class="form-control input-readonly" id="emptyContainerWeight2" name="emptyContainerWeight2" placeholder="0" readonly>
-                                            <div class="input-group-text">Kg</div>
+                                            <div class="input-group-text">kg</div>
                                             <div class="input-group-text">-</div>
                                             <div class="input-group-text" id="replaceContainerText"></div>
                                         </div>
@@ -551,7 +551,7 @@
                                     <div class="col-sm-8">
                                         <div class="input-group">
                                             <input type="number" class="form-control input-readonly" id="tareOutgoing2" name="tareOutgoing2" placeholder="0" readonly>
-                                            <div class="input-group-text">Kg</div>
+                                            <div class="input-group-text">kg</div>
                                             <button class="input-group-text btn btn-success fs-5" id="tareCapture2" type="button"><i class="mdi mdi-sync"></i></button>
                                         </div>
                                     </div>
@@ -567,7 +567,7 @@
                                     <div class="col-sm-8">
                                         <div class="input-group">
                                             <input type="number" class="form-control input-readonly" id="nettWeight2" name="nettWeight2" placeholder="0" readonly>
-                                            <div class="input-group-text">Kg</div>
+                                            <div class="input-group-text">kg</div>
                                         </div>
                                     </div>
                                 </div>                                                                    
@@ -582,7 +582,7 @@
                                     <div class="col-sm-8">
                                         <div class="input-group">
                                             <input type="number" class="form-control" id="orderWeight" name="orderWeight"  placeholder="<?=$languageArray['order_weight_code'][$language]?>">
-                                            <div class="input-group-text">Kg</div>
+                                            <div class="input-group-text">kg</div>
                                         </div>
                                     </div>
                                 </div>
@@ -591,7 +591,7 @@
                                     <div class="col-sm-8">
                                         <div class="input-group">
                                             <input type="number" class="form-control" id="supplierWeight" name="supplierWeight"  placeholder="<?=$languageArray['supplier_weight_code'][$language]?>">
-                                            <div class="input-group-text">Kg</div>
+                                            <div class="input-group-text">kg</div>
                                         </div>
                                     </div>
                                 </div>
@@ -600,7 +600,7 @@
                                     <div class="col-sm-8">
                                         <div class="input-group">
                                             <input type="number" class="form-control" id="reduceWeight" name="reduceWeight" placeholder="0">
-                                            <div class="input-group-text">Kg</div>
+                                            <div class="input-group-text">kg</div>
                                         </div>
                                     </div>
                                 </div>
@@ -609,7 +609,7 @@
                                     <div class="col-sm-8">
                                         <div class="input-group">
                                             <input type="number" class="form-control input-readonly" id="weightDifference" name="weightDifference" placeholder="Weight Difference" readonly>
-                                            <div class="input-group-text">Kg</div>
+                                            <div class="input-group-text">kg</div>
                                         </div>
                                     </div>
                                 </div>
@@ -777,7 +777,7 @@
                         <div class="col-sm-8">
                             <div class="input-group">
                                 <input type="number" class="form-control input-readonly" id="poSupplyWeight" name="poSupplyWeight" placeholder="P/O Supply Weight" readonly>
-                                <div class="input-group-text">Kg</div>
+                                <div class="input-group-text">kg</div>
                             </div>
                         </div>
                     </div>
