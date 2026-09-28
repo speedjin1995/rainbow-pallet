@@ -320,10 +320,10 @@
                                         <div class="row">
                                             <div class="col-lg-12">
                                                 <div class="card">
-                                                    <div class="card-header">
+                                                    <div class="card-header" style="background-color: #405189;">
                                                         <div class="d-flex justify-content-between">
                                                             <div>
-                                                                <h5 class="card-title mb-0"><?=$languageArray['previous_records_code'][$language] ?? 'Previous Records'?></h5>
+                                                                <h5 class="card-title mb-0 text-white"><?=$languageArray['previous_records_code'][$language] ?? 'Previous Records'?></h5>
                                                             </div>
                                                             <div class="flex-shrink-0">
                                                                 <?php if(hasModulePermission('Master Data', 'Product Category', ['download_template'])): ?>
@@ -373,7 +373,7 @@
                                                                     <th><?=$languageArray['miscellaneous_code'][$language] ?? 'Misc'?></th>
                                                                     <th><?=$languageArray['sawn_timber_code'][$language] ?? 'Sawn Timber'?></th>
                                                                     <th><?=$languageArray['status_code'][$language] ?? 'Status'?></th>
-                                                                    <th><?=$languageArray['action_code'][$language] ?? 'Action'?></th>
+                                                                    <th><?=$languageArray['action_code'][$language] ?? 'Action'?><?=actionPermissionNote([hasModulePermission('Master Data', 'Product Category', ['edit']), hasModulePermission('Master Data', 'Product Category', ['cancelled'])])?></th>
                                                                 </tr>
                                                             </thead>
                                                         </table>
@@ -732,6 +732,7 @@ function renderTable(){
             },
             {
                 data: 'id',
+                responsivePriority: 1,
                 render: function ( data, type, row ) {
                     if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Product Category'] && ['edit', 'cancelled'].some(p => permissions['Master Data']['Product Category'].includes(p)))) {
                         var buttons = `

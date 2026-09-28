@@ -61,10 +61,10 @@ while($p = $permissionsResult->fetch_assoc()){
                             <div class="row">
                                 <div class="col-lg-12">
                                     <div class="card">
-                                        <div class="card-header">
+                                        <div class="card-header" style="background-color: #405189;">
                                             <div class="d-flex justify-content-between">
                                                 <div>
-                                                    <h5 class="card-title mb-0"><?=$languageArray['role_records_code'][$language]?></h5>
+                                                    <h5 class="card-title mb-0 text-white"><?=$languageArray['role_records_code'][$language]?></h5>
                                                 </div>
                                                 <div class="flex-shrink-0">
                                                     <?php if(hasModulePermission('User Management', 'Role', ['cancelled'])): ?>
@@ -91,7 +91,7 @@ while($p = $permissionsResult->fetch_assoc()){
                                                         <th><?=$languageArray['role_code_code'][$language]?></th>
                                                         <th><?=$languageArray['role_name_code'][$language]?></th>
                                                         <th><?=$languageArray['status_code'][$language]?></th>
-                                                        <th><?=$languageArray['action_code'][$language]?></th>
+                                                        <th><?=$languageArray['action_code'][$language]?><?=actionPermissionNote([hasModulePermission('User Management', 'Role', ['edit']), hasModulePermission('User Management', 'Role', ['cancelled']), hasModulePermission('User Management', 'Role', ['assign_permissions'])])?></th>
                                                     </tr>
                                                 </thead>
                                             </table>
@@ -275,6 +275,7 @@ $(function () {
             {
                 data: 'id',
                 orderable: false,
+                responsivePriority: 1,
                 render: function (data, type, row) {
                     var perms = (permissions['User Management'] && permissions['User Management']['Role']) || [];                    
                     if (isSADMIN || ['edit', 'cancelled', 'assign_permissions'].some(p => perms.includes(p))) {

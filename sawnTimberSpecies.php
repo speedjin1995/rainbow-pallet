@@ -204,7 +204,7 @@
                                                                     <th><input type="checkbox" id="selectAllCheckbox" class="selectAllCheckbox"></th>
                                                                     <th><?=$languageArray['species_code'][$language] ?? 'Species'?></th>
                                                                     <th><?=$languageArray['status_code'][$language] ?? 'Status'?></th>
-                                                                    <th><?=$languageArray['action_code'][$language] ?? 'Action'?></th>
+                                                                    <th><?=$languageArray['action_code'][$language] ?? 'Action'?><?=actionPermissionNote([hasModulePermission('Master Data', 'Sawn Timber Species', ['edit']), hasModulePermission('Master Data', 'Sawn Timber Species', ['cancelled'])])?></th>
                                                                 </tr>
                                                             </thead>
                                                         </table>

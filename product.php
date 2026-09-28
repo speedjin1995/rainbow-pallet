@@ -257,7 +257,7 @@
                                                                     <th><?=$languageArray['product_name_code'][$language]?></th>
                                                                     <th><?=$languageArray['description_code'][$language]?></th>
                                                                     <th><?=$languageArray['status_code'][$language]?></th>
-                                                                    <th><?=$languageArray['action_code'][$language]?></th>
+                                                                    <th><?=$languageArray['action_code'][$language]?><?=actionPermissionNote([hasModulePermission('Master Data', 'Products', ['edit']), hasModulePermission('Master Data', 'Products', ['cancelled'])])?></th>
                                                                 </tr>
                                                             </thead>
                                                         </table>
@@ -373,6 +373,7 @@
                     },
                     { 
                         data: 'id',
+                        responsivePriority: 1,
                         render: function ( data, type, row ) {
                             if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Products'] && ['edit', 'cancelled'].some(p => permissions['Master Data']['Products'].includes(p)))) {
                                 var buttons = `

@@ -305,10 +305,10 @@
                                         <div class="row">
                                             <div class="col-lg-12">
                                                 <div class="card">
-                                                    <div class="card-header">
+                                                    <div class="card-header" style="background-color: #405189;">
                                                         <div class="d-flex justify-content-between">
                                                             <div>
-                                                                <h5 class="card-title mb-0"><?=$languageArray['previous_records_code'][$language]?></h5>
+                                                                <h5 class="card-title mb-0 text-white"><?=$languageArray['previous_records_code'][$language]?></h5>
                                                             </div>
                                                             <div class="flex-shrink-0">
                                                                 <?php if(hasModulePermission('Master Data', 'Vehicles', ['download_template'])): ?>
@@ -354,7 +354,7 @@
                                                                     <th><?=$languageArray['customer_code'][$language]?></th>
                                                                     <th><?=$languageArray['supplier_code'][$language]?></th>
                                                                     <th><?=$languageArray['status_code'][$language]?></th>
-                                                                    <th><?=$languageArray['action_code'][$language]?></th>
+                                                                    <th><?=$languageArray['action_code'][$language]?><?=actionPermissionNote([hasModulePermission('Master Data', 'Vehicles', ['edit']), hasModulePermission('Master Data', 'Vehicles', ['cancelled'])])?></th>
                                                                 </tr>
                                                             </thead>
                                                         </table>
@@ -715,6 +715,7 @@ function renderTable(){
             { data: 'status' },
             {
                 data: 'id',
+                responsivePriority: 1,
                 render: function ( data, type, row ) {
                     if(row.status == 'Inactive'){
                         return '<div class="dropdown d-inline-block"><button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">' +

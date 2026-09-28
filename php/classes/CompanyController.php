@@ -1,14 +1,63 @@
 <?php
 require_once __DIR__ . '/BaseController.php';
 require_once __DIR__ . '/../services/CompanyService.php';
+require_once __DIR__ . '/../services/DocumentNumberService.php';
 
 class CompanyController extends BaseController {
-    
+
     private $companyService;
-    
+    private $documentNumberService;
+
     public function __construct($db) {
         parent::__construct($db);
         $this->companyService = new CompanyService($db, $this->username);
+        $this->documentNumberService = new DocumentNumberService($db, $this->username);
+    }
+
+    /**
+     * Document number formats of a company (one row per transaction status)
+     */
+    public function getDocumentNumbers() {
+        if (!hasModulePermission('Master Data', 'Companies', ['edit'])) {
+            $this->failed('Unauthorized');
+        }
+
+        try {
+            $rows = $this->documentNumberService->getByCompany(intval($this->getRequiredPost('companyId')), $this->getRequiredPost('documentType'));
+        } catch (InvalidArgumentException $e) {
+            $this->failed($e->getMessage());
+        } catch (Exception $e) {
+            error_log('Get document numbers: ' . $e->getMessage());
+            $this->failed('Something went wrong');
+        }
+
+        if ($rows === null) {
+            $this->failed('Record not found');
+        }
+        $this->success($rows);
+    }
+
+    /**
+     * Save a company's document number formats
+     */
+    public function saveDocumentNumbers() {
+        if (!hasModulePermission('Master Data', 'Companies', ['edit'])) {
+            $this->failed('Unauthorized');
+        }
+
+        $companyId = intval($this->getRequiredPost('companyId'));
+        $documentType = $this->getRequiredPost('documentType');
+        $rows = json_decode($this->getRequiredPost('data'), true);
+
+        try {
+            $this->documentNumberService->saveByCompany($companyId, $documentType, $rows);
+            $this->success('Updated Successfully!!');
+        } catch (InvalidArgumentException $e) {
+            $this->failed($e->getMessage());
+        } catch (Exception $e) {
+            error_log('Save document numbers: ' . $e->getMessage());
+            $this->failed('Something went wrong');
+        }
     }
     
     /**

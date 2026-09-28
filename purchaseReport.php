@@ -288,7 +288,7 @@ if (!hasModulePermission('Reports', 'Purchase', ['view_all_plants'])) {
                                                                     <th><?=$languageArray['tare_outgoing_code'][$language]?>2</th>
                                                                     <th><?=$languageArray['outgoing_date_code'][$language]?>2</th>
                                                                     <th><?=$languageArray['nett_weight_code'][$language]?>2</th>
-                                                                    <th><?=$languageArray['action_code'][$language]?></th>
+                                                                    <th><?=$languageArray['action_code'][$language]?><?=actionPermissionNote([hasModulePermission('Reports', 'Purchase', ['print'])])?></th>
                                                                 </tr>
                                                             </thead>
                                                         </table>
@@ -959,6 +959,7 @@ if (!hasModulePermission('Reports', 'Purchase', ['view_all_plants'])) {
                 { data: 'nett_weight2' },
                 {
                     data: 'id',
+                    responsivePriority: 1,
                     render: function (data, type, row) {
                         if (isSADMIN || (permissions['Reports'] && permissions['Reports']['Purchase'] && permissions['Reports']['Purchase'].includes('print'))) {
                             return '<div class="dropdown d-inline-block"><button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">' +

@@ -3966,3 +3966,374 @@ CREATE TABLE IF NOT EXISTS `Login_Log` (
 
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('login_code', 'Login', '登录', 'Log Masuk', 'உள்நுழைவு');
 
+
+ALTER TABLE `Product` ADD `purchase_price` DECIMAL(15,2) NULL AFTER `uom`, ADD `selling_price` DECIMAL(15,2) NULL AFTER `purchase_price`;
+
+CREATE TABLE IF NOT EXISTS `Product_Price` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `product_id` int(11) NOT NULL,
+  `party_type` varchar(10) NOT NULL,
+  `party_id` int(11) NOT NULL,
+  `date_from` date NOT NULL,
+  `date_to` date NOT NULL,
+  `price_type` varchar(10) NOT NULL,
+  `status` int(1) NOT NULL DEFAULT 0,
+  `created_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_by` varchar(50) DEFAULT NULL,
+  `modified_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `modified_by` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `Product_Price_Tier` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `price_id` int(11) NOT NULL,
+  `qty_from` decimal(15,2) NOT NULL,
+  `qty_to` decimal(15,2) NOT NULL,
+  `purchase_price` decimal(15,2) DEFAULT NULL,
+  `selling_price` decimal(15,2) DEFAULT NULL,
+  `discount` decimal(15,2) NOT NULL DEFAULT 0,
+  `discount_type` varchar(10) NOT NULL DEFAULT 'Amount',
+  `status` int(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('manage_prices_code', 'Manage Prices', '管理价格', 'Urus Harga', 'விலைகளை நிர்வகி');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('product_pricing_code', 'Product Pricing', '产品定价', 'Harga Produk', 'பொருள் விலை நிர்ணயம்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('customer_supplier_pricing_code', 'Customer / Supplier Pricing', '客户/供应商定价', 'Harga Pelanggan / Pembekal', 'வாடிக்கையாளர் / வழங்குநர் விலை நிர்ணயம்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('purchase_price_code', 'Purchase Price', '采购价', 'Harga Belian', 'கொள்முதல் விலை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('selling_price_code', 'Selling Price', '销售价', 'Harga Jualan', 'விற்பனை விலை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('discount_code', 'Discount', '折扣', 'Diskaun', 'தள்ளுபடி');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('discount_type_code', 'Discount Type', '折扣类型', 'Jenis Diskaun', 'தள்ளுபடி வகை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('percentage_code', 'Percentage', '百分比', 'Peratus', 'சதவீதம்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('single_code', 'Single', '单一', 'Tunggal', 'ஒற்றை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('range_code', 'Range', '范围', 'Julat', 'வரம்பு');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('qty_from_code', 'Qty From', '数量从', 'Kuantiti Dari', 'அளவு முதல்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('qty_to_code', 'Qty To', '数量至', 'Kuantiti Hingga', 'அளவு வரை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('add_price_entry_code', 'Add Price Entry', '新增价格', 'Tambah Harga', 'விலையைச் சேர்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('add_tier_code', 'Add Tier', '新增级别', 'Tambah Peringkat', 'நிலையைச் சேர்');
+
+ALTER TABLE `Product_Log` ADD `purchase_price` DECIMAL(15,2) NULL AFTER `uom`, ADD `selling_price` DECIMAL(15,2) NULL AFTER `purchase_price`, ADD `is_price_save` CHAR(1) NOT NULL DEFAULT 'N' AFTER `company`;
+
+CREATE TABLE IF NOT EXISTS `Product_Price_Log` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `price_id` int(11) NOT NULL,
+  `product_id` int(11) NOT NULL,
+  `product_log_id` int(11) DEFAULT NULL,
+  `party_type` varchar(10) NOT NULL,
+  `party_id` int(11) NOT NULL,
+  `date_from` date NOT NULL,
+  `date_to` date NOT NULL,
+  `price_type` varchar(10) NOT NULL,
+  `status` int(1) NOT NULL DEFAULT 0,
+  `action_id` int(11) NOT NULL,
+  `action_by` varchar(50) DEFAULT NULL,
+  `event_date` datetime NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `Product_Price_Tier_Log` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `tier_id` int(11) NOT NULL,
+  `price_id` int(11) NOT NULL,
+  `product_log_id` int(11) DEFAULT NULL,
+  `qty_from` decimal(15,2) NOT NULL,
+  `qty_to` decimal(15,2) NOT NULL,
+  `purchase_price` decimal(15,2) DEFAULT NULL,
+  `selling_price` decimal(15,2) DEFAULT NULL,
+  `discount` decimal(15,2) NOT NULL DEFAULT 0,
+  `discount_type` varchar(10) NOT NULL,
+  `status` int(1) NOT NULL DEFAULT 0,
+  `action_id` int(11) NOT NULL,
+  `action_by` varchar(50) DEFAULT NULL,
+  `event_date` datetime NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_PRODUCT` AFTER INSERT ON `Product` FOR EACH ROW
+BEGIN
+    INSERT INTO Product_Log (
+        product_id, product_code, name, description, variance, high, low, category, uom, purchase_price, selling_price, is_manual, company, is_price_save, action_id, action_by, event_date
+    )
+    VALUES (
+        NEW.id, NEW.product_code, NEW.name, NEW.description, NEW.variance, NEW.high, NEW.low, NEW.category, NEW.uom, NEW.purchase_price, NEW.selling_price, NEW.is_manual, NEW.company, COALESCE(@product_price_save, 'N'), 1, NEW.created_by, NEW.created_date
+    );
+
+    -- Picked up by the price/tier triggers of the same price save
+    SET @product_log_id = LAST_INSERT_ID();
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_PRODUCT` BEFORE UPDATE ON `Product` FOR EACH ROW
+BEGIN
+    DECLARE action_value INT;
+
+    -- Check if status = 1, set action_id to 3, otherwise set to 2
+    IF NEW.status = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Product_Log table
+    INSERT INTO Product_Log (
+        product_id, product_code, name, description, variance, high, low, category, uom, purchase_price, selling_price, is_manual, company, is_price_save, action_id, action_by, event_date
+    )
+    VALUES (
+        NEW.id, NEW.product_code, NEW.name, NEW.description, NEW.variance, NEW.high, NEW.low, NEW.category, NEW.uom, NEW.purchase_price, NEW.selling_price, NEW.is_manual, NEW.company, COALESCE(@product_price_save, 'N'), action_value, NEW.modified_by, NEW.modified_date
+    );
+
+    -- Picked up by the price/tier triggers of the same price save
+    SET @product_log_id = LAST_INSERT_ID();
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_PRODUCT_PRICE` AFTER INSERT ON `Product_Price` FOR EACH ROW
+INSERT INTO Product_Price_Log (
+    price_id, product_id, product_log_id, party_type, party_id, date_from, date_to, price_type, status, action_id, action_by, event_date
+) VALUES (
+    NEW.id, NEW.product_id, @product_log_id, NEW.party_type, NEW.party_id, NEW.date_from, NEW.date_to, NEW.price_type, NEW.status, 1, NEW.created_by, NOW()
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_PRODUCT_PRICE` BEFORE UPDATE ON `Product_Price` FOR EACH ROW
+INSERT INTO Product_Price_Log (
+    price_id, product_id, product_log_id, party_type, party_id, date_from, date_to, price_type, status, action_id, action_by, event_date
+) VALUES (
+    NEW.id, NEW.product_id, @product_log_id, NEW.party_type, NEW.party_id, NEW.date_from, NEW.date_to, NEW.price_type, NEW.status, IF(NEW.status = 1 AND OLD.status <> 1, 3, 2), NEW.modified_by, NOW()
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_PRODUCT_PRICE_TIER` AFTER INSERT ON `Product_Price_Tier` FOR EACH ROW
+INSERT INTO Product_Price_Tier_Log (
+    tier_id, price_id, product_log_id, qty_from, qty_to, purchase_price, selling_price, discount, discount_type, status, action_id, action_by, event_date
+) VALUES (
+    NEW.id, NEW.price_id, @product_log_id, NEW.qty_from, NEW.qty_to, NEW.purchase_price, NEW.selling_price, NEW.discount, NEW.discount_type, NEW.status, 1, COALESCE(@product_price_action_by, 'system'), NOW()
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_PRODUCT_PRICE_TIER` BEFORE UPDATE ON `Product_Price_Tier` FOR EACH ROW
+INSERT INTO Product_Price_Tier_Log (
+    tier_id, price_id, product_log_id, qty_from, qty_to, purchase_price, selling_price, discount, discount_type, status, action_id, action_by, event_date
+) VALUES (
+    NEW.id, NEW.price_id, @product_log_id, NEW.qty_from, NEW.qty_to, NEW.purchase_price, NEW.selling_price, NEW.discount, NEW.discount_type, NEW.status, IF(NEW.status = 1 AND OLD.status <> 1, 3, 2), COALESCE(@product_price_action_by, 'system'), NOW()
+)
+$$
+DELIMITER ;
+
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('item_price_code', 'Item Price', '物品价格', 'Harga Item', 'பொருள் விலை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('price_entries_code', 'Price Entries', '价格记录', 'Entri Harga', 'விலை பதிவுகள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('removed_entries_code', 'Removed Entries', '已移除的记录', 'Entri Dibuang', 'நீக்கப்பட்ட பதிவுகள்');
+
+CREATE TABLE IF NOT EXISTS `Document_Number` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `company_id` int(11) NOT NULL,
+  `transaction_status` varchar(20) NOT NULL,
+  `format` varchar(100) NOT NULL,
+  `digits` int(2) NOT NULL DEFAULT 3,
+  `reset_period` varchar(10) NOT NULL DEFAULT 'Monthly',
+  `status` int(1) NOT NULL DEFAULT 0,
+  `created_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_by` varchar(50) DEFAULT NULL,
+  `modified_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `modified_by` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Running number per format and period (ALL / yyyy / yyyymm depending on reset_period)
+CREATE TABLE IF NOT EXISTS `Document_Number_Counter` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `document_number_id` int(11) NOT NULL,
+  `period` varchar(10) NOT NULL,
+  `next_number` int(11) NOT NULL DEFAULT 1,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('document_number_code', 'Document Number', '单据编号', 'Nombor Dokumen', 'ஆவண எண்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('format_code', 'Format', '格式', 'Format', 'வடிவம்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('format_hint_code', 'Use {YYYY}, {YY}, {MM} for the date and {NUMBER} for the running number, e.g. RPS-{YY}{MM}/{NUMBER}', '日期使用 {YYYY}、{YY}、{MM}，流水号使用 {NUMBER}，例如 RPS-{YY}{MM}/{NUMBER}', 'Guna {YYYY}, {YY}, {MM} untuk tarikh dan {NUMBER} untuk nombor berjalan, cth. RPS-{YY}{MM}/{NUMBER}', 'தேதிக்கு {YYYY}, {YY}, {MM} மற்றும் தொடர் எண்ணுக்கு {NUMBER} பயன்படுத்தவும், எ.கா. RPS-{YY}{MM}/{NUMBER}');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('digits_code', 'Digits', '位数', 'Digit', 'இலக்கங்கள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('reset_period_code', 'Reset Period', '重置周期', 'Tempoh Set Semula', 'மீட்டமைப்பு காலம்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('never_code', 'Never', '从不', 'Tidak Pernah', 'ஒருபோதும் இல்லை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('yearly_code', 'Yearly', '每年', 'Tahunan', 'ஆண்டுதோறும்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('next_number_code', 'Next Number', '下一个编号', 'Nombor Seterusnya', 'அடுத்த எண்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('preview_code', 'Preview', '预览', 'Pratonton', 'முன்னோட்டம்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('generate_code', 'Generate', '生成', 'Jana', 'உருவாக்கு');
+
+ALTER TABLE `Document_Number` ADD `document_type` VARCHAR(10) NOT NULL DEFAULT 'DO' AFTER `company_id`;
+
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('document_type_code', 'Document Type', '单据类型', 'Jenis Dokumen', 'ஆவண வகை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('delivery_order_no_code', 'Delivery Order No', '送货单号', 'No. Pesanan Penghantaran', 'விநியோக ஆணை எண்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('purchase_order_no_code', 'Purchase Order No', '采购单号', 'No. Pesanan Belian', 'கொள்முதல் ஆணை எண்');
+
+ALTER TABLE `Product_Price_Tier` ADD `unit_price` DECIMAL(15,2) NULL AFTER `qty_to`;
+UPDATE Product_Price_Tier t JOIN Product_Price p ON p.id = t.price_id
+SET t.unit_price = IF(p.party_type = 'Supplier', t.purchase_price, t.selling_price);
+ALTER TABLE `Product_Price_Tier` DROP `purchase_price`, DROP `selling_price`;
+
+ALTER TABLE `Product_Price_Tier_Log` ADD `unit_price` DECIMAL(15,2) NULL AFTER `qty_to`;
+UPDATE Product_Price_Tier_Log t JOIN Product_Price p ON p.id = t.price_id
+SET t.unit_price = IF(p.party_type = 'Supplier', t.purchase_price, t.selling_price);
+ALTER TABLE `Product_Price_Tier_Log` DROP `purchase_price`, DROP `selling_price`;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_PRODUCT_PRICE_TIER` AFTER INSERT ON `Product_Price_Tier` FOR EACH ROW
+INSERT INTO Product_Price_Tier_Log (
+    tier_id, price_id, product_log_id, qty_from, qty_to, unit_price, discount, discount_type, status, action_id, action_by, event_date
+) VALUES (
+    NEW.id, NEW.price_id, @product_log_id, NEW.qty_from, NEW.qty_to, NEW.unit_price, NEW.discount, NEW.discount_type, NEW.status, 1, COALESCE(@product_price_action_by, 'system'), NOW()
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_PRODUCT_PRICE_TIER` BEFORE UPDATE ON `Product_Price_Tier` FOR EACH ROW
+INSERT INTO Product_Price_Tier_Log (
+    tier_id, price_id, product_log_id, qty_from, qty_to, unit_price, discount, discount_type, status, action_id, action_by, event_date
+) VALUES (
+    NEW.id, NEW.price_id, @product_log_id, NEW.qty_from, NEW.qty_to, NEW.unit_price, NEW.discount, NEW.discount_type, NEW.status, IF(NEW.status = 1 AND OLD.status <> 1, 3, 2), COALESCE(@product_price_action_by, 'system'), NOW()
+)
+$$
+DELIMITER ;
+
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('update_price_code', 'Update Price', '更新价格', 'Kemaskini Harga', 'விலையைப் புதுப்பி');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('save_prices_code', 'Save Prices', '保存价格', 'Simpan Harga', 'விலைகளைச் சேமி');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('cancel_code', 'Cancel', '取消', 'Batal', 'ரத்துசெய்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('price_locked_code', 'Price locked - already posted to SQL', '价格已锁定 - 已过账至SQL', 'Harga dikunci - telah dipos ke SQL', 'விலை பூட்டப்பட்டது - ஏற்கனவே SQL-க்கு அனுப்பப்பட்டது');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('action_permission_note_code', 'Note: Some actions are unavailable due to your role permissions', '注意：由于您的角色权限，部分操作不可用', 'Nota: Sesetengah tindakan tidak tersedia disebabkan kebenaran peranan anda', 'குறிப்பு: உங்கள் பங்கு அனுமதிகள் காரணமாக சில செயல்கள் கிடைக்கவில்லை');
+
+ALTER TABLE `Weight` ADD `port_sp_qty` VARCHAR(10) NULL AFTER `weight_difference`, ADD `port_ref_no` VARCHAR(100) NULL AFTER `port_sp_qty`, ADD `port_location` VARCHAR(255) NULL AFTER `port_ref_no`;
+ALTER TABLE `Weight_Log` ADD `port_sp_qty` VARCHAR(10) NULL AFTER `weight_difference`, ADD `port_ref_no` VARCHAR(100) NULL AFTER `port_sp_qty`, ADD `port_location` VARCHAR(255) NULL AFTER `port_ref_no`;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_WEIGHT` AFTER INSERT ON `Weight` FOR EACH ROW 
+INSERT INTO Weight_Log (
+    weight_id, company_id, project_id, transaction_id, transaction_status, weight_type, transaction_date, lorry_plate_no1, lorry_plate_no2, supplier_weight, order_weight, plant_code, plant_name, customer_code, customer_name, supplier_code, supplier_name, product_code, product_name, product_description, raw_mat_code, raw_mat_name, container_no, invoice_no, purchase_order, delivery_no, transporter_code, transporter, destination_code, destination, remarks, gross_weight1, gross_weight1_date, tare_weight1, tare_weight1_date, nett_weight1, lorry_no2_weight, empty_container2_weight, replacement_container, gross_weight2, gross_weight2_date, tare_weight2, tare_weight2_date, nett_weight2, reduce_weight, final_weight, weight_different, weight_different_perc, is_complete, is_cancel, is_approved, manual_weight, is_manual_product, is_manual_raw_material, is_manual_customer, is_manual_supplier, indicator_id, weighbridge_id, indicator_id_2, unit_price, sub_total, sst, total_price, status, pv_id, customer_side_company, customer_side_removal_pass_no, customer_side_license_no, customer_side_moisture_content, customer_side_officer_name, customer_side_rainbow_driver, customer_side_time_in, customer_side_time_out, cust_side_do_no, cust_side_mc, cust_side_first_weight, cust_side_second_weight, cust_side_nett_weight, weight_difference, port_sp_qty, port_ref_no, port_location, synced, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.company_id, NEW.project_id, NEW.transaction_id, NEW.transaction_status, NEW.weight_type, NEW.transaction_date, NEW.lorry_plate_no1, NEW.lorry_plate_no2, NEW.supplier_weight, NEW.order_weight, NEW.plant_code, NEW.plant_name, NEW.customer_code, NEW.customer_name, NEW.supplier_code, NEW.supplier_name, NEW.product_code, NEW.product_name, NEW.product_description, NEW.raw_mat_code, NEW.raw_mat_name, NEW.container_no, NEW.invoice_no, NEW.purchase_order, NEW.delivery_no, NEW.transporter_code, NEW.transporter, NEW.destination_code, NEW.destination, NEW.remarks, NEW.gross_weight1, NEW.gross_weight1_date, NEW.tare_weight1, NEW.tare_weight1_date, NEW.nett_weight1, NEW.lorry_no2_weight, NEW.empty_container2_weight, NEW.replacement_container, NEW.gross_weight2, NEW.gross_weight2_date, NEW.tare_weight2, NEW.tare_weight2_date, NEW.nett_weight2, NEW.reduce_weight, NEW.final_weight, NEW.weight_different, NEW.weight_different_perc, NEW.is_complete, NEW.is_cancel, NEW.is_approved, NEW.manual_weight, NEW.is_manual_product, NEW.is_manual_raw_material, NEW.is_manual_customer, NEW.is_manual_supplier, NEW.indicator_id, NEW.weighbridge_id, NEW.indicator_id_2, NEW.unit_price, NEW.sub_total, NEW.sst, NEW.total_price, NEW.status, NEW.pv_id, NEW.customer_side_company, NEW.customer_side_removal_pass_no, NEW.customer_side_license_no, NEW.customer_side_moisture_content, NEW.customer_side_officer_name, NEW.customer_side_rainbow_driver, NEW.customer_side_time_in, NEW.customer_side_time_out, NEW.cust_side_do_no, NEW.cust_side_mc, NEW.cust_side_first_weight, NEW.cust_side_second_weight, NEW.cust_side_nett_weight, NEW.weight_difference, NEW.port_sp_qty, NEW.port_ref_no, NEW.port_location, NEW.synced, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_WEIGHT` BEFORE UPDATE ON `Weight` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Check if status = 1, set action_id to 3, otherwise set to 2
+    IF NEW.status = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Weight_Log table
+    INSERT INTO Weight_Log (
+        weight_id, company_id, project_id, transaction_id, transaction_status, weight_type, transaction_date, lorry_plate_no1, lorry_plate_no2, supplier_weight, order_weight, plant_code, plant_name, customer_code, customer_name, supplier_code, supplier_name, product_code, product_name, product_description, raw_mat_code,raw_mat_name, container_no, invoice_no, purchase_order, delivery_no, transporter_code, transporter, destination_code, destination, remarks, gross_weight1, gross_weight1_date, tare_weight1, tare_weight1_date, nett_weight1, lorry_no2_weight, empty_container2_weight, replacement_container, gross_weight2, gross_weight2_date, tare_weight2, tare_weight2_date, nett_weight2, reduce_weight, final_weight, weight_different, weight_different_perc, is_complete, is_cancel, is_approved, manual_weight, is_manual_product, is_manual_raw_material, is_manual_customer, is_manual_supplier, indicator_id, weighbridge_id, indicator_id_2, unit_price, sub_total, sst, total_price, status, pv_id, customer_side_company, customer_side_removal_pass_no, customer_side_license_no, customer_side_moisture_content, customer_side_officer_name, customer_side_rainbow_driver, customer_side_time_in, customer_side_time_out, cust_side_do_no, cust_side_mc, cust_side_first_weight, cust_side_second_weight, cust_side_nett_weight, weight_difference, port_sp_qty, port_ref_no, port_location, synced, action_id, action_by, event_date
+    ) 
+    VALUES (
+        NEW.id, NEW.company_id, NEW.project_id, NEW.transaction_id, NEW.transaction_status, NEW.weight_type, NEW.transaction_date, 
+        NEW.lorry_plate_no1, NEW.lorry_plate_no2, NEW.supplier_weight, NEW.order_weight, 
+        NEW.plant_code, NEW.plant_name,
+        NEW.customer_code, NEW.customer_name, 
+        NEW.supplier_code, NEW.supplier_name, NEW.product_code, NEW.product_name, 
+        NEW.product_description, NEW.raw_mat_code, NEW.raw_mat_name, 
+        NEW.container_no, NEW.invoice_no, NEW.purchase_order, NEW.delivery_no, 
+        NEW.transporter_code, NEW.transporter, NEW.destination_code, NEW.destination, 
+        NEW.remarks, NEW.gross_weight1, NEW.gross_weight1_date, NEW.tare_weight1, 
+        NEW.tare_weight1_date, NEW.nett_weight1, NEW.lorry_no2_weight, NEW.empty_container2_weight, 
+        NEW.replacement_container, NEW.gross_weight2, NEW.gross_weight2_date, 
+        NEW.tare_weight2, NEW.tare_weight2_date, NEW.nett_weight2, NEW.reduce_weight,
+        NEW.final_weight, NEW.weight_different, NEW.weight_different_perc, NEW.is_complete, NEW.is_cancel, 
+        NEW.is_approved, NEW.manual_weight, NEW.is_manual_product, NEW.is_manual_raw_material, 
+        NEW.is_manual_customer, NEW.is_manual_supplier, NEW.indicator_id, NEW.weighbridge_id, 
+        NEW.indicator_id_2, NEW.unit_price, NEW.sub_total, NEW.sst, NEW.total_price, NEW.status, NEW.pv_id,
+        NEW.customer_side_company, NEW.customer_side_removal_pass_no, NEW.customer_side_license_no, NEW.customer_side_moisture_content, NEW.customer_side_officer_name, NEW.customer_side_rainbow_driver, NEW.customer_side_time_in, NEW.customer_side_time_out, NEW.cust_side_do_no, NEW.cust_side_mc, NEW.cust_side_first_weight, NEW.cust_side_second_weight, NEW.cust_side_nett_weight, NEW.weight_difference,
+        NEW.port_sp_qty, NEW.port_ref_no, NEW.port_location, NEW.synced, action_value, NEW.modified_by, NEW.modified_date
+    );
+END
+$$
+DELIMITER ;
+
+ALTER TABLE `Weight_Container` ADD `port_sp_qty` VARCHAR(10) NULL AFTER `weight_difference`, ADD `port_ref_no` VARCHAR(100) NULL AFTER `port_sp_qty`, ADD `port_location` VARCHAR(255) NULL AFTER `port_ref_no`;
+ALTER TABLE `Weight_Container_Log` ADD `port_sp_qty` VARCHAR(10) NULL AFTER `weight_difference`, ADD `port_ref_no` VARCHAR(100) NULL AFTER `port_sp_qty`, ADD `port_location` VARCHAR(255) NULL AFTER `port_ref_no`;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_WEIGHT_CONTAINER` AFTER INSERT ON `Weight_Container` FOR EACH ROW 
+INSERT INTO Weight_Container_Log (
+    weight_id, company_id, project_id, transaction_id, transaction_status, weight_type, transaction_date, lorry_plate_no1, lorry_plate_no2, supplier_weight, order_weight, plant_code, plant_name, customer_code, customer_name, supplier_code, supplier_name, product_code, product_name, product_description, raw_mat_code, raw_mat_name, container_no, invoice_no, purchase_order, delivery_no, transporter_code, transporter, destination_code, destination, remarks, gross_weight1, gross_weight1_date, tare_weight1, tare_weight1_date, nett_weight1, lorry_no2_weight, empty_container2_weight, replacement_container, gross_weight2, gross_weight2_date, tare_weight2, tare_weight2_date, nett_weight2, reduce_weight, final_weight, weight_different, weight_different_perc, is_complete, is_cancel, is_approved, manual_weight, is_manual_product, is_manual_raw_material, is_manual_customer, is_manual_supplier, indicator_id, weighbridge_id, indicator_id_2, unit_price, sub_total, sst, total_price, status, pv_id, customer_side_company, customer_side_removal_pass_no, customer_side_license_no, customer_side_moisture_content, customer_side_officer_name, customer_side_rainbow_driver, customer_side_time_in, customer_side_time_out, cust_side_do_no, cust_side_mc, cust_side_first_weight, cust_side_second_weight, cust_side_nett_weight, weight_difference, port_sp_qty, port_ref_no, port_location, synced, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.company_id, NEW.project_id, NEW.transaction_id, NEW.transaction_status, NEW.weight_type, NEW.transaction_date, NEW.lorry_plate_no1, NEW.lorry_plate_no2, NEW.supplier_weight, NEW.order_weight, NEW.plant_code, NEW.plant_name, NEW.customer_code, NEW.customer_name, NEW.supplier_code, NEW.supplier_name, NEW.product_code, NEW.product_name, NEW.product_description, NEW.raw_mat_code, NEW.raw_mat_name, NEW.container_no, NEW.invoice_no, NEW.purchase_order, NEW.delivery_no, NEW.transporter_code, NEW.transporter, NEW.destination_code, NEW.destination, NEW.remarks, NEW.gross_weight1, NEW.gross_weight1_date, NEW.tare_weight1, NEW.tare_weight1_date, NEW.nett_weight1, NEW.lorry_no2_weight, NEW.empty_container2_weight, NEW.replacement_container, NEW.gross_weight2, NEW.gross_weight2_date, NEW.tare_weight2, NEW.tare_weight2_date, NEW.nett_weight2, NEW.reduce_weight, NEW.final_weight, NEW.weight_different, NEW.weight_different_perc, NEW.is_complete, NEW.is_cancel, NEW.is_approved, NEW.manual_weight, NEW.is_manual_product, NEW.is_manual_raw_material, NEW.is_manual_customer, NEW.is_manual_supplier, NEW.indicator_id, NEW.weighbridge_id, NEW.indicator_id_2, NEW.unit_price, NEW.sub_total, NEW.sst, NEW.total_price, NEW.status, NEW.pv_id, NEW.customer_side_company, NEW.customer_side_removal_pass_no, NEW.customer_side_license_no, NEW.customer_side_moisture_content, NEW.customer_side_officer_name, NEW.customer_side_rainbow_driver, NEW.customer_side_time_in, NEW.customer_side_time_out, NEW.cust_side_do_no, NEW.cust_side_mc, NEW.cust_side_first_weight, NEW.cust_side_second_weight, NEW.cust_side_nett_weight, NEW.weight_difference,
+    NEW.port_sp_qty, NEW.port_ref_no, NEW.port_location, NEW.synced, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_WEIGHT_CONTAINER` BEFORE UPDATE ON `Weight_Container` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Check if status = 1, set action_id to 3, otherwise set to 2
+    IF NEW.status = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Weight_Container_Log table
+    INSERT INTO Weight_Container_Log (
+        weight_id, company_id, project_id, transaction_id, transaction_status, weight_type, transaction_date, lorry_plate_no1, lorry_plate_no2, supplier_weight, order_weight, plant_code, plant_name, customer_code, customer_name, supplier_code, supplier_name, product_code, product_name, product_description, raw_mat_code,raw_mat_name, container_no, invoice_no, purchase_order, delivery_no, transporter_code, transporter, destination_code, destination, remarks, gross_weight1, gross_weight1_date, tare_weight1, tare_weight1_date, nett_weight1, lorry_no2_weight, empty_container2_weight, replacement_container, gross_weight2, gross_weight2_date, tare_weight2, tare_weight2_date, nett_weight2, reduce_weight, final_weight, weight_different, weight_different_perc, is_complete, is_cancel, is_approved, manual_weight, is_manual_product, is_manual_raw_material, is_manual_customer, is_manual_supplier, indicator_id, weighbridge_id, indicator_id_2, unit_price, sub_total, sst, total_price, status, pv_id, customer_side_company, customer_side_removal_pass_no, customer_side_license_no, customer_side_moisture_content, customer_side_officer_name, customer_side_rainbow_driver, customer_side_time_in, customer_side_time_out, cust_side_do_no, cust_side_mc, cust_side_first_weight, cust_side_second_weight, cust_side_nett_weight, weight_difference, port_sp_qty, port_ref_no, port_location, synced, action_id, action_by, event_date
+    ) 
+    VALUES (
+        NEW.id, NEW.company_id, NEW.project_id, NEW.transaction_id, NEW.transaction_status, NEW.weight_type, NEW.transaction_date, 
+        NEW.lorry_plate_no1, NEW.lorry_plate_no2, NEW.supplier_weight, NEW.order_weight, 
+        NEW.plant_code, NEW.plant_name,
+        NEW.customer_code, NEW.customer_name, 
+        NEW.supplier_code, NEW.supplier_name, NEW.product_code, NEW.product_name, 
+        NEW.product_description, NEW.raw_mat_code, NEW.raw_mat_name, 
+        NEW.container_no, NEW.invoice_no, NEW.purchase_order, NEW.delivery_no, 
+        NEW.transporter_code, NEW.transporter, NEW.destination_code, NEW.destination, 
+        NEW.remarks, NEW.gross_weight1, NEW.gross_weight1_date, NEW.tare_weight1, 
+        NEW.tare_weight1_date, NEW.nett_weight1, NEW.lorry_no2_weight, NEW.empty_container2_weight, 
+        NEW.replacement_container, NEW.gross_weight2, NEW.gross_weight2_date, 
+        NEW.tare_weight2, NEW.tare_weight2_date, NEW.nett_weight2, NEW.reduce_weight,
+        NEW.final_weight, NEW.weight_different, NEW.weight_different_perc, NEW.is_complete, NEW.is_cancel, 
+        NEW.is_approved, NEW.manual_weight, NEW.is_manual_product, NEW.is_manual_raw_material, 
+        NEW.is_manual_customer, NEW.is_manual_supplier, NEW.indicator_id, NEW.weighbridge_id, 
+        NEW.indicator_id_2, NEW.unit_price, NEW.sub_total, NEW.sst, NEW.total_price, NEW.status, NEW.pv_id, NEW.customer_side_company, NEW.customer_side_removal_pass_no, NEW.customer_side_license_no, NEW.customer_side_moisture_content, NEW.customer_side_officer_name, NEW.customer_side_rainbow_driver, NEW.customer_side_time_in, NEW.customer_side_time_out, NEW.cust_side_do_no, NEW.cust_side_mc, NEW.cust_side_first_weight, NEW.cust_side_second_weight, NEW.cust_side_nett_weight, NEW.weight_difference,
+        NEW.port_sp_qty, NEW.port_ref_no, NEW.port_location, NEW.synced, action_value, NEW.modified_by, NEW.modified_date
+    );
+END
+$$
+DELIMITER ;
+
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('sp_quantity_nett_weight_code', 'SP Quantity / Nett Weight', 'SP数量 / 净重', 'Kuantiti SP / Berat Bersih', 'SP அளவு / நிகர எடை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('ref_no_code', 'Ref No.', '参考号', 'No. Rujukan', 'குறிப்பு எண்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('location_code', 'Location', '地点', 'Lokasi', 'இடம்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('weighing_information_code', 'Weighing Information', '称重信息', 'Maklumat Penimbangan', 'எடையிடல் தகவல்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('customer_side_code', 'Customer Side', '客户端', 'Pihak Pelanggan', 'வாடிக்கையாளர் பக்கம்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('in_weight_code', 'In Weight', '进场重量', 'Berat Masuk', 'உள் எடை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('out_weight_code', 'Out Weight', '出场重量', 'Berat Keluar', 'வெளி எடை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('in_weigh_by_code', 'In Weigh By', '进场称重人', 'Timbang Masuk Oleh', 'உள் எடையிட்டவர்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('out_weigh_by_code', 'Out Weigh By', '出场称重人', 'Timbang Keluar Oleh', 'வெளி எடையிட்டவர்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('sub_total_weight_code', 'Sub Total Weight', '小计重量', 'Jumlah Kecil Berat', 'துணை மொத்த எடை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('action_by_code', 'Action By', '操作人', 'Tindakan Oleh', 'செயல்பட்டவர்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('event_date_code', 'Event Date', '事件日期', 'Tarikh Peristiwa', 'நிகழ்வு தேதி');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('contact_name_code', 'Contact Name', '联系人', 'Nama Hubungan', 'தொடர்பு பெயர்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('ip_address_code', 'IP Address', 'IP地址', 'Alamat IP', 'IP முகவரி');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('is_local_code', 'Is Local', '是否内部调拨', 'Adalah Tempatan', 'உள்ளூர்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('is_manual_code', 'Is Manual', '是否手动', 'Adalah Manual', 'கைமுறை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('is_misc_code', 'Is Misc', '是否杂项', 'Adalah Pelbagai', 'இதர');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('is_port_code', 'Is Port', '是否转运至港口', 'Adalah Pelabuhan', 'துறைமுகம்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('is_purchase_code', 'Is Purchase', '是否采购', 'Adalah Belian', 'கொள்முதல்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('is_sales_code', 'Is Sales', '是否销售', 'Adalah Jualan', 'விற்பனை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('lines_code', 'Lines', '行数', 'Baris', 'வரிகள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('login_status_code', 'Login Status', '登录状态', 'Status Log Masuk', 'உள்நுழைவு நிலை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('so_po_code', 'SO/PO', '销售单/采购单', 'SO/PO', 'SO/PO');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('total_pieces_code', 'Total Pieces', '总件数', 'Jumlah Keping', 'மொத்த துண்டுகள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('transporter_name_code', 'Transporter Name', '运输商名称', 'Nama Pengangkut', 'போக்குவரத்து நிறுவன பெயர்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('user_agent_code', 'User Agent', '用户代理', 'Ejen Pengguna', 'பயனர் முகவர்');

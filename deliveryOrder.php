@@ -58,6 +58,7 @@ else{
 // Weighing modal component - used to edit / print the DO's weighings, which are Sales
 $canEditWeight = hasModulePermission('Weighing', 'Sales', ['edit']);
 $canPrintWeight = hasModulePermission('Weighing', 'Sales', ['print']);
+$canUpdatePrice = hasModulePermission('Accounting', 'Delivery Order', ['update_price']);
 if ($canEditWeight || $canPrintWeight) {
     require_once "components/weighingModal/data.php";
 }
@@ -247,7 +248,7 @@ if ($canEditWeight || $canPrintWeight) {
                                                                     <th><?=$languageArray['plant_code'][$language]?></th>
                                                                     <th><?=$languageArray['delivery_date_code'][$language]?></th>
                                                                     <th><?=$languageArray['total_delivery_amount_code'][$language]?></th>
-                                                                    <th><?=$languageArray['action_code'][$language]?></th>
+                                                                    <th><?=$languageArray['action_code'][$language]?><?=actionPermissionNote([hasModulePermission('Accounting', 'Delivery Order', ['post_to_sql'])])?></th>
                                                                 </tr>
                                                             </thead>
                                                         </table>
@@ -330,6 +331,9 @@ if ($canEditWeight || $canPrintWeight) {
     var allProductSearchOptions = null;
     var canEditWeight = <?= $canEditWeight ? 'true' : 'false' ?>;
     var canPrintWeight = <?= $canPrintWeight ? 'true' : 'false' ?>;
+    var canUpdatePrice = <?= $canUpdatePrice ? 'true' : 'false' ?>;
+    var expandedWeights = {}; // groupId -> last fetched weighing detail (weights, totalDeliverAmt, purchase_order)
+    var updatePriceModes = {}; // groupId -> true while that row's table is in Update Price edit mode
 
     $(function () {
         // Weighing modal: refresh the DO list after a weighing is saved
@@ -427,12 +431,15 @@ if ($canEditWeight || $canPrintWeight) {
                 // This row is already open - close it
                 row.child.hide();
                 tr.removeClass('shown');
+                delete updatePriceModes[row.data().id]; // re-expanding starts fresh in view mode
             } else {
-                $.post('php/modules/weighing/index.php', { action: 'getWeight', userID: row.data().id, fromDate: fromDateI, toDate: toDateI, format: 'EXPANDABLE', acctType: 'DO' }, function (data) {
+                var groupId = row.data().id;
+                $.post('php/modules/weighing/index.php', { action: 'getWeight', userID: groupId, fromDate: fromDateI, toDate: toDateI, format: 'EXPANDABLE', acctType: 'DO' }, function (data) {
                     var obj = JSON.parse(data);
                     if (obj.status === 'success') {
-                        row.child(format(obj.message)).show();
-                        tr.addClass("shown");
+                        expandedWeights[groupId] = obj.message;
+                        row.child(format(obj.message, groupId, false)).show();
+                        tr.addClass("shown").attr('data-group-id', groupId);
                     }
                 });
             }
@@ -638,6 +645,7 @@ if ($canEditWeight || $canPrintWeight) {
                     data: 'id',
                     class: 'action-button',
                     orderable: false,
+                    responsivePriority: 1,
                     render: function (data, type, row) {
                         if (isSADMIN || (permissions['Accounting'] && permissions['Accounting']['Delivery Order'] && permissions['Accounting']['Delivery Order'].includes('post_to_sql'))) {
                             return `
@@ -662,15 +670,34 @@ if ($canEditWeight || $canPrintWeight) {
         });
     }
 
-    function format(row) {
+    function format(row, groupId, editMode) {
         var returnString = `
         <!-- Weighing Section -->
-        <div class="row">
-            <p><span><strong style="font-size:120%; text-decoration: underline;"><?=$languageArray['delivery_order_information_code'][$language]?></strong></span><br>
+        <div class="d-flex justify-content-between align-items-center">
+            <span style="font-size:120%; text-decoration: underline;"><strong><?=$languageArray['delivery_order_information_code'][$language]?></strong></span>`;
+
+        if (canUpdatePrice && row.weights && row.weights.length > 0) {
+            returnString += `<div class="flex-shrink-0">`;
+            if (editMode) {
+                returnString += `
+                <button type="button" class="btn btn-success btn-sm" onclick="event.stopPropagation(); savePrices(${groupId});">
+                    <i class="fas fa-save align-middle me-1"></i><?=$languageArray['save_prices_code'][$language]?>
+                </button>
+                <button type="button" class="btn btn-light btn-sm" onclick="event.stopPropagation(); toggleUpdatePrice(${groupId});"><?=$languageArray['cancel_code'][$language]?></button>`;
+            } else {
+                returnString += `
+                <button type="button" class="btn btn-info btn-sm" onclick="event.stopPropagation(); toggleUpdatePrice(${groupId});"><i class="fas fa-tag align-middle me-1"></i><?=$languageArray['update_price_code'][$language]?></button>`;
+            }
+            returnString += `</div>`;
+        }
+
+        returnString += `
+        </div>
+        <div class="row mt-2">
             <div class="col-4">
                 <p><strong class="text-uppercase"><?=$languageArray['total_delivery_amount_code'][$language]?>:</strong> ${displayWeightMT(row.totalDeliverAmt)}</p>
             </div>`;
-        
+
         if (isSADMIN && row.weights && row.weights.length > 0) {
             returnString += `
             <div class="col-4">
@@ -699,8 +726,13 @@ if ($canEditWeight || $canPrintWeight) {
                         <th><?=$languageArray['tare_outgoing_code'][$language]?></th>
                         <th><?=$languageArray['outgoing_date_code'][$language]?></th>
                         <th><?=$languageArray['nett_weight_code'][$language]?></th>`;
+                        if (editMode) {
+                            returnString += `
+                        <th><?=$languageArray['unit_price_code'][$language]?></th>
+                        <th><?=$languageArray['total_price_code'][$language]?></th>`;
+                        }
                         if (canEditWeight || canPrintWeight) {
-                            returnString += `<th><?=$languageArray['action_code'][$language]?></th>`;
+                            returnString += `<th><?=$languageArray['action_code'][$language]?><?=actionPermissionNote([$canEditWeight, $canPrintWeight])?></th>`;
                         }
 
                     returnString += `</tr>
@@ -708,8 +740,8 @@ if ($canEditWeight || $canPrintWeight) {
                 <tbody>`;
 
                 for (var i = 0; i < row.weights.length; i++) {
-                    var weights = row.weights; 
-                    
+                    var weights = row.weights;
+
                     returnString += `
                         <tr>
                             <td>${displayValue(weights[i].transaction_id)}</td>
@@ -722,6 +754,28 @@ if ($canEditWeight || $canPrintWeight) {
                             <td>${displayWeightMT(weights[i].tare_weight1)}</td>
                             <td>${displayValue(weights[i].tare_weight1_date)}</td>
                             <td>${displayWeightMT(weights[i].nett_weight1)}</td>`
+                            if (editMode) {
+                                var existingPrice = parseFloat(weights[i].unit_price);
+                                var hasPrice = !isNaN(existingPrice) && existingPrice > 0;
+                                var startValue = hasPrice ? existingPrice.toFixed(2) : '';
+                                var startTotal = hasPrice ? displayNumber(existingPrice * (parseFloat(weights[i].nett_weight1) / 1000), 2) : '-';
+                                var isSynced = weights[i].synced === 'Y';
+                                if (isSynced) {
+                                    returnString += `
+                                        <td onclick="event.stopPropagation();">
+                                            <input type="number" class="form-control form-control-sm" style="width: 100px;" value="${startValue}" disabled title="<?=$languageArray['price_locked_code'][$language]?>">
+                                        </td>
+                                        <td class="text-end">${startTotal}</td>
+                                    `;
+                                } else {
+                                    returnString += `
+                                        <td onclick="event.stopPropagation();">
+                                            <input type="number" step="0.01" min="0" class="form-control form-control-sm" style="width: 100px;" id="priceInput${weights[i].id}" data-nett="${weights[i].nett_weight1}" value="${startValue}" oninput="updatePriceRowTotal(${weights[i].id});">
+                                        </td>
+                                        <td id="priceTotal${weights[i].id}" class="text-end">${startTotal}</td>
+                                    `;
+                                }
+                            }
                             if (canEditWeight || canPrintWeight) {
                                 // stopPropagation: don't let the clicks reach the parent row's expand handler
                                 returnString += `
@@ -767,8 +821,128 @@ if ($canEditWeight || $canPrintWeight) {
             </table>
         </div>
         `;
-        
+
         return returnString;
+    }
+
+    // ─── Update Price (expandable weighing table) ─────────────────────────────
+    // Toggle a DO group's inline table between view mode and price-edit mode
+    function toggleUpdatePrice(groupId) {
+        var tr = $('#weightTable tbody tr[data-group-id="' + groupId + '"]');
+        var rowApi = table.row(tr);
+        if (!rowApi.length || !rowApi.child.isShown()) {
+            return;
+        }
+
+        updatePriceModes[groupId] = !updatePriceModes[groupId];
+        rowApi.child(format(expandedWeights[groupId], groupId, updatePriceModes[groupId])).show();
+
+        if (updatePriceModes[groupId]) {
+            loadPriceSuggestions(groupId);
+        }
+    }
+
+    // Recalculate a row's Total cell as its Unit Price input changes; marks the input as user-edited
+    // so a price suggestion arriving later doesn't overwrite what was typed
+    function updatePriceRowTotal(id) {
+        var $input = $('#priceInput' + id);
+        var unitPrice = parseFloat($input.val());
+        var nett = parseFloat($input.data('nett'));
+        var $total = $('#priceTotal' + id);
+
+        if (!isNaN(unitPrice) && unitPrice >= 0 && !isNaN(nett)) {
+            $total.text(displayNumber(unitPrice * (nett / 1000), 2));
+        } else {
+            $total.text('-');
+        }
+        $input.data('user-edited', true);
+    }
+
+    // Prefill blank Unit Price inputs from the customer's item price, or the item's default Selling Price
+    function loadPriceSuggestions(groupId) {
+        var weights = (expandedWeights[groupId] && expandedWeights[groupId].weights) || [];
+        var ids = weights.filter(function (w) { return w.synced !== 'Y'; }).map(function (w) { return w.id; });
+        if (!ids.length) {
+            return;
+        }
+
+        var companyI = $('#companySearch').val() || '';
+        $.post('php/modules/deliveryOrder/index.php', { action: 'getPriceSuggestions', ids: ids, company: companyI }, function (data) {
+            var obj = JSON.parse(data);
+            if (obj.status !== 'success') {
+                return;
+            }
+            ids.forEach(function (id) {
+                var suggestion = obj.message[id];
+                var $input = $('#priceInput' + id);
+                if (!$input.length || $input.val() !== '' || $input.data('user-edited')) {
+                    return; // already has a value (existing price or typed by the user) - don't override
+                }
+                if (suggestion && suggestion.unitPrice !== null && suggestion.unitPrice !== undefined) {
+                    $input.val(parseFloat(suggestion.unitPrice).toFixed(2));
+                    updatePriceRowTotal(id);
+                }
+            });
+        }).fail(function () {
+            toastr["error"]("Something wrong when loading price suggestions", "Failed:");
+        });
+    }
+
+    // Save the unit prices typed for a DO group's weighings, then refresh that row in view mode
+    function savePrices(groupId) {
+        var weights = (expandedWeights[groupId] && expandedWeights[groupId].weights) || [];
+        var prices = [];
+        weights.forEach(function (w) {
+            var $input = $('#priceInput' + w.id);
+            if (!$input.length) {
+                return;
+            }
+            var val = $input.val();
+            if (val === '' || val === null) {
+                return; // leave weighings the user didn't set a price for untouched
+            }
+            var unitPrice = parseFloat(val);
+            if (isNaN(unitPrice) || unitPrice < 0) {
+                return;
+            }
+            prices.push({ id: w.id, unitPrice: unitPrice });
+        });
+
+        if (!prices.length) {
+            toastr["warning"]("Please enter at least one unit price", "Warning:");
+            return;
+        }
+
+        var companyI = $('#companySearch').val() || '';
+        $.post('php/modules/deliveryOrder/index.php', { action: 'updatePrices', prices: prices, company: companyI }, function (data) {
+            var obj = JSON.parse(data);
+            if (obj.status === 'success') {
+                toastr["success"](obj.message, "Success:");
+                refreshGroupPrices(groupId);
+                table.ajax.reload(null, false);
+            } else {
+                toastr["error"](obj.message, "Failed:");
+            }
+        }).fail(function () {
+            toastr["error"]("Something wrong when saving prices", "Failed:");
+        });
+    }
+
+    // Re-fetch a DO group's weighings after a price save and re-render its child row in view mode
+    function refreshGroupPrices(groupId) {
+        var tr = $('#weightTable tbody tr[data-group-id="' + groupId + '"]');
+        var rowApi = table.row(tr);
+        var fromDateI = $('#fromDateSearch').val();
+        var toDateI = $('#toDateSearch').val();
+
+        $.post('php/modules/weighing/index.php', { action: 'getWeight', userID: groupId, fromDate: fromDateI, toDate: toDateI, format: 'EXPANDABLE', acctType: 'DO' }, function (data) {
+            var obj = JSON.parse(data);
+            if (obj.status === 'success') {
+                expandedWeights[groupId] = obj.message;
+                updatePriceModes[groupId] = false;
+                rowApi.child(format(obj.message, groupId, false)).show();
+            }
+        });
     }
 
     function print(id) {

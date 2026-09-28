@@ -41,7 +41,7 @@ class ReportController extends BaseController {
         }
 
         try {
-            echo json_encode($this->service->filterAuditLog($_POST));
+            echo json_encode($this->service->filterAuditLog($_POST, $_SESSION['language'] ?? 'en', $_SESSION['languageArray'] ?? []));
         } catch (mysqli_sql_exception $e) {
             error_log('Audit log filter: ' . $e->getMessage());
             $this->failed('Something went wrong');
@@ -59,6 +59,26 @@ class ReportController extends BaseController {
             $data = $this->service->getSawnTimberLogDetails($headerLogId);
         } catch (mysqli_sql_exception $e) {
             error_log('Sawn timber log details: ' . $e->getMessage());
+            $this->failed('Something went wrong');
+        }
+
+        if ($data === null) {
+            $this->failed('Record not found');
+        }
+        $this->success($data);
+    }
+
+    public function handleGetItemPriceLogDetails() {
+        if (!hasModulePermission('Reports', 'Audit Log', ['view', 'create', 'edit'])) {
+            $this->failed('Unauthorized');
+        }
+
+        $productLogId = intval($this->getRequiredPost('userID'));
+
+        try {
+            $data = $this->service->getItemPriceLogDetails($productLogId);
+        } catch (mysqli_sql_exception $e) {
+            error_log('Item price log details: ' . $e->getMessage());
             $this->failed('Something went wrong');
         }
 

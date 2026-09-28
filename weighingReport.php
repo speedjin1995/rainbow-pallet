@@ -775,6 +775,7 @@ else{
                 { data: 'nett_weight2' },
                 {
                     data: 'id',
+                    responsivePriority: 1,
                     render: function (data, type, row) {
                         return '<div class="dropdown d-inline-block"><button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">' +
                             '<i class="ri-more-fill align-middle"></i></button><ul class="dropdown-menu dropdown-menu-end">' +

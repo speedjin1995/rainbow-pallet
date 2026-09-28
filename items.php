@@ -295,6 +295,110 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <!-- Manage Prices Modal -->
+                                    <div class="modal fade" id="priceModal" tabindex="-1" role="dialog" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-scrollable modal-xl">
+                                            <div class="modal-content">
+                                                <div class="modal-header py-2">
+                                                    <h5 class="modal-title"><?=$languageArray['manage_prices_code'][$language]?> - <span id="priceItemName"></span></h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <form role="form" id="priceForm" autocomplete="off">
+                                                        <input type="hidden" id="priceProductId">
+                                                        <div class="card bg-light">
+                                                            <div class="card-header" style="background-color: #405189;">
+                                                                <h5 class="card-title mb-0 text-white"><?=$languageArray['product_pricing_code'][$language]?></h5>
+                                                            </div>
+                                                            <div class="card-body">
+                                                                <div class="row">
+                                                                    <div class="col-md-6 mb-3">
+                                                                        <label for="productPurchasePrice" class="form-label"><?=$languageArray['purchase_price_code'][$language]?></label>
+                                                                        <input type="number" class="form-control" id="productPurchasePrice" min="0" step="0.01" placeholder="0.00">
+                                                                    </div>
+                                                                    <div class="col-md-6 mb-3">
+                                                                        <label for="productSellingPrice" class="form-label"><?=$languageArray['selling_price_code'][$language]?></label>
+                                                                        <input type="number" class="form-control" id="productSellingPrice" min="0" step="0.01" placeholder="0.00">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <ul class="nav nav-tabs mb-3" role="tablist">
+                                                            <li class="nav-item">
+                                                                <a class="nav-link active" id="customerPriceTab" data-bs-toggle="tab" href="#customerPricePane" role="tab"><?=$languageArray['customer_code'][$language]?></a>
+                                                            </li>
+                                                            <li class="nav-item">
+                                                                <a class="nav-link" id="supplierPriceTab" data-bs-toggle="tab" href="#supplierPricePane" role="tab"><?=$languageArray['supplier_code'][$language]?></a>
+                                                            </li>
+                                                        </ul>
+                                                        <div class="tab-content" id="priceEntries">
+                                                            <!-- Customer pricing card -->
+                                                            <div class="tab-pane fade show active" id="customerPricePane" role="tabpanel">
+                                                                <div class="card bg-light">
+                                                                    <div class="card-header" style="background-color: #405189;">
+                                                                        <div class="d-flex justify-content-between align-items-center">
+                                                                            <h5 class="card-title mb-0 text-white"><?=$languageArray['customer_code'][$language]?></h5>
+                                                                            <button type="button" class="btn btn-success add-price-entry" data-party-type="Customer"><i class="ri-add-circle-line align-middle me-1"></i><?=$languageArray['add_price_entry_code'][$language]?></button>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="card-body">
+                                                                        <table class="table table-bordered align-middle mb-0">
+                                                                            <thead>
+                                                                                <tr>
+                                                                                    <th width="35%"><?=$languageArray['customer_code'][$language]?> <span class="text-danger">*</span></th>
+                                                                                    <th><?=$languageArray['from_date_code'][$language]?> <span class="text-danger">*</span></th>
+                                                                                    <th><?=$languageArray['to_date_code'][$language]?> <span class="text-danger">*</span></th>
+                                                                                    <!-- <th><?=$languageArray['type_code'][$language]?></th> -->
+                                                                                    <th><?=$languageArray['unit_price_code'][$language]?> <span class="text-danger">*</span></th>
+                                                                                    <th width="5%"><?=$languageArray['action_code'][$language]?></th>
+                                                                                </tr>
+                                                                            </thead>
+                                                                            <tbody id="customerPriceEntries"></tbody>
+                                                                        </table>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <!-- Supplier pricing card -->
+                                                            <div class="tab-pane fade" id="supplierPricePane" role="tabpanel">
+                                                                <div class="card bg-light">
+                                                                    <div class="card-header" style="background-color: #405189;">
+                                                                        <div class="d-flex justify-content-between align-items-center">
+                                                                            <h5 class="card-title mb-0 text-white"><?=$languageArray['supplier_code'][$language]?></h5>
+                                                                            <button type="button" class="btn btn-success add-price-entry" data-party-type="Supplier"><i class="ri-add-circle-line align-middle me-1"></i><?=$languageArray['add_price_entry_code'][$language]?></button>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="card-body">
+                                                                        <table class="table table-bordered align-middle mb-0">
+                                                                            <thead>
+                                                                                <tr>
+                                                                                    <th width="35%"><?=$languageArray['supplier_code'][$language]?> <span class="text-danger">*</span></th>
+                                                                                    <th><?=$languageArray['from_date_code'][$language]?> <span class="text-danger">*</span></th>
+                                                                                    <th><?=$languageArray['to_date_code'][$language]?> <span class="text-danger">*</span></th>
+                                                                                    <!-- <th><?=$languageArray['type_code'][$language]?></th> -->
+                                                                                    <th><?=$languageArray['unit_price_code'][$language]?> <span class="text-danger">*</span></th>
+                                                                                    <th width="5%"><?=$languageArray['action_code'][$language]?></th>
+                                                                                </tr>
+                                                                            </thead>
+                                                                            <tbody id="supplierPriceEntries"></tbody>
+                                                                        </table>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="col-lg-12">
+                                                            <div class="hstack gap-2 justify-content-end">
+                                                                <button type="button" class="btn btn-light" data-bs-dismiss="modal"><?=$languageArray['close_code'][$language]?></button>
+                                                                <button type="button" class="btn btn-success" id="submitPrices"><?=$languageArray['submit_code'][$language]?></button>
+                                                            </div>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <div class="modal fade" id="uploadModal">
                                         <div class="modal-dialog modal-xl" style="max-width: 90%;">
                                             <div class="modal-content">
@@ -377,10 +481,10 @@
                                         <div class="row">
                                             <div class="col-lg-12">
                                                 <div class="card">
-                                                    <div class="card-header">
+                                                    <div class="card-header" style="background-color: #405189;">
                                                         <div class="d-flex justify-content-between">
                                                             <div>
-                                                                <h5 class="card-title mb-0"><?=$languageArray['previous_records_code'][$language]?></h5>
+                                                                <h5 class="card-title mb-0 text-white"><?=$languageArray['previous_records_code'][$language]?></h5>
                                                             </div>
                                                             <div class="flex-shrink-0">
                                                                 <?php if(hasModulePermission('Master Data', 'Items', ['download_template'])): ?>
@@ -425,7 +529,7 @@
                                                                     <th><?=$languageArray['category_code'][$language] ?? 'Category'?></th>
                                                                     <th><?=$languageArray['description_code'][$language] ?? 'Description'?></th>
                                                                     <th><?=$languageArray['status_code'][$language] ?? 'Status'?></th>
-                                                                    <th><?=$languageArray['action_code'][$language] ?? 'Action'?></th>
+                                                                    <th><?=$languageArray['action_code'][$language] ?? 'Action'?><?=actionPermissionNote([hasModulePermission('Master Data', 'Items', ['edit']), hasModulePermission('Master Data', 'Items', ['manage_price']), hasModulePermission('Master Data', 'Items', ['cancelled'])])?></th>
                                                                 </tr>
                                                             </thead>
                                                         </table>
@@ -499,6 +603,30 @@
         </tr>
     </script>
 
+    <!-- One customer/supplier price per row; discount is kept hidden (defaults 0 / Amount) -->
+    <script type="text/html" id="priceEntryTemplate">
+        <tr class="price-entry">
+            <td>
+                <input type="hidden" class="party-type">
+                <input type="hidden" class="entry-discount" value="0">
+                <input type="hidden" class="entry-discount-type" value="Amount">
+                <select class="form-control party-id" style="width: 100%;"></select>
+            </td>
+            <td><input type="text" class="form-control date-from" placeholder="dd-mm-yyyy"></td>
+            <td><input type="text" class="form-control date-to" placeholder="dd-mm-yyyy"></td>
+            <td style="display:none">
+                <!-- Fixed to Single for now -->
+                <select class="form-select price-type" disabled>
+                    <option value="Single" selected><?=$languageArray['single_code'][$language]?></option>
+                </select>
+            </td>
+            <td><input type="number" class="form-control unit-price" min="0" step="0.01" placeholder="0.00"></td>
+            <td class="text-center">
+                <button type="button" class="btn btn-danger remove-price-entry" title="<?=$languageArray['delete_code'][$language]?>"><i class="ri-delete-bin-line"></i></button>
+            </td>
+        </tr>
+    </script>
+
     <script type="text/javascript">
         var table;
         var permissions = <?= json_encode($_SESSION['permissions'] ?? []) ?>;
@@ -507,6 +635,7 @@
         var uomNoCount = 1;
         var sessionCompanyId = <?= intval($_SESSION['company_id'] ?? 0) ?>;
         var canViewAllCompanies = <?= json_encode(hasModulePermission('Master Data', 'Items', ['view_all_companies'])) ?>;
+        var priceParties = { Customer: [], Supplier: [] };
 
         $(function () {
             $('#selectAllCheckbox').on('change', function() {
@@ -854,7 +983,149 @@
                 uomRowCount++;
                 uomNoCount++;
             });
+
+            // ─── Manage Prices ───────────────────────────────────────────────
+            // Each tab adds entries of its own party type
+            $('#priceEntries').on('click', '.add-price-entry', function(){
+                addPriceEntry(null, $(this).data('party-type'));
+            });
+
+            $('#priceEntries').on('click', '.remove-price-entry', function(){
+                $(this).closest('.price-entry').remove();
+            });
+
+            $('#submitPrices').on('click', function(){
+                var $btn = $(this);
+                var data = {
+                    purchasePrice: $('#productPurchasePrice').val(),
+                    sellingPrice: $('#productSellingPrice').val(),
+                    entries: []
+                };
+
+                // Each row is saved as a Single price (qty 1)
+                $('#priceEntries .price-entry').each(function(){
+                    var $entry = $(this);
+
+                    data.entries.push({
+                        partyType: $entry.find('.party-type').val(),
+                        partyId: $entry.find('.party-id').val() || '',
+                        dateFrom: $entry.find('.date-from').val(),
+                        dateTo: $entry.find('.date-to').val(),
+                        priceType: 'Single',
+                        tiers: [{
+                            qtyFrom: 1,
+                            qtyTo: 1,
+                            unitPrice: $entry.find('.unit-price').val(),
+                            discount: $entry.find('.entry-discount').val(),
+                            discountType: $entry.find('.entry-discount-type').val()
+                        }]
+                    });
+                });
+
+                $btn.prop('disabled', true);
+                $('#spinnerLoading').show();
+                $.post('php/modules/item/index.php', { action: 'savePrices', id: $('#priceProductId').val(), data: JSON.stringify(data) }, function(response){
+                    var obj = JSON.parse(response);
+                    if (obj.status === 'success') {
+                        $('#priceModal').modal('hide');
+                        toastr["success"](obj.message, "Success:");
+                    } else {
+                        toastr["error"](obj.message, "Failed:");
+                    }
+                }).fail(function(){
+                    toastr["error"]("Something went wrong", "Failed:");
+                }).always(function(){
+                    $btn.prop('disabled', false);
+                    $('#spinnerLoading').hide();
+                });
+            });
         });
+
+        function managePrices(id) {
+            $('#spinnerLoading').show();
+            $.post('php/modules/item/index.php', { action: 'getPrices', id: id }, function(response){
+                var obj = JSON.parse(response);
+                if (obj.status !== 'success') {
+                    toastr["error"](obj.message, "Failed:");
+                    return;
+                }
+
+                var priceData = obj.data;
+                priceParties = { Customer: priceData.customers, Supplier: priceData.suppliers };
+
+                $('#priceProductId').val(priceData.product.id);
+                $('#priceItemName').text(priceData.product.product_code + ' - ' + priceData.product.name);
+                $('#productPurchasePrice').val(priceData.product.purchase_price || '');
+                $('#productSellingPrice').val(priceData.product.selling_price || '');
+
+                $('#customerPriceEntries, #supplierPriceEntries').html('');
+                $.each(priceData.entries, function(i, entry){
+                    addPriceEntry(entry, entry.party_type);
+                });
+
+                $('#customerPriceTab').tab('show');
+                $('#priceModal').modal('show');
+            }).fail(function(){
+                toastr["error"]("Something went wrong", "Failed:");
+            }).always(function(){
+                $('#spinnerLoading').hide();
+            });
+        }
+
+        // partyType (Customer / Supplier) decides which tab the entry goes to
+        function addPriceEntry(entry, partyType) {
+            var isSupplier = partyType === 'Supplier';
+            var $entry = $($('#priceEntryTemplate').html());
+            $(isSupplier ? '#supplierPriceEntries' : '#customerPriceEntries').append($entry);
+
+            $entry.find('.party-type').val(isSupplier ? 'Supplier' : 'Customer');
+
+            $entry.find('.date-from').flatpickr({ dateFormat: "d-m-Y", defaultDate: entry ? entry.date_from : null });
+            $entry.find('.date-to').flatpickr({ dateFormat: "d-m-Y", defaultDate: entry ? entry.date_to : null });
+
+            // Saved prices have one tier holding the unit price
+            var tier = entry && entry.tiers.length > 0 ? entry.tiers[0] : null;
+            if (tier) {
+                $entry.find('.unit-price').val(tier.unit_price || '');
+                $entry.find('.entry-discount').val(tier.discount);
+                $entry.find('.entry-discount-type').val(tier.discount_type);
+            }
+
+            loadPriceParties($entry, entry ? entry.party_id : '');
+        }
+
+        function loadPriceParties($entry, selectedValue) {
+            var $party = $entry.find('.party-id');
+            var partyType = $entry.find('.party-type').val();
+
+            if ($party.hasClass('select2-hidden-accessible')) {
+                $party.select2('destroy');
+            }
+
+            $party.empty().append('<option value="">Please Select</option>');
+            $.each(priceParties[partyType] || [], function(i, party){
+                $party.append($('<option>').val(party.id).text(party.code + ' - ' + party.name));
+            });
+            $party.val(selectedValue ? String(selectedValue) : '');
+
+            $party.select2({
+                allowClear: true,
+                placeholder: "Please Select",
+                dropdownParent: $('#priceModal')
+            });
+
+            // Apply custom styling to Select2 elements in addModal
+            $('.select2-container .select2-selection--single').css({
+                'padding-top': '4px',
+                'padding-bottom': '4px',
+                'height': 'auto'
+            });
+
+            $('.select2-container .select2-selection__arrow').css({
+                'padding-top': '33px',
+                'height': 'auto'
+            });
+        }
 
         function renderTable(){
             var companyId = $('#companySearch').val() || '';
@@ -909,8 +1180,9 @@
                     },
                     {
                         data: 'id',
+                        responsivePriority: 1,
                         render: function ( data, type, row ) {
-                            if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Items'] && ['edit', 'cancelled'].some(p => permissions['Master Data']['Items'].includes(p)))) {
+                            if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Items'] && ['edit', 'cancelled', 'manage_price'].some(p => permissions['Master Data']['Items'].includes(p)))) {
                                 var buttons = `
                                     <div class="dropdown d-inline-block">
                                         <button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -923,6 +1195,15 @@
                                             <li>
                                                 <a class="dropdown-item edit-item-btn" id="edit${data}" onclick="edit(${data})">
                                                     <i class="ri-pencil-fill align-bottom me-2 text-muted"></i> <?=$languageArray['edit_code'][$language]?>
+                                                </a>
+                                            </li>`;
+                                }
+
+                                if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Items'] && permissions['Master Data']['Items'].includes('manage_price'))) {
+                                    buttons += `
+                                            <li>
+                                                <a class="dropdown-item" id="managePrices${data}" onclick="managePrices(${data})">
+                                                    <i class="ri-price-tag-3-fill align-bottom me-2 text-muted"></i> <?=$languageArray['manage_prices_code'][$language]?>
                                                 </a>
                                             </li>`;
                                 }

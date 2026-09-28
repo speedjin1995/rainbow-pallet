@@ -274,7 +274,7 @@
                                                                     <th><?=$languageArray['raw_material_type_code'][$language]?></th>
                                                                     <th><?=$languageArray['description_code'][$language]?></th>
                                                                     <th><?=$languageArray['status_code'][$language]?></th>
-                                                                    <th><?=$languageArray['action_code'][$language]?></th>
+                                                                    <th><?=$languageArray['action_code'][$language]?><?=actionPermissionNote([hasModulePermission('Master Data', 'Raw Material', ['edit']), hasModulePermission('Master Data', 'Raw Material', ['cancelled'])])?></th>
                                                                 </tr>
                                                             </thead>
                                                         </table>

@@ -16,6 +16,12 @@ switch ($action) {
     case 'post':
         $controller->handlePost();
         break;
+    case 'getPriceSuggestions':
+        $controller->handleGetPriceSuggestions();
+        break;
+    case 'updatePrices':
+        $controller->handleUpdatePrices();
+        break;
     default:
         echo json_encode(['status' => 'failed', 'message' => 'Invalid action']);
 }

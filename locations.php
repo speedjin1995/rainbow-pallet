@@ -353,10 +353,10 @@
                                         <div class="row">
                                             <div class="col-lg-12">
                                                 <div class="card">
-                                                    <div class="card-header">
+                                                    <div class="card-header" style="background-color: #405189;">
                                                         <div class="d-flex justify-content-between">
                                                             <div>
-                                                                <h5 class="card-title mb-0"><?=$languageArray['previous_records_code'][$language]?></h5>
+                                                                <h5 class="card-title mb-0 text-white"><?=$languageArray['previous_records_code'][$language]?></h5>
                                                             </div>
                                                             <div class="flex-shrink-0">
                                                                 <?php if(hasModulePermission('Master Data', 'Locations', ['create'])): ?>
@@ -378,7 +378,7 @@
                                                                     <th><?=$languageArray['location_name_code'][$language]?></th>
                                                                     <th><?=$languageArray['weighing_count_code'][$language]?></th>
                                                                     <th><?=$languageArray['plant_code'][$language]?></th>
-                                                                    <th><?=$languageArray['action_code'][$language]?></th>
+                                                                    <th><?=$languageArray['action_code'][$language]?><?=actionPermissionNote([hasModulePermission('Master Data', 'Locations', ['edit']), hasModulePermission('Master Data', 'Locations', ['cancelled'])])?></th>
                                                                 </tr>
                                                             </thead>
                                                         </table>
@@ -598,6 +598,7 @@ function renderTable(){
             { data: 'plant' },
             {
                 data: 'id',
+                responsivePriority: 1,
                 render: function ( data, type, row ) {
                     if (isSADMIN || (permissions['Master Data'] && permissions['Master Data']['Locations'] && ['edit', 'cancelled'].some(p => permissions['Master Data']['Locations'].includes(p)))) {
                         var buttons = `

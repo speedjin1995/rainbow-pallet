@@ -21,7 +21,7 @@
                                         <div class="d-flex justify-content-between">
                                             <div>
                                                 <h3 class="ff-secondary fw-semibold text-white"><?=$languageArray['indicator_weight_code'][$language]?></h3>
-                                                <h2 class="mt-4 ff-secondary fw-semibold display-3 text-white"><span class="counter-value" id="indicatorWeight">0</span> Kg</h2>
+                                                <h2 class="mt-4 ff-secondary fw-semibold display-3 text-white"><span class="counter-value" id="indicatorWeight">0</span> kg</h2>
                                             </div>
                                             <div>
                                                 <div class="avatar-sm flex-shrink-0">
@@ -44,7 +44,7 @@
                                         <div class="d-flex justify-content-between">
                                             <div>
                                                 <h3 class="ff-secondary fw-semibold text-white"><?=$languageArray['final_weight_code'][$language]?></h3>
-                                                <h2 class="mt-4 ff-secondary fw-semibold display-3 text-white"><span class="counter-value" id="currentWeight">0</span> Kg</h2>
+                                                <h2 class="mt-4 ff-secondary fw-semibold display-3 text-white"><span class="counter-value" id="currentWeight">0</span> kg</h2>
                                             </div>
                                             <div>
                                                 <div class="avatar-sm flex-shrink-0">
@@ -122,13 +122,13 @@
                                     </div>
                                     <div class="col-xxl-4 col-lg-4 mb-3">
                                         <div class="row" id="containerDisplay">
-                                            <label for="containerNoInput" class="col-sm-4 col-form-label"><?=$languageArray['container_no1_code'][$language]?></label>
+                                            <label for="containerNoInput" class="col-sm-4 col-form-label"><?=$languageArray['container_no1_code'][$language]?> <span class="text-danger" id="containerRequired">*</span></label>
                                             <div class="col-sm-8">
                                                 <input type="text" class="form-control" id="containerNoInput" name="containerNoInput" placeholder="<?=$languageArray['container_no_code'][$language]?>">
                                             </div>
                                         </div>
                                         <div class="row" id="emptyContainerDisplay" style="display:none" >
-                                            <label for="emptyContainerNo" class="col-sm-4 col-form-label" id="containerNo1Label"><?=$languageArray['container_no1_code'][$language]?></label>
+                                            <label for="emptyContainerNo" class="col-sm-4 col-form-label" id="containerNo1Label"><span id="containerNo1Text"><?=$languageArray['container_no1_code'][$language]?></span> <span class="text-danger" id="emptyContainerRequired">*</span></label>
                                             <div class="col-sm-8">
                                                 <select class="form-select select2" id="emptyContainerNo" name="emptyContainerNo">
                                                     <option selected="-">-</option>
@@ -172,6 +172,7 @@
                                                                     data-description="<?=$rowProduct['description'] ?>"
                                                                     data-is-sales="<?=$rowProduct['is_sales'] ?>"
                                                                     data-is-purchase="<?=$rowProduct['is_purchase'] ?>"
+                                                                    data-is-local="<?=$rowProduct['is_local'] ?>"
                                                                     data-is-port="<?=$rowProduct['is_port'] ?>"
                                                                     data-is-misc="<?=$rowProduct['is_misc'] ?>">
                                                                     <?=$rowProduct['product_code'] .' - '. $rowProduct['name']?>
@@ -194,7 +195,7 @@
                                                         <select class="form-select select2" id="rawMaterialName" name="rawMaterialName" required>
                                                             <option selected="-">-</option>
                                                             <?php while($rowRowMat=mysqli_fetch_assoc($wmRawMaterial)){ ?>
-                                                                <option value="<?=$rowRowMat['name'] ?>" data-code="<?=$rowRowMat['product_code'] ?>" data-is-sales="<?=$rowRowMat['is_sales'] ?>" data-is-purchase="<?=$rowRowMat['is_purchase'] ?>" data-is-port="<?=$rowRowMat['is_port'] ?>" data-is-misc="<?=$rowRowMat['is_misc'] ?>"><?=$rowRowMat['product_code'] .' - '. $rowRowMat['name'] ?></option>
+                                                                <option value="<?=$rowRowMat['name'] ?>" data-code="<?=$rowRowMat['product_code'] ?>" data-is-sales="<?=$rowRowMat['is_sales'] ?>" data-is-purchase="<?=$rowRowMat['is_purchase'] ?>" data-is-local="<?=$rowRowMat['is_local'] ?>" data-is-port="<?=$rowRowMat['is_port'] ?>" data-is-misc="<?=$rowRowMat['is_misc'] ?>"><?=$rowRowMat['product_code'] .' - '. $rowRowMat['name'] ?></option>
                                                             <?php } ?>
                                                         </select>
                                                     </div>
@@ -269,7 +270,10 @@
                                         <div class="row">
                                             <label for="deliveryNo" class="col-sm-4 col-form-label"><?=$languageArray['delivery_no_code'][$language]?></label>
                                             <div class="col-sm-8">
-                                                <input type="text" class="form-control" id="deliveryNo" name="deliveryNo" placeholder="<?=$languageArray['delivery_no_code'][$language]?>">
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control" id="deliveryNo" name="deliveryNo" placeholder="<?=$languageArray['delivery_no_code'][$language]?>">
+                                                    <button type="button" class="btn btn-outline-secondary" id="generateDoNo" title="<?=$languageArray['generate_code'][$language] ?? 'Generate'?>"><i class="ri-refresh-line"></i></button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -283,7 +287,7 @@
                                     </div>
                                     <div class="col-xxl-4 col-lg-4 mb-3" id="replacementContainerDisplay" style="display:none">
                                         <div class="row">
-                                            <label for="replacementContainer" class="col-sm-4 col-form-label"><?=$languageArray['new_empty_bin_code'][$language]?></label>
+                                            <label for="replacementContainer" class="col-sm-4 col-form-label"><?=$languageArray['new_empty_bin_code'][$language]?> <span class="text-danger" id="replacementContainerRequired">*</span></label>
                                             <div class="col-sm-8">
                                                 <input type="text" class="form-control" id="replacementContainer" name="replacementContainer" placeholder="Replacement Container" required>
                                             </div>
@@ -432,7 +436,7 @@
                                     <div class="col-sm-8">
                                         <div class="input-group">
                                             <input type="number" class="form-control input-readonly" id="grossIncoming" name="grossIncoming" placeholder="0" required readonly>
-                                            <div class="input-group-text">Kg</div>
+                                            <div class="input-group-text">kg</div>
                                             <button class="input-group-text btn btn-success fs-5" id="grossCapture" type="button"><i class="mdi mdi-sync"></i></button>
                                             <div class="invalid-feedback">
                                                 <?=$languageArray['please_fill_in_the_field_code'][$language] ?? 'Please fill in the field'?>
@@ -459,7 +463,7 @@
                                                 <input class="form-check-input mt-0" id="manualOutgoing" name="manualOutgoing" type="checkbox" value="0" aria-label="Checkbox for following text input">
                                             </div>-->
                                             <input type="number" class="form-control input-readonly" id="tareOutgoing" name="tareOutgoing" placeholder="0" readonly>
-                                            <div class="input-group-text">Kg</div>
+                                            <div class="input-group-text">kg</div>
                                             <button class="input-group-text btn btn-success fs-5" id="tareCapture" type="button"><i class="mdi mdi-sync"></i></button>
                                         </div>                                                                                       
                                     </div>
@@ -475,7 +479,7 @@
                                     <div class="col-sm-8">
                                         <div class="input-group">
                                             <input type="number" class="form-control input-readonly" id="nettWeight" name="nettWeight" placeholder="0" readonly>
-                                            <div class="input-group-text">Kg</div>
+                                            <div class="input-group-text">kg</div>
                                         </div>
                                     </div>
                                 </div>
@@ -512,7 +516,7 @@
                                     <div class="col-sm-8">
                                         <div class="input-group">
                                             <input type="number" class="form-control input-readonly" id="vehicleWeight2" name="vehicleWeight2" placeholder="0">
-                                            <div class="input-group-text">Kg</div>
+                                            <div class="input-group-text">kg</div>
                                         </div>
                                     </div>
                                 </div>
@@ -521,7 +525,7 @@
                                     <div class="col-sm-8">
                                         <div class="input-group">
                                             <input type="number" class="form-control input-readonly" id="grossIncoming2" name="grossIncoming2" placeholder="0" readonly>
-                                            <div class="input-group-text">Kg</div>
+                                            <div class="input-group-text">kg</div>
                                             <button class="input-group-text btn btn-success fs-5" id="grossCapture2"><i class="mdi mdi-sync" type="button"></i></button>
                                         </div>
                                     </div>
@@ -537,7 +541,7 @@
                                     <div class="col-sm-8">
                                         <div class="input-group">
                                             <input type="number" class="form-control input-readonly" id="emptyContainerWeight2" name="emptyContainerWeight2" placeholder="0" readonly>
-                                            <div class="input-group-text">Kg</div>
+                                            <div class="input-group-text">kg</div>
                                             <div class="input-group-text">-</div>
                                             <div class="input-group-text" id="replaceContainerText"></div>
                                         </div>
@@ -548,7 +552,7 @@
                                     <div class="col-sm-8">
                                         <div class="input-group">
                                             <input type="number" class="form-control input-readonly" id="tareOutgoing2" name="tareOutgoing2" placeholder="0" readonly>
-                                            <div class="input-group-text">Kg</div>
+                                            <div class="input-group-text">kg</div>
                                             <button class="input-group-text btn btn-success fs-5" id="tareCapture2" type="button"><i class="mdi mdi-sync"></i></button>
                                         </div>
                                     </div>
@@ -564,7 +568,7 @@
                                     <div class="col-sm-8">
                                         <div class="input-group">
                                             <input type="number" class="form-control input-readonly" id="nettWeight2" name="nettWeight2" placeholder="0" readonly>
-                                            <div class="input-group-text">Kg</div>
+                                            <div class="input-group-text">kg</div>
                                         </div>
                                     </div>
                                 </div>                                                                    
@@ -579,7 +583,7 @@
                                     <div class="col-sm-8">
                                         <div class="input-group">
                                             <input type="number" class="form-control" id="orderWeight" name="orderWeight"  placeholder="<?=$languageArray['order_weight_code'][$language]?>">
-                                            <div class="input-group-text">Kg</div>
+                                            <div class="input-group-text">kg</div>
                                         </div>
                                     </div>
                                 </div>
@@ -588,7 +592,7 @@
                                     <div class="col-sm-8">
                                         <div class="input-group">
                                             <input type="number" class="form-control" id="supplierWeight" name="supplierWeight"  placeholder="<?=$languageArray['supplier_weight_code'][$language]?>">
-                                            <div class="input-group-text">Kg</div>
+                                            <div class="input-group-text">kg</div>
                                         </div>
                                     </div>
                                 </div>
@@ -597,7 +601,7 @@
                                     <div class="col-sm-8">
                                         <div class="input-group">
                                             <input type="number" class="form-control" id="reduceWeight" name="reduceWeight" placeholder="0">
-                                            <div class="input-group-text">Kg</div>
+                                            <div class="input-group-text">kg</div>
                                         </div>
                                     </div>
                                 </div>
@@ -606,7 +610,7 @@
                                     <div class="col-sm-8">
                                         <div class="input-group">
                                             <input type="number" class="form-control input-readonly" id="weightDifference" name="weightDifference" placeholder="Weight Difference" readonly>
-                                            <div class="input-group-text">Kg</div>
+                                            <div class="input-group-text">kg</div>
                                         </div>
                                     </div>
                                 </div>
@@ -774,7 +778,7 @@
                         <div class="col-sm-8">
                             <div class="input-group">
                                 <input type="number" class="form-control input-readonly" id="poSupplyWeight" name="poSupplyWeight" placeholder="P/O Supply Weight" readonly>
-                                <div class="input-group-text">Kg</div>
+                                <div class="input-group-text">kg</div>
                             </div>
                         </div>
                     </div>

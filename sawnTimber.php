@@ -455,7 +455,7 @@ else{
                                                                     <th><?=$languageArray['customer_code'][$language]?> / <?=$languageArray['supplier_code'][$language]?></th>
                                                                     <th><?=$languageArray['total_pcs_code'][$language]?></th>
                                                                     <th><?=$languageArray['total_tons_code'][$language]?></th>
-                                                                    <th><?=$languageArray['action_code'][$language]?></th>
+                                                                    <th><?=$languageArray['action_code'][$language]?><?=actionPermissionNote([hasModulePermission('Sawn Timber', 'Sawn Timber', ['edit']), hasModulePermission('Sawn Timber', 'Sawn Timber', ['cancelled'])])?></th>
                                                                 </tr>
                                                             </thead>
                                                         </table>
@@ -902,7 +902,7 @@ else{
                 { data: 'customer_supplier' },
                 { data: 'total_pieces' },
                 { data: 'total_tons' },
-                { data: 'id', orderable: false, className: 'sawn-action-cell', render: function(data) {
+                { data: 'id', orderable: false, className: 'sawn-action-cell', responsivePriority: 1, render: function(data) {
                     var buttons = '';
                     <?php if(hasModulePermission('Sawn Timber', 'Sawn Timber', ['edit'])): ?>
                     buttons += '<button class="btn btn-sm btn-warning me-1" onclick="editRecord(\'' + data + '\')"><i class="fas fa-pen"></i></button>';

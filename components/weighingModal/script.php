@@ -42,6 +42,7 @@
 
     var LANG = {
         pendingBin: "<?= $languageArray['pending_bin_code'][$language] ?>",
+        containerNo1: "<?= $languageArray['container_no1_code'][$language] ?>",
         dispatch: '<?=$languageArray['dispatch_code'][$language]?>',
         receiving: '<?=$languageArray['receiving_code'][$language]?>',
         trxToPort: '<?=$languageArray['trx_to_port_code'][$language]?>',
@@ -166,6 +167,29 @@
 
         inModal('#transactionStatus').on('change', function(){
             applyTransactionStatusLayout($(this).val());
+        });
+
+        // Preview the next DO No from the company / transaction status format; the real number is taken on save
+        inModal('#generateDoNo').on('click', function(){
+            var $btn = $(this);
+            $btn.prop('disabled', true);
+            $.post(WEIGHING_URL, {
+                action: 'previewDoNo',
+                companyId: inModal('#companyId').val(),
+                transactionStatus: inModal('#transactionStatus').val(),
+                transactionDate: inModal('#transactionDate').val()
+            }, function(data){
+                var obj = JSON.parse(data);
+                if (obj.status === 'success') {
+                    inModal('#deliveryNo').val(obj.message).data('generated', obj.message);
+                } else {
+                    notifyFailed(obj.message);
+                }
+            }).fail(function(){
+                notifyFailed('Something went wrong');
+            }).always(function(){
+                $btn.prop('disabled', false);
+            });
         });
 
         inModal('#weightType').on('change', function(){
@@ -398,6 +422,7 @@
         inModal('#purchaseOrder').val("").trigger('change');
         inModal('#salesOrder').val("").trigger('change');
         inModal('#deliveryNo, #transporterCode').val("");
+        inModal('#deliveryNo').removeData('generated');
         inModal('#transporter').val("-").trigger('change');
         inModal('#project').val("-").trigger('change');
         inModal('#destinationCode, #plantCode').val("");
@@ -510,7 +535,7 @@
         // Order / delivery details
         inModal('#purchaseOrder').val(record.purchase_order);
         inModal('#invoiceNo').val(record.invoice_no);
-        inModal('#deliveryNo').val(record.delivery_no);
+        inModal('#deliveryNo').val(record.delivery_no).removeData('generated');
         inModal('#transporterCode').val(record.transporter_code);
         inModal('#transporter').val(record.transporter).trigger('change');
         inModal('#project').val(record.project_id).trigger('change');
@@ -763,8 +788,6 @@
             return modalListsReady;
         }
         modalCompanyId = companyId;
-        var productFiltered = optionCache.allProductOptions !== null;
-        var rawMatFiltered = optionCache.allRawMatOptions !== null;
 
         // One request returns every list (customers, suppliers, products, destinations, projects, vehicles)
         modalListsReady = $.post(WEIGHING_URL, { action: 'companyLists', company: companyId }).then(function(data) {
@@ -799,11 +822,12 @@
             fillOptions('#vehiclePlateNo1', lists.vehicles, vehicleOption);
             fillOptions('#vehiclePlateNo2', lists.vehicles, vehicleOption);
 
+            // Always re-apply the category filter: the transaction status may have changed while the lists were loading
             optionCache.allProductOptions = null;
             optionCache.allRawMatOptions = null;
             var status = inModal('#transactionStatus').val();
-            if (productFiltered) filterDropdownByTransactionStatus('#productName', 'allProductOptions', status);
-            if (rawMatFiltered) filterDropdownByTransactionStatus('#rawMaterialName', 'allRawMatOptions', status);
+            filterDropdownByTransactionStatus('#productName', 'allProductOptions', status);
+            filterDropdownByTransactionStatus('#rawMaterialName', 'allRawMatOptions', status);
         }, function() {
             // Request failed - keep the current lists, but still resolve so callers can chain on it
             return $.Deferred().resolve();
@@ -834,6 +858,7 @@
         var dataAttr = 'is-sales';
         if (status === 'Sales') dataAttr = 'is-sales';
         else if (status === 'Purchase') dataAttr = 'is-purchase';
+        else if (status === 'Local') dataAttr = 'is-local';
         else if (status === 'Port') dataAttr = 'is-port';
         else if (status === 'Misc') dataAttr = 'is-misc';
 
@@ -860,6 +885,7 @@
             .attr('data-description', item.description)
             .attr('data-is-sales', item.is_sales)
             .attr('data-is-purchase', item.is_purchase)
+            .attr('data-is-local', item.is_local)
             .attr('data-is-port', item.is_port)
             .attr('data-is-misc', item.is_misc);
     }
@@ -928,11 +954,18 @@
 
         showWeighingCards(weightType);
 
-        inModal('#containerNo1Label').text(isDifferentContainer ? LANG.pendingBin : "Container No 1");
+        // Only the label text changes so the required asterisk inside the label is kept
+        inModal('#containerNo1Text').text(isDifferentContainer ? LANG.pendingBin : LANG.containerNo1);
         inModal('#emptyContainerDisplay').toggle(usesPendingContainer);
         inModal('#containerDisplay').toggle(!usesPendingContainer);
         inModal('#containerNoInput').attr('required', weightType == 'Empty Container');
         inModal('#emptyContainerNo').attr('required', usesPendingContainer);
+
+        // Required asterisks: Empty Container = container no, Container = pending container,
+        // Different Container = pending container + replacement container, Normal = none
+        inModal('#containerRequired').toggle(weightType == 'Empty Container');
+        inModal('#emptyContainerRequired').toggle(usesPendingContainer);
+        inModal('#replacementContainerRequired').toggle(isDifferentContainer);
 
         // Different Container swaps the container 2 / seal fields for the replacement container fields
         inModal('#replacementContainerDisplay, #vehicleWeight2Display, #container2WeightDisplay, #containerNo2ReplaceDisplay, #sealNoReplaceDisplay, #sealNo2ReplaceDisplay').toggle(isDifferentContainer);
@@ -1007,7 +1040,7 @@
     function fillFromEmptyContainer(record, weightType) {
         inModal('#project').val(record.project_id).trigger('change');
         inModal('#invoiceNo').val(record.invoice_no);
-        inModal('#deliveryNo').val(record.delivery_no);
+        inModal('#deliveryNo').val(record.delivery_no).removeData('generated');
         inModal('#purchaseOrder').val(record.purchase_order);
         inModal('#sealNo').val(record.seal_no);
 
@@ -1194,6 +1227,10 @@
 
         // Unchecked checkboxes are not serialized, so always send manualWeight
         var formData = inModal('#weightForm').serialize() + (inModal('#manualWeightToggle').is(':checked') ? '' : '&manualWeight=false');
+
+        // A generated DO No (not edited since) is replaced by the real next number on save; a typed one is kept
+        var generatedDoNo = inModal('#deliveryNo').data('generated');
+        formData += '&deliveryNoAuto=' + (generatedDoNo && inModal('#deliveryNo').val() === generatedDoNo ? '1' : '0');
 
         $.post(WEIGHING_URL, formData, function (data) {
             var obj = JSON.parse(data);

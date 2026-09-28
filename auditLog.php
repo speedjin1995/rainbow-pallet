@@ -14,7 +14,7 @@ if (!$viewAllCompanies) {
 ?>
 
 <head>
-    <title>Audit Log | Synctronix - Weighing System</title>
+    <title><?=$languageArray['audit_log_code'][$language]?> | Synctronix - Weighing System</title>
     <?php include 'layouts/title-meta.php'; ?>
 
     <!-- jsvectormap css -->
@@ -58,23 +58,13 @@ if (!$viewAllCompanies) {
             <div class="container-fluid">
                 <div class="row">
                     <div class="col">
-                        <div>
-                            <div class="row mb-3 pb-1">
-                                <div class="col-12">
-                                    <div class="d-flex align-items-lg-center flex-lg-row flex-column">
-                                        <div class="flex-grow-1">
-                                            <!--h4 class="fs-16 mb-1">Good Morning, Anna!</h4>
-                                            <p class="text-muted mb-0">Here's what's happening with your store
-                                                today.</p-->
-                                        </div>
-                                    </div><!-- end card header -->
+                        <div class="col-xxl-12 col-lg-12">
+                            <div class="card">
+                                <div class="card-header fs-5 text-white" href="#collapseSearch" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="collapseSearch" style="background-color: #405189; cursor:pointer;">
+                                    <i class="mdi mdi-chevron-down pull-right"></i>
+                                    <?=$languageArray['search_records_code'][$language]?>
                                 </div>
-                                <!--end col-->
-                            </div>
-                            <!--end row-->
-
-                            <div class="col-xxl-12 col-lg-12">
-                                <div class="card">
+                                <div id="collapseSearch" class="collapse show" aria-labelledby="collapseSearch">
                                     <div class="card-body">
                                         <form action="javascript:void(0);">
                                             <div class="row">
@@ -101,6 +91,7 @@ if (!$viewAllCompanies) {
                                                             <option value="Unit"><?=$languageArray['units_code'][$language]?></option>
                                                             <option value="Product"><?=$languageArray['product_code'][$language]?></option>
                                                             <!-- <option value="Raw Materials"><?=$languageArray['raw_material_code'][$language]?></option> -->
+                                                            <option value="Item Price"><?=$languageArray['item_price_code'][$language]?></option>
                                                             <option value="Destination"><?=$languageArray['destination_code'][$language]?></option>
                                                             <option value="Location"><?=$languageArray['locations_code'][$language]?></option>
                                                             <option value="Vehicle"><?=$languageArray['vehicle_code'][$language]?></option>
@@ -199,6 +190,12 @@ if (!$viewAllCompanies) {
                                                         <input type="text" class="form-control" placeholder="<?=$languageArray['transaction_id_code'][$language]?>" name="sawnTimber" id="sawnTimber">
                                                     </div>
                                                 </div>
+                                                <div class="col-3 inputCode itemPriceInput" style="display:none">
+                                                    <div class="mb-3">
+                                                        <label for="itemPriceCode" class="form-label"><?=$languageArray['item_code_code'][$language]?></label>
+                                                        <input type="text" class="form-control" placeholder="<?=$languageArray['item_code_code'][$language]?>" name="itemPriceCode" id="itemPriceCode">
+                                                    </div>
+                                                </div>
 
                                                 <!-- Hidden Log -->
                                                 <div class="col-3 inputCode rawMatInput" style="display:none">
@@ -252,175 +249,58 @@ if (!$viewAllCompanies) {
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div class="col-3">
+                                                <div class="col-6">
                                                 </div>
-                                                <div class="col-3">
-                                                </div>                                                                                                                                                                                                                                                                                                                                        
                                                 <div class="col-3">
                                                     <div class="text-end mt-4">
                                                         <button type="button" class="btn btn-success" id="searchLog">
                                                             <i class="bx bx-search-alt"></i>
-                                                            <?=$languageArray['search_code'][$language]?></button>
+                                                            <?=$languageArray['search_code'][$language]?>
+                                                        </button>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </form>                                                                        
+                                        </form>
                                     </div>
                                 </div>
                             </div>
-                            
-                            <button type="button" hidden id="successBtn" data-toast data-toast-text="Welcome Back ! This is a Toast Notification" data-toast-gravity="top" data-toast-position="center" data-toast-duration="3000" data-toast-close="close" class="btn btn-light w-xs">Top Center</button>
-                            <button type="button" hidden id="failBtn" data-toast data-toast-text="Welcome Back ! This is a Toast Notification" data-toast-gravity="top" data-toast-position="center" data-toast-duration="3000" data-toast-close="close" class="btn btn-light w-xs">Top Center</button>
+                        </div>
+                        
+                        <button type="button" hidden id="successBtn" data-toast data-toast-text="Welcome Back ! This is a Toast Notification" data-toast-gravity="top" data-toast-position="center" data-toast-duration="3000" data-toast-close="close" class="btn btn-light w-xs">Top Center</button>
+                        <button type="button" hidden id="failBtn" data-toast data-toast-text="Welcome Back ! This is a Toast Notification" data-toast-gravity="top" data-toast-position="center" data-toast-duration="3000" data-toast-close="close" class="btn btn-light w-xs">Top Center</button>
 
-                            <div class="row">
-                                <div class="col-xl-3 col-md-6 add-new-weight">
-
-                                    <!-- /.modal-dialog -->
-                                    <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalScrollableTitle" aria-hidden="true">
-                                        <div class="modal-dialog modal-dialog-scrollable modal-lg">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title" id="exampleModalScrollableTitle"><?=$languageArray['add_new_code'][$language]?></h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-                                                    </button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <form role="form" id="transporterForm" class="needs-validation" novalidate autocomplete="off">
-                                                        <div class=" row col-12">
-                                                            <div class="col-xxl-12 col-lg-12">
-                                                                <div class="card bg-light">
-                                                                    <div class="card-body">
-                                                                        <div class="row">
-                                                                            <div class="col-xxl-12 col-lg-12 mb-3">
-                                                                                <div class="row">
-                                                                                    <label for="transporterCode" class="col-sm-4 col-form-label">Transporter Code</label>
-                                                                                    <div class="col-sm-8">
-                                                                                        <input type="text" class="form-control" id="transporterCode" name="transporterCode" placeholder="Transporter Code" required>
-                                                                                        <div class="invalid-feedback">
-                                                                                            Please fill in the field.
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-xxl-12 col-lg-12 mb-3">
-                                                                                <div class="row">
-                                                                                    <label for="companyRegNo" class="col-sm-4 col-form-label">Company Reg No</label>
-                                                                                    <div class="col-sm-8">
-                                                                                        <input type="text" class="form-control" id="companyRegNo" name="companyRegNo" placeholder="Company Reg No">
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-xxl-12 col-lg-12 mb-3">
-                                                                                <div class="row">
-                                                                                    <label for="companyName" class="col-sm-4 col-form-label">Company Name</label>
-                                                                                    <div class="col-sm-8">
-                                                                                        <input type="text" class="form-control" id="companyName" name="companyName" placeholder="Customer Code">
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-xxl-12 col-lg-12 mb-3">
-                                                                                <div class="row">
-                                                                                    <label for="addressLine1" class="col-sm-4 col-form-label">Address Line 1</label>
-                                                                                    <div class="col-sm-8">
-                                                                                        <input type="text" class="form-control" id="addressLine1" name="addressLine1" placeholder="Address Line 1">
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-xxl-12 col-lg-12 mb-3">
-                                                                                <div class="row">
-                                                                                    <label for="addressLine2" class="col-sm-4 col-form-label">Address Line 2</label>
-                                                                                    <div class="col-sm-8">
-                                                                                        <input type="text" class="form-control" id="addressLine2" name="addressLine2" placeholder="Address Line 2">
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-xxl-12 col-lg-12 mb-3">
-                                                                                <div class="row">
-                                                                                    <label for="addressLine3" class="col-sm-4 col-form-label">Address Line 3</label>
-                                                                                    <div class="col-sm-8">
-                                                                                        <input type="text" class="form-control" id="addressLine3" name="addressLine3" placeholder="Address Line 3">
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-xxl-12 col-lg-12 mb-3">
-                                                                                <div class="row">
-                                                                                    <label for="phoneNo" class="col-sm-4 col-form-label">Phone No</label>
-                                                                                    <div class="col-sm-8">
-                                                                                        <input type="text" class="form-control" id="phoneNo" name="phoneNo" placeholder="Phone No">
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-xxl-12 col-lg-12 mb-3">
-                                                                                <div class="row">
-                                                                                    <label for="faxNo" class="col-sm-4 col-form-label">Fax No</label>
-                                                                                    <div class="col-sm-8">
-                                                                                        <input type="text" class="form-control" id="faxNo" name="faxNo" placeholder="Fax No">
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <input type="hidden" class="form-control" id="id" name="id">                                                                                                                                                         
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
+                        <div class="row">
+                            <div class="col">
+                                <div class="h-100">
+                                    <!--datatable--> 
+                                    <div class="row">
+                                        <div class="col-lg-12">
+                                            <div class="card">
+                                                <div class="card-header" style="background-color: #405189;">
+                                                    <div class="d-flex justify-content-between">
+                                                        <div>
+                                                            <h5 class="card-title mb-0 text-white"><?=$languageArray['previous_records_code'][$language]?></h5>
                                                         </div>
-                                                        
-                                                        <div class="col-lg-12">
-                                                            <div class="hstack gap-2 justify-content-end">
-                                                                <button type="button" class="btn btn-light" data-bs-dismiss="modal"><?=$languageArray['close_code'][$language]?></button>
-                                                                <button type="button" class="btn btn-success" id="submitTransporter"><?=$languageArray['submit_code'][$language]?></button>
-                                                            </div>
-                                                        </div><!--end col-->                                                               
-                                                    </form>
+                                                    </div> 
                                                 </div>
-                                            </div><!-- /.modal-content -->
-                                        </div><!-- /.modal-dialog -->
-                                    </div><!-- /.modal -->
-
-                                </div>
-                            </div> <!-- end row-->
-
-                            <div class="row">
-                                <div class="col">
-                                    <div class="h-100">
-                                        <!--datatable--> 
-                                        <div class="row">
-                                            <div class="col-lg-12">
-                                                <div class="card">
-                                                    <div class="card-header">
-                                                        <div class="d-flex justify-content-between">
-                                                            <div>
-                                                                <h5 class="card-title mb-0"><?=$languageArray['previous_records_code'][$language]?></h5>
-                                                            </div>
-                                                            <!-- <div class="flex-shrink-0">
-                                                                <button type="button" id="addTransporter" class="btn btn-success waves-effect waves-light" data-bs-toggle="modal" data-bs-target="#addModal">
-                                                                <i class="ri-add-circle-line align-middle me-1"></i>
-                                                                <?=$languageArray['add_new_code'][$language]?>
-                                                                </button>
-                                                            </div>  -->
-                                                        </div> 
-                                                    </div>
-                                                    <div class="card-body">
-                                                        <table id="dataTable" class="table table-bordered nowrap table-striped align-middle" style="width:100%">
-                                                            <thead>
-                                                                <tr id="headerRow">
-                                                                <!-- Column names will be dynamically updated here -->
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                <!-- Table rows will be dynamically updated here -->
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
+                                                <div class="card-body">
+                                                    <table id="dataTable" class="table table-bordered nowrap table-striped align-middle" style="width:100%">
+                                                        <thead>
+                                                            <tr id="headerRow">
+                                                            <!-- Column names will be dynamically updated here -->
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <!-- Table rows will be dynamically updated here -->
+                                                        </tbody>
+                                                    </table>
                                                 </div>
                                             </div>
-                                        </div><!--end row-->
-                                    </div> <!-- end .h-100-->
-                                </div> <!-- end col -->
-                            </div><!-- container-fluid -->
-
-                        </div> <!-- end .h-100-->
+                                        </div>
+                                    </div><!--end row-->
+                                </div> <!-- end .h-100-->
+                            </div> <!-- end col -->
+                        </div> <!-- end row-->
                     </div> <!-- end col -->
                 </div>
                 <!-- container-fluid -->
@@ -589,6 +469,11 @@ $(function () {
             $('.inputCode').hide();
             $('.sawnTimberInput').show();
         }
+        else if($(this).val() == "Item Price")
+        {
+            $('.inputCode').hide();
+            $('.itemPriceInput').show();
+        }
         else if($(this).val() == "SO")
         {
             $('.inputCode').hide();
@@ -660,6 +545,24 @@ $(function () {
                 });
             }
         }
+        else if ($('#reportType').val() == 'Item Price'){
+            if (row.child.isShown()) {
+                row.child.hide();
+                tr.removeClass('shown');
+            } else {
+                $.post('php/modules/report/index.php', { action: 'getItemPriceLogDetails', userID: row.data().id }, function (data) {
+                    var obj = JSON.parse(data);
+                    if (obj.status === 'success') {
+                        row.child(formatItemPrice(obj.message)).show();
+                        tr.addClass("shown");
+                    } else {
+                        toastr.error(obj.message);
+                    }
+                }).fail(function () {
+                    toastr.error('Something went wrong');
+                });
+            }
+        }
     });
 
     // Handle change event of the dropdown list
@@ -698,6 +601,7 @@ $(function () {
                 weight: $('#weight').val(),
                 emptyContainer: $('#emptyContainer').val(),
                 sawnTimber: $('#sawnTimber').val(),
+                itemPriceCode: $('#itemPriceCode').val(),
                 custPoNo: $('#custPoNo').val(),
                 poNo: $('#poNo').val(),
             },
@@ -717,9 +621,9 @@ $(function () {
                 $('#dataTable tbody').empty();
 
                 // Generate column definitions dynamically
-                let columns = response.columnNames.map(column => ({
+                let columns = response.columnNames.map((column, i) => ({
                     data: column,
-                    title: column
+                    title: (response.columnTitles && response.columnTitles[i]) || column
                 }));
 
                 // Initialize DataTable with dynamic columns
@@ -772,42 +676,35 @@ function format (row) {
     <!-- Customer Section -->
     <div class="row">
         <div class="col-6">
-            <p><span><strong style="font-size:120%; text-decoration: underline;">Customer/Supplier</strong></span><br>
+            <p><span><strong style="font-size:120%; text-decoration: underline;"><?=$languageArray['customer_supplier_code'][$language]?></strong></span><br>
             <p><strong>${displayValue(row.name)}</strong></p>
             <p>${displayValue(row.address_line_1)}</p>
             <p>${displayValue(row.address_line_2)}</p>
             <p>${displayValue(row.address_line_3)}</p>
-            <p>TEL: ${displayValue(row.phone_no)} FAX: ${displayValue(row.fax_no)}</p>
+            <p><?=$languageArray['phone_code'][$language]?>: ${displayValue(row.phone_no)} <?=$languageArray['fax_code'][$language]?>: ${displayValue(row.fax_no)}</p>
         </div>
     </div>
     <hr>
     <!-- Delivery Order Section -->
     <div class="row">
-        <p><span><strong style="font-size:120%; text-decoration: underline;">Delivery Order Information</strong></span><br>
+        <p><span><strong style="font-size:120%; text-decoration: underline;"><?=$languageArray['delivery_order_information_code'][$language]?></strong></span><br>
         <div class="col-6">
-            <p><strong>COMPANY:</strong> ${displayValue(row.company_name)}</p>
-            <p><strong>TRANSPORTER NAME:</strong> ${displayValue(row.transporter)}</p>
-            <p><strong>DESTINATION NAME:</strong> ${displayValue(row.destination)}</p>
-            <p><strong>PLANT NAME:</strong> ${displayValue(row.plant_name)}</p>`;
-            if (row.transaction_status == 'Purchase' || row.transaction_status == 'Local'){
-                returnString += `<p><strong>PURCHASE PRODUCT:</strong> ${displayValue(row.product_rawmat_name)}</p>`;
-            }else{
-                returnString += `<p><strong>SALES PRODUCT:</strong> ${displayValue(row.product_rawmat_name)}</p>`;
-            }
-    
-        returnString += `
-            <p><strong>PURCHASE ORDER:</strong> ${displayValue(row.purchase_order)}</p>
-            <p><strong>CONTAINER NO:</strong> ${displayValue(row.container_no)}</p>
-            <p><strong>CONTAINER NO 2:</strong> ${displayValue(row.container_no2)}</p>
+            <p><strong><?=$languageArray['company_code'][$language]?>:</strong> ${displayValue(row.company_name)}</p>
+            <p><strong><?=$languageArray['destination_name_code'][$language]?>:</strong> ${displayValue(row.destination)}</p>
+            <p><strong><?=$languageArray['plant_name_code'][$language]?>:</strong> ${displayValue(row.plant_name)}</p>
+            <p><strong><?=$languageArray['product_code'][$language]?>:</strong> ${displayValue(row.product_rawmat_name)}</p>
+            <p><strong><?=$languageArray['purchase_order_no_code'][$language]?>:</strong> ${displayValue(row.purchase_order)}</p>
+            <p><strong><?=$languageArray['container_no_code'][$language]?>:</strong> ${displayValue(row.container_no)}</p>
+            <p><strong><?=$languageArray['container_no2_code'][$language]?>:</strong> ${displayValue(row.container_no2)}</p>
         </div>
         <div class="col-6">
-            <p><strong>TRANSACTION ID:</strong> ${displayValue(row.transaction_id)}</p>
-            <p><strong>PROJECT:</strong> ${displayValue(row.project_code)}</p>
-            <p><strong>WEIGHT STATUS:</strong> ${transactionStatus}</p>
-            <p><strong>WEIGHT TYPE:</strong> ${weightType}</p>
-            <p><strong>DELIVERY NO:</strong> ${displayValue(row.delivery_no)}</p>
-            <p><strong>SEAL NO:</strong> ${displayValue(row.seal_no)}</p>
-            <p><strong>SEAL NO 2:</strong> ${displayValue(row.seal_no2)}</p>
+            <p><strong><?=$languageArray['transaction_id_code'][$language]?>:</strong> ${displayValue(row.transaction_id)}</p>
+            <p><strong><?=$languageArray['project_code'][$language]?>:</strong> ${displayValue(row.project_code)}</p>
+            <p><strong><?=$languageArray['weight_status_code'][$language]?>:</strong> ${transactionStatus}</p>
+            <p><strong><?=$languageArray['weight_type_code'][$language]?>:</strong> ${weightType}</p>
+            <p><strong><?=$languageArray['delivery_no_code'][$language]?>:</strong> ${displayValue(row.delivery_no)}</p>
+            <p><strong><?=$languageArray['seal_no_code'][$language]?>:</strong> ${displayValue(row.seal_no)}</p>
+            <p><strong><?=$languageArray['seal_no2_code'][$language]?>:</strong> ${displayValue(row.seal_no2)}</p>
         </div>
     </div>
     <hr>
@@ -815,7 +712,7 @@ function format (row) {
     ${row.transaction_status == 'Purchase' ? `
     <!-- Customer Side Section -->
     <div class="row">
-        <p><span><strong style="font-size:120%; text-decoration: underline;">Customer Side</strong></span><br>
+        <p><span><strong style="font-size:120%; text-decoration: underline;"><?=$languageArray['customer_side_code'][$language]?></strong></span><br>
         <div class="col-6">
             <p><strong><?=$languageArray['customer_side_company_code'][$language]?>:</strong> ${row.customer_side_company || ''}</p>
             <p><strong><?=$languageArray['customer_side_removal_pass_no_code'][$language]?>:</strong> ${row.customer_side_removal_pass_no || ''}</p>
@@ -833,29 +730,29 @@ function format (row) {
 
     <!-- Weighing Section -->
     <div class="row">
-        <p><span><strong style="font-size:120%; text-decoration: underline;">Weighing Information</strong></span><br>
+        <p><span><strong style="font-size:120%; text-decoration: underline;"><?=$languageArray['weighing_information_code'][$language]?></strong></span><br>
         <!-- Normal -->
         <div class="col-6">
-            <p><strong>VEHICLE PLATE:</strong> ${displayValue(row.lorry_plate_no1)}</p>
-            <p><strong>IN WEIGHT:</strong> ${displayValue(row.gross_weight1)}</p>
-            <p><strong>IN DATE / TIME:</strong> ${displayValue(row.gross_weight1_date)}</p>
-            <p><strong>IN WEIGH BY:</strong> ${displayValue(row.gross_weight_by1)}</p>
-            <p><strong>OUT WEIGHT:</strong> ${displayValue(row.tare_weight1)}</p>
-            <p><strong>OUT DATE / TIME:</strong> ${displayValue(row.tare_weight1_date)}</p>
-            <p><strong>OUT WEIGH BY:</strong> ${displayValue(row.tare_weight_by1)}</p>
-            <p><strong>NETT WEIGHT:</strong> ${displayValue(row.nett_weight1)}</p>
-            <p><strong>SUB TOTAL WEIGHT:</strong> ${displayValue(row.final_weight)}</p>
+            <p><strong><?=$languageArray['vehicle_plate_no_code'][$language]?>:</strong> ${displayValue(row.lorry_plate_no1)}</p>
+            <p><strong><?=$languageArray['in_weight_code'][$language]?>:</strong> ${displayValue(row.gross_weight1)}</p>
+            <p><strong><?=$languageArray['in_datetime_code'][$language]?>:</strong> ${displayValue(row.gross_weight1_date)}</p>
+            <p><strong><?=$languageArray['in_weigh_by_code'][$language]?>:</strong> ${displayValue(row.gross_weight_by1)}</p>
+            <p><strong><?=$languageArray['out_weight_code'][$language]?>:</strong> ${displayValue(row.tare_weight1)}</p>
+            <p><strong><?=$languageArray['out_datetime_code'][$language]?>:</strong> ${displayValue(row.tare_weight1_date)}</p>
+            <p><strong><?=$languageArray['out_weigh_by_code'][$language]?>:</strong> ${displayValue(row.tare_weight_by1)}</p>
+            <p><strong><?=$languageArray['nett_weight_code'][$language]?>:</strong> ${displayValue(row.nett_weight1)}</p>
+            <p><strong><?=$languageArray['sub_total_weight_code'][$language]?>:</strong> ${displayValue(row.final_weight)}</p>
         </div>
         <!-- Container -->
         <div class="col-6">
-            <p><strong>VEHICLE PLATE 2:</strong> ${displayValue(row.lorry_plate_no2)}</p>
-            <p><strong>IN WEIGHT 2:</strong> ${displayValue(row.gross_weight2)}</p>
-            <p><strong>IN DATE / TIME 2:</strong> ${displayValue(row.gross_weight2_date)}</p>
-            <p><strong>IN WEIGH BY 2:</strong> ${displayValue(row.gross_weight_by2)}</p>
-            <p><strong>OUT WEIGHT 2:</strong> ${displayValue(row.tare_weight2)}</p>
-            <p><strong>OUT DATE / TIME 2:</strong> ${displayValue(row.tare_weight2_date)}</p>
-            <p><strong>OUT WEIGH BY 2:</strong> ${displayValue(row.tare_weight_by2)}</p>
-            <p><strong>NETT WEIGHT 2:</strong> ${displayValue(row.nett_weight2)}</p>            
+            <p><strong><?=$languageArray['vehicle_plate_no_code'][$language]?> 2:</strong> ${displayValue(row.lorry_plate_no2)}</p>
+            <p><strong><?=$languageArray['in_weight_code'][$language]?> 2:</strong> ${displayValue(row.gross_weight2)}</p>
+            <p><strong><?=$languageArray['in_datetime_code'][$language]?> 2:</strong> ${displayValue(row.gross_weight2_date)}</p>
+            <p><strong><?=$languageArray['in_weigh_by_code'][$language]?> 2:</strong> ${displayValue(row.gross_weight_by2)}</p>
+            <p><strong><?=$languageArray['out_weight_code'][$language]?> 2:</strong> ${displayValue(row.tare_weight2)}</p>
+            <p><strong><?=$languageArray['out_datetime_code'][$language]?> 2:</strong> ${displayValue(row.tare_weight2_date)}</p>
+            <p><strong><?=$languageArray['out_weigh_by_code'][$language]?> 2:</strong> ${displayValue(row.tare_weight_by2)}</p>
+            <p><strong><?=$languageArray['nett_weight_code'][$language]?> 2:</strong> ${displayValue(row.nett_weight2)}</p>
             </div>
     </div>
     <hr>
@@ -863,7 +760,7 @@ function format (row) {
     ${hasCustomerSideInfo ? `
     <!-- Customer Side Info Section -->
     <div class="row">
-        <p><span><strong style="font-size:120%; text-decoration: underline;">Customer Side Info</strong></span><br>
+        <p><span><strong style="font-size:120%; text-decoration: underline;"><?=$languageArray['customer_side_info_code'][$language]?></strong></span><br>
         <div class="col-6">
             <p><strong><?=$languageArray['customer_side_do_no_code'][$language]?>:</strong> ${row.cust_side_do_no || ''}</p>
             <p><strong><?=$languageArray['first_code'][$language]?> (KG):</strong> ${row.cust_side_first_weight || ''}</p>
@@ -871,8 +768,22 @@ function format (row) {
         </div>
         <div class="col-6">
             <p><strong><?=$languageArray['customer_side_mc_code'][$language]?>:</strong> ${row.cust_side_mc || ''}</p>
-            <p><strong>Customer Side <?=$languageArray['nett_weight_code'][$language]?> (KG):</strong> ${row.cust_side_nett_weight || ''}</p>
+            <p><strong><?=$languageArray['customer_side_nett_weight_code'][$language]?> (KG):</strong> ${row.cust_side_nett_weight || ''}</p>
             <p><strong><?=$languageArray['weight_difference_code'][$language]?> (KG):</strong> ${row.weight_difference || ''}</p>
+        </div>
+    </div>` : ''}
+
+    ${row.transaction_status == 'Port' ? `
+    ${hasCustomerSideInfo ? '<hr>' : ''}
+    <!-- Transfer To Port Section -->
+    <div class="row">
+        <p><span><strong style="font-size:120%; text-decoration: underline;"><?=$languageArray['trx_to_port_code'][$language]?></strong></span><br>
+        <div class="col-6">
+            <p><strong><?=$languageArray['sp_quantity_nett_weight_code'][$language]?>:</strong> ${row.port_sp_qty || ''}</p>
+            <p><strong><?=$languageArray['ref_no_code'][$language]?>:</strong> ${row.port_ref_no || ''}</p>
+        </div>
+        <div class="col-6">
+            <p><strong><?=$languageArray['location_code'][$language]?>:</strong> ${row.port_location || ''}</p>
         </div>
     </div>` : ''}
     `;
@@ -943,6 +854,60 @@ function sawnTimberLineTable(lines) {
 
 function escapeHtml(value) {
     return $('<div>').text(value == null ? '' : value).html();
+}
+
+function formatItemPrice(data) {
+    if (data.entries.length == 0 && data.removed.length == 0) {
+        return `<p class="text-muted mb-0"><?=$languageArray['no_line_changes_code'][$language]?></p>`;
+    }
+
+    var returnString = `
+    <p><span><strong style="font-size:120%; text-decoration: underline;"><?=$languageArray['price_entries_code'][$language]?></strong></span></p>
+    ${itemPriceTable(data.entries, 'Customer')}
+    ${itemPriceTable(data.entries, 'Supplier')}`;
+
+    if (data.removed.length > 0) {
+        returnString += `
+        <p class="mt-3"><span><strong style="font-size:120%; text-decoration: underline;"><?=$languageArray['removed_entries_code'][$language]?></strong></span></p>
+        ${itemPriceTable(data.removed, 'Customer')}
+        ${itemPriceTable(data.removed, 'Supplier')}`;
+    }
+
+    return returnString;
+}
+
+// Manage Prices modal columns without the type: party, from date, to date, unit price
+function itemPriceTable(entries, partyType) {
+    var partyEntries = $.grep(entries, function (entry) { return entry.party_type == partyType; });
+    if (partyEntries.length == 0) {
+        return '';
+    }
+
+    var rows = '';
+    $.each(partyEntries, function (i, entry) {
+        var badge = entry.is_changed ? ` <span class="badge bg-warning"><?=$languageArray['changed_code'][$language]?></span>` : '';
+        var unitPrice = entry.tiers.length > 0 ? entry.tiers[0].unit_price : '';
+        rows += `
+        <tr>
+            <td>${escapeHtml(entry.party_name)}${badge}</td>
+            <td>${escapeHtml(entry.date_from)}</td>
+            <td>${escapeHtml(entry.date_to)}</td>
+            <td>${escapeHtml(unitPrice)}</td>
+        </tr>`;
+    });
+
+    return `
+    <table class="table table-sm table-bordered mb-3">
+        <thead>
+            <tr>
+                <th width="35%">${partyType == 'Supplier' ? '<?=$languageArray['supplier_code'][$language]?>' : '<?=$languageArray['customer_code'][$language]?>'}</th>
+                <th><?=$languageArray['from_date_code'][$language]?></th>
+                <th><?=$languageArray['to_date_code'][$language]?></th>
+                <th><?=$languageArray['unit_price_code'][$language]?></th>
+            </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+    </table>`;
 }
 
 </script>

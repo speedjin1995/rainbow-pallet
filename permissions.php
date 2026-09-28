@@ -51,10 +51,10 @@ while($m = $modules->fetch_assoc()){
                             <div class="row">
                                 <div class="col-lg-12">
                                     <div class="card">
-                                        <div class="card-header">
+                                        <div class="card-header" style="background-color: #405189;">
                                             <div class="d-flex justify-content-between">
                                                 <div>
-                                                    <h5 class="card-title mb-0"><?=$languageArray['permission_records_code'][$language]?></h5>
+                                                    <h5 class="card-title mb-0 text-white"><?=$languageArray['permission_records_code'][$language]?></h5>
                                                 </div>
                                                 <div class="flex-shrink-0">
                                                     <?php if(hasModulePermission('User Management', 'Permission', ['cancelled'])): ?>
@@ -84,7 +84,7 @@ while($m = $modules->fetch_assoc()){
                                                         <th><input type="checkbox" id="selectAllCheckbox" class="selectAllCheckbox"></th>
                                                         <th><?=$languageArray['permission_name_code'][$language]?></th>
                                                         <th><?=$languageArray['applicable_module_code'][$language]?></th>
-                                                        <th><?=$languageArray['action_code'][$language]?></th>
+                                                        <th><?=$languageArray['action_code'][$language]?><?=actionPermissionNote([hasModulePermission('User Management', 'Permission', ['edit']), hasModulePermission('User Management', 'Permission', ['cancelled'])])?></th>
                                                     </tr>
                                                 </thead>
                                             </table>
@@ -239,6 +239,7 @@ $(function () {
             {
                 data: 'id',
                 orderable: false,
+                responsivePriority: 1,
                 render: function (data, type, row) {
                     var perms = (permissions['User Management'] && permissions['User Management']['Permission']) || [];
                     if (isSADMIN || ['edit', 'cancelled'].some(p => perms.includes(p))) {

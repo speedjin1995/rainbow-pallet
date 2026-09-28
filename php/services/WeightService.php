@@ -576,6 +576,28 @@ class WeightService extends BaseService {
         return $row ? array_merge($defaults, array_map(fn($v) => $v ?? '', $row)) : $defaults;
     }
 
+    // ─── Transfer To Port Info Processing ──────────────────────────────────────────
+    // $isContainer 'Y' = record lives in Weight_Container (Primer Mover + Container), otherwise Weight
+    public function getTrxPort($id, $isContainer) {
+        $table = ($isContainer === 'Y') ? 'Weight_Container' : 'Weight';
+        $stmt = $this->db->prepare("SELECT id, company_id, transaction_status, port_sp_qty, port_ref_no, port_location FROM {$table} WHERE id=? AND status='0'");
+        if (!$stmt) throw new Exception($this->db->error);
+        $stmt->bind_param('s', $id);
+        if (!$stmt->execute()) throw new Exception($stmt->error);
+        $row = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+        return $row;
+    }
+
+    public function saveTrxPort($id, $isContainer, $spQty, $refNo, $location) {
+        $table = ($isContainer === 'Y') ? 'Weight_Container' : 'Weight';
+        $stmt = $this->db->prepare("UPDATE {$table} SET port_sp_qty=?, port_ref_no=?, port_location=?, modified_by=? WHERE id=?");
+        if (!$stmt) throw new Exception($this->db->error);
+        $stmt->bind_param('sssss', $spQty, $refNo, $location, $this->username, $id);
+        if (!$stmt->execute()) throw new Exception($stmt->error);
+        $stmt->close();
+    }
+
     // ─── Plant / Transaction Helpers ─────────────────────────────────────────────
     private function getPlantCountColumn($status) {
         $map = ['Purchase' => 'purchase', 'Local' => 'locals', 'Port' => 'port', 'Misc' => 'misc'];
@@ -611,19 +633,12 @@ class WeightService extends BaseService {
     }
 
     private function buildTransactionId($plantCode, $status, $weightType, $misValue) {
-        $stmt = $this->db->prepare("SELECT * FROM status WHERE status=?");
-        if (!$stmt) {
-            throw new Exception($this->db->error);
-        }
-        $stmt->bind_param('s', $status);
-        if (!$stmt->execute()) {
-            throw new Exception($stmt->error);
-        }
-        $row = $stmt->get_result()->fetch_assoc();
-        $stmt->close();
-        if (!$row) {
+        // Transaction ID prefix per transaction status
+        $prefixes = ['Sales' => 'D', 'Purchase' => 'R', 'Local' => 'I', 'Misc' => 'M', 'Port' => 'P'];
+        if (!isset($prefixes[$status])) {
             throw new Exception("Status not found: {$status}");
         }
+        $row = ['prefix' => $prefixes[$status]];
         $transId = $plantCode . '/';
         if ($weightType === 'Container') {
             $transId .= 'C/' . $row['prefix'] . '/' . date('ym') . '-';
@@ -795,7 +810,7 @@ class WeightService extends BaseService {
         }
         $msg = array_merge($msg, $party);
 
-        $fields = ['transporter','destination','plant_name','lorry_plate_no1','transaction_id','transaction_status','weight_type','invoice_no','delivery_no','container_no','seal_no','container_no2','seal_no2','purchase_order','gross_weight1','tare_weight1','nett_weight1','lorry_plate_no2','gross_weight2','tare_weight2','nett_weight2','reduce_weight','final_weight','customer_side_company','customer_side_removal_pass_no','customer_side_license_no','customer_side_moisture_content','customer_side_officer_name','customer_side_rainbow_driver','cust_side_do_no','cust_side_mc','cust_side_first_weight','cust_side_second_weight','cust_side_nett_weight','weight_difference'];
+        $fields = ['transporter','destination','plant_name','lorry_plate_no1','transaction_id','transaction_status','weight_type','invoice_no','delivery_no','container_no','seal_no','container_no2','seal_no2','purchase_order','gross_weight1','tare_weight1','nett_weight1','lorry_plate_no2','gross_weight2','tare_weight2','nett_weight2','reduce_weight','final_weight','customer_side_company','customer_side_removal_pass_no','customer_side_license_no','customer_side_moisture_content','customer_side_officer_name','customer_side_rainbow_driver','cust_side_do_no','cust_side_mc','cust_side_first_weight','cust_side_second_weight','cust_side_nett_weight','weight_difference','port_sp_qty','port_ref_no','port_location'];
         foreach ($fields as $f) {
             $msg[$f] = $row[$f] ?? '';
         }
@@ -836,7 +851,7 @@ class WeightService extends BaseService {
     private function getDoWeighingData($row, $fromDate, $toDate) {
         $from = DateTime::createFromFormat('d-m-Y H:i:s', $fromDate)->format('Y-m-d H:i:s');
         $to   = DateTime::createFromFormat('d-m-Y H:i:s', $toDate)->format('Y-m-d H:i:s');
-        $stmt = $this->db->prepare("SELECT id, transaction_id, transaction_status, customer_name, lorry_plate_no1, product_name, delivery_no, gross_weight1, gross_weight1_date, tare_weight1, tare_weight1_date, nett_weight1, transporter_code, transporter, destination_code, destination, unit_price FROM Weight WHERE plant_code=? AND product_code=? AND customer_code=? AND company_id=? AND transaction_date>=? AND transaction_date<=? AND is_complete='Y' AND is_cancel<>'Y' AND status='0' AND transaction_status='Sales'");
+        $stmt = $this->db->prepare("SELECT id, transaction_id, transaction_status, customer_name, lorry_plate_no1, product_name, delivery_no, gross_weight1, gross_weight1_date, tare_weight1, tare_weight1_date, nett_weight1, transporter_code, transporter, destination_code, destination, unit_price, synced FROM Weight WHERE plant_code=? AND product_code=? AND customer_code=? AND company_id=? AND transaction_date>=? AND transaction_date<=? AND is_complete='Y' AND is_cancel<>'Y' AND status='0' AND transaction_status='Sales'");
         $stmt->bind_param('ssssss', $row['plant_code'], $row['product_code'], $row['customer_code'], $row['company_id'], $from, $to);
         $stmt->execute();
         $res = $stmt->get_result();
@@ -854,7 +869,7 @@ class WeightService extends BaseService {
     private function getGrWeighingData($row, $fromDate, $toDate) {
         $from = DateTime::createFromFormat('d-m-Y H:i:s', $fromDate)->format('Y-m-d H:i:s');
         $to   = DateTime::createFromFormat('d-m-Y H:i:s', $toDate)->format('Y-m-d H:i:s');
-        $stmt = $this->db->prepare("SELECT id, transaction_id, transaction_status, supplier_name, lorry_plate_no1, raw_mat_name, delivery_no, gross_weight1, gross_weight1_date, tare_weight1, tare_weight1_date, nett_weight1, transporter_code, transporter, destination_code, destination, unit_price, final_weight FROM Weight WHERE plant_code=? AND raw_mat_code=? AND supplier_code=? AND company_id=? AND transaction_date>=? AND transaction_date<=? AND is_complete='Y' AND is_cancel<>'Y' AND status='0' AND transaction_status='Purchase'");
+        $stmt = $this->db->prepare("SELECT id, transaction_id, transaction_status, supplier_name, lorry_plate_no1, raw_mat_name, delivery_no, gross_weight1, gross_weight1_date, tare_weight1, tare_weight1_date, nett_weight1, transporter_code, transporter, destination_code, destination, unit_price, final_weight, synced FROM Weight WHERE plant_code=? AND raw_mat_code=? AND supplier_code=? AND company_id=? AND transaction_date>=? AND transaction_date<=? AND is_complete='Y' AND is_cancel<>'Y' AND status='0' AND transaction_status='Purchase'");
         $stmt->bind_param('ssssss', $row['plant_code'], $row['raw_mat_code'], $row['supplier_code'], $row['company_id'], $from, $to);
         $stmt->execute();
         $res = $stmt->get_result();
