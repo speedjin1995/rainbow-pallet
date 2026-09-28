@@ -4204,3 +4204,4 @@ DELIMITER ;
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('update_price_code', 'Update Price', '更新价格', 'Kemaskini Harga', 'விலையைப் புதுப்பி');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('save_prices_code', 'Save Prices', '保存价格', 'Simpan Harga', 'விலைகளைச் சேமி');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('cancel_code', 'Cancel', '取消', 'Batal', 'ரத்துசெய்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('price_locked_code', 'Price locked - already posted to SQL', '价格已锁定 - 已过账至SQL', 'Harga dikunci - telah dipos ke SQL', 'விலை பூட்டப்பட்டது - ஏற்கனவே SQL-க்கு அனுப்பப்பட்டது');
