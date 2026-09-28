@@ -172,6 +172,7 @@
                                                                     data-description="<?=$rowProduct['description'] ?>"
                                                                     data-is-sales="<?=$rowProduct['is_sales'] ?>"
                                                                     data-is-purchase="<?=$rowProduct['is_purchase'] ?>"
+                                                                    data-is-local="<?=$rowProduct['is_local'] ?>"
                                                                     data-is-port="<?=$rowProduct['is_port'] ?>"
                                                                     data-is-misc="<?=$rowProduct['is_misc'] ?>">
                                                                     <?=$rowProduct['product_code'] .' - '. $rowProduct['name']?>
@@ -194,7 +195,7 @@
                                                         <select class="form-select select2" id="rawMaterialName" name="rawMaterialName" required>
                                                             <option selected="-">-</option>
                                                             <?php while($rowRowMat=mysqli_fetch_assoc($wmRawMaterial)){ ?>
-                                                                <option value="<?=$rowRowMat['name'] ?>" data-code="<?=$rowRowMat['product_code'] ?>" data-is-sales="<?=$rowRowMat['is_sales'] ?>" data-is-purchase="<?=$rowRowMat['is_purchase'] ?>" data-is-port="<?=$rowRowMat['is_port'] ?>" data-is-misc="<?=$rowRowMat['is_misc'] ?>"><?=$rowRowMat['product_code'] .' - '. $rowRowMat['name'] ?></option>
+                                                                <option value="<?=$rowRowMat['name'] ?>" data-code="<?=$rowRowMat['product_code'] ?>" data-is-sales="<?=$rowRowMat['is_sales'] ?>" data-is-purchase="<?=$rowRowMat['is_purchase'] ?>" data-is-local="<?=$rowRowMat['is_local'] ?>" data-is-port="<?=$rowRowMat['is_port'] ?>" data-is-misc="<?=$rowRowMat['is_misc'] ?>"><?=$rowRowMat['product_code'] .' - '. $rowRowMat['name'] ?></option>
                                                             <?php } ?>
                                                         </select>
                                                     </div>

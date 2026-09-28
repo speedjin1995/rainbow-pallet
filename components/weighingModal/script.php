@@ -788,8 +788,6 @@
             return modalListsReady;
         }
         modalCompanyId = companyId;
-        var productFiltered = optionCache.allProductOptions !== null;
-        var rawMatFiltered = optionCache.allRawMatOptions !== null;
 
         // One request returns every list (customers, suppliers, products, destinations, projects, vehicles)
         modalListsReady = $.post(WEIGHING_URL, { action: 'companyLists', company: companyId }).then(function(data) {
@@ -824,11 +822,12 @@
             fillOptions('#vehiclePlateNo1', lists.vehicles, vehicleOption);
             fillOptions('#vehiclePlateNo2', lists.vehicles, vehicleOption);
 
+            // Always re-apply the category filter: the transaction status may have changed while the lists were loading
             optionCache.allProductOptions = null;
             optionCache.allRawMatOptions = null;
             var status = inModal('#transactionStatus').val();
-            if (productFiltered) filterDropdownByTransactionStatus('#productName', 'allProductOptions', status);
-            if (rawMatFiltered) filterDropdownByTransactionStatus('#rawMaterialName', 'allRawMatOptions', status);
+            filterDropdownByTransactionStatus('#productName', 'allProductOptions', status);
+            filterDropdownByTransactionStatus('#rawMaterialName', 'allRawMatOptions', status);
         }, function() {
             // Request failed - keep the current lists, but still resolve so callers can chain on it
             return $.Deferred().resolve();
@@ -859,6 +858,7 @@
         var dataAttr = 'is-sales';
         if (status === 'Sales') dataAttr = 'is-sales';
         else if (status === 'Purchase') dataAttr = 'is-purchase';
+        else if (status === 'Local') dataAttr = 'is-local';
         else if (status === 'Port') dataAttr = 'is-port';
         else if (status === 'Misc') dataAttr = 'is-misc';
 
@@ -885,6 +885,7 @@
             .attr('data-description', item.description)
             .attr('data-is-sales', item.is_sales)
             .attr('data-is-purchase', item.is_purchase)
+            .attr('data-is-local', item.is_local)
             .attr('data-is-port', item.is_port)
             .attr('data-is-misc', item.is_misc);
     }
