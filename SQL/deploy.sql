@@ -3966,7 +3966,7 @@ CREATE TABLE IF NOT EXISTS `Login_Log` (
 
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('login_code', 'Login', '登录', 'Log Masuk', 'உள்நுழைவு');
 
-
+-- 29/09/2026 --
 ALTER TABLE `Product` ADD `purchase_price` DECIMAL(15,2) NULL AFTER `uom`, ADD `selling_price` DECIMAL(15,2) NULL AFTER `purchase_price`;
 
 CREATE TABLE IF NOT EXISTS `Product_Price` (
