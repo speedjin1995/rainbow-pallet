@@ -986,7 +986,8 @@ class ReportService extends BaseService {
 
     private function mapAuditLogRow($type, $row) {
         $db = $this->db;
-        $isSales = ($row['transaction_status'] ?? '') == 'Sales';
+        // Only Purchase / Local use supplier + raw material; Sales, Port and Misc use customer + product
+        $isSales = !$this->isPurchaseType($row['transaction_status'] ?? '');
         $audit = [
             "Action"    => searchActionNameById($row['action_id'], $db),
             "Action By" => $row['action_by'] ?? '',

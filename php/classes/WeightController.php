@@ -128,6 +128,53 @@ class WeightController extends BaseController {
         }
     }
 
+    public function handleTrxPort() {
+        $id = $this->getPost('id');
+        if (!$id) $this->failed('Missing weight record');
+        $isContainer = $this->getPost('isContainer') === 'Y' ? 'Y' : 'N';
+
+        try {
+            $record = $this->service->getTrxPort($id, $isContainer);
+        } catch (Exception $e) {
+            error_log('Transfer to port get: ' . $e->getMessage());
+            $this->failed('Something went wrong');
+        }
+        if (!$record) $this->failed('Record not found');
+
+        // Restricted users can only touch their own company's weighings
+        if (!hasPermission('Weighing', ['view_all_companies']) && intval($record['company_id']) !== intval($_SESSION['company_id'] ?? 0)) {
+            $this->failed('Unauthorized');
+        }
+
+        if (($this->getPost('trxPortAction') ?? 'get') === 'save') {
+            if (!hasModulePermission('Weighing', $record['transaction_status'], 'edit')) $this->failed('Unauthorized');
+
+            $portSpQty = $this->getPost('portSpQty');
+            if ($portSpQty !== null && (!is_numeric($portSpQty) || strlen($portSpQty) > 10)) $this->failed('Invalid SP Quantity / Nett Weight');
+
+            try {
+                $this->service->saveTrxPort($id, $isContainer, intval($record['company_id']), $portSpQty, $this->getPost('portRefNo'), $this->getPost('portLocation'));
+            } catch (Exception $e) {
+                error_log('Transfer to port save: ' . $e->getMessage());
+                $this->failed($e->getMessage() === 'Invalid location' ? 'Invalid location' : 'Something went wrong');
+            }
+            $this->success('Updated Successfully!!');
+        }
+
+        try {
+            $destinations = $this->service->getDestinationsByCompany(intval($record['company_id']));
+        } catch (Exception $e) {
+            error_log('Transfer to port destinations: ' . $e->getMessage());
+            $this->failed('Something went wrong');
+        }
+        echo json_encode(['status' => 'success', 'message' => [
+            'port_sp_qty'   => $record['port_sp_qty'] ?? '',
+            'port_ref_no'   => $record['port_ref_no'] ?? '',
+            'port_location' => $record['port_location'] ?? '',
+            'destinations'  => $destinations,
+        ]]);
+    }
+
     public function handleDelete() {
         $cancelReason     = $_POST['cancelReason'] ?? null;
         $isEmptyContainer = $_POST['isEmptyContainer'] ?? 'N';

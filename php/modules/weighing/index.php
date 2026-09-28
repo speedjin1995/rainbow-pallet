@@ -21,6 +21,7 @@ switch ($action) {
     case 'getContainers':       $controller->handleGetContainers(); break;
     case 'companyLists':        $controller->handleCompanyLists(); break;
     case 'customerSideInfo':   $controller->handleCustomerSideInfo(); break;
+    case 'trxPort':             $controller->handleTrxPort(); break;
     case 'delete':              $controller->handleDelete(); break;
     case 'reactivate':          $controller->handleReactivate(); break;
     case 'previewDoNo':         $controller->handlePreviewDoNo(); break;

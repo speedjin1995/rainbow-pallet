@@ -439,6 +439,8 @@ foreach (['Sales', 'Purchase', 'Local', 'Port', 'Miscellaneous'] as $weighingSta
                                     
                                     <?php include 'components/customerSideInfoModal/modal.php'; ?>
 
+                                    <?php include 'components/trxPortModal/modal.php'; ?>
+
                                     <div class="modal fade" id="cancelModal">
                                         <div class="modal-dialog modal-xl" style="max-width: 90%;">
                                             <div class="modal-content">
@@ -634,6 +636,8 @@ foreach (['Sales', 'Purchase', 'Local', 'Port', 'Miscellaneous'] as $weighingSta
     <?php include 'components/weighingModal/script.php'; ?>
     <!-- Customer side info modal component -->
     <?php include 'components/customerSideInfoModal/script.php'; ?>
+    <!-- Transfer to port info modal component -->
+    <?php include 'components/trxPortModal/script.php'; ?>
 
     <script type="text/javascript">
     var table = null;
@@ -853,6 +857,13 @@ foreach (['Sales', 'Purchase', 'Local', 'Port', 'Miscellaneous'] as $weighingSta
 
         // Customer side info modal: keep the current page of the table after saving
         initCustomerSideInfoModal({
+            onSaved: function(obj){
+                table.ajax.reload(null, false);
+            }
+        });
+
+        // Transfer to port info modal: keep the current page of the table after saving
+        initTrxPortModal({
             onSaved: function(obj){
                 table.ajax.reload(null, false);
             }
@@ -1338,6 +1349,16 @@ foreach (['Sales', 'Purchase', 'Local', 'Port', 'Miscellaneous'] as $weighingSta
                             }
                         }
 
+                        if (transactionKey == 'Port' && !isSynced && (isSADMIN || (permissions['Weighing'] && permissions['Weighing'][transactionKey] && permissions['Weighing'][transactionKey].includes('edit')))) {
+                            var isContainer = row.weight_type == 'Primer Mover + Container' ? 'Y' : 'N';
+                            buttons += `
+                            <div class="col-auto">
+                                <button title="<?=$languageArray['trx_to_port_code'][$language]?>" type="button" id="trxPort${data}" onclick="openTrxPort(${data}, '${isContainer}')" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-ship"></i>
+                                </button>
+                            </div>`;
+                        }
+
                         if (row.weight_type != 'Primer Mover + Container'){
                             if (!isSynced && (isSADMIN || (permissions['Weighing'] && permissions['Weighing'][transactionKey] && permissions['Weighing'][transactionKey].includes('edit')))) {
                                 if (row.transaction_status != 'Purchase' && row.transaction_status != 'Local'){
@@ -1619,6 +1640,20 @@ foreach (['Sales', 'Purchase', 'Local', 'Port', 'Miscellaneous'] as $weighingSta
                 <p><strong><?=$languageArray['customer_side_mc_code'][$language]?>:</strong> ${row.cust_side_mc || ''}</p>
                 <p><strong>Customer Side <?=$languageArray['nett_weight_code'][$language]?> (KG):</strong> ${row.cust_side_nett_weight || ''}</p>
                 <p><strong><?=$languageArray['weight_difference_code'][$language]?> (KG):</strong> ${row.weight_difference || ''}</p>
+            </div>
+        </div>` : ''}
+
+        ${row.transaction_status == 'Port' ? `
+        ${hasCustomerSideInfo ? '<hr>' : ''}
+        <!-- Transfer To Port Section -->
+        <div class="row">
+            <p><span><strong style="font-size:120%; text-decoration: underline;"><?=$languageArray['trx_to_port_code'][$language]?></strong></span><br>
+            <div class="col-6">
+                <p><strong><?=$languageArray['sp_quantity_nett_weight_code'][$language]?>:</strong> ${row.port_sp_qty || ''}</p>
+                <p><strong><?=$languageArray['ref_no_code'][$language]?>:</strong> ${row.port_ref_no || ''}</p>
+            </div>
+            <div class="col-6">
+                <p><strong><?=$languageArray['location_code'][$language]?>:</strong> ${row.port_location || ''}</p>
             </div>
         </div>` : ''}
         `;

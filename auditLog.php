@@ -779,6 +779,20 @@ function format (row) {
             <p><strong><?=$languageArray['weight_difference_code'][$language]?> (KG):</strong> ${row.weight_difference || ''}</p>
         </div>
     </div>` : ''}
+
+    ${row.transaction_status == 'Port' ? `
+    ${hasCustomerSideInfo ? '<hr>' : ''}
+    <!-- Transfer To Port Section -->
+    <div class="row">
+        <p><span><strong style="font-size:120%; text-decoration: underline;"><?=$languageArray['trx_to_port_code'][$language]?></strong></span><br>
+        <div class="col-6">
+            <p><strong><?=$languageArray['sp_quantity_nett_weight_code'][$language]?>:</strong> ${row.port_sp_qty || ''}</p>
+            <p><strong><?=$languageArray['ref_no_code'][$language]?>:</strong> ${row.port_ref_no || ''}</p>
+        </div>
+        <div class="col-6">
+            <p><strong><?=$languageArray['location_code'][$language]?>:</strong> ${row.port_location || ''}</p>
+        </div>
+    </div>` : ''}
     `;
 
     return returnString;
