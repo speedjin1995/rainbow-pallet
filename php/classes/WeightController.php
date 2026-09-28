@@ -152,26 +152,22 @@ class WeightController extends BaseController {
             $portSpQty = $this->getPost('portSpQty');
             if ($portSpQty !== null && (!is_numeric($portSpQty) || strlen($portSpQty) > 10)) $this->failed('Invalid SP Quantity / Nett Weight');
 
+            $portLocation = $this->getPost('portLocation');
+            if ($portLocation !== null && mb_strlen($portLocation) > 255) $this->failed('Invalid location');
+
             try {
-                $this->service->saveTrxPort($id, $isContainer, intval($record['company_id']), $portSpQty, $this->getPost('portRefNo'), $this->getPost('portLocation'));
+                $this->service->saveTrxPort($id, $isContainer, $portSpQty, $this->getPost('portRefNo'), $portLocation);
             } catch (Exception $e) {
                 error_log('Transfer to port save: ' . $e->getMessage());
-                $this->failed($e->getMessage() === 'Invalid location' ? 'Invalid location' : 'Something went wrong');
+                $this->failed('Something went wrong');
             }
             $this->success('Updated Successfully!!');
         }
 
-        try {
-            $destinations = $this->service->getDestinationsByCompany(intval($record['company_id']));
-        } catch (Exception $e) {
-            error_log('Transfer to port destinations: ' . $e->getMessage());
-            $this->failed('Something went wrong');
-        }
         echo json_encode(['status' => 'success', 'message' => [
             'port_sp_qty'   => $record['port_sp_qty'] ?? '',
             'port_ref_no'   => $record['port_ref_no'] ?? '',
             'port_location' => $record['port_location'] ?? '',
-            'destinations'  => $destinations,
         ]]);
     }
 

@@ -1,6 +1,6 @@
 <?php
 // Transfer to port info modal component script (#trxPortModal).
-// Include after jQuery, Select2 and components/trxPortModal/modal.php.
+// Include after jQuery and components/trxPortModal/modal.php.
 //
 // Public functions:
 //   initTrxPortModal({ onSaved: function(obj){} })  - page decides what happens after a save
@@ -18,12 +18,6 @@
     var settings = { onSaved: null };
 
     $(function () {
-        inModal('#portLocation').select2({
-            allowClear: true,
-            placeholder: "Please Select",
-            dropdownParent: $('#trxPortModal') // Ensures dropdown is not cut off
-        });
-
         inModal('#submitTrxPort').on('click', function(){
             saveTrxPort();
         });
@@ -42,9 +36,9 @@
             var obj = JSON.parse(data);
 
             if (obj.status === 'success'){
-                fillLocations(obj.message.destinations, obj.message.port_location);
                 inModal('#portSpQty').val(obj.message.port_sp_qty);
                 inModal('#portRefNo').val(obj.message.port_ref_no);
+                inModal('#portLocation').val(obj.message.port_location);
                 $('#trxPortModal').modal('show');
             }
             else {
@@ -72,16 +66,6 @@
                 notify('#failBtn', obj.message);
             }
         });
-    }
-
-    // Location dropdown = the record company's destinations
-    function fillLocations(items, selected) {
-        var $sel = inModal('#portLocation');
-        $sel.empty().append('<option value="">-</option>');
-        $.each(items || [], function(i, item) {
-            $sel.append($('<option>').val(item.name).text(item.name));
-        });
-        $sel.val(selected || '').trigger('change');
     }
 
     // Find elements inside the transfer to port modal

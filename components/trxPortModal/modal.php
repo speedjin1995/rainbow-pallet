@@ -26,9 +26,7 @@
                     <div class="row mb-3">
                         <label for="portLocation" class="col-sm-4 col-form-label"><?=$languageArray['location_code'][$language]?></label>
                         <div class="col-sm-8">
-                            <select class="form-select select2" id="portLocation" name="portLocation">
-                                <option value="">-</option>
-                            </select>
+                            <input type="text" class="form-control" id="portLocation" name="portLocation" maxlength="255">
                         </div>
                     </div>
                     <input type="hidden" class="form-control" id="trxPortId" name="id">

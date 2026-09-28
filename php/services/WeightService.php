@@ -589,22 +589,7 @@ class WeightService extends BaseService {
         return $row;
     }
 
-    public function getDestinationsByCompany($companyId) {
-        return $this->destinationService->getListByCompany($companyId);
-    }
-
-    public function saveTrxPort($id, $isContainer, $companyId, $spQty, $refNo, $location) {
-        // Location must be an active destination (by name) of the record's company
-        if ($location !== null) {
-            $stmt = $this->db->prepare("SELECT id FROM Destination WHERE name=? AND company=? AND status='0' LIMIT 1");
-            if (!$stmt) throw new Exception($this->db->error);
-            $stmt->bind_param('si', $location, $companyId);
-            if (!$stmt->execute()) throw new Exception($stmt->error);
-            $row = $stmt->get_result()->fetch_assoc();
-            $stmt->close();
-            if (!$row) throw new Exception('Invalid location');
-        }
-
+    public function saveTrxPort($id, $isContainer, $spQty, $refNo, $location) {
         $table = ($isContainer === 'Y') ? 'Weight_Container' : 'Weight';
         $stmt = $this->db->prepare("UPDATE {$table} SET port_sp_qty=?, port_ref_no=?, port_location=?, modified_by=? WHERE id=?");
         if (!$stmt) throw new Exception($this->db->error);
