@@ -7,8 +7,8 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
     exit;
 }
 
-// Check if user has plant_id assigned
-if((!isset($_SESSION['plant_id']) || empty($_SESSION['plant_id'])) && (!isset($_SESSION['company_ids']) || empty($_SESSION['company_ids']))) {
+// A location needs both a company and a plant, so either one missing is access denied
+if(empty($_SESSION['plant_id']) || empty($_SESSION['company_ids'])) {
     // Show error page
     include 'layouts/head-main.php';
     ?>
