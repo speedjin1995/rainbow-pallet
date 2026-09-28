@@ -383,7 +383,8 @@ class PermissionService extends BaseService {
                 ['Items', 'Master Data']
             ]],
             ['name' => 'update_price', 'modules' => [
-                ['Delivery Order', 'Accounting']
+                ['Delivery Order', 'Accounting'],
+                ['Goods Received', 'Accounting']
             ]]
         ];
 

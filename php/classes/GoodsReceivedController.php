@@ -50,6 +50,34 @@ class GoodsReceivedController extends BaseController {
         }
     }
 
+    public function handleGetPriceSuggestions() {
+        $this->requirePermission('update_price');
+        try {
+            $suggestions = $this->service->getPriceSuggestions($_POST['ids'] ?? [], $_POST['company'] ?? null);
+            echo json_encode(['status' => 'success', 'message' => $suggestions]);
+        } catch (mysqli_sql_exception $e) {
+            error_log('GoodsReceived getPriceSuggestions: ' . $e->getMessage());
+            $this->failed('Something went wrong');
+        }
+    }
+
+    public function handleUpdatePrices() {
+        $this->requirePermission('update_price');
+        $updates = $_POST['prices'] ?? [];
+        if (empty($updates)) {
+            $this->failed('No prices to update');
+        }
+        try {
+            $count = $this->service->updatePrices($updates, $_POST['company'] ?? null);
+            $this->success('Updated ' . $count . ' weighing(s)', ['count' => $count]);
+        } catch (mysqli_sql_exception $e) {
+            error_log('GoodsReceived updatePrices: ' . $e->getMessage());
+            $this->failed('Something went wrong');
+        } catch (Exception $e) {
+            $this->failed($e->getMessage());
+        }
+    }
+
     private function requirePermission($permission) {
         if (!hasModulePermission('Accounting', 'Goods Received', [$permission])) {
             $this->failed('No permission');
