@@ -672,8 +672,27 @@ if ($canEditWeight || $canPrintWeight) {
     function format(row, groupId, editMode) {
         var returnString = `
         <!-- Weighing Section -->
-        <div class="row">
-            <p><span><strong style="font-size:120%; text-decoration: underline;"><?=$languageArray['delivery_order_information_code'][$language]?></strong></span><br>
+        <div class="d-flex justify-content-between align-items-center">
+            <span style="font-size:120%; text-decoration: underline;"><strong><?=$languageArray['delivery_order_information_code'][$language]?></strong></span>`;
+
+        if (canUpdatePrice && row.weights && row.weights.length > 0) {
+            returnString += `<div class="flex-shrink-0">`;
+            if (editMode) {
+                returnString += `
+                <button type="button" class="btn btn-success btn-sm" onclick="event.stopPropagation(); savePrices(${groupId});">
+                    <i class="fas fa-save align-middle me-1"></i><?=$languageArray['save_prices_code'][$language]?>
+                </button>
+                <button type="button" class="btn btn-light btn-sm" onclick="event.stopPropagation(); toggleUpdatePrice(${groupId});"><?=$languageArray['cancel_code'][$language]?></button>`;
+            } else {
+                returnString += `
+                <button type="button" class="btn btn-info btn-sm" onclick="event.stopPropagation(); toggleUpdatePrice(${groupId});"><i class="fas fa-tag align-middle me-1"></i><?=$languageArray['update_price_code'][$language]?></button>`;
+            }
+            returnString += `</div>`;
+        }
+
+        returnString += `
+        </div>
+        <div class="row mt-2">
             <div class="col-4">
                 <p><strong class="text-uppercase"><?=$languageArray['total_delivery_amount_code'][$language]?>:</strong> ${displayWeightMT(row.totalDeliverAmt)}</p>
             </div>`;
@@ -687,19 +706,6 @@ if ($canEditWeight || $canPrintWeight) {
                 <p><strong class="text-uppercase"><?=$languageArray['total_price_code'][$language]?>:</strong> RM ${displayNumber(parseFloat(row.weights[0].unit_price) * (parseFloat(row.totalDeliverAmt)/1000), 2)}</p>
             </div>
             `;
-        }
-
-        if (canUpdatePrice && row.weights && row.weights.length > 0) {
-            returnString += `<div class="col-12 mt-2">`;
-            if (editMode) {
-                returnString += `
-                <button type="button" class="btn btn-success btn-sm" onclick="event.stopPropagation(); savePrices(${groupId});"><i class="fas fa-save"></i> <?=$languageArray['save_prices_code'][$language]?></button>
-                <button type="button" class="btn btn-light btn-sm" onclick="event.stopPropagation(); toggleUpdatePrice(${groupId});"><?=$languageArray['cancel_code'][$language]?></button>`;
-            } else {
-                returnString += `
-                <button type="button" class="btn btn-warning btn-sm" onclick="event.stopPropagation(); toggleUpdatePrice(${groupId});"><i class="fas fa-tag"></i> <?=$languageArray['update_price_code'][$language]?></button>`;
-            }
-            returnString += `</div>`;
         }
 
         returnString += `
@@ -756,14 +762,14 @@ if ($canEditWeight || $canPrintWeight) {
                                 if (isSynced) {
                                     returnString += `
                                         <td onclick="event.stopPropagation();">
-                                            <input type="number" class="form-control form-control-sm" value="${startValue}" disabled title="<?=$languageArray['price_locked_code'][$language]?>">
+                                            <input type="number" class="form-control form-control-sm" style="width: 100px;" value="${startValue}" disabled title="<?=$languageArray['price_locked_code'][$language]?>">
                                         </td>
                                         <td class="text-end">${startTotal}</td>
                                     `;
                                 } else {
                                     returnString += `
                                         <td onclick="event.stopPropagation();">
-                                            <input type="number" step="0.01" min="0" class="form-control form-control-sm" id="priceInput${weights[i].id}" data-nett="${weights[i].nett_weight1}" value="${startValue}" oninput="updatePriceRowTotal(${weights[i].id});">
+                                            <input type="number" step="0.01" min="0" class="form-control form-control-sm" style="width: 100px;" id="priceInput${weights[i].id}" data-nett="${weights[i].nett_weight1}" value="${startValue}" oninput="updatePriceRowTotal(${weights[i].id});">
                                         </td>
                                         <td id="priceTotal${weights[i].id}" class="text-end">${startTotal}</td>
                                     `;
