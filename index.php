@@ -691,7 +691,7 @@ require_once "components/weighingModal/data.php";
             $('#supplierSearch').val('-').trigger('change');
             $('#vehicleNo').val('');
             $('#invoiceNoSearch').val('-').trigger('change');
-            $('#statusSearch').val('N').trigger('change');
+            $('#statusSearch').val('Pending').trigger('change');
             $('#productSearch').val('-').trigger('change');
             $('#rawMatSearch').val('-').trigger('change');
             $('#plantSearch').val('-').trigger('change');
