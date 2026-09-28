@@ -499,6 +499,55 @@ class ItemService extends BaseService {
     }
 
     /**
+     * Suggested unit price for a weighing's price update: the party's price entry effective on
+     * the given date, else the item's default price for that side, else 0 when nothing is set up.
+     * $type picks which side of the item/party: 'DO' (Delivery Order) = Customer / Selling Price,
+     * 'GR' (Goods Received) = Supplier / Purchase Price.
+     */
+    public function getSuggestedPrice($companyId, $productCode, $partyCode, $date, $type = 'DO') {
+        $isGr = ($type === 'GR');
+        $partyType = $isGr ? 'Supplier' : 'Customer';
+        $codeColumn = $isGr ? 'supplier_code' : 'customer_code';
+        $priceColumn = $isGr ? 'purchase_price' : 'selling_price';
+
+        $stmt = $this->db->prepare("SELECT id, {$priceColumn} AS default_price FROM {$this->table} WHERE product_code = ? AND company = ? AND status = '0'");
+        if (!$stmt) throw new Exception($this->db->error);
+        $stmt->bind_param('si', $productCode, $companyId);
+        if (!$stmt->execute()) throw new Exception($stmt->error);
+        $product = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+        if (!$product) {
+            return ['unitPrice' => 0, 'source' => null];
+        }
+
+        if (!$this->isBlankValue($partyCode)) {
+            $stmt = $this->db->prepare("SELECT id FROM {$partyType} WHERE {$codeColumn} = ? AND company = ? AND status = '0'");
+            if (!$stmt) throw new Exception($this->db->error);
+            $stmt->bind_param('si', $partyCode, $companyId);
+            if (!$stmt->execute()) throw new Exception($stmt->error);
+            $party = $stmt->get_result()->fetch_assoc();
+            $stmt->close();
+
+            if ($party) {
+                $stmt = $this->db->prepare("SELECT ppt.unit_price FROM Product_Price pp INNER JOIN Product_Price_Tier ppt ON ppt.price_id = pp.id AND ppt.status = 0 WHERE pp.product_id = ? AND pp.party_type = ? AND pp.party_id = ? AND pp.status = 0 AND ? BETWEEN pp.date_from AND pp.date_to ORDER BY pp.date_from DESC, pp.id DESC LIMIT 1");
+                if (!$stmt) throw new Exception($this->db->error);
+                $stmt->bind_param('isis', $product['id'], $partyType, $party['id'], $date);
+                if (!$stmt->execute()) throw new Exception($stmt->error);
+                $tier = $stmt->get_result()->fetch_assoc();
+                $stmt->close();
+                if ($tier && $tier['unit_price'] !== null) {
+                    return ['unitPrice' => $tier['unit_price'], 'source' => $isGr ? 'supplier' : 'customer'];
+                }
+            }
+        }
+
+        if ($product['default_price'] !== null) {
+            return ['unitPrice' => $product['default_price'], 'source' => 'item'];
+        }
+        return ['unitPrice' => 0, 'source' => null];
+    }
+
+    /**
      * Validate and normalise submitted price entries.
      * Single = one tier with qty 1, Range = qty tiers that must not overlap.
      * Entries of the same customer/supplier must not have overlapping dates.

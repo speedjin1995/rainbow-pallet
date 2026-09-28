@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/BaseService.php';
 require_once __DIR__ . '/../requires/lookup.php';
+require_once __DIR__ . '/ItemService.php';
 
 class DeliveryOrderService extends BaseService {
     const MODULE = 'Delivery Order';
@@ -209,6 +210,86 @@ class DeliveryOrderService extends BaseService {
         }
 
         return $this->sendToApi(rtrim($config[$companyKey], '/') . '/delivery_order', $records);
+    }
+
+    /**
+     * Suggested unit prices for the Update Price toggle on the expandable weighing table.
+     * A weighing that already has a price keeps it; otherwise it's the customer's price entry
+     * effective on the transaction date, else the item's default Selling Price, else 0.
+     * Restricted to the same company/plant scope as the DO listing; a weighing already synced
+     * (posted to SQL Accounting) is left out - its price is locked.
+     */
+    public function getPriceSuggestions($ids, $requestedCompany) {
+        $weights = $this->fetchSelected($ids, $requestedCompany, true);
+        $itemService = new ItemService($this->db, $this->username);
+
+        $result = [];
+        foreach ($weights as $row) {
+            if (!empty($row['unit_price']) && (float) $row['unit_price'] > 0) {
+                $result[$row['id']] = ['unitPrice' => $row['unit_price'], 'source' => 'existing'];
+                continue;
+            }
+            $date = date('Y-m-d', strtotime($row['transaction_date']));
+            $result[$row['id']] = $itemService->getSuggestedPrice($row['company_id'], $row['product_code'], $row['customer_code'], $date, 'DO');
+        }
+        return $result;
+    }
+
+    /**
+     * Save unit prices for selected weighings (Update Price). Recomputes sub_total/total_price
+     * from unit price x nett weight; sst is left as-is. Restricted to the same company/plant
+     * scope as the DO listing, excluding weighings already synced (posted to SQL Accounting) -
+     * rows outside that scope are silently skipped.
+     */
+    public function updatePrices($updates, $requestedCompany) {
+        $ids = array_map(function ($u) { return intval($u['id'] ?? 0); }, is_array($updates) ? $updates : []);
+        $allowed = $this->fetchSelected($ids, $requestedCompany, true);
+        $allowedById = [];
+        foreach ($allowed as $row) {
+            $allowedById[(int) $row['id']] = $row;
+        }
+
+        $this->db->begin_transaction();
+        try {
+            $stmt = $this->db->prepare("UPDATE Weight SET unit_price=?, sub_total=?, total_price=?, modified_by=?, modified_date=NOW() WHERE id=?");
+            if (!$stmt) throw new Exception($this->db->error);
+
+            $updated = 0;
+            foreach ($updates as $u) {
+                $id = intval($u['id'] ?? 0);
+                if (!isset($allowedById[$id])) {
+                    continue;
+                }
+                $unitPrice = $this->toPriceValue($u['unitPrice'] ?? null);
+                if ($unitPrice === null) {
+                    continue;
+                }
+
+                $nettWeightMt = (float) $allowedById[$id]['nett_weight1'] / 1000;
+                $unitPriceStr = number_format($unitPrice, 2, '.', '');
+                $subTotalStr  = number_format(round($unitPrice * $nettWeightMt, 2), 2, '.', '');
+
+                $stmt->bind_param('ssssi', $unitPriceStr, $subTotalStr, $subTotalStr, $this->username, $id);
+                if (!$stmt->execute()) throw new Exception($stmt->error);
+                $updated++;
+            }
+            $stmt->close();
+            $this->db->commit();
+            return $updated;
+        } catch (Exception $e) {
+            $this->db->rollback();
+            throw $e;
+        }
+    }
+
+    private function toPriceValue($value) {
+        if ($value === null || $value === '') {
+            return null;
+        }
+        if (!is_numeric($value) || (float) $value < 0) {
+            return null;
+        }
+        return (float) $value;
     }
 
     /**

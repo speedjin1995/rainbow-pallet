@@ -4200,3 +4200,7 @@ INSERT INTO Product_Price_Tier_Log (
 )
 $$
 DELIMITER ;
+
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('update_price_code', 'Update Price', '更新价格', 'Kemaskini Harga', 'விலையைப் புதுப்பி');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('save_prices_code', 'Save Prices', '保存价格', 'Simpan Harga', 'விலைகளைச் சேமி');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('cancel_code', 'Cancel', '取消', 'Batal', 'ரத்துசெய்');

@@ -836,7 +836,7 @@ class WeightService extends BaseService {
     private function getDoWeighingData($row, $fromDate, $toDate) {
         $from = DateTime::createFromFormat('d-m-Y H:i:s', $fromDate)->format('Y-m-d H:i:s');
         $to   = DateTime::createFromFormat('d-m-Y H:i:s', $toDate)->format('Y-m-d H:i:s');
-        $stmt = $this->db->prepare("SELECT id, transaction_id, transaction_status, customer_name, lorry_plate_no1, product_name, delivery_no, gross_weight1, gross_weight1_date, tare_weight1, tare_weight1_date, nett_weight1, transporter_code, transporter, destination_code, destination, unit_price FROM Weight WHERE plant_code=? AND product_code=? AND customer_code=? AND company_id=? AND transaction_date>=? AND transaction_date<=? AND is_complete='Y' AND is_cancel<>'Y' AND status='0' AND transaction_status='Sales'");
+        $stmt = $this->db->prepare("SELECT id, transaction_id, transaction_status, customer_name, lorry_plate_no1, product_name, delivery_no, gross_weight1, gross_weight1_date, tare_weight1, tare_weight1_date, nett_weight1, transporter_code, transporter, destination_code, destination, unit_price, synced FROM Weight WHERE plant_code=? AND product_code=? AND customer_code=? AND company_id=? AND transaction_date>=? AND transaction_date<=? AND is_complete='Y' AND is_cancel<>'Y' AND status='0' AND transaction_status='Sales'");
         $stmt->bind_param('ssssss', $row['plant_code'], $row['product_code'], $row['customer_code'], $row['company_id'], $from, $to);
         $stmt->execute();
         $res = $stmt->get_result();

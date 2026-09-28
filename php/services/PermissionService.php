@@ -381,6 +381,9 @@ class PermissionService extends BaseService {
             ]],
             ['name' => 'manage_price', 'modules' => [
                 ['Items', 'Master Data']
+            ]],
+            ['name' => 'update_price', 'modules' => [
+                ['Delivery Order', 'Accounting']
             ]]
         ];
 
