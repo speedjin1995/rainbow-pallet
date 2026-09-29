@@ -15,6 +15,9 @@ switch ($action) {
     case 'filter':
         $controller->handleFilter();
         break;
+    case 'tableColumns':
+        $controller->handleTableColumns();
+        break;
     case 'exportExcel':
         $controller->handleExportExcel();
         break;

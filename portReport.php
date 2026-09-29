@@ -252,6 +252,13 @@ if (!hasModulePermission('Reports', 'Port', ['view_all_plants'])) {
                                                                 <h5 class="card-title text-white mb-0"><?=$languageArray['weighing_records_code'][$language]?></h5>
                                                             </div>
                                                             <div class="flex-shrink-0">
+                                                                <div class="dropdown d-inline-block">
+                                                                    <button type="button" class="btn btn-info waves-effect waves-light dropdown-toggle" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                                                                        <i class="ri-layout-column-line align-middle me-1"></i>
+                                                                        <?=$languageArray['table_columns_code'][$language]?>
+                                                                    </button>
+                                                                    <div class="dropdown-menu dropdown-menu-end p-2" id="weightColumnMenu"></div>
+                                                                </div>
                                                                 <?php if(hasModulePermission('Reports', 'Port', ['export'])): ?>
                                                                 <button type="button" id="exportPdf" class="btn btn-danger waves-effect waves-light">
                                                                     <i class="ri-file-pdf-line align-middle me-1"></i>
@@ -270,24 +277,7 @@ if (!hasModulePermission('Reports', 'Port', ['view_all_plants'])) {
                                                             <thead>
                                                                 <tr>
                                                                     <th><input type="checkbox" id="selectAllCheckbox" class="selectAllCheckbox"></th>
-                                                                    <th><?=$languageArray['transaction_id_code'][$language]?></th>
-                                                                    <th><?=$languageArray['weight_type_code'][$language]?></th>
-                                                                    <th><?=$languageArray['weight_status_code'][$language]?></th>
-                                                                    <th><?=$languageArray['customer_supplier_code'][$language]?></th>
-                                                                    <th><?=$languageArray['container_no_code'][$language]?></th>
-                                                                    <th><?=$languageArray['seal_no_code'][$language]?></th>
-                                                                    <th><?=$languageArray['vehicle_code'][$language]?></th>
-                                                                    <th><?=$languageArray['gross_incoming_code'][$language]?></th>
-                                                                    <th><?=$languageArray['incoming_date_code'][$language]?></th>
-                                                                    <th><?=$languageArray['tare_outgoing_code'][$language]?></th>
-                                                                    <th><?=$languageArray['outgoing_date_code'][$language]?></th>
-                                                                    <th><?=$languageArray['nett_weight_code'][$language]?></th>
-                                                                    <th><?=$languageArray['vehicle_code'][$language]?>2</th>
-                                                                    <th><?=$languageArray['gross_incoming_code'][$language]?>2</th>
-                                                                    <th><?=$languageArray['incoming_date_code'][$language]?>2</th>
-                                                                    <th><?=$languageArray['tare_outgoing_code'][$language]?>2</th>
-                                                                    <th><?=$languageArray['outgoing_date_code'][$language]?>2</th>
-                                                                    <th><?=$languageArray['nett_weight_code'][$language]?>2</th>
+                                                                    <!-- Data columns are added by setTableHeader() from the company's table column setup -->
                                                                     <th><?=$languageArray['action_code'][$language]?><?=actionPermissionNote([hasModulePermission('Reports', 'Port', ['print'])])?></th>
                                                                 </tr>
                                                             </thead>
@@ -503,6 +493,8 @@ if (!hasModulePermission('Reports', 'Port', ['view_all_plants'])) {
     var fromDateSearchPicker;
     var toDateSearchPicker;
     var table = null;
+    var columnTableName = 'port_report';
+    var tableColumns = {}; // company id => [{key, label, visible}]
     var permissions = <?= json_encode($_SESSION['permissions'] ?? []) ?>;
     var isSADMIN = <?= json_encode($_SESSION['roles'] == 'SADMIN') ?>;
     var allProductOptions = null;
@@ -877,6 +869,13 @@ if (!hasModulePermission('Reports', 'Port', ['view_all_plants'])) {
     }
     
     function renderTable() {
+        // Columns follow the filtered company's setup, loaded once per company
+        var columnCompany = $('#companySearch').val() || '';
+        if (!tableColumns[columnCompany]) {
+            loadTableColumns(columnCompany);
+            return;
+        }
+
         var fromDateI = $('#fromDateSearch').val();
         var toDateI = $('#toDateSearch').val();
         var transactionStatusI = $('#transactionStatusSearch').val() || '';
@@ -897,6 +896,7 @@ if (!hasModulePermission('Reports', 'Port', ['view_all_plants'])) {
         if ($.fn.DataTable.isDataTable('#weightTable')) {
             $("#weightTable").DataTable().clear().destroy();
         }
+        setTableHeader('#weightTable', tableColumns[columnCompany]);
 
         // Create new Datatable
         table = $("#weightTable").DataTable({
@@ -935,24 +935,7 @@ if (!hasModulePermission('Reports', 'Port', ['view_all_plants'])) {
                         return '<input type="checkbox" class="select-checkbox" id="checkbox_' + data + '" value="' + data + '"/>';
                     }
                 },
-                { data: 'transaction_id' },
-                { data: 'weight_type' },
-                { data: 'transaction_status' },
-                { data: 'customer' },
-                { data: 'container_no' },
-                { data: 'seal_no' },
-                { data: 'lorry_plate_no1' },
-                { data: 'gross_weight1' },
-                { data: 'gross_weight1_date' },
-                { data: 'tare_weight1' },
-                { data: 'tare_weight1_date' },
-                { data: 'nett_weight1' },
-                { data: 'lorry_plate_no2' },
-                { data: 'gross_weight2' },
-                { data: 'gross_weight2_date' },
-                { data: 'tare_weight2' },
-                { data: 'tare_weight2_date' },
-                { data: 'nett_weight2' },
+                ...dataColumns(tableColumns[columnCompany]),
                 {
                     data: 'id',
                     responsivePriority: 1,
@@ -966,6 +949,63 @@ if (!hasModulePermission('Reports', 'Port', ['view_all_plants'])) {
                     }
                 }
             ]
+        });
+
+        setColumnMenu('#weightColumnMenu', table, tableColumns[columnCompany]);
+    }
+
+    function loadTableColumns(companyId) {
+        $.post('php/modules/report/index.php', { action: 'tableColumns', tableName: columnTableName, companyId: companyId }, function(data){
+            var obj = JSON.parse(data);
+            if (obj.status === 'success') {
+                tableColumns[companyId] = obj.message;
+                renderTable();
+            } else {
+                toastr["error"](obj.message, "Failed:");
+            }
+        }).fail(function(){
+            toastr["error"]("Something went wrong", "Failed:");
+        });
+    }
+
+    // Replaces the header cells between the checkbox and action columns
+    function setTableHeader(selector, columns) {
+        var $headerRow = $(selector).find('thead tr');
+        $headerRow.find('th').slice(1, -1).remove();
+        $.each(columns, function(i, column){
+            $headerRow.find('th').last().before($('<th>').text(column.label));
+        });
+        $(selector).find('tbody').empty();
+    }
+
+    // Columns outside the company's setup are loaded hidden so the Columns dropdown can show them
+    function dataColumns(columns) {
+        return $.map(columns, function(column){
+            return { data: column.key, defaultContent: '', visible: column.visible };
+        });
+    }
+
+    // Columns dropdown ticked from the company's setup; a change is kept until the page reloads or the company changes
+    function setColumnMenu(selector, dataTable, columns) {
+        var $menu = $(selector).empty();
+        $.each(columns, function(i, column){
+            var id = selector.substring(1) + '_' + column.key;
+            var $item = $(`
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox">
+                    <label class="form-check-label text-nowrap"></label>
+                </div>`);
+            $item.find('input').attr('id', id).data('index', i).prop('checked', column.visible);
+            $item.find('label').attr('for', id).text(column.label);
+            $menu.append($item);
+        });
+
+        $menu.off('change').on('change', 'input', function(){
+            var index = $(this).data('index');
+            columns[index].visible = $(this).is(':checked');
+            // +1 for the checkbox column
+            dataTable.column(index + 1).visible(columns[index].visible);
+            dataTable.columns.adjust().responsive.recalc();
         });
     }
 

@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/BaseController.php';
 require_once __DIR__ . '/../services/ReportService.php';
+require_once __DIR__ . '/../services/TableColumnService.php';
 
 class ReportController extends BaseController {
     protected $table = 'Weight';
@@ -9,6 +10,26 @@ class ReportController extends BaseController {
     public function __construct($db) {
         parent::__construct($db);
         $this->service = new ReportService($db, $this->username);
+    }
+
+    // Columns of a report table for the company filter's company (own company without view_all_companies)
+    public function handleTableColumns() {
+        $tableName = $this->getRequiredPost('tableName');
+        $module = TableColumnService::REPORT_MODULES[$tableName] ?? null;
+        if ($module === null) {
+            $this->failed('Invalid table');
+        }
+
+        $companyId = hasModulePermission('Reports', $module, ['view_all_companies']) ? $this->getPost('companyId') : null;
+        $companyId = intval($companyId ?: ($_SESSION['company_id'] ?? 0));
+
+        try {
+            $service = new TableColumnService($this->db, $this->username);
+            $this->success($service->getColumns($companyId, $tableName));
+        } catch (Exception $e) {
+            error_log('Report table columns: ' . $e->getMessage());
+            $this->failed('Something went wrong');
+        }
     }
 
     public function handleFilter() {

@@ -25,11 +25,19 @@
         'INV' => $languageArray['invoice_no_code'][$language],
     ];
 
-    // Table column setup: Weighing page table value => label
+    // Table column setup: group label => [table value => label]
     require_once 'php/services/TableColumnService.php';
     $columnTableLabels = [
-        'weight'          => $languageArray['weighing_records_code'][$language],
-        'empty_container' => $languageArray['pending_empty_container_records_code'][$language],
+        $languageArray['weighing_code'][$language] => [
+            'weight'          => $languageArray['weighing_records_code'][$language],
+            'empty_container' => $languageArray['pending_empty_container_records_code'][$language],
+        ],
+        $languageArray['report_code'][$language] => [
+            'sales_report'    => $languageArray['dispatch_report_code'][$language],
+            'purchase_report' => $languageArray['receiving_report_code'][$language],
+            'port_report'     => $languageArray['trx_to_port_code'][$language],
+            'misc_report'     => $languageArray['miscellaneous_report_code'][$language],
+        ],
     ];
 ?>
 
@@ -310,11 +318,15 @@
                                                 <div class="modal-body">
                                                     <input type="hidden" id="tableColumnCompanyId">
                                                     <div class="row mb-3">
-                                                        <label for="columnTableName" class="col-sm-3 col-form-label"><?=$languageArray['weighing_code'][$language]?></label>
+                                                        <label for="columnTableName" class="col-sm-3 col-form-label"><?=$languageArray['module_code'][$language]?></label>
                                                         <div class="col-sm-6">
                                                             <select class="form-select" id="columnTableName">
-                                                                <?php foreach ($columnTableLabels as $tableValue => $tableLabel): ?>
-                                                                    <option value="<?=$tableValue?>"><?=$tableLabel?></option>
+                                                                <?php foreach ($columnTableLabels as $groupLabel => $tables): ?>
+                                                                    <optgroup label="<?=$groupLabel?>">
+                                                                        <?php foreach ($tables as $tableValue => $tableLabel): ?>
+                                                                            <option value="<?=$tableValue?>"><?=$tableLabel?></option>
+                                                                        <?php endforeach; ?>
+                                                                    </optgroup>
                                                                 <?php endforeach; ?>
                                                             </select>
                                                         </div>

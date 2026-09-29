@@ -486,7 +486,7 @@ foreach (['Sales', 'Purchase', 'Local', 'Port', 'Miscellaneous'] as $weighingSta
                                                             </div>
                                                             <div class="flex-shrink-0">
                                                                 <div class="dropdown d-inline-block">
-                                                                    <button type="button" class="btn btn-light waves-effect waves-light dropdown-toggle" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                                                                    <button type="button" class="btn btn-info waves-effect waves-light dropdown-toggle" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
                                                                         <i class="ri-layout-column-line align-middle me-1"></i>
                                                                         <?=$languageArray['table_columns_code'][$language]?>
                                                                     </button>
@@ -548,7 +548,7 @@ foreach (['Sales', 'Purchase', 'Local', 'Port', 'Miscellaneous'] as $weighingSta
                                                             </div>
                                                             <div class="flex-shrink-0">
                                                                 <div class="dropdown d-inline-block">
-                                                                    <button type="button" class="btn btn-light waves-effect waves-light dropdown-toggle" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                                                                    <button type="button" class="btn btn-info waves-effect waves-light dropdown-toggle" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
                                                                         <i class="ri-layout-column-line align-middle me-1"></i>
                                                                         <?=$languageArray['table_columns_code'][$language]?>
                                                                     </button>

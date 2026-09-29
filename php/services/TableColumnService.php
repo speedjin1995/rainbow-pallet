@@ -2,18 +2,19 @@
 require_once __DIR__ . '/BaseService.php';
 
 /**
- * Columns shown in the Weighing page tables per company, set up from the Companies page.
+ * Columns shown in the Weighing page and report tables per company, set up from the Companies page.
  * A table without a setup gets the preset columns in DEFAULTS.
  * The checkbox and action columns are always shown and are not part of the setup.
  *
  * Company.column_setup holds JSON of table => visible column keys in display order,
- * e.g. {"weight": ["transaction_id", "customer"], "empty_container": [...]}. NULL = all tables use the preset.
+ * e.g. {"weight": ["transaction_id", "customer"], "sales_report": [...]}. NULL = all tables use the preset.
  */
 class TableColumnService extends BaseService {
 
     protected $table = 'Company';
 
-    // Row field => [message key, header suffix]. Every key must be a field of the filterWeight / filterEmptyContainer rows.
+    // Row field => [message key, header suffix]. Every key must be a field of the filterWeight / filterEmptyContainer
+    // rows, and of the ReportService::filter rows unless excluded for the reports.
     const COLUMNS = [
         'company_name'       => ['company_code', ''],
         'transaction_id'     => ['transaction_id_code', ''],
@@ -66,12 +67,36 @@ class TableColumnService extends BaseService {
             'company_name', 'container_no', 'seal_no', 'transaction_status',
             'lorry_plate_no1', 'gross_weight1', 'gross_weight1_date', 'tare_weight1', 'tare_weight1_date', 'nett_weight1',
         ],
+        'sales_report'    => self::REPORT_DEFAULT,
+        'purchase_report' => self::REPORT_DEFAULT,
+        'port_report'     => self::REPORT_DEFAULT,
+        'misc_report'     => self::REPORT_DEFAULT,
     ];
 
-    // Empty container rows keep the raw weight type, so it is not offered there
+    // Report pages all had the same fixed headers
+    const REPORT_DEFAULT = [
+        'transaction_id', 'weight_type', 'transaction_status', 'customer', 'container_no', 'seal_no',
+        'lorry_plate_no1', 'gross_weight1', 'gross_weight1_date', 'tare_weight1', 'tare_weight1_date', 'nett_weight1',
+        'lorry_plate_no2', 'gross_weight2', 'gross_weight2_date', 'tare_weight2', 'tare_weight2_date', 'nett_weight2',
+    ];
+
+    // Empty container rows keep the raw weight type, so it is not offered there.
+    // Reports show one company at a time and their rows have no company name.
     const EXCLUDED = [
         'weight'          => [],
         'empty_container' => ['weight_type'],
+        'sales_report'    => ['company_name'],
+        'purchase_report' => ['company_name'],
+        'port_report'     => ['company_name'],
+        'misc_report'     => ['company_name'],
+    ];
+
+    // Report table => Reports permission module (for the company scope, same as ReportService::buildScope)
+    const REPORT_MODULES = [
+        'sales_report'    => 'Sales',
+        'purchase_report' => 'Purchase',
+        'port_report'     => 'Port',
+        'misc_report'     => 'Miscellaneous',
     ];
 
     /**
