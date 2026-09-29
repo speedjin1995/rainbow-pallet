@@ -4337,3 +4337,49 @@ INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALU
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('total_pieces_code', 'Total Pieces', '总件数', 'Jumlah Keping', 'மொத்த துண்டுகள்');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('transporter_name_code', 'Transporter Name', '运输商名称', 'Nama Pengangkut', 'போக்குவரத்து நிறுவன பெயர்');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('user_agent_code', 'User Agent', '用户代理', 'Ejen Pengguna', 'பயனர் முகவர்');
+
+-- 29/09/2026 --
+ALTER TABLE `Company` ADD `column_setup` LONGTEXT NULL DEFAULT NULL AFTER `has_sawn_timber`;
+ALTER TABLE `Company_Log` ADD `column_setup` LONGTEXT NULL DEFAULT NULL AFTER `has_sawn_timber`;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_COMPANY` AFTER INSERT ON `Company` FOR EACH ROW INSERT INTO Company_Log (
+    company_id, company_code, company_reg_no, new_reg_no, name, address_line_1, address_line_2, address_line_3, phone_no, fax_no, tin_no, email, mobile_no, has_sawn_timber, column_setup, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.company_code, NEW.company_reg_no, NEW.new_reg_no, NEW.name, NEW.address_line_1, NEW.address_line_2, NEW.address_line_3, NEW.phone_no, NEW.fax_no, NEW.tin_no, NEW.email, NEW.mobile_no, NEW.has_sawn_timber, NEW.column_setup, 1, NEW.created_by, NOW()
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_COMPANY` BEFORE UPDATE ON `Company` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Check if status = 1, set action_id to 3, otherwise set to 2
+    IF NEW.status = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Company_Log table
+    INSERT INTO Company_Log (
+        company_id, company_code, company_reg_no, new_reg_no, name, address_line_1, address_line_2, address_line_3, phone_no, fax_no, tin_no, email, mobile_no, has_sawn_timber, column_setup, action_id, action_by, event_date
+    ) 
+    VALUES (
+        NEW.id, NEW.company_code, NEW.company_reg_no, NEW.new_reg_no, NEW.name, NEW.address_line_1, NEW.address_line_2, NEW.address_line_3, NEW.phone_no, NEW.fax_no, NEW.tin_no, NEW.email, NEW.mobile_no, NEW.has_sawn_timber, NEW.column_setup, action_value, NEW.modified_by, NOW()
+    );
+END
+$$
+DELIMITER ;
+
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('table_columns_code', 'Table Columns', '表格列', 'Lajur Jadual', 'அட்டவணை நெடுவரிசைகள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('column_code', 'Column', '列', 'Lajur', 'நெடுவரிசை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('show_code', 'Show', '显示', 'Papar', 'காட்டு');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('reset_to_default_code', 'Reset to Default', '恢复默认', 'Tetap Semula ke Lalai', 'இயல்புநிலைக்கு மீட்டமை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('created_by_code', 'Created By', '创建人', 'Dicipta Oleh', 'உருவாக்கியவர்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('issues_code', 'Issues', '问题', 'Isu', 'சிக்கல்கள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('customer_code_not_match_code', 'Customer code not match', '客户代码不匹配', 'Kod pelanggan tidak sepadan', 'வாடிக்கையாளர் குறியீடு பொருந்தவில்லை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('supplier_code_not_match_code', 'Supplier code not match', '供应商代码不匹配', 'Kod pembekal tidak sepadan', 'சப்ளையர் குறியீடு பொருந்தவில்லை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('item_code_not_match_code', 'Item code not match', '物品代码不匹配', 'Kod item tidak sepadan', 'பொருள் குறியீடு பொருந்தவில்லை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('need_unit_price_code', 'Need unit price and total price', '需要单价和总价', 'Perlu harga seunit dan jumlah harga', 'அலகு விலை மற்றும் மொத்த விலை தேவை');

@@ -24,6 +24,21 @@
         'PO'  => $languageArray['purchase_order_no_code'][$language],
         'INV' => $languageArray['invoice_no_code'][$language],
     ];
+
+    // Table column setup: group label => [table value => label]
+    require_once 'php/services/TableColumnService.php';
+    $columnTableLabels = [
+        $languageArray['weighing_code'][$language] => [
+            'weight'          => $languageArray['weighing_records_code'][$language],
+            'empty_container' => $languageArray['pending_empty_container_records_code'][$language],
+        ],
+        $languageArray['report_code'][$language] => [
+            'sales_report'    => $languageArray['dispatch_report_code'][$language],
+            'purchase_report' => $languageArray['receiving_report_code'][$language],
+            'port_report'     => $languageArray['trx_to_port_code'][$language],
+            'misc_report'     => $languageArray['miscellaneous_report_code'][$language],
+        ],
+    ];
 ?>
 
 <head>
@@ -292,6 +307,52 @@
                                         </div>
                                     </div>
 
+                                    <!-- Table Column Modal -->
+                                    <div class="modal fade" id="tableColumnModal" tabindex="-1" role="dialog" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-scrollable modal-lg">
+                                            <div class="modal-content">
+                                                <div class="modal-header py-2">
+                                                    <h5 class="modal-title"><?=$languageArray['table_columns_code'][$language]?> - <span id="tableColumnCompanyName"></span></h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <input type="hidden" id="tableColumnCompanyId">
+                                                    <div class="row mb-3">
+                                                        <label for="columnTableName" class="col-sm-3 col-form-label"><?=$languageArray['module_code'][$language]?></label>
+                                                        <div class="col-sm-6">
+                                                            <select class="form-select" id="columnTableName">
+                                                                <?php foreach ($columnTableLabels as $groupLabel => $tables): ?>
+                                                                    <optgroup label="<?=$groupLabel?>">
+                                                                        <?php foreach ($tables as $tableValue => $tableLabel): ?>
+                                                                            <option value="<?=$tableValue?>"><?=$tableLabel?></option>
+                                                                        <?php endforeach; ?>
+                                                                    </optgroup>
+                                                                <?php endforeach; ?>
+                                                            </select>
+                                                        </div>
+                                                        <div class="col-sm-3 text-end">
+                                                            <button type="button" class="btn btn-soft-secondary" id="resetTableColumns"><?=$languageArray['reset_to_default_code'][$language]?></button>
+                                                        </div>
+                                                    </div>
+                                                    <table class="table table-bordered align-middle">
+                                                        <thead>
+                                                            <tr>
+                                                                <th width="10%" class="text-center"><?=$languageArray['show_code'][$language]?></th>
+                                                                <th><?=$languageArray['column_code'][$language]?></th>
+                                                                <th width="15%"></th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="tableColumnRows"></tbody>
+                                                    </table>
+                                                    <div class="hstack gap-2 justify-content-end">
+                                                        <button type="button" class="btn btn-light" data-bs-dismiss="modal"><?=$languageArray['close_code'][$language]?></button>
+                                                        <button type="button" class="btn btn-success" id="submitTableColumns"><?=$languageArray['submit_code'][$language]?></button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <div class="modal fade" id="uploadModal" style="display:none">
                                         <div class="modal-dialog modal-xl" style="max-width: 90%;">
                                             <div class="modal-content">
@@ -447,6 +508,8 @@
     <script src="plugins/datatables-buttons/js/buttons.print.min.js"></script>
     <script src="plugins/datatables-buttons/js/buttons.html5.min.js"></script>
     <script src="assets/js/pages/datatables.init.js"></script>
+    <!-- jQuery UI for drag and drop of the table columns (script only, its theme CSS is not used) -->
+    <script src="plugins/jquery-ui/jquery-ui.min.js"></script>
 
 <script type="text/javascript">
 
@@ -455,6 +518,7 @@ var permissions = <?= json_encode($_SESSION['permissions'] ?? []) ?>;
 var isSADMIN = <?= json_encode($_SESSION['roles'] == 'SADMIN') ?>;
 var statusLabels = <?= json_encode($statusLabels) ?>;
 var resetLabels = <?= json_encode($resetLabels) ?>;
+var tableColumnDefaults = <?= json_encode(TableColumnService::DEFAULTS) ?>;
 
 $(function () {
     $('#selectAllCheckbox').on('change', function() {
@@ -530,6 +594,11 @@ $(function () {
                                     <li>
                                         <a class="dropdown-item" id="documentNumber${data}" onclick="manageDocumentNumbers(${data})">
                                             <i class="ri-file-list-3-fill align-bottom me-2 text-muted"></i> <?=$languageArray['document_number_code'][$language]?>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" id="tableColumn${data}" onclick="manageTableColumns(${data})">
+                                            <i class="ri-layout-column-fill align-bottom me-2 text-muted"></i> <?=$languageArray['table_columns_code'][$language]?>
                                         </a>
                                     </li>`;
                         }
@@ -804,6 +873,86 @@ $(function () {
             $('#spinnerLoading').hide();
         });
     });
+
+    $('#columnTableName').on('change', function() {
+        loadTableColumnRows(false);
+    });
+
+    // Drag a row by its column name to reorder; the arrows below do the same one step at a time
+    $('#tableColumnRows').sortable({
+        handle: '.column-drag',
+        axis: 'y',
+        containment: 'parent',
+        tolerance: 'pointer',
+        forcePlaceholderSize: true,
+        placeholder: 'table-active',
+        helper: function(e, $row) {
+            // Keep the cell widths while the row is lifted out of the table
+            var $helper = $row.clone();
+            $helper.children().each(function(i){
+                $(this).width($row.children().eq(i).width());
+            });
+            return $helper.addClass('bg-white shadow');
+        },
+        start: function(e, ui) {
+            ui.placeholder.html('<td colspan="' + ui.item.children().length + '">&nbsp;</td>');
+        }
+    });
+
+    $('#tableColumnRows').on('click', '.column-up, .column-down', function() {
+        var $row = $(this).closest('tr');
+        if ($(this).hasClass('column-up')) {
+            $row.prev().before($row);
+        } else {
+            $row.next().after($row);
+        }
+    });
+
+    // Preset columns ticked in preset order, the rest unticked below them
+    $('#resetTableColumns').on('click', function() {
+        var defaults = tableColumnDefaults[$('#columnTableName').val()] || [];
+        var $rows = $('#tableColumnRows tr');
+        $rows.find('.column-show').prop('checked', false);
+        $.each(defaults.slice().reverse(), function(i, key){
+            var $row = $rows.filter(function(){ return $(this).data('key') === key; });
+            $row.find('.column-show').prop('checked', true);
+            $('#tableColumnRows').prepend($row);
+        });
+    });
+
+    $('#submitTableColumns').on('click', function(){
+        var $btn = $(this);
+        var keys = [];
+
+        // Ticked columns in their row order
+        $('#tableColumnRows tr').each(function(){
+            if ($(this).find('.column-show').is(':checked')) {
+                keys.push($(this).data('key'));
+            }
+        });
+
+        if (keys.length === 0) {
+            toastr["error"]("<?=$languageArray['please_fill_in_the_field_code'][$language]?>", "Failed:");
+            return;
+        }
+
+        $btn.prop('disabled', true);
+        $('#spinnerLoading').show();
+        $.post('php/modules/company/index.php', { action: 'saveTableColumns', companyId: $('#tableColumnCompanyId').val(), tableName: $('#columnTableName').val(), data: JSON.stringify(keys) }, function(data){
+            var obj = JSON.parse(data);
+            if (obj.status === 'success') {
+                $('#tableColumnModal').modal('hide');
+                toastr["success"](obj.message, "Success:");
+            } else {
+                toastr["error"](obj.message, "Failed:");
+            }
+        }).fail(function(){
+            toastr["error"]("Something went wrong", "Failed:");
+        }).always(function(){
+            $btn.prop('disabled', false);
+            $('#spinnerLoading').hide();
+        });
+    });
 });
 
 function edit(id){
@@ -1046,6 +1195,54 @@ function updateDocumentNumberPreview($row) {
         .replace(/\{YY\}/g, year.substring(2))
         .replace(/\{MM\}/g, month)
         .replace(/\{NUMBER\}/g, nextNumber.padStart(digits, '0')));
+}
+
+// Weighing page table columns of a company, opened on the first table (Weighing Records)
+function manageTableColumns(id) {
+    var company = table.rows().data().toArray().find(function(row){ return row.id == id; });
+
+    $('#tableColumnCompanyId').val(id);
+    $('#tableColumnCompanyName').text(company ? company.name : '');
+    $('#columnTableName').prop('selectedIndex', 0);
+    loadTableColumnRows(true);
+}
+
+// One row per available column: shown columns first in display order, then the hidden ones
+function loadTableColumnRows(showModal) {
+    $('#spinnerLoading').show();
+    $.post('php/modules/company/index.php', { action: 'getTableColumns', companyId: $('#tableColumnCompanyId').val(), tableName: $('#columnTableName').val() }, function(data){
+        var obj = JSON.parse(data);
+        if (obj.status !== 'success') {
+            toastr["error"](obj.message, "Failed:");
+            return;
+        }
+
+        $('#tableColumnRows').html('');
+
+        $.each(obj.message, function(i, column){
+            var $row = $(`
+                <tr>
+                    <td class="text-center"><input type="checkbox" class="form-check-input column-show"></td>
+                    <td class="column-drag" style="cursor: move;"><i class="mdi mdi-drag-vertical text-muted me-2"></i><span class="column-label"></span></td>
+                    <td class="text-center">
+                        <button type="button" class="btn btn-soft-secondary btn-sm column-up"><i class="ri-arrow-up-line"></i></button>
+                        <button type="button" class="btn btn-soft-secondary btn-sm column-down"><i class="ri-arrow-down-line"></i></button>
+                    </td>
+                </tr>`);
+            $row.data('key', column.key);
+            $row.find('.column-label').text(column.label);
+            $row.find('.column-show').prop('checked', column.visible);
+            $('#tableColumnRows').append($row);
+        });
+
+        if (showModal) {
+            $('#tableColumnModal').modal('show');
+        }
+    }).fail(function(){
+        toastr["error"]("Something went wrong", "Failed:");
+    }).always(function(){
+        $('#spinnerLoading').hide();
+    });
 }
 
 </script>

@@ -52,8 +52,12 @@ class GoodsReceivedService extends BaseService {
         foreach ($rows as $row) {
             // Total received weight for the same group within the date range
             $totalFinalWeight = 0;
+            $missingPrice = false;
             foreach ($this->fetchGroupWeights($row, $post['fromDate'] ?? '', $post['toDate'] ?? '') as $groupRow) {
                 $totalFinalWeight += floatval($groupRow['final_weight']);
+                if ((float) ($groupRow['unit_price'] ?? 0) <= 0) {
+                    $missingPrice = true;
+                }
             }
 
             $company = searchCompanyById($row['company_id'], $this->db);
@@ -84,6 +88,7 @@ class GoodsReceivedService extends BaseService {
                 'modified_date'      => $row['modified_date'],
                 'modified_by'        => $row['modified_by'],
                 'total_final_weight' => $totalFinalWeight,
+                'issues'             => $this->getIssues($row, $missingPrice),
             ];
         }
 
@@ -428,6 +433,27 @@ class GoodsReceivedService extends BaseService {
         }
 
         return $this->fetchAll($sql, $types, $values);
+    }
+
+    /**
+     * Problems that would stop a group from posting cleanly to SQL Accounting:
+     * supplier code not an active, non-manual master record of the company, raw material
+     * (item) code not an active, non-manual master record, or a weighing without a unit price
+     */
+    private function getIssues($group, $missingPrice) {
+        $issues = [];
+
+        if (empty($this->fetchAll("SELECT 1 FROM Supplier WHERE supplier_code = ? AND company = ? AND status = '0' AND is_manual = 'N' LIMIT 1", 'si', [$group['supplier_code'], $group['company_id']]))) {
+            $issues[] = 'supplier';
+        }
+        if (empty($this->fetchAll("SELECT 1 FROM Raw_Mat WHERE raw_mat_code = ? AND status = '0' AND is_manual = 'N' LIMIT 1", 's', [$group['raw_mat_code']]))) {
+            $issues[] = 'item';
+        }
+        if ($missingPrice) {
+            $issues[] = 'price';
+        }
+
+        return $issues;
     }
 
     private function countGroups($where, $types, $values) {

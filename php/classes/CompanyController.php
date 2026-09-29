@@ -2,16 +2,19 @@
 require_once __DIR__ . '/BaseController.php';
 require_once __DIR__ . '/../services/CompanyService.php';
 require_once __DIR__ . '/../services/DocumentNumberService.php';
+require_once __DIR__ . '/../services/TableColumnService.php';
 
 class CompanyController extends BaseController {
 
     private $companyService;
     private $documentNumberService;
+    private $tableColumnService;
 
     public function __construct($db) {
         parent::__construct($db);
         $this->companyService = new CompanyService($db, $this->username);
         $this->documentNumberService = new DocumentNumberService($db, $this->username);
+        $this->tableColumnService = new TableColumnService($db, $this->username);
     }
 
     /**
@@ -60,6 +63,52 @@ class CompanyController extends BaseController {
         }
     }
     
+    /**
+     * Weighing page table columns of a company (every available column with its visibility, in display order)
+     */
+    public function getTableColumns() {
+        if (!hasModulePermission('Master Data', 'Companies', ['edit'])) {
+            $this->failed('Unauthorized');
+        }
+
+        try {
+            $rows = $this->tableColumnService->getSetup(intval($this->getRequiredPost('companyId')), $this->getRequiredPost('tableName'));
+        } catch (InvalidArgumentException $e) {
+            $this->failed($e->getMessage());
+        } catch (Exception $e) {
+            error_log('Get table columns: ' . $e->getMessage());
+            $this->failed('Something went wrong');
+        }
+
+        if ($rows === null) {
+            $this->failed('Record not found');
+        }
+        $this->success($rows);
+    }
+
+    /**
+     * Save the visible Weighing page table columns of a company, in display order
+     */
+    public function saveTableColumns() {
+        if (!hasModulePermission('Master Data', 'Companies', ['edit'])) {
+            $this->failed('Unauthorized');
+        }
+
+        $companyId = intval($this->getRequiredPost('companyId'));
+        $tableName = $this->getRequiredPost('tableName');
+        $keys = json_decode($this->getRequiredPost('data'), true);
+
+        try {
+            $this->tableColumnService->save($companyId, $tableName, $keys);
+            $this->success('Updated Successfully!!');
+        } catch (InvalidArgumentException $e) {
+            $this->failed($e->getMessage());
+        } catch (Exception $e) {
+            error_log('Save table columns: ' . $e->getMessage());
+            $this->failed('Something went wrong');
+        }
+    }
+
     /**
      * Get all companies (for DataTables)
      */

@@ -3,16 +3,36 @@ require_once __DIR__ . '/BaseController.php';
 require_once __DIR__ . '/../services/WeightService.php';
 require_once __DIR__ . '/../services/PrintService.php';
 require_once __DIR__ . '/../services/DocumentNumberService.php';
+require_once __DIR__ . '/../services/TableColumnService.php';
 
 class WeightController extends BaseController {
     protected $table = 'Weight';
     private $service;
     private $documentNumberService;
+    private $tableColumnService;
 
     public function __construct($db) {
         parent::__construct($db);
         $this->service = new WeightService($db, $this->username);
         $this->documentNumberService = new DocumentNumberService($db, $this->username);
+        $this->tableColumnService = new TableColumnService($db, $this->username);
+    }
+
+    // ─── Table Columns ────────────────────────────────────────────────────────────
+    // Columns of both tables for the company filter's company (own company without view_all_companies)
+    public function handleTableColumns() {
+        $companyId = hasPermission('Weighing', ['view_all_companies']) ? $this->getPost('companyId') : null;
+        $companyId = intval($companyId ?: ($_SESSION['company_id'] ?? 0));
+
+        try {
+            $this->success([
+                'weight'          => $this->tableColumnService->getColumns($companyId, 'weight'),
+                'empty_container' => $this->tableColumnService->getColumns($companyId, 'empty_container'),
+            ]);
+        } catch (Exception $e) {
+            error_log('Table columns: ' . $e->getMessage());
+            $this->failed('Something went wrong');
+        }
     }
 
     // ─── DO No ────────────────────────────────────────────────────────────────────

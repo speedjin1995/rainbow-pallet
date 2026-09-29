@@ -16,7 +16,7 @@ class ReportService extends BaseService {
     private $sortColumns = [
         'id', 'transaction_id', 'transaction_status', 'weight_type', 'transaction_date', 'lorry_plate_no1', 'lorry_plate_no2',
         'supplier_weight', 'customer_code', 'customer_name', 'supplier_code', 'supplier_name', 'product_code', 'product_name',
-        'container_no', 'seal_no', 'invoice_no', 'purchase_order', 'delivery_no', 'transporter_code', 'transporter',
+        'container_no', 'seal_no', 'container_no2', 'seal_no2', 'plant_name', 'invoice_no', 'purchase_order', 'delivery_no', 'transporter_code', 'transporter',
         'destination_code', 'destination', 'remarks', 'gross_weight1', 'gross_weight1_date', 'tare_weight1', 'tare_weight1_date',
         'nett_weight1', 'gross_weight2', 'gross_weight2_date', 'tare_weight2', 'tare_weight2_date', 'nett_weight2',
         'final_weight', 'weight_different', 'is_complete', 'is_cancel', 'manual_weight', 'created_date', 'created_by',
@@ -93,6 +93,9 @@ class ReportService extends BaseService {
                 'product_name'        => $isPurchase ? $row['raw_mat_name'] : $row['product_name'],
                 'container_no'        => $row['container_no'],
                 'seal_no'             => $row['seal_no'],
+                'container_no2'       => $row['container_no2'],
+                'seal_no2'            => $row['seal_no2'],
+                'plant_name'          => $row['plant_name'],
                 'invoice_no'          => $row['invoice_no'],
                 'purchase_order'      => $row['purchase_order'],
                 'delivery_no'         => $row['delivery_no'],

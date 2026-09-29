@@ -75,6 +75,7 @@ class DeliveryOrderService extends BaseService {
                 'created_by'         => $row['created_by'],
                 'modified_date'      => $row['modified_date'],
                 'modified_by'        => $row['modified_by'],
+                'issues'             => $this->getIssues($row, $post['fromDate'] ?? '', $post['toDate'] ?? ''),
             ];
         }
 
@@ -409,6 +410,30 @@ class DeliveryOrderService extends BaseService {
         }
 
         return $this->fetchAll($sql, $types, $values);
+    }
+
+    /**
+     * Problems that would stop a group from posting cleanly to SQL Accounting:
+     * customer / item code not an active, non-manual master record of the company,
+     * or a weighing in the group (within the date range) without a unit price
+     */
+    private function getIssues($group, $fromDate, $toDate) {
+        $issues = [];
+
+        if (empty($this->fetchAll("SELECT 1 FROM Customer WHERE customer_code = ? AND company = ? AND status = '0' AND is_manual = 'N' LIMIT 1", 'si', [$group['customer_code'], $group['company_id']]))) {
+            $issues[] = 'customer';
+        }
+        if (empty($this->fetchAll("SELECT 1 FROM Product WHERE product_code = ? AND company = ? AND status = '0' AND is_manual = 'N' LIMIT 1", 'si', [$group['product_code'], $group['company_id']]))) {
+            $issues[] = 'item';
+        }
+        foreach ($this->fetchGroupWeights($group, $fromDate, $toDate) as $weight) {
+            if ((float) ($weight['unit_price'] ?? 0) <= 0) {
+                $issues[] = 'price';
+                break;
+            }
+        }
+
+        return $issues;
     }
 
     private function countGroups($where, $types, $values) {
