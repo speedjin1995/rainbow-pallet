@@ -249,6 +249,7 @@ if ($canEditWeight || $canPrintWeight) {
                                                                     <th><?=$languageArray['plant_code'][$language]?></th>
                                                                     <th><?=$languageArray['delivery_date_code'][$language]?></th>
                                                                     <th><?=$languageArray['total_delivery_amount_code'][$language]?></th>
+                                                                    <th><?=$languageArray['issues_code'][$language] ?? 'Issues'?></th>
                                                                     <th><?=$languageArray['action_code'][$language]?><?=actionPermissionNote([hasModulePermission('Accounting', 'Delivery Order', ['post_to_sql'])])?></th>
                                                                 </tr>
                                                             </thead>
@@ -334,6 +335,11 @@ if ($canEditWeight || $canPrintWeight) {
     var canPrintWeight = <?= $canPrintWeight ? 'true' : 'false' ?>;
     var canUpdatePrice = <?= $canUpdatePrice ? 'true' : 'false' ?>;
     var canIncludePrice = <?= $canIncludePrice ? 'true' : 'false' ?>;
+    var issueLabels = {
+        customer: <?= json_encode($languageArray['customer_code_not_match_code'][$language] ?? 'Customer code not match') ?>,
+        item: <?= json_encode($languageArray['item_code_not_match_code'][$language] ?? 'Item code not match') ?>,
+        price: <?= json_encode($languageArray['need_unit_price_code'][$language] ?? 'Need unit price and total price') ?>
+    };
     var expandedWeights = {}; // groupId -> last fetched weighing detail (weights, totalDeliverAmt, purchase_order)
     var updatePriceModes = {}; // groupId -> true while that row's table is in Update Price edit mode
 
@@ -644,6 +650,13 @@ if ($canEditWeight || $canPrintWeight) {
                 { data: 'transaction_date' },
                 { data: 'order_weight' },
                 {
+                    data: 'issues',
+                    orderable: false,
+                    render: function (data, type, row) {
+                        return renderIssues(data);
+                    }
+                },
+                {
                     data: 'id',
                     class: 'action-button',
                     orderable: false,
@@ -670,6 +683,16 @@ if ($canEditWeight || $canPrintWeight) {
                 }
             ]
         });
+    }
+
+    // One badge per issue of the group, a tick when there is none
+    function renderIssues(issues) {
+        if (!issues || issues.length === 0) {
+            return '<i class="ri-checkbox-circle-fill text-success fs-5"></i>';
+        }
+        return issues.map(function (issue) {
+            return '<span class="badge bg-danger me-1">' + (issueLabels[issue] || issue) + '</span>';
+        }).join('');
     }
 
     function format(row, groupId, editMode) {

@@ -277,6 +277,7 @@ $canIncludePrice = hasModulePermission('Accounting', 'Goods Received', ['include
                                                                     <th><?=$languageArray['raw_material_code'][$language]?></th>
                                                                     <th><?=$languageArray['received_date_code'][$language]?></th>
                                                                     <th><?=$languageArray['total_received_amount_code'][$language]?> (KG)</th>
+                                                                    <th><?=$languageArray['issues_code'][$language] ?? 'Issues'?></th>
                                                                     <!-- <th>Action</th> -->
                                                                 </tr>
                                                             </thead>
@@ -342,6 +343,11 @@ $canIncludePrice = hasModulePermission('Accounting', 'Goods Received', ['include
     var allSupplierSearchOptions = null;
     var canUpdatePrice = <?= $canUpdatePrice ? 'true' : 'false' ?>;
     var canIncludePrice = <?= $canIncludePrice ? 'true' : 'false' ?>;
+    var issueLabels = {
+        supplier: <?= json_encode($languageArray['supplier_code_not_match_code'][$language] ?? 'Supplier code not match') ?>,
+        item: <?= json_encode($languageArray['item_code_not_match_code'][$language] ?? 'Item code not match') ?>,
+        price: <?= json_encode($languageArray['need_unit_price_code'][$language] ?? 'Need unit price and total price') ?>
+    };
     var expandedWeights = {}; // groupId -> last fetched weighing detail (weights, total_final_weight)
     var updatePriceModes = {}; // groupId -> true while that row's table is in Update Price edit mode
 
@@ -634,9 +640,26 @@ $canIncludePrice = hasModulePermission('Accounting', 'Goods Received', ['include
                 { data: 'plant_name' },
                 { data: 'raw_mat_name' },
                 { data: 'transaction_date' },
-                { data: 'total_final_weight' }
+                { data: 'total_final_weight' },
+                {
+                    data: 'issues',
+                    orderable: false,
+                    render: function (data, type, row) {
+                        return renderIssues(data);
+                    }
+                }
             ]
         });
+    }
+
+    // One badge per issue of the group, a tick when there is none
+    function renderIssues(issues) {
+        if (!issues || issues.length === 0) {
+            return '<i class="ri-checkbox-circle-fill text-success fs-5"></i>';
+        }
+        return issues.map(function (issue) {
+            return '<span class="badge bg-danger me-1">' + (issueLabels[issue] || issue) + '</span>';
+        }).join('');
     }
 
     function format(row, groupId, editMode) {

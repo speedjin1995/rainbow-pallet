@@ -4378,3 +4378,8 @@ INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALU
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('show_code', 'Show', '显示', 'Papar', 'காட்டு');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('reset_to_default_code', 'Reset to Default', '恢复默认', 'Tetap Semula ke Lalai', 'இயல்புநிலைக்கு மீட்டமை');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('created_by_code', 'Created By', '创建人', 'Dicipta Oleh', 'உருவாக்கியவர்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('issues_code', 'Issues', '问题', 'Isu', 'சிக்கல்கள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('customer_code_not_match_code', 'Customer code not match', '客户代码不匹配', 'Kod pelanggan tidak sepadan', 'வாடிக்கையாளர் குறியீடு பொருந்தவில்லை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('supplier_code_not_match_code', 'Supplier code not match', '供应商代码不匹配', 'Kod pembekal tidak sepadan', 'சப்ளையர் குறியீடு பொருந்தவில்லை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('item_code_not_match_code', 'Item code not match', '物品代码不匹配', 'Kod item tidak sepadan', 'பொருள் குறியீடு பொருந்தவில்லை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('need_unit_price_code', 'Need unit price and total price', '需要单价和总价', 'Perlu harga seunit dan jumlah harga', 'அலகு விலை மற்றும் மொத்த விலை தேவை');
