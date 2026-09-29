@@ -63,6 +63,7 @@ if ($canEditWeight || $canPrintWeight) {
 }
 
 $canUpdatePrice = hasModulePermission('Accounting', 'Goods Received', ['update_price']);
+$canIncludePrice = hasModulePermission('Accounting', 'Goods Received', ['include_price']);
 ?>
 
 <head>
@@ -340,6 +341,7 @@ $canUpdatePrice = hasModulePermission('Accounting', 'Goods Received', ['update_p
     var canPrintWeight = <?= $canPrintWeight ? 'true' : 'false' ?>;
     var allSupplierSearchOptions = null;
     var canUpdatePrice = <?= $canUpdatePrice ? 'true' : 'false' ?>;
+    var canIncludePrice = <?= $canIncludePrice ? 'true' : 'false' ?>;
     var expandedWeights = {}; // groupId -> last fetched weighing detail (weights, total_final_weight)
     var updatePriceModes = {}; // groupId -> true while that row's table is in Update Price edit mode
 
@@ -691,7 +693,7 @@ $canUpdatePrice = hasModulePermission('Accounting', 'Goods Received', ['update_p
                         <th><?=$languageArray['tare_outgoing_code'][$language]?></th>
                         <th><?=$languageArray['outgoing_date_code'][$language]?></th>
                         <th><?=$languageArray['nett_weight_code'][$language]?></th>`;
-                        if (editMode) {
+                        if (editMode || canIncludePrice) {
                             returnString += `
                         <th><?=$languageArray['unit_price_code'][$language]?></th>
                         <th><?=$languageArray['total_price_code'][$language]?></th>`;
@@ -740,6 +742,13 @@ $canUpdatePrice = hasModulePermission('Accounting', 'Goods Received', ['update_p
                                         <td id="priceTotal${weights[i].id}" class="text-end">${startTotal}</td>
                                     `;
                                 }
+                            } else if (canIncludePrice) {
+                                var unitPrice = parseFloat(weights[i].unit_price);
+                                var hasUnitPrice = !isNaN(unitPrice) && unitPrice > 0;
+                                returnString += `
+                                    <td class="text-end">${hasUnitPrice ? displayNumber(unitPrice, 2) : '-'}</td>
+                                    <td class="text-end">${hasUnitPrice ? displayNumber(unitPrice * (parseFloat(weights[i].nett_weight1) / 1000), 2) : '-'}</td>
+                                `;
                             }
                             if (canEditWeight || canPrintWeight) {
                                 // stopPropagation: don't let the clicks reach the parent row's expand handler
