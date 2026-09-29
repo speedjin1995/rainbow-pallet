@@ -6,6 +6,7 @@ require_once __DIR__ . '/../services/CustomerService.php';
 require_once __DIR__ . '/../services/SupplierService.php';
 require_once __DIR__ . '/../services/DestinationService.php';
 require_once __DIR__ . '/../services/ProjectService.php';
+require_once __DIR__ . '/../services/TableColumnService.php';
 require_once __DIR__ . '/../requires/lookup.php';
 
 class WeightService extends BaseService {
@@ -230,8 +231,9 @@ class WeightService extends BaseService {
         $draw        = $post['draw'];
         $start       = $post['start'];
         $length      = $post['length'];
-        $columnName  = $post['columns'][$post['order'][0]['column']]['data'] ?? 'transaction_date';
-        $sortOrder   = $post['order'][0]['dir'] ?? 'asc';
+        // Columns are set up per company, so only sort by columns in the setup catalog
+        $columnName  = TableColumnService::sortColumn('weight', $post['columns'][$post['order'][0]['column']]['data'] ?? '');
+        $sortOrder   = strtolower($post['order'][0]['dir'] ?? '') === 'desc' ? 'desc' : 'asc';
         $search      = mysqli_real_escape_string($this->db, $post['search']['value']);
 
         $q = '';
@@ -359,8 +361,8 @@ class WeightService extends BaseService {
         $draw       = $post['draw'];
         $start      = $post['start'];
         $length     = $post['length'];
-        $columnName = $post['columns'][$post['order'][0]['column']]['data'] ?? 'transaction_date';
-        $sortOrder  = $post['order'][0]['dir'] ?? 'asc';
+        $columnName = TableColumnService::sortColumn('empty_container', $post['columns'][$post['order'][0]['column']]['data'] ?? '');
+        $sortOrder  = strtolower($post['order'][0]['dir'] ?? '') === 'desc' ? 'desc' : 'asc';
         $search     = mysqli_real_escape_string($this->db, $post['search']['value']);
 
         $q = " AND is_complete='Y' AND is_cancel='N'";

@@ -21,6 +21,8 @@ switch ($action) {
     case 'switch':  $controller->switchCompany(); break;
     case 'getDocumentNumbers':  $controller->getDocumentNumbers(); break;
     case 'saveDocumentNumbers': $controller->saveDocumentNumbers(); break;
+    case 'getTableColumns':     $controller->getTableColumns(); break;
+    case 'saveTableColumns':    $controller->saveTableColumns(); break;
     default:
         echo json_encode(['status' => 'failed', 'message' => 'Invalid action']);
 }
