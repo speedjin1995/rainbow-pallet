@@ -22,7 +22,7 @@ class TableColumnService extends BaseService {
         'weight_type'        => ['weight_type_code', ''],
         'transaction_status' => ['weight_status_code', ''],
         'customer'           => ['customer_supplier_code', ''],
-        'product_name'       => ['product_name_code', ''],
+        'product_name'       => ['items_code', ''],
         'plant_name'         => ['plant_name_code', ''],
         'container_no'       => ['container_no_code', ''],
         'seal_no'            => ['seal_no_code', ''],
