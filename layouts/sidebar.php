@@ -45,15 +45,27 @@
                 <!--li class="nav-item">
                     <a href="dashboard.php" class="nav-link"><i class="mdi mdi-billboard"></i><?=$lang['t-billboard']?></a>
                 </li-->
-                <?php if($hasWeighingView): ?>
+                <?php if($hasWeighingView || $hasSawnTimberView): ?>
                 <li class="nav-item">
-                    <a href="index.php" class="nav-link"><i class="mdi mdi-weight"></i><span><?=$languageArray['daily_weighing_code'][$language]?></span></a>
-                </li>
-                <?php endif; ?>
+                    <a class="nav-link menu-link" href="#sidebarWeighing" data-bs-toggle="collapse" role="button"
+                        aria-expanded="false" aria-controls="sidebarWeighing">
+                        <i class="mdi mdi-weight"></i> <span><?=$languageArray['weighing_code'][$language]?></span>
+                    </a>
+                    <div class="collapse menu-dropdown" id="sidebarWeighing">
+                        <ul class="nav nav-sm flex-column">
+                            <?php if($hasWeighingView): ?>
+                            <li class="nav-item">
+                                <a href="index.php" class="nav-link"><?=$languageArray['daily_weighing_code'][$language]?></a>
+                            </li>
+                            <?php endif; ?>
 
-                <?php if($hasSawnTimberView): ?>
-                <li class="nav-item">
-                    <a href="sawnTimber.php" class="nav-link"><i class="mdi mdi-warehouse"></i><span><?=isset($languageArray['sawn_timber_code'][$language]) ? $languageArray['sawn_timber_code'][$language] : 'Sawn Timber'?></span></a>
+                            <?php if($hasSawnTimberView): ?>
+                            <li class="nav-item">
+                                <a href="sawnTimber.php" class="nav-link"><?=isset($languageArray['sawn_timber_code'][$language]) ? $languageArray['sawn_timber_code'][$language] : 'Sawn Timber'?></a>
+                            </li>
+                            <?php endif; ?>
+                        </ul>
+                    </div>
                 </li>
                 <?php endif; ?>
                 <!--li class="nav-item">
