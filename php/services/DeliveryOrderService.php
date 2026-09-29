@@ -298,6 +298,9 @@ class DeliveryOrderService extends BaseService {
      */
     private function buildScope($requestedCompany) {
         $sql    = " AND is_complete = 'Y' AND is_cancel <> 'Y' AND status = '0' AND transaction_status = 'Sales'";
+        // DO (Sales) leaves out sawn timber products - those belong to the DO (Sawn Timber) tab
+        $sql   .= " AND NOT EXISTS (SELECT 1 FROM Product p JOIN Product_Categories pc ON p.category = pc.id"
+                . " WHERE p.product_code = Weight.product_code AND p.company = Weight.company_id AND pc.is_sawn_timber = 'Y')";
         $types  = '';
         $values = [];
 

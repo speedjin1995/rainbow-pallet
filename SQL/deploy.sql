@@ -4383,3 +4383,8 @@ INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALU
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('supplier_code_not_match_code', 'Supplier code not match', '供应商代码不匹配', 'Kod pembekal tidak sepadan', 'சப்ளையர் குறியீடு பொருந்தவில்லை');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('item_code_not_match_code', 'Item code not match', '物品代码不匹配', 'Kod item tidak sepadan', 'பொருள் குறியீடு பொருந்தவில்லை');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('need_unit_price_code', 'Need unit price and total price', '需要单价和总价', 'Perlu harga seunit dan jumlah harga', 'அலகு விலை மற்றும் மொத்த விலை தேவை');
+
+-- 29/09/2026 --
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('do_sales_code', 'DO (Sales)', '送货单（销售）', 'DO (Jualan)', 'DO (விற்பனை)');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('do_sawn_timber_code', 'DO (Sawn Timber)', '送货单（锯材）', 'DO (Kayu Gergaji)', 'DO (அறுக்கப்பட்ட மரம்)');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('coming_soon_code', 'Coming soon', '即将推出', 'Akan datang', 'விரைவில் வருகிறது');

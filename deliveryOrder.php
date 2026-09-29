@@ -63,6 +63,18 @@ $canIncludePrice = hasModulePermission('Accounting', 'Delivery Order', ['include
 if ($canEditWeight || $canPrintWeight) {
     require_once "components/weighingModal/data.php";
 }
+
+// DO (Sawn Timber) tab - same rule as the Sawn Timber menu: all-company users, or a company with sawn timber enabled
+$companyHasSawnTimber = 'N';
+$stmtSawn = $db->prepare("SELECT has_sawn_timber FROM Company WHERE id = ?");
+if ($stmtSawn) {
+    $stmtSawn->bind_param('i', $companyId);
+    if ($stmtSawn->execute() && ($rowSawn = $stmtSawn->get_result()->fetch_assoc())) {
+        $companyHasSawnTimber = $rowSawn['has_sawn_timber'] ?? 'N';
+    }
+    $stmtSawn->close();
+}
+$showSawnTimberTab = hasModulePermission('Accounting', 'Delivery Order', ['view_all_companies']) || $companyHasSawnTimber === 'Y';
 ?>
 
 <head>
@@ -95,6 +107,10 @@ if ($canEditWeight || $canPrintWeight) {
         .modal-header {
             padding: var(1rem, 1rem) !important;
         }
+
+        #doPageTabs .nav-link { color: #6c757d; border: 1px solid transparent; padding: 8px 20px; font-weight: 500; }
+        #doPageTabs .nav-link.active { background-color: #405189; color: #fff !important; border-color: #405189; border-radius: 4px 4px 0 0; }
+        #doPageTabs .nav-link:not(.active):hover { color: #405189; border-color: #dee2e6 #dee2e6 transparent; }
     </style>
 </head>
 
@@ -120,7 +136,20 @@ if ($canEditWeight || $canPrintWeight) {
                 <div class="row">
                     <div class="col">
                         <div class="h-100">
+                            <!-- Page Tabs -->
+                            <ul class="nav nav-tabs mb-3" id="doPageTabs">
+                                <li class="nav-item">
+                                    <a class="nav-link active" href="#" id="btnSalesTab"><?=$languageArray['do_sales_code'][$language] ?? 'DO (Sales)'?></a>
+                                </li>
+                                <?php if ($showSawnTimberTab): ?>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="#" id="btnSawnTimberTab"><?=$languageArray['do_sawn_timber_code'][$language] ?? 'DO (Sawn Timber)'?></a>
+                                </li>
+                                <?php endif; ?>
+                            </ul>
 
+                            <!-- DO (Sales) Content -->
+                            <div id="salesContent">
                             <div class="col-xxl-12 col-lg-12">
                                 <div class="card">
                                     <div class="card-header fs-5 text-white" href="#collapseSearch" data-bs-toggle="collapse" role="button" aria-expanded="true" aria-controls="collapseSearch" style="background-color: #405189;">
@@ -261,6 +290,22 @@ if ($canEditWeight || $canPrintWeight) {
                                     </div> <!-- end .h-100-->
                                 </div> <!-- end col -->
                             </div><!-- container-fluid -->
+                            </div><!-- end #salesContent -->
+
+                            <?php if ($showSawnTimberTab): ?>
+                            <!-- DO (Sawn Timber) Content - placeholder until the sawn timber DO listing is built -->
+                            <div id="sawnTimberContent" style="display:none">
+                                <div class="card">
+                                    <div class="card-header" style="background-color: #405189;">
+                                        <h5 class="card-title mb-0 text-white"><?=$languageArray['do_sawn_timber_code'][$language] ?? 'DO (Sawn Timber)'?></h5>
+                                    </div>
+                                    <div class="card-body text-center text-muted py-5">
+                                        <?=$languageArray['coming_soon_code'][$language] ?? 'Coming soon'?>
+                                    </div>
+                                </div>
+                            </div><!-- end #sawnTimberContent -->
+                            <?php endif; ?>
+
                             <div class="modal fade" id="viewModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalScrollableDO" aria-hidden="true">
                                 <div class="modal-dialog modal-dialog-scrollable custom-xxl">
                                     <div class="modal-content">
@@ -451,6 +496,23 @@ if ($canEditWeight || $canPrintWeight) {
                     }
                 });
             }
+        });
+        
+        // Tab switching
+        $('#btnSalesTab').on('click', function(e) {
+            e.preventDefault();
+            $(this).addClass('active');
+            $('#btnSawnTimberTab').removeClass('active');
+            $('#salesContent').show();
+            $('#sawnTimberContent').hide();
+        });
+
+        $('#btnSawnTimberTab').on('click', function(e) {
+            e.preventDefault();
+            $(this).addClass('active');
+            $('#btnSalesTab').removeClass('active');
+            $('#sawnTimberContent').show();
+            $('#salesContent').hide();
         });
 
         // Post to SQL Handling
