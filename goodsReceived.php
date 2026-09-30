@@ -652,14 +652,14 @@ $canIncludePrice = hasModulePermission('Accounting', 'Goods Received', ['include
         });
     }
 
-    // One badge per issue of the group, a tick when there is none
+    // One badge per issue of the group, listed one per line; a tick when there is none
     function renderIssues(issues) {
         if (!issues || issues.length === 0) {
             return '<i class="ri-checkbox-circle-fill text-success fs-5"></i>';
         }
-        return issues.map(function (issue) {
-            return '<span class="badge bg-danger me-1">' + (issueLabels[issue] || issue) + '</span>';
-        }).join('');
+        return '<div class="d-flex flex-column align-items-start gap-1">' + issues.map(function (issue) {
+            return '<span class="badge bg-danger">' + (issueLabels[issue] || issue) + '</span>';
+        }).join('') + '</div>';
     }
 
     function format(row, groupId, editMode) {
