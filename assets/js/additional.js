@@ -87,3 +87,40 @@ if (window.jQuery) {
         }
     });
 }
+
+// DataTables: refit every visible table when the content area changes width.
+// Collapsing / expanding the sidebar (also done by the theme on window resize / zoom) resizes the
+// content without a window resize that DataTables Responsive sees, so its columns were left
+// sized for the old width and the table overflowed the card.
+if (window.jQuery && window.ResizeObserver) {
+    jQuery(function ($) {
+        var mainContent = document.querySelector('.main-content');
+        if (!mainContent) {
+            return;
+        }
+
+        var lastWidth = mainContent.clientWidth;
+        var adjustTimer = null;
+
+        new ResizeObserver(function () {
+            var width = mainContent.clientWidth;
+            if (width === lastWidth) {
+                return;
+            }
+            lastWidth = width;
+
+            // wait for the sidebar transition to finish before measuring
+            clearTimeout(adjustTimer);
+            adjustTimer = setTimeout(function () {
+                if (!$.fn.dataTable) {
+                    return;
+                }
+                var tables = $.fn.dataTable.tables({ visible: true, api: true });
+                tables.columns.adjust();
+                if (tables.responsive) {
+                    tables.responsive.recalc();
+                }
+            }, 150);
+        }).observe(mainContent);
+    });
+}
