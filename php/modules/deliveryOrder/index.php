@@ -22,6 +22,12 @@ switch ($action) {
     case 'updatePrices':
         $controller->handleUpdatePrices();
         break;
+    case 'filterSawnTimber':
+        $controller->handleFilterSawnTimber();
+        break;
+    case 'getSawnTimberDetails':
+        $controller->handleGetSawnTimberDetails();
+        break;
     default:
         echo json_encode(['status' => 'failed', 'message' => 'Invalid action']);
 }

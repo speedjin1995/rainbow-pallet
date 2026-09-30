@@ -5,7 +5,9 @@
 // Only include it for users who may create/edit sawn timber - the save endpoint is the Sawn Timber module.
 //
 // Public functions:
-//   initSawnTimberModal({ onSaved: function(obj){} })  - page decides what happens after a save
+//   initSawnTimberModal({ onSaved: function(obj){}, lockTransaction: false })
+//       onSaved         - page decides what happens after a save
+//       lockTransaction - true: an existing record's company, plant and transaction ID can't be changed when editing
 //   openSawnTimberNew()                                - open the modal for a new sawn timber record
 //   editSawnTimber(id)                                 - load an existing sawn timber record and open the modal
 ?>
@@ -18,7 +20,7 @@
 
     var SAWN_TIMBER_URL = 'php/modules/sawnTimber/index.php';
     var DETAIL_FIELDS = ['species', 'lot', 'bundle', 'thick', 'width', 'length', 'pieces', 'tons', 'kdCharges', 'bundlingCharges', 'graderFees'];
-    var settings = { onSaved: null };
+    var settings = { onSaved: null, lockTransaction: false };
     var detailRowCount = 0;
 
     $(function () {
@@ -129,6 +131,7 @@
         inModal('#stCompanyId, #stPlantId').trigger('change.select2');
         inModal('#stWeightId').val('').trigger('change');
         inModal('#stId').val('');
+        setTransactionLocked(false);
         clearDetails();
         loadSawnTimberWeighing();
 
@@ -181,6 +184,7 @@
             }
             inModal('#stWeightId').val(record.weight_id);
         }
+        setTransactionLocked(settings.lockTransaction);
 
         if (record.details && record.details.length > 0) {
             for (var i = 0; i < record.details.length; i++) {
@@ -198,7 +202,13 @@
         }
 
         inModal('#stDetailTable tbody tr').each(function() { calculateTons($(this)); });
-        $.post(SAWN_TIMBER_URL + '?action=save', inModal('#sawnTimberForm').serialize(), function(data) {
+
+        // Locked (disabled) dropdowns are skipped by serialize() - enable them just long enough to post their values
+        var $locked = inModal('#sawnTimberForm select:disabled').prop('disabled', false);
+        var formData = inModal('#sawnTimberForm').serialize();
+        $locked.prop('disabled', true);
+
+        $.post(SAWN_TIMBER_URL + '?action=save', formData, function(data) {
             var obj = JSON.parse(data);
             if (obj.status === 'success') {
                 $('#sawnTimberModal').modal('hide');
@@ -211,6 +221,11 @@
                 toastr.error(obj.message);
             }
         });
+    }
+
+    // Lock / unlock the dropdowns that decide which weighing the record is tied to
+    function setTransactionLocked(locked) {
+        inModal('#stCompanyId, #stPlantId, #stWeightId').prop('disabled', !!locked);
     }
 
     function loadSawnTimberWeighing() {

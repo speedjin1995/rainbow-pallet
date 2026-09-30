@@ -75,6 +75,41 @@ if ($stmtSawn) {
     $stmtSawn->close();
 }
 $showSawnTimberTab = hasModulePermission('Accounting', 'Delivery Order', ['view_all_companies']) || $companyHasSawnTimber === 'Y';
+
+// DO (Sawn Timber) search lists - plants are filtered by id, customer / supplier by "type:code"
+if ($showSawnTimberTab) {
+    if (!hasModulePermission('Accounting', 'Delivery Order', ['view_all_companies'])) {
+        $stSelectedCompanyId = intval($companyId);
+        $stCompany = $db->query("SELECT * FROM Company WHERE status = 0 AND id IN ($stSelectedCompanyId) ORDER BY name");
+        $stCustomer = $db->query("SELECT * FROM Customer WHERE status = '0' AND company = $stSelectedCompanyId ORDER BY name ASC");
+        $stSupplier = $db->query("SELECT * FROM Supplier WHERE status = '0' AND company = $stSelectedCompanyId ORDER BY name ASC");
+    } else {
+        $stCompany = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
+        $stCustomer = $db->query("SELECT * FROM Customer WHERE status = '0' ORDER BY name ASC");
+        $stSupplier = $db->query("SELECT * FROM Supplier WHERE status = '0' ORDER BY name ASC");
+    }
+
+    if (!hasModulePermission('Accounting', 'Delivery Order', ['view_all_plants'])) {
+        $stPlant = !empty($selectedPlantId) ? searchPlantById($selectedPlantId, $db) : searchPlantsByIds($plantId ?? [], $db);
+    } else {
+        $stPlant = $db->query("SELECT * FROM Plant WHERE status = '0'");
+    }
+}
+
+// Sawn timber modal component - Edit action on the DO (Sawn Timber) tab, needs Sawn Timber edit
+$canEditSawnTimber = $showSawnTimberTab && hasModulePermission('Sawn Timber', 'Sawn Timber', ['edit']);
+if ($canEditSawnTimber) {
+    require_once "components/sawnTimberModal/data.php";
+}
+
+// The tab lists every transaction type, so its Edit Weighing action needs edit on any Weighing module
+// (the row button and the save endpoint check the weighing's own transaction type)
+$canEditSawnTimberWeight = $showSawnTimberTab && hasPermission('Weighing', ['edit']);
+$showWeighingModal = $canEditWeight || $canPrintWeight || $canEditSawnTimberWeight;
+$showSawnTimberActions = $canEditSawnTimber || $canEditSawnTimberWeight;
+if ($showWeighingModal) {
+    require_once "components/weighingModal/data.php";
+}
 ?>
 
 <head>
@@ -293,16 +328,127 @@ $showSawnTimberTab = hasModulePermission('Accounting', 'Delivery Order', ['view_
                             </div><!-- end #salesContent -->
 
                             <?php if ($showSawnTimberTab): ?>
-                            <!-- DO (Sawn Timber) Content - placeholder until the sawn timber DO listing is built -->
+                            <!-- DO (Sawn Timber) Content -->
                             <div id="sawnTimberContent" style="display:none">
-                                <div class="card">
-                                    <div class="card-header" style="background-color: #405189;">
-                                        <h5 class="card-title mb-0 text-white"><?=$languageArray['do_sawn_timber_code'][$language] ?? 'DO (Sawn Timber)'?></h5>
-                                    </div>
-                                    <div class="card-body text-center text-muted py-5">
-                                        <?=$languageArray['coming_soon_code'][$language] ?? 'Coming soon'?>
+                                <div class="col-xxl-12 col-lg-12">
+                                    <div class="card">
+                                        <div class="card-header fs-5 text-white" href="#collapseSawnTimberSearch" data-bs-toggle="collapse" role="button" aria-expanded="true" aria-controls="collapseSawnTimberSearch" style="background-color: #405189;">
+                                            <i class="mdi mdi-chevron-down pull-right"></i>
+                                            <?=$languageArray['search_records_code'][$language]?>
+                                        </div>
+                                        <div id="collapseSawnTimberSearch" class="collapse" aria-labelledby="collapseSawnTimberSearch">
+                                            <div class="card-body">
+                                                <form action="javascript:void(0);">
+                                                    <div class="row">
+                                                        <div class="col-3">
+                                                            <div class="mb-3">
+                                                                <label for="stFromDateSearch" class="form-label"><?=$languageArray['from_date_code'][$language]?></label>
+                                                                <input type="date" class="form-control" data-provider="flatpickr" id="stFromDateSearch">
+                                                            </div>
+                                                        </div><!--end col-->
+                                                        <div class="col-3">
+                                                            <div class="mb-3">
+                                                                <label for="stToDateSearch" class="form-label"><?=$languageArray['to_date_code'][$language]?></label>
+                                                                <input type="date" class="form-control" data-provider="flatpickr" id="stToDateSearch">
+                                                            </div>
+                                                        </div><!--end col-->
+                                                        <div class="col-3">
+                                                            <div class="mb-3">
+                                                                <label for="stTransactionIdSearch" class="form-label"><?=$languageArray['transaction_id_code'][$language]?></label>
+                                                                <input id="stTransactionIdSearch" name="stTransactionIdSearch" class="form-control">
+                                                            </div>
+                                                        </div><!--end col-->
+                                                        <div class="col-3" <?= !hasModulePermission('Accounting', 'Delivery Order', ['view_all_companies']) ? "style='display:none'" : '' ?>>
+                                                            <div class="mb-3">
+                                                                <label for="stCompanySearch" class="form-label"><?=$languageArray['company_code'][$language]?></label>
+                                                                <select class="form-select select2" id="stCompanySearch" name="stCompanySearch" style="width: 100%">
+                                                                    <?php while($rowStCompany=mysqli_fetch_assoc($stCompany)){ ?>
+                                                                        <option value="<?=$rowStCompany['id'] ?>" <?=($rowStCompany['id'] == $companyId) ? 'selected' : ''?>><?=$rowStCompany['name'] ?></option>
+                                                                    <?php } ?>
+                                                                </select>
+                                                            </div>
+                                                        </div><!--end col-->
+                                                        <div class="col-3">
+                                                            <div class="mb-3">
+                                                                <label for="stPlantSearch" class="form-label"><?=$languageArray['plant_code'][$language]?></label>
+                                                                <select id="stPlantSearch" class="form-select select2" style="width: 100%">
+                                                                    <option selected>-</option>
+                                                                    <?php while($rowStPlant=mysqli_fetch_assoc($stPlant)){ ?>
+                                                                        <option value="<?=$rowStPlant['id'] ?>" <?= ($rowStPlant['id'] == $selectedPlantId) ? 'selected' : '' ?>><?=$rowStPlant['name'] ?></option>
+                                                                    <?php } ?>
+                                                                </select>
+                                                            </div>
+                                                        </div><!--end col-->
+                                                        <div class="col-3">
+                                                            <div class="mb-3">
+                                                                <label for="stCustomerSupplierSearch" class="form-label"><?=$languageArray['customer_supplier_code'][$language]?></label>
+                                                                <select id="stCustomerSupplierSearch" class="form-select select2" style="width: 100%">
+                                                                    <option value="">-</option>
+                                                                    <optgroup label="<?=$languageArray['customer_code'][$language]?>">
+                                                                        <?php while($rowStCustomer = mysqli_fetch_assoc($stCustomer)){ ?>
+                                                                            <option value="customer:<?=$rowStCustomer['customer_code'] ?>"><?=$rowStCustomer['name'] ?></option>
+                                                                        <?php } ?>
+                                                                    </optgroup>
+                                                                    <optgroup label="<?=$languageArray['supplier_code'][$language]?>">
+                                                                        <?php while($rowStSupplier = mysqli_fetch_assoc($stSupplier)){ ?>
+                                                                            <option value="supplier:<?=$rowStSupplier['supplier_code'] ?>"><?=$rowStSupplier['name'] ?></option>
+                                                                        <?php } ?>
+                                                                    </optgroup>
+                                                                </select>
+                                                            </div>
+                                                        </div><!--end col-->
+                                                        <div class="col-lg-12">
+                                                            <div class="text-end">
+                                                                <button type="submit" class="btn btn-success" id="stFilterSearch"><i class="bx bx-search-alt"></i> <?=$languageArray['search_code'][$language]?></button>
+                                                            </div>
+                                                        </div><!--end col-->
+                                                    </div><!--end row-->
+                                                </form>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
+
+                                <div class="row">
+                                    <div class="col-lg-12">
+                                        <div class="card">
+                                            <div class="card-header" style="background-color: #405189;">
+                                                <div class="d-flex justify-content-between">
+                                                    <div>
+                                                        <h5 class="card-title mb-0 text-white"><?=$languageArray['do_sawn_timber_code'][$language] ?? 'DO (Sawn Timber)'?></h5>
+                                                    </div>
+                                                    <div class="flex-shrink-0">
+                                                        <?php if(hasModulePermission('Accounting', 'Delivery Order', ['post_to_sql'])): ?>
+                                                        <button type="button" id="stPostSQL" class="btn btn-warning waves-effect waves-light">
+                                                            <i class="ri-send-plane-line align-middle me-1"></i>
+                                                            <?=$languageArray['post_to_sql_code'][$language]?>
+                                                        </button>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="card-body">
+                                                <table id="sawnTimberTable" class="table table-bordered nowrap table-striped align-middle" style="width:100%">
+                                                    <thead>
+                                                        <tr>
+                                                            <th><input type="checkbox" id="stSelectAllCheckbox"></th>
+                                                            <th><?=$languageArray['record_date_code'][$language]?></th>
+                                                            <th><?=$languageArray['company_code'][$language]?></th>
+                                                            <th><?=$languageArray['plant_code'][$language]?></th>
+                                                            <th><?=$languageArray['transaction_id_code'][$language]?></th>
+                                                            <th><?=$languageArray['customer_code'][$language]?> / <?=$languageArray['supplier_code'][$language]?></th>
+                                                            <th><?=$languageArray['total_pcs_code'][$language]?></th>
+                                                            <th><?=$languageArray['total_tons_code'][$language]?></th>
+                                                            <?php if ($showSawnTimberActions): ?>
+                                                            <th><?=$languageArray['action_code'][$language]?></th>
+                                                            <?php endif; ?>
+                                                        </tr>
+                                                    </thead>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div><!--end row-->
                             </div><!-- end #sawnTimberContent -->
                             <?php endif; ?>
 
@@ -323,12 +469,16 @@ $showSawnTimberTab = hasModulePermission('Accounting', 'Delivery Order', ['view_
                                 </div><!-- /.modal-dialog -->
                             </div><!-- /.modal -->
 
-                            <?php if ($canEditWeight || $canPrintWeight): ?>
+                            <?php if ($showWeighingModal): ?>
                             <?php include 'components/weighingModal/modal.php'; ?>
                             <?php endif; ?>
 
                             <?php if ($canEditWeight): ?>
                             <?php include 'components/customerSideInfoModal/modal.php'; ?>
+                            <?php endif; ?>
+
+                            <?php if ($canEditSawnTimber): ?>
+                            <?php include 'components/sawnTimberModal/modal.php'; ?>
                             <?php endif; ?>
                         </div> <!-- end .h-100-->
                     </div> <!-- end col -->
@@ -387,6 +537,8 @@ $showSawnTimberTab = hasModulePermission('Accounting', 'Delivery Order', ['view_
     };
     var expandedWeights = {}; // groupId -> last fetched weighing detail (weights, totalDeliverAmt, purchase_order)
     var updatePriceModes = {}; // groupId -> true while that row's table is in Update Price edit mode
+    var canEditSawnTimber = <?= $canEditSawnTimber ? 'true' : 'false' ?>;
+    var sawnTimberTable = null; // DO (Sawn Timber) DataTable, created the first time the tab is opened
 
     $(function () {
         // Weighing modal: refresh the DO list after a weighing is saved
@@ -394,6 +546,9 @@ $showSawnTimberTab = hasModulePermission('Accounting', 'Delivery Order', ['view_
             initWeighingModal({
                 onSaved: function(obj, withPrint){
                     table.ajax.reload(null, false);
+                    if (sawnTimberTable) {
+                        sawnTimberTable.ajax.reload(null, false);
+                    }
                 }
             });
         }
@@ -403,6 +558,16 @@ $showSawnTimberTab = hasModulePermission('Accounting', 'Delivery Order', ['view_
             initCustomerSideInfoModal({
                 onSaved: function(obj){
                     table.ajax.reload(null, false);
+                }
+            });
+        }
+
+        // Sawn timber modal: refresh the DO (Sawn Timber) list after saving
+        if (window.initSawnTimberModal) {
+            initSawnTimberModal({
+                lockTransaction: true, // the tied weighing can't be changed from the DO screen
+                onSaved: function(obj){
+                    sawnTimberTable.ajax.reload(null, false);
                 }
             });
         }
@@ -513,6 +678,61 @@ $showSawnTimberTab = hasModulePermission('Accounting', 'Delivery Order', ['view_
             $('#btnSalesTab').removeClass('active');
             $('#sawnTimberContent').show();
             $('#salesContent').hide();
+
+            // Load the sawn timber list the first time the tab is opened
+            if (!sawnTimberTable) {
+                renderSawnTimberTable();
+            }
+        });
+
+        // ─── DO (Sawn Timber) tab ─────────────────────────────────────────────
+        $('#stFromDateSearch').flatpickr({
+            dateFormat: "d-m-Y",
+            defaultDate: yesterday
+        });
+
+        $('#stToDateSearch').flatpickr({
+            dateFormat: "d-m-Y",
+            defaultDate: today
+        });
+
+        $('#stFilterSearch').on('click', function () {
+            renderSawnTimberTable();
+        });
+
+        $('#stSelectAllCheckbox').on('change', function() {
+            $('#sawnTimberTable > tbody > tr > td.select-checkbox input[type="checkbox"]').prop('checked', $(this).prop('checked'));
+        });
+
+        // Expand a sawn timber record to show its detail lines
+        // (delegated from the table - its tbody only exists once the DataTable is created on first tab open)
+        $('#sawnTimberTable').on('click', 'tbody tr', function (e) {
+            var tr = $(this);
+            var row = sawnTimberTable.row(tr);
+
+            if ($(e.target).closest('td').hasClass('select-checkbox') || $(e.target).closest('td').hasClass('action-button') || !row.data()) {
+                return;
+            }
+
+            if (row.child.isShown()) {
+                row.child.hide();
+                tr.removeClass('shown');
+            } else {
+                $.post('php/modules/deliveryOrder/index.php', { action: 'getSawnTimberDetails', id: row.data().id, company: $('#stCompanySearch').val() || '' }, function (data) {
+                    var obj = JSON.parse(data);
+                    if (obj.status === 'success') {
+                        row.child(formatSawnTimber(obj.message)).show();
+                        tr.addClass('shown');
+                    } else {
+                        toastr["error"](obj.message, "Failed:");
+                    }
+                });
+            }
+        });
+
+        // Post to SQL for sawn timber - screen only for now, the posting logic comes later
+        $('#stPostSQL').on('click', function () {
+            toastr["info"](<?= json_encode($languageArray['coming_soon_code'][$language] ?? 'Coming soon') ?>, <?= json_encode($languageArray['post_to_sql_code'][$language]) ?>);
         });
 
         // Post to SQL Handling
@@ -745,6 +965,168 @@ $showSawnTimberTab = hasModulePermission('Accounting', 'Delivery Order', ['view_
                 }
             ]
         });
+    }
+
+    function renderSawnTimberTable() {
+        // Destroy the old Datatable if exists
+        if ($.fn.DataTable.isDataTable('#sawnTimberTable')) {
+            $('#sawnTimberTable').DataTable().clear().destroy();
+        }
+        $('#stSelectAllCheckbox').prop('checked', false);
+
+        sawnTimberTable = $('#sawnTimberTable').DataTable({
+            "responsive": true,
+            "autoWidth": false,
+            'processing': true,
+            'serverSide': true,
+            'searching': false,
+            'serverMethod': 'post',
+            'order': [[1, 'desc']],
+            'ajax': {
+                'url': 'php/modules/deliveryOrder/index.php',
+                'data': {
+                    action: 'filterSawnTimber',
+                    fromDate: $('#stFromDateSearch').val(),
+                    toDate: $('#stToDateSearch').val(),
+                    company: $('#stCompanySearch').val() || '',
+                    plant: $('#stPlantSearch').val() || '',
+                    transactionId: $('#stTransactionIdSearch').val() || '',
+                    customerSupplier: $('#stCustomerSupplierSearch').val() || ''
+                }
+            },
+            'columnDefs': [{ targets: '_all', defaultContent: '' }], // show "" instead of null
+            'columns': [
+                {
+                    data: 'id',
+                    className: 'select-checkbox',
+                    orderable: false,
+                    render: function (data, type, row) {
+                        return '<input type="checkbox" class="select-checkbox" value="' + data + '"/>';
+                    }
+                },
+                { data: 'record_date' },
+                { data: 'company' },
+                { data: 'plant' },
+                { data: 'transaction_id' },
+                { data: 'customer_supplier' },
+                { data: 'total_pieces' },
+                { data: 'total_tons' }<?php if ($showSawnTimberActions): ?>,
+                {
+                    data: 'id',
+                    className: 'action-button',
+                    orderable: false,
+                    responsivePriority: 1,
+                    render: function (data, type, row) {
+                        var buttons = '<div class="row g-1 d-flex">';
+
+                        // Edit the weighing tied to this sawn timber record
+                        if (row.weight_id && canEditWeighingType(row.transaction_status)) {
+                            buttons += '<div class="col-auto"><button title="<?=$languageArray['edit_code'][$language]?> - <?=$languageArray['weighing_code'][$language]?>" type="button" class="btn btn-warning btn-sm" onclick="event.stopPropagation(); editWeight(' + row.weight_id + ', \x27N\x27)"><i class="mdi mdi-weight"></i></button></div>';
+                        }
+
+                        // Edit the sawn timber record itself
+                        if (canEditSawnTimber) {
+                            buttons += '<div class="col-auto"><button title="<?=$languageArray['edit_code'][$language]?> - <?=$languageArray['sawn_timber_code'][$language]?>" type="button" class="btn btn-info btn-sm" onclick="event.stopPropagation(); editSawnTimber(' + data + ')"><i class="fas fa-pen"></i></button></div>';
+                        }
+
+                        return buttons + '</div>';
+                    }
+                }<?php endif; ?>
+            ]
+        });
+    }
+
+    // Edit permission for a weighing's own transaction type (Sales, Purchase, ...) - the save endpoint checks the same
+    function canEditWeighingType(transactionStatus) {
+        return isSADMIN || !!(permissions['Weighing'] && permissions['Weighing'][transactionStatus] && permissions['Weighing'][transactionStatus].includes('edit'));
+    }
+
+    // Detail lines of a sawn timber record - same layout as the DO (Sales) expandable table
+    function formatSawnTimber(row) {
+        var details = row.details || [];
+        var totalPieces = 0, totalTons = 0;
+        for (var i = 0; i < details.length; i++) {
+            totalPieces += parseFloat(details[i].pieces) || 0;
+            totalTons += parseFloat(details[i].tons) || 0;
+        }
+
+        var returnString = `
+        <!-- Sawn Timber Section -->
+        <div class="d-flex justify-content-between align-items-center">
+            <span style="font-size:120%; text-decoration: underline;"><strong><?=$languageArray['delivery_order_information_code'][$language]?></strong></span>
+        </div>
+        <div class="row mt-2">
+            <div class="col-4">
+                <p><strong class="text-uppercase"><?=$languageArray['do_no_code'][$language]?>:</strong> ${displayValue(row.delivery_no)}</p>
+            </div>
+            <div class="col-4">
+                <p><strong class="text-uppercase"><?=$languageArray['vehicle_no_code'][$language]?>:</strong> ${displayValue(row.lorry_plate_no1)}</p>
+            </div>
+            <div class="col-4">
+                <p><strong class="text-uppercase"><?=$languageArray['destination_code'][$language]?>:</strong> ${displayValue(row.destination)}</p>
+            </div>
+            <div class="col-4">
+                <p><strong class="text-uppercase"><?=$languageArray['total_pcs_code'][$language]?>:</strong> ${totalPieces}</p>
+            </div>
+            <div class="col-4">
+                <p><strong class="text-uppercase"><?=$languageArray['total_tons_code'][$language]?>:</strong> ${totalTons.toFixed(4)}</p>
+            </div>
+            <div class="col-4">
+                <p><strong class="text-uppercase"><?=$languageArray['remarks_code'][$language]?>:</strong> ${displayValue(row.remarks)}</p>
+            </div>
+        </div>
+        <hr>
+        <div class="row">
+            <table class="table table-bordered nowrap table-striped align-middle" style="width:100%">
+                <thead>
+                    <tr>
+                        <th><?=$languageArray['species_code'][$language]?></th>
+                        <th><?=$languageArray['lot_code'][$language]?></th>
+                        <th><?=$languageArray['bundle_code'][$language]?></th>
+                        <th><?=$languageArray['thick_code'][$language]?></th>
+                        <th><?=$languageArray['width_code'][$language]?></th>
+                        <th><?=$languageArray['length_code'][$language]?></th>
+                        <th><?=$languageArray['pieces_code'][$language]?></th>
+                        <th><?=$languageArray['tons_code'][$language]?></th>
+                        <th><?=$languageArray['kd_charges_code'][$language]?></th>
+                        <th><?=$languageArray['bundling_charges_code'][$language]?></th>
+                        <th><?=$languageArray['grader_fees_code'][$language]?></th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+        if (details.length > 0) {
+            for (var j = 0; j < details.length; j++) {
+                var d = details[j];
+                var kd = parseFloat(d.kd_charges) || 0;
+                var bundling = parseFloat(d.bundling_charges) || 0;
+                var grader = parseFloat(d.grader_fees) || 0;
+
+                returnString += `
+                    <tr>
+                        <td>${displayValue(d.species)}</td>
+                        <td>${displayValue(d.lot)}</td>
+                        <td>${displayValue(d.bundle)}</td>
+                        <td>${displayValue(d.thick)}</td>
+                        <td>${displayValue(d.width)}</td>
+                        <td>${displayValue(d.length)}</td>
+                        <td>${displayValue(d.pieces)}</td>
+                        <td>${(parseFloat(d.tons) || 0).toFixed(4)}</td>
+                        <td>${kd > 0 ? kd.toFixed(2) : '-'}</td>
+                        <td>${bundling > 0 ? bundling.toFixed(2) : '-'}</td>
+                        <td>${grader > 0 ? grader.toFixed(2) : '-'}</td>
+                    </tr>`;
+            }
+        } else {
+            returnString += `<tr><td colspan="11" class="text-center text-muted">No details found</td></tr>`;
+        }
+
+        returnString += `</tbody>
+            </table>
+        </div>
+        `;
+
+        return returnString;
     }
 
     // One badge per issue of the group, a tick when there is none
@@ -1175,7 +1557,7 @@ $showSawnTimberTab = hasModulePermission('Accounting', 'Delivery Order', ['view_
     }
     </script>
 
-    <?php if ($canEditWeight || $canPrintWeight): ?>
+    <?php if ($showWeighingModal): ?>
     <!-- Weighing modal component (after the page script so its Select2 / date picker setup runs last) -->
     <?php include 'components/weighingModal/script.php'; ?>
     <?php endif; ?>
@@ -1183,6 +1565,11 @@ $showSawnTimberTab = hasModulePermission('Accounting', 'Delivery Order', ['view_
     <?php if ($canEditWeight): ?>
     <!-- Customer side info modal component -->
     <?php include 'components/customerSideInfoModal/script.php'; ?>
+    <?php endif; ?>
+
+    <?php if ($canEditSawnTimber): ?>
+    <!-- Sawn timber modal component - Edit on the DO (Sawn Timber) tab -->
+    <?php include 'components/sawnTimberModal/script.php'; ?>
     <?php endif; ?>
 </body>
 </html>

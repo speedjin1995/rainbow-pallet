@@ -18,6 +18,18 @@ class DeliveryOrderService extends BaseService {
         'order_weight'     => 'order_weight',
     ];
 
+    // DO (Sawn Timber) tab: DataTables column => DB column
+    private $sawnTimberSortColumns = [
+        'id'                => 'h.id',
+        'record_date'       => 'h.record_date',
+        'company'           => 'h.company_id',
+        'plant'             => 'h.plant_id',
+        'transaction_id'    => 'w.transaction_id',
+        'customer_supplier' => 'customer_supplier',
+        'total_pieces'      => 'total_pieces',
+        'total_tons'        => 'total_tons',
+    ];
+
     public function filter($post) {
         $draw       = intval($post['draw'] ?? 0);
         $start      = intval($post['start'] ?? 0);
@@ -85,6 +97,84 @@ class DeliveryOrderService extends BaseService {
             'iTotalDisplayRecords' => $totalFiltered,
             'aaData'               => $data,
         ];
+    }
+
+    /**
+     * DO (Sawn Timber) tab listing - sawn timber records with their weighing,
+     * restricted to the user's Delivery Order company/plant scope
+     */
+    public function filterSawnTimber($post) {
+        $draw       = intval($post['draw'] ?? 0);
+        $start      = intval($post['start'] ?? 0);
+        $length     = intval($post['length'] ?? 10);
+        $columnName = $post['columns'][$post['order'][0]['column'] ?? 0]['data'] ?? 'id';
+        $sortColumn = $this->sawnTimberSortColumns[$columnName] ?? 'h.id';
+        $sortOrder  = strtolower($post['order'][0]['dir'] ?? 'asc') === 'desc' ? 'DESC' : 'ASC';
+
+        $scope   = $this->buildSawnTimberScope($post['company'] ?? null);
+        $filters = $this->buildSawnTimberFilters($post);
+        $from    = " FROM Sawn_Timber_Header h LEFT JOIN Weight w ON h.weight_id = w.id WHERE 1=1";
+
+        $totalRecords = $this->fetchAll("SELECT COUNT(*) AS c" . $from . $scope['sql'], $scope['types'], $scope['values'])[0]['c'] ?? 0;
+        $totalFiltered = $this->fetchAll(
+            "SELECT COUNT(*) AS c" . $from . $scope['sql'] . $filters['sql'],
+            $scope['types'] . $filters['types'],
+            array_merge($scope['values'], $filters['values'])
+        )[0]['c'] ?? 0;
+
+        $rows = $this->fetchAll(
+            "SELECT h.id, h.company_id, h.plant_id, h.weight_id, h.record_date, w.transaction_id, w.transaction_status,
+                COALESCE(w.customer_name, w.supplier_name, '') AS customer_supplier,
+                COALESCE((SELECT SUM(d.pieces) FROM Sawn_Timber_Detail d WHERE d.header_id = h.id), 0) AS total_pieces,
+                COALESCE((SELECT SUM(d.tons) FROM Sawn_Timber_Detail d WHERE d.header_id = h.id), 0) AS total_tons"
+            . $from . $scope['sql'] . $filters['sql'] . " ORDER BY {$sortColumn} {$sortOrder} LIMIT ?, ?",
+            $scope['types'] . $filters['types'] . 'ii',
+            array_merge($scope['values'], $filters['values'], [$start, $length])
+        );
+
+        $data = [];
+        foreach ($rows as $row) {
+            $company = searchCompanyById($row['company_id'], $this->db);
+            $data[] = [
+                'id'                => $row['id'],
+                'record_date'       => $row['record_date'] ? date('d-m-Y', strtotime($row['record_date'])) : '',
+                'transaction_id'    => $row['transaction_id'],
+                'company'           => $company ? $company['name'] : '',
+                'plant'             => searchPlantNameById($row['plant_id'], $this->db),
+                'customer_supplier' => $row['customer_supplier'],
+                'total_pieces'      => $row['total_pieces'],
+                'total_tons'        => number_format((float) $row['total_tons'], 4, '.', ''),
+                'weight_id'         => $row['weight_id'],
+                'transaction_status' => $row['transaction_status'],
+            ];
+        }
+
+        return [
+            'draw'                 => $draw,
+            'iTotalRecords'        => $totalRecords,
+            'iTotalDisplayRecords' => $totalFiltered,
+            'aaData'               => $data,
+        ];
+    }
+
+    /**
+     * A sawn timber record's header info and detail lines for the DO (Sawn Timber) expandable row
+     */
+    public function getSawnTimberDetails($id, $requestedCompany) {
+        $scope = $this->buildSawnTimberScope($requestedCompany);
+        $headers = $this->fetchAll(
+            "SELECT h.record_date, h.remarks, w.transaction_id, w.delivery_no, w.lorry_plate_no1, w.destination
+                FROM Sawn_Timber_Header h LEFT JOIN Weight w ON h.weight_id = w.id WHERE h.id = ?" . $scope['sql'],
+            'i' . $scope['types'],
+            array_merge([intval($id)], $scope['values'])
+        );
+        if (empty($headers)) {
+            throw new Exception('Record not found');
+        }
+
+        $header = $headers[0];
+        $header['details'] = $this->fetchAll("SELECT * FROM Sawn_Timber_Detail WHERE header_id = ? ORDER BY id ASC", 'i', [intval($id)]);
+        return $header;
     }
 
     /**
@@ -325,6 +415,78 @@ class DeliveryOrderService extends BaseService {
                 $types .= str_repeat('s', count($plants));
                 $values = array_merge($values, $plants);
             }
+        }
+
+        return ['sql' => $sql, 'types' => $types, 'values' => $values];
+    }
+
+    /**
+     * Active sawn timber records within the user's company/plant scope (same rules as buildScope)
+     */
+    private function buildSawnTimberScope($requestedCompany) {
+        $sql    = " AND h.status = '0'";
+        $types  = '';
+        $values = [];
+
+        // Determine company on the backend - never trust frontend value for restricted users
+        if (hasModulePermission('Accounting', self::MODULE, ['view_all_companies'])) {
+            $companyId = ($requestedCompany !== null && $requestedCompany !== '' && $requestedCompany !== '-') ? intval($requestedCompany) : null;
+        } else {
+            $companyId = intval($_SESSION['company_id'] ?? 0);
+        }
+        if ($companyId !== null) {
+            $sql     .= " AND h.company_id = ?";
+            $types   .= 'i';
+            $values[] = $companyId;
+        }
+
+        if (!hasModulePermission('Accounting', self::MODULE, ['view_all_plants'])) {
+            $plants = $this->getAllowedPlantCodes();
+            if (empty($plants)) {
+                $sql .= " AND 1=0";
+            } else {
+                $sql   .= " AND h.plant_id IN (SELECT id FROM Plant WHERE plant_code IN (" . implode(',', array_fill(0, count($plants), '?')) . "))";
+                $types .= str_repeat('s', count($plants));
+                $values = array_merge($values, $plants);
+            }
+        }
+
+        return ['sql' => $sql, 'types' => $types, 'values' => $values];
+    }
+
+    /**
+     * Optional search filters from the DO (Sawn Timber) tab
+     */
+    private function buildSawnTimberFilters($input) {
+        $sql    = '';
+        $types  = '';
+        $values = [];
+
+        $fromDate = DateTime::createFromFormat('d-m-Y', trim($input['fromDate'] ?? ''));
+        if ($fromDate) {
+            $sql .= " AND h.record_date >= ?"; $types .= 's'; $values[] = $fromDate->format('Y-m-d 00:00:00');
+        }
+        $toDate = DateTime::createFromFormat('d-m-Y', trim($input['toDate'] ?? ''));
+        if ($toDate) {
+            $sql .= " AND h.record_date <= ?"; $types .= 's'; $values[] = $toDate->format('Y-m-d 23:59:59');
+        }
+
+        $plantId = intval($input['plant'] ?? 0);
+        if ($plantId > 0) {
+            $sql .= " AND h.plant_id = ?"; $types .= 'i'; $values[] = $plantId;
+        }
+
+        $transactionId = trim($input['transactionId'] ?? '');
+        if ($transactionId !== '') {
+            $sql .= " AND w.transaction_id LIKE ?"; $types .= 's'; $values[] = "%{$transactionId}%";
+        }
+
+        // "customer:CODE" or "supplier:CODE"
+        list($partyType, $partyCode) = array_pad(explode(':', trim($input['customerSupplier'] ?? ''), 2), 2, '');
+        if ($partyCode !== '' && $partyType === 'customer') {
+            $sql .= " AND w.customer_code = ?"; $types .= 's'; $values[] = $partyCode;
+        } else if ($partyCode !== '' && $partyType === 'supplier') {
+            $sql .= " AND w.supplier_code = ?"; $types .= 's'; $values[] = $partyCode;
         }
 
         return ['sql' => $sql, 'types' => $types, 'values' => $values];

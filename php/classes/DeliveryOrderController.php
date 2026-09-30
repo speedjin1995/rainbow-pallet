@@ -78,6 +78,29 @@ class DeliveryOrderController extends BaseController {
         }
     }
 
+    public function handleFilterSawnTimber() {
+        $this->requirePermission('view');
+        try {
+            echo json_encode($this->service->filterSawnTimber($_POST));
+        } catch (mysqli_sql_exception $e) {
+            error_log('DeliveryOrder filterSawnTimber: ' . $e->getMessage());
+            $this->failed('Something went wrong');
+        }
+    }
+
+    public function handleGetSawnTimberDetails() {
+        $this->requirePermission('view');
+        $id = $this->getRequiredPost('id');
+        try {
+            $this->success($this->service->getSawnTimberDetails($id, $_POST['company'] ?? null));
+        } catch (mysqli_sql_exception $e) {
+            error_log('DeliveryOrder getSawnTimberDetails: ' . $e->getMessage());
+            $this->failed('Something went wrong');
+        } catch (Exception $e) {
+            $this->failed($e->getMessage());
+        }
+    }
+
     private function requirePermission($permission) {
         if (!hasModulePermission('Accounting', 'Delivery Order', [$permission])) {
             $this->failed('No permission');
