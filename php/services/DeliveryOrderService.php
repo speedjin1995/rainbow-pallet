@@ -238,6 +238,83 @@ class DeliveryOrderService extends BaseService {
     }
 
     /**
+     * DO (Sawn Timber) tab-separated Excel export - same columns as export(), one line per sawn timber detail
+     * (DESCRIPTION = its L x W x H, QTY = its pieces, UOM = PCS)
+     * isMulti = 'Y' exports the selected sawn timber records, otherwise every record matching the filters
+     */
+    public function exportSawnTimber($get) {
+        $includePrice = hasModulePermission('Accounting', self::MODULE, ['include_price']);
+
+        $fields = ['DocNo', 'DOCREF2', 'DOCDATE', 'DESCRIPTION2', 'CODE', 'COMPANYNAME', 'ITEMCODE', 'DESCRIPTION', 'REMARK2', 'SHIPPER', 'DOCREF1', 'DOCNOEX', 'REMARK1', 'QTY', 'UOM', 'PROJECT', 'LOCATION'];
+        if ($includePrice) {
+            array_push($fields, 'UNITPRICE', 'Amount');
+        }
+        $fields[] = 'Remarks';
+
+        $scope = $this->buildSawnTimberScope($get['company'] ?? null);
+        if (($get['isMulti'] ?? 'N') === 'Y') {
+            $ids = array_values(array_filter(array_map('intval', explode(',', (string) ($get['id'] ?? '')))));
+            if (empty($ids)) {
+                $filters = ['sql' => " AND 1=0", 'types' => '', 'values' => []];
+            } else {
+                $filters = ['sql' => " AND h.id IN (" . implode(',', array_fill(0, count($ids), '?')) . ")", 'types' => str_repeat('i', count($ids)), 'values' => $ids];
+            }
+        } else {
+            $filters = $this->buildSawnTimberFilters($get);
+        }
+
+        $rows = $this->fetchAll(
+            "SELECT h.record_date, h.remarks, w.transaction_id, w.transaction_date, w.lorry_plate_no1,
+                COALESCE(NULLIF(w.customer_code, ''), w.supplier_code) AS party_code,
+                COALESCE(NULLIF(w.customer_name, ''), w.supplier_name) AS party_name,
+                w.product_code, w.product_name, w.destination, w.transporter_code, w.delivery_no, w.unit_price,
+                COALESCE(w.plant_code, p.plant_code) AS plant_code,
+                d.thick, d.width, d.length, d.pieces
+                FROM Sawn_Timber_Header h
+                JOIN Sawn_Timber_Detail d ON d.header_id = h.id
+                LEFT JOIN Weight w ON h.weight_id = w.id
+                LEFT JOIN Plant p ON p.id = h.plant_id
+                WHERE 1=1" . $scope['sql'] . $filters['sql'] . " ORDER BY plant_code ASC, h.record_date ASC, h.id ASC, d.id ASC",
+            $scope['types'] . $filters['types'],
+            array_merge($scope['values'], $filters['values'])
+        );
+
+        $excelData = implode("\t", $fields) . "\n";
+        if (empty($rows)) {
+            $excelData .= 'No records found...' . "\n";
+        }
+
+        foreach ($rows as $row) {
+            $qty       = (float) $row['pieces'];
+            $unitPrice = $row['unit_price'] ?? 0;
+            $plantCode = $row['plant_code'];
+            $docDate   = $this->formatDate($row['transaction_date'] ?: $row['record_date']);
+            // Item size as L x W x H (H = thickness), without trailing zeros
+            $size      = ((float) $row['length']) . ' x ' . ((float) $row['width']) . ' x ' . ((float) $row['thick']);
+
+            $lineData = ['', $row['transaction_id'], $docDate, $row['lorry_plate_no1'], $row['party_code'], $row['party_name'], $row['product_code'], $size, $row['destination'], $row['transporter_code'], '', '', $row['delivery_no'], $qty, 'PCS', $plantCode, $plantCode];
+            if ($includePrice) {
+                array_push($lineData, $unitPrice, $qty * (float) $unitPrice);
+            }
+            $lineData[] = $row['remarks'];
+
+            foreach ($lineData as $key => $value) {
+                if ($key == 3) { // lorry_plate_no1 is at index 3
+                    $lineData[$key] = '="' . $value . '"';
+                } else {
+                    $lineData[$key] = $this->filterExcelValue($value);
+                }
+            }
+            $excelData .= implode("\t", $lineData) . "\n";
+        }
+
+        return [
+            'fileName' => 'DO-sawn-timber-data_' . date('Y-m-d') . '.xls',
+            'content'  => $excelData,
+        ];
+    }
+
+    /**
      * Post delivery orders to the SQL accounting API
      * MULTI   = selected groups (all weighings in each group within the date range)
      * MULTIDO = selected individual weighings

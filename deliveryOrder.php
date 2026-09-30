@@ -418,6 +418,12 @@ if ($showWeighingModal) {
                                                         <h5 class="card-title mb-0 text-white"><?=$languageArray['do_sawn_timber_code'][$language] ?? 'DO (Sawn Timber)'?></h5>
                                                     </div>
                                                     <div class="flex-shrink-0">
+                                                        <?php if(hasModulePermission('Accounting', 'Delivery Order', ['export'])): ?>
+                                                        <button type="button" id="stExportExcel" class="btn btn-success waves-effect waves-light">
+                                                            <i class="ri-file-excel-line align-middle me-1"></i>
+                                                            <?=$languageArray['export_excel_code'][$language]?>
+                                                        </button>
+                                                        <?php endif; ?>
                                                         <?php if(hasModulePermission('Accounting', 'Delivery Order', ['post_to_sql'])): ?>
                                                         <button type="button" id="stPostSQL" class="btn btn-warning waves-effect waves-light">
                                                             <i class="ri-send-plane-line align-middle me-1"></i>
@@ -727,6 +733,27 @@ if ($showWeighingModal) {
                         toastr["error"](obj.message, "Failed:");
                     }
                 });
+            }
+        });
+
+        // Export Excel - the ticked sawn timber records, or every record matching the filters when none is ticked
+        $('#stExportExcel').on('click', function () {
+            var params = "&fromDate=" + $('#stFromDateSearch').val() + "&toDate=" + $('#stToDateSearch').val() + "&company=" + ($('#stCompanySearch').val() || '') +
+                "&plant=" + ($('#stPlantSearch').val() || '') + "&transactionId=" + encodeURIComponent($('#stTransactionIdSearch').val() || '') +
+                "&customerSupplier=" + encodeURIComponent($('#stCustomerSupplierSearch').val() || '');
+            var selectedIds = [];
+
+            $("#sawnTimberTable > tbody > tr > td.select-checkbox input[type='checkbox']").each(function () {
+                if (this.checked) {
+                    selectedIds.push($(this).val());
+                }
+            });
+
+            if (selectedIds.length > 0) {
+                window.open("php/modules/deliveryOrder/index.php?action=exportSawnTimber&isMulti=Y" + params + "&id=" + selectedIds);
+            }
+            else {
+                window.open("php/modules/deliveryOrder/index.php?action=exportSawnTimber&isMulti=N" + params);
             }
         });
 

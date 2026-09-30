@@ -25,6 +25,9 @@ switch ($action) {
     case 'filterSawnTimber':
         $controller->handleFilterSawnTimber();
         break;
+    case 'exportSawnTimber':
+        $controller->handleExportSawnTimber();
+        break;
     case 'getSawnTimberDetails':
         $controller->handleGetSawnTimberDetails();
         break;

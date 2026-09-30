@@ -88,6 +88,22 @@ class DeliveryOrderController extends BaseController {
         }
     }
 
+    public function handleExportSawnTimber() {
+        $this->requirePermission('export');
+        try {
+            $export = $this->service->exportSawnTimber($_GET);
+        } catch (mysqli_sql_exception $e) {
+            error_log('DeliveryOrder exportSawnTimber: ' . $e->getMessage());
+            $this->failed('Something went wrong');
+        }
+
+        // Headers for download
+        header("Content-Type: application/vnd.ms-excel");
+        header("Content-Disposition: attachment; filename=\"{$export['fileName']}\"");
+        echo $export['content'];
+        exit;
+    }
+
     public function handleGetSawnTimberDetails() {
         $this->requirePermission('view');
         $id = $this->getRequiredPost('id');
