@@ -25,6 +25,7 @@ class DeliveryOrderService extends BaseService {
         'company'           => 'h.company_id',
         'plant'             => 'h.plant_id',
         'transaction_id'    => 'w.transaction_id',
+        'delivery_no'       => 'w.delivery_no',
         'customer_supplier' => 'customer_supplier',
         'total_pieces'      => 'total_pieces',
         'total_tons'        => 'total_tons',
@@ -123,7 +124,7 @@ class DeliveryOrderService extends BaseService {
         )[0]['c'] ?? 0;
 
         $rows = $this->fetchAll(
-            "SELECT h.id, h.company_id, h.plant_id, h.weight_id, h.record_date, w.transaction_id, w.transaction_status,
+            "SELECT h.id, h.company_id, h.plant_id, h.weight_id, h.record_date, w.transaction_id, w.delivery_no, w.transaction_status,
                 COALESCE(w.customer_name, w.supplier_name, '') AS customer_supplier,
                 COALESCE((SELECT SUM(d.pieces) FROM Sawn_Timber_Detail d WHERE d.header_id = h.id), 0) AS total_pieces,
                 COALESCE((SELECT SUM(d.tons) FROM Sawn_Timber_Detail d WHERE d.header_id = h.id), 0) AS total_tons"
@@ -139,6 +140,7 @@ class DeliveryOrderService extends BaseService {
                 'id'                => $row['id'],
                 'record_date'       => $row['record_date'] ? date('d-m-Y', strtotime($row['record_date'])) : '',
                 'transaction_id'    => $row['transaction_id'],
+                'delivery_no'       => $row['delivery_no'],
                 'company'           => $company ? $company['name'] : '',
                 'plant'             => searchPlantNameById($row['plant_id'], $this->db),
                 'customer_supplier' => $row['customer_supplier'],

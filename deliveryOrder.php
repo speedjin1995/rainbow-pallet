@@ -469,6 +469,7 @@ if ($canEditSawnTimber) {
                                                             <th><?=$languageArray['company_code'][$language]?></th>
                                                             <th><?=$languageArray['plant_code'][$language]?></th>
                                                             <th><?=$languageArray['transaction_id_code'][$language]?></th>
+                                                            <th><?=$languageArray['do_no_code'][$language]?></th>
                                                             <th><?=$languageArray['customer_code'][$language]?> / <?=$languageArray['supplier_code'][$language]?></th>
                                                             <th><?=$languageArray['total_pcs_code'][$language]?></th>
                                                             <th><?=$languageArray['total_tons_code'][$language]?></th>
@@ -1511,6 +1512,7 @@ if ($canEditSawnTimber) {
                 { data: 'company' },
                 { data: 'plant' },
                 { data: 'transaction_id' },
+                { data: 'delivery_no' },
                 { data: 'customer_supplier' },
                 { data: 'total_pieces' },
                 { data: 'total_tons' }<?php if ($showSawnTimberActions): ?>,
