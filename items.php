@@ -588,7 +588,8 @@
                 <input type="hidden" id="uomId" name="uomId">
             </td>
             <td>
-                <select class="form-control select2" style="width: 100%;" id="convUom" name="convUom">
+                <select class="form-control select2" style="width: 100%;" id="convUom" name="convUom" required>
+                    <option value="" selected></option>
                     <?php while($unitRow=mysqli_fetch_assoc($units2)){ ?>
                         <option value="<?=$unitRow['id'] ?>"><?=$unitRow['unit']?></option>
                     <?php } ?>
@@ -712,6 +713,19 @@
                         select2Container.next('.select2-error').remove(); // Remove error message
                     }
                 });
+
+                // Every UOM conversion row must have a unit selected
+                var uomRowsValid = true;
+                $('#uomTable').find('select[name^="convUom"]').each(function () {
+                    if ($(this).val() === "" || $(this).val() === null) {
+                        uomRowsValid = false;
+                    }
+                });
+
+                if (!uomRowsValid) {
+                    toastr["error"]("Please select a UOM for every UOM conversion row", "Failed:");
+                    return;
+                }
 
                 if($('#productForm').valid()){
                     $('#spinnerLoading').show();
@@ -1468,7 +1482,7 @@
                 var obj = JSON.parse(data);
                 var $uom = $('#uom');
                 $uom.empty().append('<option value="">Please Select</option>');
-                convUomOptions = '';
+                convUomOptions = '<option value=""></option>';
                 if (obj.status === 'success') {
                     $.each(obj.data, function(i, item) {
                         $uom.append('<option value="' + item.id + '">' + item.unit + '</option>');
