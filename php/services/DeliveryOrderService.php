@@ -18,6 +18,19 @@ class DeliveryOrderService extends BaseService {
         'order_weight'     => 'order_weight',
     ];
 
+    // DO (Sawn Timber) tab: DataTables column => DB column
+    private $sawnTimberSortColumns = [
+        'id'                => 'h.id',
+        'record_date'       => 'h.record_date',
+        'company'           => 'h.company_id',
+        'plant'             => 'h.plant_id',
+        'transaction_id'    => 'w.transaction_id',
+        'delivery_no'       => 'w.delivery_no',
+        'customer_supplier' => 'customer_supplier',
+        'total_pieces'      => 'total_pieces',
+        'total_tons'        => 'total_tons',
+    ];
+
     public function filter($post) {
         $draw       = intval($post['draw'] ?? 0);
         $start      = intval($post['start'] ?? 0);
@@ -88,6 +101,85 @@ class DeliveryOrderService extends BaseService {
     }
 
     /**
+     * DO (Sawn Timber) tab listing - sawn timber records with their weighing,
+     * restricted to the user's Delivery Order company/plant scope
+     */
+    public function filterSawnTimber($post) {
+        $draw       = intval($post['draw'] ?? 0);
+        $start      = intval($post['start'] ?? 0);
+        $length     = intval($post['length'] ?? 10);
+        $columnName = $post['columns'][$post['order'][0]['column'] ?? 0]['data'] ?? 'id';
+        $sortColumn = $this->sawnTimberSortColumns[$columnName] ?? 'h.id';
+        $sortOrder  = strtolower($post['order'][0]['dir'] ?? 'asc') === 'desc' ? 'DESC' : 'ASC';
+
+        $scope   = $this->buildSawnTimberScope($post['company'] ?? null);
+        $filters = $this->buildSawnTimberFilters($post);
+        $from    = " FROM Sawn_Timber_Header h LEFT JOIN Weight w ON h.weight_id = w.id WHERE 1=1";
+
+        $totalRecords = $this->fetchAll("SELECT COUNT(*) AS c" . $from . $scope['sql'], $scope['types'], $scope['values'])[0]['c'] ?? 0;
+        $totalFiltered = $this->fetchAll(
+            "SELECT COUNT(*) AS c" . $from . $scope['sql'] . $filters['sql'],
+            $scope['types'] . $filters['types'],
+            array_merge($scope['values'], $filters['values'])
+        )[0]['c'] ?? 0;
+
+        $rows = $this->fetchAll(
+            "SELECT h.id, h.company_id, h.plant_id, h.weight_id, h.record_date, w.transaction_id, w.delivery_no, w.transaction_status,
+                COALESCE(w.customer_name, w.supplier_name, '') AS customer_supplier,
+                COALESCE((SELECT SUM(d.pieces) FROM Sawn_Timber_Detail d WHERE d.header_id = h.id), 0) AS total_pieces,
+                COALESCE((SELECT SUM(d.tons) FROM Sawn_Timber_Detail d WHERE d.header_id = h.id), 0) AS total_tons"
+            . $from . $scope['sql'] . $filters['sql'] . " ORDER BY {$sortColumn} {$sortOrder} LIMIT ?, ?",
+            $scope['types'] . $filters['types'] . 'ii',
+            array_merge($scope['values'], $filters['values'], [$start, $length])
+        );
+
+        $data = [];
+        foreach ($rows as $row) {
+            $company = searchCompanyById($row['company_id'], $this->db);
+            $data[] = [
+                'id'                => $row['id'],
+                'record_date'       => $row['record_date'] ? date('d-m-Y', strtotime($row['record_date'])) : '',
+                'transaction_id'    => $row['transaction_id'],
+                'delivery_no'       => $row['delivery_no'],
+                'company'           => $company ? $company['name'] : '',
+                'plant'             => searchPlantNameById($row['plant_id'], $this->db),
+                'customer_supplier' => $row['customer_supplier'],
+                'total_pieces'      => $row['total_pieces'],
+                'total_tons'        => number_format((float) $row['total_tons'], 4, '.', ''),
+                'weight_id'         => $row['weight_id'],
+                'transaction_status' => $row['transaction_status'],
+            ];
+        }
+
+        return [
+            'draw'                 => $draw,
+            'iTotalRecords'        => $totalRecords,
+            'iTotalDisplayRecords' => $totalFiltered,
+            'aaData'               => $data,
+        ];
+    }
+
+    /**
+     * A sawn timber record's header info and detail lines for the DO (Sawn Timber) expandable row
+     */
+    public function getSawnTimberDetails($id, $requestedCompany) {
+        $scope = $this->buildSawnTimberScope($requestedCompany);
+        $headers = $this->fetchAll(
+            "SELECT h.record_date, h.remarks, w.transaction_id, w.delivery_no, w.lorry_plate_no1, w.destination
+                FROM Sawn_Timber_Header h LEFT JOIN Weight w ON h.weight_id = w.id WHERE h.id = ?" . $scope['sql'],
+            'i' . $scope['types'],
+            array_merge([intval($id)], $scope['values'])
+        );
+        if (empty($headers)) {
+            throw new Exception('Record not found');
+        }
+
+        $header = $headers[0];
+        $header['details'] = $this->fetchAll("SELECT * FROM Sawn_Timber_Detail WHERE header_id = ? ORDER BY id ASC", 'i', [intval($id)]);
+        return $header;
+    }
+
+    /**
      * Build the tab-separated Excel export
      * isMulti = 'Y' exports every weighing in the selected groups, otherwise every weighing matching the filters
      */
@@ -143,6 +235,83 @@ class DeliveryOrderService extends BaseService {
 
         return [
             'fileName' => 'DO-data_' . date('Y-m-d') . '.xls',
+            'content'  => $excelData,
+        ];
+    }
+
+    /**
+     * DO (Sawn Timber) tab-separated Excel export - same columns as export(), one line per sawn timber detail
+     * (DESCRIPTION = its L x W x H, QTY = its pieces, UOM = PCS)
+     * isMulti = 'Y' exports the selected sawn timber records, otherwise every record matching the filters
+     */
+    public function exportSawnTimber($get) {
+        $includePrice = hasModulePermission('Accounting', self::MODULE, ['include_price']);
+
+        $fields = ['DocNo', 'DOCREF2', 'DOCDATE', 'DESCRIPTION2', 'CODE', 'COMPANYNAME', 'ITEMCODE', 'DESCRIPTION', 'REMARK2', 'SHIPPER', 'DOCREF1', 'DOCNOEX', 'REMARK1', 'QTY', 'UOM', 'PROJECT', 'LOCATION'];
+        if ($includePrice) {
+            array_push($fields, 'UNITPRICE', 'Amount');
+        }
+        $fields[] = 'Remarks';
+
+        $scope = $this->buildSawnTimberScope($get['company'] ?? null);
+        if (($get['isMulti'] ?? 'N') === 'Y') {
+            $ids = array_values(array_filter(array_map('intval', explode(',', (string) ($get['id'] ?? '')))));
+            if (empty($ids)) {
+                $filters = ['sql' => " AND 1=0", 'types' => '', 'values' => []];
+            } else {
+                $filters = ['sql' => " AND h.id IN (" . implode(',', array_fill(0, count($ids), '?')) . ")", 'types' => str_repeat('i', count($ids)), 'values' => $ids];
+            }
+        } else {
+            $filters = $this->buildSawnTimberFilters($get);
+        }
+
+        $rows = $this->fetchAll(
+            "SELECT h.record_date, h.remarks, w.transaction_id, w.transaction_date, w.lorry_plate_no1,
+                COALESCE(NULLIF(w.customer_code, ''), w.supplier_code) AS party_code,
+                COALESCE(NULLIF(w.customer_name, ''), w.supplier_name) AS party_name,
+                w.product_code, w.product_name, w.destination, w.transporter_code, w.delivery_no, w.unit_price,
+                COALESCE(w.plant_code, p.plant_code) AS plant_code,
+                d.thick, d.width, d.length, d.pieces
+                FROM Sawn_Timber_Header h
+                JOIN Sawn_Timber_Detail d ON d.header_id = h.id
+                LEFT JOIN Weight w ON h.weight_id = w.id
+                LEFT JOIN Plant p ON p.id = h.plant_id
+                WHERE 1=1" . $scope['sql'] . $filters['sql'] . " ORDER BY plant_code ASC, h.record_date ASC, h.id ASC, d.id ASC",
+            $scope['types'] . $filters['types'],
+            array_merge($scope['values'], $filters['values'])
+        );
+
+        $excelData = implode("\t", $fields) . "\n";
+        if (empty($rows)) {
+            $excelData .= 'No records found...' . "\n";
+        }
+
+        foreach ($rows as $row) {
+            $qty       = (float) $row['pieces'];
+            $unitPrice = $row['unit_price'] ?? 0;
+            $plantCode = $row['plant_code'];
+            $docDate   = $this->formatDate($row['transaction_date'] ?: $row['record_date']);
+            // Item size as L x W x H (H = thickness), without trailing zeros
+            $size      = ((float) $row['length']) . ' x ' . ((float) $row['width']) . ' x ' . ((float) $row['thick']);
+
+            $lineData = ['', $row['transaction_id'], $docDate, $row['lorry_plate_no1'], $row['party_code'], $row['party_name'], $row['product_code'], $size, $row['destination'], $row['transporter_code'], '', '', $row['delivery_no'], $qty, 'PCS', $plantCode, $plantCode];
+            if ($includePrice) {
+                array_push($lineData, $unitPrice, $qty * (float) $unitPrice);
+            }
+            $lineData[] = $row['remarks'];
+
+            foreach ($lineData as $key => $value) {
+                if ($key == 3) { // lorry_plate_no1 is at index 3
+                    $lineData[$key] = '="' . $value . '"';
+                } else {
+                    $lineData[$key] = $this->filterExcelValue($value);
+                }
+            }
+            $excelData .= implode("\t", $lineData) . "\n";
+        }
+
+        return [
+            'fileName' => 'DO-sawn-timber-data_' . date('Y-m-d') . '.xls',
             'content'  => $excelData,
         ];
     }
@@ -298,6 +467,9 @@ class DeliveryOrderService extends BaseService {
      */
     private function buildScope($requestedCompany) {
         $sql    = " AND is_complete = 'Y' AND is_cancel <> 'Y' AND status = '0' AND transaction_status = 'Sales'";
+        // DO (Sales) leaves out sawn timber products - those belong to the DO (Sawn Timber) tab
+        $sql   .= " AND NOT EXISTS (SELECT 1 FROM Product p JOIN Product_Categories pc ON p.category = pc.id"
+                . " WHERE p.product_code = Weight.product_code AND p.company = Weight.company_id AND pc.is_sawn_timber = 'Y')";
         $types  = '';
         $values = [];
 
@@ -322,6 +494,78 @@ class DeliveryOrderService extends BaseService {
                 $types .= str_repeat('s', count($plants));
                 $values = array_merge($values, $plants);
             }
+        }
+
+        return ['sql' => $sql, 'types' => $types, 'values' => $values];
+    }
+
+    /**
+     * Active sawn timber records within the user's company/plant scope (same rules as buildScope)
+     */
+    private function buildSawnTimberScope($requestedCompany) {
+        $sql    = " AND h.status = '0'";
+        $types  = '';
+        $values = [];
+
+        // Determine company on the backend - never trust frontend value for restricted users
+        if (hasModulePermission('Accounting', self::MODULE, ['view_all_companies'])) {
+            $companyId = ($requestedCompany !== null && $requestedCompany !== '' && $requestedCompany !== '-') ? intval($requestedCompany) : null;
+        } else {
+            $companyId = intval($_SESSION['company_id'] ?? 0);
+        }
+        if ($companyId !== null) {
+            $sql     .= " AND h.company_id = ?";
+            $types   .= 'i';
+            $values[] = $companyId;
+        }
+
+        if (!hasModulePermission('Accounting', self::MODULE, ['view_all_plants'])) {
+            $plants = $this->getAllowedPlantCodes();
+            if (empty($plants)) {
+                $sql .= " AND 1=0";
+            } else {
+                $sql   .= " AND h.plant_id IN (SELECT id FROM Plant WHERE plant_code IN (" . implode(',', array_fill(0, count($plants), '?')) . "))";
+                $types .= str_repeat('s', count($plants));
+                $values = array_merge($values, $plants);
+            }
+        }
+
+        return ['sql' => $sql, 'types' => $types, 'values' => $values];
+    }
+
+    /**
+     * Optional search filters from the DO (Sawn Timber) tab
+     */
+    private function buildSawnTimberFilters($input) {
+        $sql    = '';
+        $types  = '';
+        $values = [];
+
+        $fromDate = DateTime::createFromFormat('d-m-Y', trim($input['fromDate'] ?? ''));
+        if ($fromDate) {
+            $sql .= " AND h.record_date >= ?"; $types .= 's'; $values[] = $fromDate->format('Y-m-d 00:00:00');
+        }
+        $toDate = DateTime::createFromFormat('d-m-Y', trim($input['toDate'] ?? ''));
+        if ($toDate) {
+            $sql .= " AND h.record_date <= ?"; $types .= 's'; $values[] = $toDate->format('Y-m-d 23:59:59');
+        }
+
+        $plantId = intval($input['plant'] ?? 0);
+        if ($plantId > 0) {
+            $sql .= " AND h.plant_id = ?"; $types .= 'i'; $values[] = $plantId;
+        }
+
+        $transactionId = trim($input['transactionId'] ?? '');
+        if ($transactionId !== '') {
+            $sql .= " AND w.transaction_id LIKE ?"; $types .= 's'; $values[] = "%{$transactionId}%";
+        }
+
+        // "customer:CODE" or "supplier:CODE"
+        list($partyType, $partyCode) = array_pad(explode(':', trim($input['customerSupplier'] ?? ''), 2), 2, '');
+        if ($partyCode !== '' && $partyType === 'customer') {
+            $sql .= " AND w.customer_code = ?"; $types .= 's'; $values[] = $partyCode;
+        } else if ($partyCode !== '' && $partyType === 'supplier') {
+            $sql .= " AND w.supplier_code = ?"; $types .= 's'; $values[] = $partyCode;
         }
 
         return ['sql' => $sql, 'types' => $types, 'values' => $values];

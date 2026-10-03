@@ -238,3 +238,54 @@ div.loading{
     -o-animation: uil-ring-anim 1s linear infinite;
     animation: uil-ring-anim 1s linear infinite;
   }
+
+/* Expandable DataTables rows (DO / GR / Sawn Timber): the expanded details sit on a light blue band under their
+   parent row, with an accented summary header and the inner table on white. ">" keeps these off the inner tables. */
+.table-expandable > tbody > tr.dt-hasChild + tr > td {
+  --vz-table-accent-bg: transparent;
+  box-shadow: none;
+  background-color: #f5f8fe;
+  border-bottom: 1px solid #e9ebec;
+  padding: 1rem 1rem 1.5rem;
+}
+.table-expandable .expand-summary {
+  border-left: 4px solid var(--vz-secondary);
+  padding: 0.25rem 0 0.25rem 1.25rem;
+  margin-bottom: 1rem;
+}
+.table-expandable .expand-summary .expand-title {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+.table-expandable .expand-summary .expand-title i {
+  color: var(--vz-secondary);
+  font-size: 1.2rem;
+  margin-right: 0.75rem;
+}
+/* Totals line up under the title text, past the icon */
+.table-expandable .expand-summary > .row {
+  padding-left: 1.95rem;
+}
+.table-expandable .expand-summary > .row p {
+  margin-bottom: 0.25rem;
+}
+.table-expandable > tbody > tr.dt-hasChild + tr > td table.dataTable {
+  background-color: #fff;
+}
+.table-expandable > tbody > tr.dt-hasChild + tr > td table.dataTable > thead th {
+  background-color: var(--vz-light);
+}
+@media (max-width: 767.98px) {
+  .table-expandable > tbody > tr.dt-hasChild + tr > td {
+    padding: 0.75rem 0.5rem 1rem;
+  }
+  .table-expandable .expand-summary {
+    padding-left: 0.75rem;
+  }
+  .table-expandable .expand-summary > .row {
+    padding-left: 0;
+  }
+}

@@ -78,6 +78,45 @@ class DeliveryOrderController extends BaseController {
         }
     }
 
+    public function handleFilterSawnTimber() {
+        $this->requirePermission('view');
+        try {
+            echo json_encode($this->service->filterSawnTimber($_POST));
+        } catch (mysqli_sql_exception $e) {
+            error_log('DeliveryOrder filterSawnTimber: ' . $e->getMessage());
+            $this->failed('Something went wrong');
+        }
+    }
+
+    public function handleExportSawnTimber() {
+        $this->requirePermission('export');
+        try {
+            $export = $this->service->exportSawnTimber($_GET);
+        } catch (mysqli_sql_exception $e) {
+            error_log('DeliveryOrder exportSawnTimber: ' . $e->getMessage());
+            $this->failed('Something went wrong');
+        }
+
+        // Headers for download
+        header("Content-Type: application/vnd.ms-excel");
+        header("Content-Disposition: attachment; filename=\"{$export['fileName']}\"");
+        echo $export['content'];
+        exit;
+    }
+
+    public function handleGetSawnTimberDetails() {
+        $this->requirePermission('view');
+        $id = $this->getRequiredPost('id');
+        try {
+            $this->success($this->service->getSawnTimberDetails($id, $_POST['company'] ?? null));
+        } catch (mysqli_sql_exception $e) {
+            error_log('DeliveryOrder getSawnTimberDetails: ' . $e->getMessage());
+            $this->failed('Something went wrong');
+        } catch (Exception $e) {
+            $this->failed($e->getMessage());
+        }
+    }
+
     private function requirePermission($permission) {
         if (!hasModulePermission('Accounting', 'Delivery Order', [$permission])) {
             $this->failed('No permission');

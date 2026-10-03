@@ -87,6 +87,8 @@ class ItemService extends BaseService {
             throw new Exception('Product code already exists');
         }
 
+        $this->validateUomConversion($post);
+
         $this->db->begin_transaction();
 
         $stmt = $this->db->prepare("INSERT INTO {$this->table} (company, product_code, name, category, uom, description, variance, high, low, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
@@ -130,6 +132,8 @@ class ItemService extends BaseService {
         if ($this->isDuplicate('product_code', $productCode, $company, $id)) {
             throw new Exception('Product code already exists');
         }
+
+        $this->validateUomConversion($post);
 
         $this->db->begin_transaction();
 
@@ -178,6 +182,21 @@ class ItemService extends BaseService {
         return ['id' => $id];
     }
     
+    /**
+     * Every UOM Conversion row must have a unit selected
+     */
+    private function validateUomConversion($post) {
+        if (!isset($post['uomNo']) || !is_array($post['uomNo'])) {
+            return;
+        }
+
+        foreach ($post['uomNo'] as $key => $no) {
+            if (empty($post['convUom'][$key])) {
+                throw new Exception('Please select a UOM for every UOM conversion row');
+            }
+        }
+    }
+
     /**
      * Save UOM Conversion for new product
      */

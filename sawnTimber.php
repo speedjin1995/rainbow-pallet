@@ -17,13 +17,11 @@ $canViewAllCompanies = hasModulePermission('Sawn Timber', 'Sawn Timber', ['view_
 if (!$canViewAllCompanies) {
     $company_ids = implode(',', array_map('intval', $_SESSION['company_ids']));
     $company  = $db->query("SELECT * FROM Company WHERE status = 0 AND id IN ($selectedCompanyId) ORDER BY name");
-    $company2 = $db->query("SELECT * FROM Company WHERE status = 0 AND id IN ($selectedCompanyId) ORDER BY name");
     $customer  = $db->query("SELECT * FROM Customer WHERE status = '0' AND company=$selectedCompanyId ORDER BY name ASC");
     $supplier  = $db->query("SELECT * FROM Supplier WHERE status = '0' AND company=$selectedCompanyId ORDER BY name ASC");
     $supplier2 = $db->query("SELECT * FROM Supplier WHERE status = '0' AND company=$selectedCompanyId ORDER BY name ASC");
 } else {
     $company  = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
-    $company2 = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
     $customer  = $db->query("SELECT * FROM Customer WHERE status = '0' ORDER BY name ASC");
     $supplier  = $db->query("SELECT * FROM Supplier WHERE status = '0' ORDER BY name ASC");
     $supplier2 = $db->query("SELECT * FROM Supplier WHERE status = '0' ORDER BY name ASC");
@@ -34,12 +32,13 @@ $species2 = $db->query("SELECT * FROM Sawn_Timber_Species WHERE status = '0' ORD
 $canViewAllPlants = hasModulePermission('Sawn Timber', 'Sawn Timber', ['view_all_plants']);
 if (!$canViewAllPlants){
     $plant = searchPlantById($selectedPlantId, $db);
-    $plant2 = searchPlantById($selectedPlantId, $db);
 }
 else{
     $plant = $db->query("SELECT * FROM Plant WHERE status = '0'");
-    $plant2 = $db->query("SELECT * FROM Plant WHERE status = '0'");
 }
+
+// Sawn timber modal component - add / edit a sawn timber record
+require_once "components/sawnTimberModal/data.php";
 ?>
 
 <head>
@@ -64,37 +63,6 @@ else{
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.3/jquery.validate.min.js"></script>
 
     <?php include 'layouts/head-css.php'; ?>
-    <style>
-        /* Minimal custom styles - rest uses Bootstrap */
-        #addModal .btn-close {
-            filter: brightness(0) invert(1);
-        }
-        #addModal .select2-container--open {
-            z-index: 9999 !important;
-        }
-        #addModal .modal-content {
-            max-height: 92vh;
-        }
-        #addModal .modal-body {
-            overflow-y: auto;
-        }
-        #addModal .modal-footer {
-            position: sticky;
-            bottom: 0;
-            background: #fff;
-            z-index: 10;
-        }
-        .readonly-field {
-            background-color: #f8f9fa !important;
-        }
-        .tons-highlight {
-            background-color: #d4edda !important;
-            font-weight: 600;
-        }
-        #detailTable {
-            display: none !important;
-        }
-    </style>
 </head>
 
 <?php include 'layouts/body.php'; ?>
@@ -200,171 +168,8 @@ else{
 
                             <div class="row">
                                 <div class="col-xl-3 col-md-6">
-                                    <!-- /.modal-dialog -->
-                                    <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalScrollableTitle" aria-hidden="true">
-                                        <div class="modal-dialog modal-dialog-scrollable modal-xl">
-                                            <div class="modal-content">
-                                                <div class="modal-header" style="background-color: #405189;">
-                                                    <h5 class="modal-title text-white" id="exampleModalScrollableTitle">
-                                                        <i class="ri-file-list-3-line me-2"></i><?=$languageArray['sawn_timber_code'][$language]?>
-                                                    </h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                </div>
-                                                <div class="modal-body bg-light">
-                                                    <form role="form" id="sawnTimberForm" class="needs-validation" novalidate autocomplete="off">
-                                                        
-                                                        <!-- Header Information Section -->
-                                                        <div class="card mb-3">
-                                                            <div class="card-header py-2" style="background-color: #405189;">
-                                                                <h6 class="mb-0 text-white small">
-                                                                    <i class="ri-file-text-line me-1"></i> <?=$languageArray['weighing_transactions_code'][$language]?>
-                                                                </h6>
-                                                            </div>
-                                                            <div class="card-body py-2">
-                                                                <div class="row g-2">
-                                                                    <div class="col-md-3">
-                                                                        <label class="form-label small mb-1"><?=$languageArray['record_date_code'][$language]?> <span class="text-danger">*</span></label>
-                                                                        <input type="text" class="form-control" data-provider="flatpickr" id="sawnTimberDate" name="sawnTimberDate" required>
-                                                                        <div class="invalid-feedback">
-                                                                            <?=$languageArray['please_fill_in_the_field_code'][$language] ?? 'Please fill in the field'?>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="col-md-3" style="<?= !$canViewAllCompanies ? 'display:none' : '' ?>">
-                                                                        <label class="form-label small mb-1"><?=$languageArray['company_code'][$language]?> <span class="text-danger">*</span></label>
-                                                                        <select class="form-control select2" id="companyId" name="companyId" required>
-                                                                            <?php while($rowCompanyM=mysqli_fetch_assoc($company2)){ ?>
-                                                                                <option value="<?=$rowCompanyM['id'] ?>" <?=($canViewAllCompanies ? $rowCompanyM['id'] == 1 : $rowCompanyM['id'] == $companyId) ? 'selected' : ''?>><?=$rowCompanyM['name'] ?></option>
-                                                                            <?php } ?>
-                                                                        </select>
-                                                                        <div class="invalid-feedback">
-                                                                            <?=$languageArray['please_fill_in_the_field_code'][$language] ?? 'Please fill in the field'?>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="col-md-3" style="<?= !$canViewAllPlants ? 'display:none' : '' ?>">
-                                                                        <label class="form-label small mb-1"><?=$languageArray['plant_code'][$language]?> <span class="text-danger">*</span></label>
-                                                                        <select class="form-control select2" id="plantId" name="plantId" required>
-                                                                            <option value="">-</option>
-                                                                            <?php while($rowPlantM=mysqli_fetch_assoc($plant2)){ ?>
-                                                                                <option value="<?=$rowPlantM['id'] ?>" <?= ($rowPlantM['id'] == $selectedPlantId) ? 'selected' : '' ?>><?=$rowPlantM['plant_code'] ?> - <?=$rowPlantM['name'] ?></option>
-                                                                            <?php } ?>
-                                                                        </select>
-                                                                        <div class="invalid-feedback">
-                                                                            <?=$languageArray['please_fill_in_the_field_code'][$language] ?? 'Please fill in the field'?>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="col-md-3">
-                                                                        <label class="form-label small mb-1"><?=$languageArray['transaction_id_code'][$language]?> <span class="text-danger">*</span></label>
-                                                                        <select class="form-control select2" id="weightId" name="weightId" required>
-                                                                            <option value="">-</option>
-                                                                        </select>
-                                                                        <div class="invalid-feedback">
-                                                                            <?=$languageArray['please_fill_in_the_field_code'][$language] ?? 'Please fill in the field'?>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="col-md-3">
-                                                                        <label class="form-label small mb-1"><?=$languageArray['transaction_date_code'][$language]?></label>
-                                                                        <input type="text" class="form-control readonly-field" id="transactionDate" name="transactionDate" readonly>
-                                                                    </div>
-                                                                    <div class="col-md-3">
-                                                                        <label class="form-label small mb-1"><?=$languageArray['transaction_status_code'][$language]?></label>
-                                                                        <input type="text" class="form-control readonly-field" id="transactionStatus" name="transactionStatus" readonly>
-                                                                    </div>
-                                                                    <div class="col-md-3">
-                                                                        <label class="form-label small mb-1"><?=$languageArray['do_no_code'][$language]?></label>
-                                                                        <input type="text" class="form-control readonly-field" id="doNo" name="doNo" readonly>
-                                                                    </div>
-                                                                    <div class="col-md-3">
-                                                                        <label class="form-label small mb-1"><?=$languageArray['customer_code'][$language]?> / <?=$languageArray['supplier_code'][$language]?></label>
-                                                                        <input type="text" class="form-control readonly-field" id="customerSupplier" name="customerSupplier" readonly>
-                                                                    </div>
-                                                                    <div class="col-md-3">
-                                                                        <label class="form-label small mb-1"><?=$languageArray['destination_code'][$language]?></label>
-                                                                        <input type="text" class="form-control readonly-field" id="deliveredTo" name="deliveredTo" readonly>
-                                                                    </div>
-                                                                    <div class="col-md-3">
-                                                                        <label class="form-label small mb-1"><?=$languageArray['vehicle_no_code'][$language]?></label>
-                                                                        <input type="text" class="form-control readonly-field" id="lorryNo" name="lorryNo" readonly>
-                                                                    </div>
-                                                                    <div class="col-md-12">
-                                                                        <label class="form-label small mb-1"><?=$languageArray['remarks_code'][$language]?></label>
-                                                                        <textarea class="form-control" id="remarks" name="remarks" rows="3" placeholder="<?=$languageArray['enter_remarks_message_code'][$language]?>"></textarea>
-                                                                    </div>
-                                                                </div>
-                                                                <input type="hidden" id="id" name="id">
-                                                                <input type="hidden" id="transactionId" name="transactionId">
-                                                            </div>
-                                                        </div>
-                                                        
-                                                        <!-- Timber Details Section -->
-                                                        <div class="card mb-0">
-                                                            <div class="card-header py-2 d-flex justify-content-between align-items-center" style="background-color: #405189;">
-                                                                <h6 class="mb-0 text-white small">
-                                                                    <i class="ri-stack-line me-1"></i> <?=$languageArray['details_code'][$language]?>
-                                                                </h6>
-                                                                <button type="button" class="btn btn-success btn-sm" id="addDetail">
-                                                                    <i class="ri-add-circle-line align-middle me-1"></i>
-                                                                    <?=$languageArray['add_new_code'][$language]?>
-                                                                </button>
-                                                            </div>
-                                                            <div class="card-body bg-light p-3" id="detailCardsContainer">
-                                                                <div class="text-center text-muted py-4" id="emptyDetailState">
-                                                                    <i class="ri-inbox-line d-block fs-1 mb-2 opacity-50"></i>
-                                                                    <p class="mb-0"><?=$languageArray['no_timber_details_code'][$language] ?? 'No timber details added yet.'?></p>
-                                                                    <small><?=$languageArray['click_add_timber_code'][$language] ?? 'Click "Add New" to add timber details.'?></small>
-                                                                </div>
-                                                            </div>
-                                                            <div class="card-footer py-2 px-3" id="detailTotalsFooter" style="display:none; background-color:#405189;">
-                                                                <div class="row g-2 align-items-center">
-                                                                    <div class="col-md-2">
-                                                                        <span class="fw-bold text-white"><i class="ri-calculator-line me-1"></i><?=$languageArray['total_code'][$language]?></span>
-                                                                    </div>
-                                                                    <div class="col-md-10">
-                                                                        <div class="row g-2">
-                                                                            <div class="col-md-3">
-                                                                                <div class="d-flex justify-content-between">
-                                                                                    <span class="text-white"><?=$languageArray['tons_code'][$language]?>:</span>
-                                                                                    <span class="fw-bold" style="color:#5eff5e;" id="totalTons">0.0000</span>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-md-3">
-                                                                                <div class="d-flex justify-content-between">
-                                                                                    <span class="text-white"><?=$languageArray['kd_charges_code'][$language]?>:</span>
-                                                                                    <span class="fw-bold" style="color:#ffeb3b;" id="totalKdCharges">0.00</span>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-md-3">
-                                                                                <div class="d-flex justify-content-between">
-                                                                                    <span class="text-white"><?=$languageArray['bundling_charges_code'][$language]?>:</span>
-                                                                                    <span class="fw-bold" style="color:#ffeb3b;" id="totalBundlingCharges">0.00</span>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-md-3">
-                                                                                <div class="d-flex justify-content-between">
-                                                                                    <span class="text-white"><?=$languageArray['kd_charges_code'][$language]?>:</span>
-                                                                                    <span class="fw-bold" style="color:#ffeb3b;" id="totalGraderFees">0.00</span>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            
-                                                            <!-- Hidden table for form serialization -->
-                                                            <table id="detailTable"><tbody></tbody></table>
-                                                        </div>
-                                                    </form>
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">
-                                                        <?=$languageArray['close_code'][$language]?>
-                                                    </button>
-                                                    <button type="button" class="btn btn-success" id="saveSawnTimber">
-                                                        <?=$languageArray['submit_code'][$language]?>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <?php include 'components/sawnTimberModal/modal.php'; ?>
+
 
                                     <div class="modal fade" id="uploadModal">
                                         <div class="modal-dialog modal-xl" style="max-width: 90%;">
@@ -435,7 +240,7 @@ else{
                                                                 <?php endif; ?>
 
                                                                 <?php if(hasModulePermission('Sawn Timber', 'Sawn Timber', ['create'])): ?>
-                                                                <button type="button" id="addSawTimber" class="btn btn-success waves-effect waves-light" data-bs-toggle="modal" data-bs-target="#addModal">
+                                                                <button type="button" id="addSawTimber" class="btn btn-success waves-effect waves-light">
                                                                     <i class="ri-add-circle-line align-middle me-1"></i>
                                                                     <?=$languageArray['add_new_code'][$language]?>
                                                                 </button>
@@ -505,91 +310,11 @@ else{
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
     <script src="assets/js/pages/datatables.init.js"></script>
 
-    <script type="text/html" id="detailRowTemplate">
-        <tr class="detail-row">
-            <td><input type="text" class="form-control species" id="species" name="species"></td>
-            <td><input type="text" class="form-control lot" id="lot" name="lot"></td>
-            <td><input type="text" class="form-control bundle" id="bundle" name="bundle"></td>
-            <td><input type="number" step="0.0001" class="form-control thick" id="thick" name="thick"></td>
-            <td><input type="number" step="0.0001" class="form-control width" id="width" name="width"></td>
-            <td><input type="number" step="0.0001" class="form-control length" id="length" name="length"></td>
-            <td><input type="number" step="1" class="form-control pieces" id="pieces" name="pieces"></td>
-            <td><input type="number" step="0.0001" class="form-control tons" id="tons" name="tons" readonly value="0.0000"></td>
-            <td><input type="number" step="0.01" class="form-control kdCharges" id="kdCharges" name="kdCharges"></td>
-            <td><input type="number" step="0.01" class="form-control bundlingCharges" id="bundlingCharges" name="bundlingCharges"></td>
-            <td><input type="number" step="0.01" class="form-control graderFees" id="graderFees" name="graderFees"></td>
-            <td><button type="button" class="btn btn-sm btn-danger remove-detail"><i class="ri-delete-bin-line"></i></button></td>
-        </tr>
-    </script>
-    
-    <!-- Detail Card Template using Bootstrap classes -->
-    <script type="text/html" id="detailCardTemplate">
-        <div class="card mb-2 detail-card" data-card-index="{INDEX}">
-            <div class="card-header py-1 px-2 d-flex justify-content-between align-items-center" style="background-color:#e9ecef; border-left:3px solid #405189;">
-                <span class="fw-semibold text-primary small card-number card-toggle" style="cursor:pointer; flex:1;">
-                    <i class="ri-arrow-down-s-line me-1 collapse-icon"></i><?=$languageArray['item_code'][$language]?> #{NUMBER} <span class="card-summary text-muted fw-normal"></span>
-                </span>
-                <button type="button" class="btn btn-outline-danger btn-sm py-0 px-1 remove-card">
-                    <i class="ri-delete-bin-line"></i>
-                </button>
-            </div>
-            <div class="card-body p-2 card-collapse-body">
-                <div class="row g-2">
-                    <div class="col-md-2">
-                        <label class="form-label small text-muted mb-0"><?=$languageArray['species_code'][$language]?></label>
-                        <input type="text" class="form-control form-control-sm card-species" placeholder="Species">
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label small text-muted mb-0"><?=$languageArray['lot_code'][$language]?></label>
-                        <input type="text" class="form-control form-control-sm card-lot" placeholder="Lot">
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label small text-muted mb-0"><?=$languageArray['bundle_code'][$language]?></label>
-                        <input type="text" class="form-control form-control-sm card-bundle" placeholder="Bundle">
-                    </div>
-                    <div class="col-md-1">
-                        <label class="form-label small text-muted mb-0"><?=$languageArray['thick_code'][$language]?> (m) <span class="text-danger">*</span></label>
-                        <input type="number" step="0.0001" class="form-control form-control-sm card-thick" placeholder="0">
-                    </div>
-                    <div class="col-md-1">
-                        <label class="form-label small text-muted mb-0"><?=$languageArray['width_code'][$language]?> (m) <span class="text-danger">*</span></label>
-                        <input type="number" step="0.0001" class="form-control form-control-sm card-width" placeholder="0">
-                    </div>
-                    <div class="col-md-1">
-                        <label class="form-label small text-muted mb-0"><?=$languageArray['length_code'][$language]?> (m) <span class="text-danger">*</span></label>
-                        <input type="number" step="0.0001" class="form-control form-control-sm card-length" placeholder="0">
-                    </div>
-                    <div class="col-md-1">
-                        <label class="form-label small text-muted mb-0"><?=$languageArray['pieces_code'][$language]?> <span class="text-danger">*</span></label>
-                        <input type="number" step="1" class="form-control form-control-sm card-pieces" placeholder="0">
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label small text-muted mb-0"><?=$languageArray['tons_code'][$language]?></label>
-                        <input type="number" step="0.0001" class="form-control form-control-sm tons-highlight card-tons" readonly value="0.0000">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label small text-muted mb-0"><?=$languageArray['kd_charges_code'][$language]?></label>
-                        <input type="number" step="0.01" class="form-control form-control-sm card-kdCharges" placeholder="0.00">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label small text-muted mb-0"><?=$languageArray['bundling_charges_code'][$language]?></label>
-                        <input type="number" step="0.01" class="form-control form-control-sm card-bundlingCharges" placeholder="0.00">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label small text-muted mb-0"><?=$languageArray['grader_fees_code'][$language]?></label>
-                        <input type="number" step="0.01" class="form-control form-control-sm card-graderFees" placeholder="0.00">
-                    </div>
-                </div>
-            </div>
-        </div>
-    </script>
-
     <script type="text/javascript">
     var userRole = '<?=$_SESSION["roles"] ?>';
     var table = null;
     var permissions = <?= json_encode($_SESSION['permissions']) ?>;
     var isSADMIN = <?= json_encode($_SESSION['roles'] == 'SADMIN') ?>;
-    var detailRowCount = 0;
 
     $(function () {
         const today = new Date();
@@ -611,11 +336,6 @@ else{
             dateFormat: "d-m-Y",
             enableTime: true,
             time_24hr: true,
-            defaultDate: today
-        });
-
-        $('#sawnTimberDate').flatpickr({
-            dateFormat: "d-m-Y",
             defaultDate: today
         });
 
@@ -679,122 +399,15 @@ else{
             renderTable();
         });
 
-        // Detail table events
-        $('#addDetail').on('click', function() { 
-            addDetailRow(); 
-        });
-        $('#detailTable').on('click', '.remove-detail', function() { 
-            $(this).closest('tr').remove(); 
-        });
-        $('#detailTable').on('input', '.thick,.width,.length,.pieces', function() { 
-            calculateTons($(this).closest('tr')); 
-        });
-        
-        // Card UI events
-        $('#detailCardsContainer').on('click', '.card-toggle', function() {
-            var $card = $(this).closest('.detail-card');
-            var $body = $card.find('.card-collapse-body');
-            var $icon = $(this).find('.collapse-icon');
-            $body.slideToggle(150);
-            $icon.toggleClass('ri-arrow-down-s-line ri-arrow-right-s-line');
-            updateCardSummary($card);
-        });
-        $('#detailCardsContainer').on('click', '.remove-card', function(e) {
-            e.preventDefault();
-            var $card = $(this).closest('.detail-card');
-            var index = $card.data('card-index');
-            $('#detailTable tbody tr[data-index="' + index + '"]').remove();
-            $card.remove();
-            updateEmptyState();
-            renumberCards();
-        });
-        $('#detailCardsContainer').on('input', '.card-thick,.card-width,.card-length,.card-pieces', function() {
-            var $card = $(this).closest('.detail-card');
-            syncCardToRow($card);
-            var index = $card.data('card-index');
-            var $row = $('#detailTable tbody tr[data-index="' + index + '"]');
-            calculateTons($row);
-            $card.find('.card-tons').val($row.find('.tons').val());
-            updateTotals();
-        });
-        $('#detailCardsContainer').on('input', '.card-species,.card-lot,.card-bundle,.card-kdCharges,.card-bundlingCharges,.card-graderFees', function() {
-            var $card = $(this).closest('.detail-card');
-            syncCardToRow($card);
-            updateTotals();
-        });
-
-        // Reset form and detailTable when Add button is clicked
-        $('#addSawTimber').on('click', function() {
-            $('#sawnTimberForm')[0].reset();
-            $('#sawnTimberForm').removeClass('was-validated');
-            $('#sawnTimberForm .is-invalid').removeClass('is-invalid');
-            $('#companyId, #plantId').trigger('change.select2');
-            $('#weightId').val('').trigger('change');
-            $('#transactionStatus').val('');
-            $('#transactionDate').val('');
-            $('#customerSupplier').val('');
-            $('#deliveredTo').val('');
-            $('#lorryNo').val('');
-            $('#doNo').val('');
-            $('#transactionId').val('');
-            $('#detailTable tbody').html('');
-            $('#detailCardsContainer .detail-card').remove();
-            $('#id').val('');
-            detailRowCount = 0;
-            updateEmptyState();
-            loadSawnTimberWeighing();
-            
-            // Set record date to today
-            var today = new Date();
-            var formatted = ('0' + today.getDate()).slice(-2) + '-' + ('0' + (today.getMonth()+1)).slice(-2) + '-' + today.getFullYear();
-            $('#sawnTimberDate').val(formatted);
-
-            // Initialize form validation
-            $('#sawnTimberForm').validate({
-                errorPlacement: function (error, element) {
-                    // Don't append - use existing invalid-feedback divs
-                },
-                highlight: function (element) {
-                    $(element).addClass('is-invalid');
-                },
-                unhighlight: function (element) {
-                    $(element).removeClass('is-invalid');
-                }
-            });
-        });
-
-        // Reload transaction list when company or plant changes
-        $('#companyId, #plantId').on('change', function() {
-            loadSawnTimberWeighing();
-        });
-
-        // Handle weight dropdown change
-        $('#weightId').on('change', function() {
-            var selectedOption = $(this).find('option:selected');
-            if (selectedOption.val()) {
-                $('#transactionId').val(selectedOption.data('transaction-id'));
-                $('#transactionStatus').val(selectedOption.data('transaction-status'));
-                var customer = selectedOption.data('customer-name') || '';
-                var supplier = selectedOption.data('supplier-name') || '';
-                $('#customerSupplier').val(customer || supplier);
-                $('#deliveredTo').val(selectedOption.data('destination') || '');
-                $('#lorryNo').val(selectedOption.data('lorry-no') || '');
-                $('#doNo').val(selectedOption.data('do-no') || '');
-                var transDate = selectedOption.data('transaction-date');
-                if (transDate) {
-                    var d = new Date(transDate);
-                    var formatted = ('0' + d.getDate()).slice(-2) + '-' + ('0' + (d.getMonth()+1)).slice(-2) + '-' + d.getFullYear();
-                    $('#transactionDate').val(formatted);
-                }
-            } else {
-                $('#transactionId').val('');
-                $('#transactionStatus').val('');
-                $('#transactionDate').val('');
-                $('#customerSupplier').val('');
-                $('#deliveredTo').val('');
-                $('#lorryNo').val('');
-                $('#doNo').val('');
+        // Sawn timber modal: refresh the list after a record is saved
+        initSawnTimberModal({
+            onSaved: function(obj){
+                table.ajax.reload();
             }
+        });
+
+        $('#addSawTimber').on('click', function() {
+            openSawnTimberNew();
         });
 
         // Add event listener for opening and closing details on row click
@@ -832,25 +445,6 @@ else{
                 customerSupplier: $('#customerSupplierSearch').val()
             });
             window.location = 'php/modules/sawnTimber/index.php?action=export&' + params;
-        });
-
-        $('#saveSawnTimber').on('click', function() {
-            // Validate form
-            if (!$('#sawnTimberForm').valid()) {
-                return;
-            }
-            
-            $('#detailTable tbody tr').each(function() { calculateTons($(this)); });
-            $.post('php/modules/sawnTimber/index.php?action=save', $('#sawnTimberForm').serialize(), function(data) {
-                var obj = JSON.parse(data);
-                if (obj.status === 'success') {
-                    $('#addModal').modal('hide');
-                    table.ajax.reload();
-                    toastr.success(obj.message);
-                } else {
-                    toastr.error(obj.message);
-                }
-            });
         });
     });
 
@@ -1030,147 +624,8 @@ else{
         return returnString;
     }
 
-    function loadSawnTimberWeighing() {
-        $.post('php/modules/sawnTimber/index.php?action=getWeighing', {
-            company: $('#companyId').val() || '',
-            plant: $('#plantId').val() || ''
-        }, function(data) {
-            var obj = JSON.parse(data);
-            if (obj.status === 'success') {
-                var options = '<option value="">-</option>';
-                obj.data.forEach(function(item) {
-                    options += '<option value="' + item.id + '"' +
-                        ' data-transaction-id="' + item.transaction_id + '"' +
-                        ' data-transaction-status="' + item.transaction_status + '"' +
-                        ' data-customer-name="' + (item.customer_name || '') + '"' +
-                        ' data-supplier-name="' + (item.supplier_name || '') + '"' +
-                        ' data-destination="' + (item.destination || '') + '"' +
-                        ' data-lorry-no="' + (item.lorry_plate_no1 || '') + '"' +
-                        ' data-do-no="' + (item.delivery_no || '') + '"' +
-                        ' data-transaction-date="' + (item.transaction_date || '') + '"' +
-                        ' data-company-id="' + (item.company_id || '') + '"' +
-                        ' data-company-name="' + (item.company_name || '') + '"' +
-                        ' data-plant-id="' + (item.plant_id || '') + '"' +
-                        ' data-plant-display="' + (item.plant_display || '') + '"' +
-                        '>' + item.transaction_id + '</option>';
-                });
-                $('#weightId').html(options).trigger('change');
-            } else {
-                toastr.error(obj.message);
-            }
-        });
-    }
-
     function editRecord(id) {
-        $('#spinnerLoading').show();
-        $.post('php/modules/sawnTimber/index.php?action=get', {id: id}, function(data) {
-            $('#spinnerLoading').hide();
-            var obj = JSON.parse(data);
-            if (obj.status === 'success') {
-                var record = obj.message.header;
-                record.details = obj.message.details;
-                openEntry(record);
-            } else {
-                toastr.error(obj.message);
-            }
-        });
-    }
-    
-    function openEntry(record) {
-        record = record || {};
-        $('#sawnTimberForm')[0].reset();
-        $('#detailTable tbody').html('');
-        $('#detailCardsContainer .detail-card').remove();
-        detailRowCount = 0;
-
-        $('#id').val(record.id || '');
-        $('#companyId').val(record.company_id || '').trigger('change.select2');
-        $('#plantId').val(record.plant_id || '').trigger('change.select2');
-        $('#transactionId').val(record.transaction_id || '');
-        $('#transactionStatus').val(record.transaction_status || '');
-        $('#transactionDate').val(record.transaction_date ? record.transaction_date.split(' ')[0].split('-').reverse().join('-') : '');
-        $('#customerSupplier').val(record.customer_name || record.supplier_name || '');
-        $('#deliveredTo').val(record.destination || '');
-        $('#lorryNo').val(record.lorry_plate_no1 || '');
-        $('#doNo').val(record.delivery_no || '');
-        $('#sawnTimberDate').val(record.record_date ? record.record_date.split(' ')[0].split('-').reverse().join('-') : '');
-        $('#remarks').val(record.remarks || '');
-
-        // Set weightId dropdown - add option if not exists
-        if (record.weight_id) {
-            if ($('#weightId option[value="' + record.weight_id + '"]').length === 0) {
-                $('#weightId').append('<option value="' + record.weight_id + '">' + record.transaction_id + '</option>');
-            }
-            $('#weightId').val(record.weight_id);
-        }
-
-        if (record.details && record.details.length > 0) {
-            for (var i = 0; i < record.details.length; i++) {
-                addDetailRow({
-                    species: record.details[i].species,
-                    lot: record.details[i].lot,
-                    bundle: record.details[i].bundle,
-                    thick: record.details[i].thick,
-                    width: record.details[i].width,
-                    length: record.details[i].length,
-                    pieces: record.details[i].pieces,
-                    tons: record.details[i].tons,
-                    kd_charges: record.details[i].kd_charges,
-                    bundling_charges: record.details[i].bundling_charges,
-                    grader_fees: record.details[i].grader_fees
-                });
-            }
-        }
-        
-        updateEmptyState();
-        $('#addModal').modal('show');
-    }
-
-    function addDetailRow(detail) {
-        detail = detail || {};
-        var currentIndex = detailRowCount;
-        
-        // Add hidden table row for form serialization
-        var $addContents = $("#detailRowTemplate").clone();
-        $("#detailTable tbody").append($addContents.html());
-
-        var $row = $("#detailTable tbody").find('.detail-row:last');
-        $row.attr("data-index", currentIndex);
-
-        $row.find('#species').attr('name', 'species['+currentIndex+']').attr('id', 'species'+currentIndex).val(detail.species || '');
-        $row.find('#lot').attr('name', 'lot['+currentIndex+']').attr('id', 'lot'+currentIndex).val(detail.lot || '');
-        $row.find('#bundle').attr('name', 'bundle['+currentIndex+']').attr('id', 'bundle'+currentIndex).val(detail.bundle || '');
-        $row.find('#thick').attr('name', 'thick['+currentIndex+']').attr('id', 'thick'+currentIndex).val(detail.thick || '');
-        $row.find('#width').attr('name', 'width['+currentIndex+']').attr('id', 'width'+currentIndex).val(detail.width || '');
-        $row.find('#length').attr('name', 'length['+currentIndex+']').attr('id', 'length'+currentIndex).val(detail.length || '');
-        $row.find('#pieces').attr('name', 'pieces['+currentIndex+']').attr('id', 'pieces'+currentIndex).val(detail.pieces || '');
-        $row.find('#tons').attr('name', 'tons['+currentIndex+']').attr('id', 'tons'+currentIndex).val(detail.tons || '0.0000');
-        $row.find('#kdCharges').attr('name', 'kdCharges['+currentIndex+']').attr('id', 'kdCharges'+currentIndex).val(detail.kd_charges || '');
-        $row.find('#bundlingCharges').attr('name', 'bundlingCharges['+currentIndex+']').attr('id', 'bundlingCharges'+currentIndex).val(detail.bundling_charges || '');
-        $row.find('#graderFees').attr('name', 'graderFees['+currentIndex+']').attr('id', 'graderFees'+currentIndex).val(detail.grader_fees || '');
-        
-        // Add visible card UI
-        var cardHtml = $('#detailCardTemplate').html()
-            .replace(/{INDEX}/g, currentIndex)
-            .replace(/{NUMBER}/g, currentIndex + 1);
-        $('#detailCardsContainer').append(cardHtml);
-        
-        var $card = $('#detailCardsContainer .detail-card[data-card-index="' + currentIndex + '"]');
-        $card.find('.card-species').val(detail.species || '');
-        $card.find('.card-lot').val(detail.lot || '');
-        $card.find('.card-bundle').val(detail.bundle || '');
-        $card.find('.card-thick').val(detail.thick || '');
-        $card.find('.card-width').val(detail.width || '');
-        $card.find('.card-length').val(detail.length || '');
-        $card.find('.card-pieces').val(detail.pieces || '');
-        $card.find('.card-tons').val(detail.tons || '0.0000');
-        $card.find('.card-kdCharges').val(detail.kd_charges || '');
-        $card.find('.card-bundlingCharges').val(detail.bundling_charges || '');
-        $card.find('.card-graderFees').val(detail.grader_fees || '');
-
-        detailRowCount++;
-        updateEmptyState();
-        renumberCards();
+        editSawnTimber(id);
     }
 
     function deleteRecord(id) {
@@ -1187,76 +642,6 @@ else{
                 toastr.error(obj.message);
             }
         });
-    }
-
-    function calculateTons(row) {
-        var thick = parseFloat(row.find('.thick').val()) || 0;
-        var width = parseFloat(row.find('.width').val()) || 0;
-        var length = parseFloat(row.find('.length').val()) || 0;
-        var pieces = parseFloat(row.find('.pieces').val()) || 0;
-        row.find('.tons').val(((thick * width * length * pieces) / 7200).toFixed(4));
-    }
-    
-    function syncCardToRow($card) {
-        var index = $card.data('card-index');
-        var $row = $('#detailTable tbody tr[data-index="' + index + '"]');
-        
-        $row.find('.species').val($card.find('.card-species').val());
-        $row.find('.lot').val($card.find('.card-lot').val());
-        $row.find('.bundle').val($card.find('.card-bundle').val());
-        $row.find('.thick').val($card.find('.card-thick').val());
-        $row.find('.width').val($card.find('.card-width').val());
-        $row.find('.length').val($card.find('.card-length').val());
-        $row.find('.pieces').val($card.find('.card-pieces').val());
-        $row.find('.kdCharges').val($card.find('.card-kdCharges').val());
-        $row.find('.bundlingCharges').val($card.find('.card-bundlingCharges').val());
-        $row.find('.graderFees').val($card.find('.card-graderFees').val());
-    }
-    
-    function updateEmptyState() {
-        var cardCount = $('#detailCardsContainer .detail-card').length;
-        if (cardCount === 0) {
-            $('#emptyDetailState').show();
-            $('#detailTotalsFooter').hide();
-        } else {
-            $('#emptyDetailState').hide();
-            $('#detailTotalsFooter').show();
-        }
-        updateTotals();
-    }
-    
-    function updateTotals() {
-        var totalTons = 0, totalKd = 0, totalBundling = 0, totalGrader = 0;
-        $('#detailCardsContainer .detail-card').each(function() {
-            totalTons += parseFloat($(this).find('.card-tons').val()) || 0;
-            totalKd += parseFloat($(this).find('.card-kdCharges').val()) || 0;
-            totalBundling += parseFloat($(this).find('.card-bundlingCharges').val()) || 0;
-            totalGrader += parseFloat($(this).find('.card-graderFees').val()) || 0;
-        });
-        $('#totalTons').text(totalTons.toFixed(4));
-        $('#totalKdCharges').text(totalKd.toFixed(2));
-        $('#totalBundlingCharges').text(totalBundling.toFixed(2));
-        $('#totalGraderFees').text(totalGrader.toFixed(2));
-    }
-    
-    function renumberCards() {
-        $('#detailCardsContainer .detail-card').each(function(i) {
-            var $card = $(this);
-            var summary = $card.find('.card-summary').html();
-            var iconClass = $card.find('.collapse-icon').hasClass('ri-arrow-right-s-line') ? 'ri-arrow-right-s-line' : 'ri-arrow-down-s-line';
-            $card.find('.card-number').html('<i class="' + iconClass + ' me-1 collapse-icon"></i>Item #' + (i + 1) + ' <span class="card-summary text-muted fw-normal">' + (summary || '') + '</span>');
-        });
-    }
-    
-    function updateCardSummary($card) {
-        var species = $card.find('.card-species').val() || '';
-        var tons = $card.find('.card-tons').val() || '0';
-        var pcs = $card.find('.card-pieces').val() || '0';
-        var summary = '';
-        if (species || parseFloat(tons) > 0) {
-            summary = '- ' + (species ? species + ', ' : '') + pcs + ' pcs, ' + tons + ' tons';
-        }
-        $card.find('.card-summary').html(summary);
     }
 
     function displayPreview(data) {
@@ -1318,5 +703,8 @@ else{
         previewTable.innerHTML = htmlTable;
     }
     </script>
+
+    <!-- Sawn timber modal component (after the page script so its Select2 / date picker setup runs last) -->
+    <?php include 'components/sawnTimberModal/script.php'; ?>
 </body>
 </html>

@@ -588,7 +588,8 @@
                 <input type="hidden" id="uomId" name="uomId">
             </td>
             <td>
-                <select class="form-control select2" style="width: 100%;" id="convUom" name="convUom">
+                <select class="form-control select2" style="width: 100%;" id="convUom" name="convUom" required>
+                    <option value="" selected></option>
                     <?php while($unitRow=mysqli_fetch_assoc($units2)){ ?>
                         <option value="<?=$unitRow['id'] ?>"><?=$unitRow['unit']?></option>
                     <?php } ?>
@@ -633,6 +634,7 @@
         var isSADMIN = <?= json_encode($_SESSION['roles'] == 'SADMIN') ?>;
         var uomRowCount = $("#uomTable").find(".details").length;
         var uomNoCount = 1;
+        var convUomOptions = null; // UOM conversion options for the selected company
         var sessionCompanyId = <?= intval($_SESSION['company_id'] ?? 0) ?>;
         var canViewAllCompanies = <?= json_encode(hasModulePermission('Master Data', 'Items', ['view_all_companies'])) ?>;
         var priceParties = { Customer: [], Supplier: [] };
@@ -711,6 +713,19 @@
                         select2Container.next('.select2-error').remove(); // Remove error message
                     }
                 });
+
+                // Every UOM conversion row must have a unit selected
+                var uomRowsValid = true;
+                $('#uomTable').find('select[name^="convUom"]').each(function () {
+                    if ($(this).val() === "" || $(this).val() === null) {
+                        uomRowsValid = false;
+                    }
+                });
+
+                if (!uomRowsValid) {
+                    toastr["error"]("Please select a UOM for every UOM conversion row", "Failed:");
+                    return;
+                }
 
                 if($('#productForm').valid()){
                     $('#spinnerLoading').show();
@@ -961,6 +976,9 @@
 
                 $("#uomTable").find('#uomNo:last').attr('name', 'uomNo['+uomRowCount+']').attr("id", "uomNo" + uomRowCount).val(uomNoCount);
                 $("#uomTable").find('#uomId:last').attr('name', 'uomId['+uomRowCount+']').attr("id", "uomId" + uomRowCount);
+                if (convUomOptions !== null) {
+                    $("#uomTable").find('#convUom:last').html(convUomOptions);
+                }
                 $("#uomTable").find('#convUom:last').attr('name', 'convUom['+uomRowCount+']').attr("id", "convUom" + uomRowCount).select2({
                     allowClear: true,
                     placeholder: "Please Select",
@@ -1464,11 +1482,19 @@
                 var obj = JSON.parse(data);
                 var $uom = $('#uom');
                 $uom.empty().append('<option value="">Please Select</option>');
+                convUomOptions = '<option value=""></option>';
                 if (obj.status === 'success') {
                     $.each(obj.data, function(i, item) {
                         $uom.append('<option value="' + item.id + '">' + item.unit + '</option>');
+                        convUomOptions += '<option value="' + item.id + '">' + item.unit + '</option>';
                     });
                 }
+
+                // Rebuild UOM conversion dropdowns, keeping the selection if it belongs to this company
+                $('#uomTable').find('select[name^="convUom"]').each(function() {
+                    var selected = $(this).val();
+                    $(this).html(convUomOptions).val(selected).trigger('change');
+                });
                 if (selectedValue) {
                     $uom.val(selectedValue).trigger('change');
                 } else {

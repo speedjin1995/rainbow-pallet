@@ -750,7 +750,7 @@ foreach (['Sales', 'Purchase', 'Local', 'Port', 'Miscellaneous'] as $weighingSta
         });
 
         // Add event listener for opening and closing details on row click
-        $('#weightTable tbody').on('click', 'tr', function (e) {
+        $('#weightTable').on('click', 'tbody tr', function (e) {
             var tr = $(this); // The row that was clicked
             var row = table.row(tr);
             if (!row.data()) return; // <-- Exit early if row data is not available
@@ -786,7 +786,7 @@ foreach (['Sales', 'Purchase', 'Local', 'Port', 'Miscellaneous'] as $weighingSta
         });
 
         // Add event listener for double click
-        $('#weightTable tbody').on('dblclick', 'tr', function (e) {
+        $('#weightTable').on('dblclick', 'tbody tr', function (e) {
             if (clickTimer) {
                 clearTimeout(clickTimer); // Cancel single-click
                 clickTimer = null;

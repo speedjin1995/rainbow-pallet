@@ -272,7 +272,7 @@
                                             <div class="col-sm-8">
                                                 <div class="input-group">
                                                     <input type="text" class="form-control" id="deliveryNo" name="deliveryNo" placeholder="<?=$languageArray['delivery_no_code'][$language]?>">
-                                                    <button type="button" class="btn btn-outline-secondary" id="generateDoNo" title="<?=$languageArray['generate_code'][$language] ?? 'Generate'?>"><i class="ri-refresh-line"></i></button>
+                                                    <button type="button" class="btn btn-outline-secondary" id="generateDoNo"><i class="ri-refresh-line"></i></button>
                                                 </div>
                                             </div>
                                         </div>

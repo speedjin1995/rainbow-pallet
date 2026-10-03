@@ -137,6 +137,15 @@ class DocumentNumberService extends BaseService {
         }
     }
 
+    // Transaction statuses that have a format set up for the company and document type, in TRANSACTION_STATUSES order
+    public function getSetupStatuses($companyId, $documentType) {
+        $rows = $this->fetchAll(
+            "SELECT DISTINCT transaction_status FROM {$this->table} WHERE company_id = ? AND document_type = ? AND status = 0",
+            'is', [intval($companyId), (string) $documentType]
+        );
+        return array_values(array_intersect(self::TRANSACTION_STATUSES, array_column($rows, 'transaction_status')));
+    }
+
     // Transaction statuses a format can be set up for (same list and order as $statusLabels in companies.php)
     public function getStatuses() {
         return self::TRANSACTION_STATUSES;

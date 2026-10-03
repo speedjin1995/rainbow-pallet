@@ -55,7 +55,9 @@ class WeightController extends BaseController {
         }
 
         if ($doNo === null) {
-            $this->failed('No document number format set up for this company and transaction status');
+            $languageArray = $_SESSION['languageArray'] ?? [];
+            $language = $_SESSION['language'] ?? 'en';
+            $this->failed($languageArray['do_no_format_not_setup_code'][$language] ?? 'Delivery No format is not set up for this company and transaction status. Please set it up in Companies > Document Number, or enter the Delivery No manually.');
         }
         $this->success($doNo);
     }
@@ -122,6 +124,9 @@ class WeightController extends BaseController {
 
         try {
             $data = $this->service->getCompanyLists($companyId);
+            // Statuses with a DO No format, for the Refresh button tooltip (same company rule as handlePreviewDoNo)
+            $doNoCompanyId = hasPermission('Weighing', ['view_all_companies']) ? $companyId : ($_SESSION['company_id'] ?? 0);
+            $data['doNoStatuses'] = $this->documentNumberService->getSetupStatuses($doNoCompanyId, 'DO');
         } catch (Exception $e) {
             error_log('Weighing company lists: ' . $e->getMessage());
             $this->failed('Something went wrong');
