@@ -47,7 +47,9 @@
         receiving: '<?=$languageArray['receiving_code'][$language]?>',
         trxToPort: '<?=$languageArray['trx_to_port_code'][$language]?>',
         internalTransfer: '<?=$languageArray['internal_transfer_code'][$language]?>',
-        miscellaneous: '<?=$languageArray['miscellaneous_code'][$language]?>'
+        miscellaneous: '<?=$languageArray['miscellaneous_code'][$language]?>',
+        doNoTooltip: <?=json_encode($languageArray['generate_do_no_tooltip_code'][$language] ?? 'Click to generate the next {status} Delivery No. The final number is assigned when you save.')?>,
+        doNoNotSetupTooltip: <?=json_encode($languageArray['do_no_not_setup_tooltip_code'][$language] ?? 'Auto-generated Delivery No is not set up for {status} for this company. Please enter the Delivery No manually.')?>
     };
 
     // "Manual" checkboxes: tick to type a value instead of picking it from the dropdown.
@@ -75,6 +77,7 @@
     var optionCache = { allProductOptions: null, allRawMatOptions: null };
     var modalCompanyId = sessionCompanyId;
     var modalListsReady = $.Deferred().resolve().promise();
+    var doNoStatuses = []; // transaction statuses the modal's company has a DO No format for
     var indicatorTimer = null;
     var today = new Date();
 
@@ -167,10 +170,15 @@
 
         inModal('#transactionStatus').on('change', function(){
             applyTransactionStatusLayout($(this).val());
+            updateDoNoTooltip();
         });
 
         // Preview the next DO No from the company / transaction status format; the real number is taken on save
         inModal('#generateDoNo').on('click', function(){
+            // No DO No format for this status: the button's tooltip already tells the user to type it in
+            if ($.inArray(inModal('#transactionStatus').val(), doNoStatuses) === -1) {
+                return;
+            }
             var $btn = $(this);
             $btn.prop('disabled', true);
             $.post(WEIGHING_URL, {
@@ -821,6 +829,7 @@
             });
             fillOptions('#vehiclePlateNo1', lists.vehicles, vehicleOption);
             fillOptions('#vehiclePlateNo2', lists.vehicles, vehicleOption);
+            setDoNoTooltip(lists.doNoStatuses);
 
             // Always re-apply the category filter: the transaction status may have changed while the lists were loading
             optionCache.allProductOptions = null;
@@ -833,6 +842,31 @@
             return $.Deferred().resolve();
         });
         return modalListsReady;
+    }
+
+    // Keep the company's DO No statuses for the Refresh button, then refresh its tooltip
+    function setDoNoTooltip(statuses) {
+        doNoStatuses = statuses || [];
+        updateDoNoTooltip();
+    }
+
+    // Refresh button tooltip for the selected transaction status: generate, or type the DO No in when no format is set up
+    function updateDoNoTooltip() {
+        var button = inModal('#generateDoNo')[0];
+        if (!button || !window.bootstrap) {
+            return;
+        }
+        var status = inModal('#transactionStatus').val();
+        var statusLabels = { Sales: LANG.dispatch, Purchase: LANG.receiving, Local: LANG.internalTransfer, Port: LANG.trxToPort, Misc: LANG.miscellaneous };
+        var template = $.inArray(status, doNoStatuses) === -1 ? LANG.doNoNotSetupTooltip : LANG.doNoTooltip;
+        var text = template.replace('{status}', statusLabels[status] || status || '');
+
+        // Recreate the tooltip: one created with an empty title never shows on hover, even after setContent()
+        var tooltip = bootstrap.Tooltip.getInstance(button);
+        if (tooltip) {
+            tooltip.dispose();
+        }
+        new bootstrap.Tooltip(button, { title: text, placement: 'top' });
     }
 
     // Rebuild a dropdown: "-" placeholder followed by one option per item
