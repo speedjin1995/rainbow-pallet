@@ -170,17 +170,21 @@ class GoodsReceivedService extends BaseService {
      * other = all unsynced weighings matching the filters
      */
     public function post($post) {
-        $config     = $this->getSqlConfig();
+        $config = $this->getSqlConfig();
         $companyKey = $_SESSION['company'] ?? null;
         if (!$companyKey || !isset($config[$companyKey])) {
             throw new Exception('Invalid company session');
         }
 
-        if (($post['type'] ?? '') === 'MULTI') {
+        $type = $post['type'] ?? '';
+        if ($type === 'MULTI') {
             $rows = [];
             foreach ($this->fetchSelected($post['userID'] ?? '', $post['company'] ?? null, true) as $group) {
                 $rows = array_merge($rows, $this->fetchGroupWeights($group, $post['fromDate'] ?? '', $post['toDate'] ?? ''));
             }
+        } else if ($type === 'MULTIGR') {
+            // Weighings picked in a GR group's Post modal
+            $rows = $this->fetchSelected($post['userID'] ?? '', $post['company'] ?? null, true);
         } else {
             $scope   = $this->buildScope($post['company'] ?? null);
             $filters = $this->buildFilters($post);
@@ -197,7 +201,7 @@ class GoodsReceivedService extends BaseService {
 
         $records = [];
         foreach ($rows as $row) {
-            $qty       = (float) $row['nett_weight1'] / 1000;
+            $qty = (float) $row['nett_weight1'] / 1000;
             $unitPrice = $row['unit_price'] ?? 0;
             $plantCode = $row['plant_code'];
 

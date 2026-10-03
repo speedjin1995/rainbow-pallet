@@ -278,7 +278,7 @@ $canIncludePrice = hasModulePermission('Accounting', 'Goods Received', ['include
                                                                     <th><?=$languageArray['received_date_code'][$language]?></th>
                                                                     <th><?=$languageArray['total_received_amount_code'][$language]?> (KG)</th>
                                                                     <th><?=$languageArray['issues_code'][$language] ?? 'Issues'?></th>
-                                                                    <!-- <th>Action</th> -->
+                                                                    <th><?=$languageArray['action_code'][$language]?><?=actionPermissionNote([hasModulePermission('Accounting', 'Goods Received', ['post_to_sql'])])?></th>
                                                                 </tr>
                                                             </thead>
                                                         </table>
@@ -289,6 +289,22 @@ $canIncludePrice = hasModulePermission('Accounting', 'Goods Received', ['include
                                     </div> <!-- end .h-100-->
                                 </div> <!-- end col -->
                             </div><!-- container-fluid -->
+
+                            <!-- Post to SQL: pick the weighings of a GR group -->
+                            <div class="modal fade" id="viewModal" tabindex="-1" role="dialog" aria-labelledby="postModalTitle" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-scrollable custom-xxl">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="postModalTitle"></h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form role="form" id="grForm" class="needs-validation" novalidate autocomplete="off">
+                                            </form>
+                                        </div>
+                                    </div><!-- /.modal-content -->
+                                </div><!-- /.modal-dialog -->
+                            </div><!-- /.modal -->
 
                             <?php if ($canEditWeight || $canPrintWeight): ?>
                             <?php include 'components/weighingModal/modal.php'; ?>
@@ -343,6 +359,7 @@ $canIncludePrice = hasModulePermission('Accounting', 'Goods Received', ['include
     var allSupplierSearchOptions = null;
     var canUpdatePrice = <?= $canUpdatePrice ? 'true' : 'false' ?>;
     var canIncludePrice = <?= $canIncludePrice ? 'true' : 'false' ?>;
+    var canPostToSql = <?= hasModulePermission('Accounting', 'Goods Received', ['post_to_sql']) ? 'true' : 'false' ?>;
     var issueLabels = {
         supplier: <?= json_encode($languageArray['supplier_code_not_match_code'][$language] ?? 'Supplier code not match') ?>,
         item: <?= json_encode($languageArray['item_code_not_match_code'][$language] ?? 'Item code not match') ?>,
@@ -648,6 +665,31 @@ $canIncludePrice = hasModulePermission('Accounting', 'Goods Received', ['include
                     orderable: false,
                     render: function (data, type, row) {
                         return renderIssues(data);
+                    }
+                },
+                {
+                    data: 'id',
+                    className: 'action-button',
+                    orderable: false,
+                    responsivePriority: 1,
+                    render: function (data, type, row) {
+                        if (!canPostToSql) {
+                            return '';
+                        }
+                        return `
+                            <div class="dropdown d-inline-block">
+                                <button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="ri-more-fill align-middle"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <a class="dropdown-item post-item-btn" id="post${data}" onclick="post(${data})">
+                                            <i class="ri-send-plane-line align-middle me-1"></i> <?=$languageArray['post_code'][$language]?>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        `;
                     }
                 }
             ]
@@ -1033,6 +1075,114 @@ $canIncludePrice = hasModulePermission('Accounting', 'Goods Received', ['include
                 $(rowApi.node()).addClass('shown');
                 showWeighingDetails(rowApi, groupId, false);
             }
+        });
+    }
+
+    // Post to SQL for one GR group: pick its weighings in a modal, then post only those
+    function post(id) {
+        var fromDateI = $('#fromDateSearch').val();
+        var toDateI = $('#toDateSearch').val();
+        var group = findGroupRow(id).data() || {};
+
+        $.post('php/modules/weighing/index.php', { action: 'getWeight', userID: id, fromDate: fromDateI, toDate: toDateI, format: 'EXPANDABLE', acctType: 'GR' }, function (data) {
+            var obj = JSON.parse(data);
+            if (obj.status !== 'success') {
+                toastr["error"](obj.message || "Something wrong when loading the weighings", "Failed:");
+                return;
+            }
+
+            var weights = obj.message.weights || [];
+            $('#postModalTitle').text([group.supplier_name, group.raw_mat_name].filter(Boolean).join(' - '));
+
+            var tableHtml = `
+                <div class="table-responsive">
+                    <table class="table table-bordered nowrap table-striped align-middle" style="width:100%" id="grModalTable">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" id="grModalSelectAll"></th>
+                                <th><?=$languageArray['transaction_id_code'][$language]?></th>
+                                <th><?=$languageArray['po_no_code'][$language]?></th>
+                                <th><?=$languageArray['vehicle_no_code'][$language]?></th>
+                                <th><?=$languageArray['transporter_code'][$language]?></th>
+                                <th><?=$languageArray['destination_code'][$language]?></th>
+                                <th><?=$languageArray['gross_incoming_code'][$language]?></th>
+                                <th><?=$languageArray['incoming_date_code'][$language]?></th>
+                                <th><?=$languageArray['tare_outgoing_code'][$language]?></th>
+                                <th><?=$languageArray['outgoing_date_code'][$language]?></th>
+                                <th><?=$languageArray['nett_weight_code'][$language]?></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            for (var i = 0; i < weights.length; i++) {
+                var w = weights[i];
+                tableHtml += `
+                    <tr>
+                        <td><input type="checkbox" class="gr-checkbox" value="${w.id}"></td>
+                        <td>${displayValue(w.transaction_id)}</td>
+                        <td>${displayValue(w.delivery_no)}</td>
+                        <td>${displayValue(w.lorry_plate_no1)}</td>
+                        <td>${displayValue(w.transporter)}</td>
+                        <td>${displayValue(w.destination)}</td>
+                        <td>${displayWeightMT(w.gross_weight1, 2)}</td>
+                        <td>${displayValue(w.gross_weight1_date)}</td>
+                        <td>${displayWeightMT(w.tare_weight1, 2)}</td>
+                        <td>${displayValue(w.tare_weight1_date)}</td>
+                        <td>${displayWeightMT(w.nett_weight1, 2)}</td>
+                    </tr>
+                `;
+            }
+
+            tableHtml += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            $('#grForm').html(tableHtml + '<div class="col-lg-12"><div class="hstack gap-2 justify-content-end"><button type="button" class="btn btn-light" data-bs-dismiss="modal"><?=$languageArray['close_code'][$language]?></button><button type="button" class="btn btn-primary" id="submitGR"><?=$languageArray['submit_code'][$language]?></button></div></div>');
+
+            $('#grModalSelectAll').on('change', function () {
+                $('.gr-checkbox').prop('checked', this.checked);
+            });
+
+            $('#submitGR').on('click', function () {
+                var selectedIds = $('#grModalTable tbody .gr-checkbox:checked').map(function () { return this.value; }).get();
+
+                if (!selectedIds.length) {
+                    alert('Please select at least one GR to post');
+                    return;
+                }
+                if (!confirm('Are you sure you want to post to SQL these items?')) {
+                    return;
+                }
+
+                $('#spinnerLoading').show();
+                $.post('php/modules/goodsReceived/index.php', {
+                    action: 'post',
+                    company: $('#companySearch').val() || '',
+                    userID: selectedIds,
+                    type: 'MULTIGR'
+                }, function (data) {
+                    var obj = JSON.parse(data);
+                    $('#spinnerLoading').hide();
+
+                    if (obj.status === 'success') {
+                        table.ajax.reload(null, false);
+                        $('#viewModal').modal('hide');
+                        toastr["success"](obj.message, "Success:");
+                    } else if (obj.status === 'failed') {
+                        toastr["error"](obj.message, "Failed:");
+                    } else {
+                        toastr["error"]("Something wrong when activate", "Failed:");
+                    }
+                }).fail(function () {
+                    $('#spinnerLoading').hide();
+                    toastr["error"]("Something wrong when posting", "Failed:");
+                });
+            });
+
+            $('#viewModal').modal('show');
         });
     }
 
