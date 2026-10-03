@@ -166,6 +166,7 @@ if ($canEditSawnTimber) {
         #doPageTabs .nav-link { color: #6c757d; border: 1px solid transparent; padding: 8px 20px; font-weight: 500; }
         #doPageTabs .nav-link.active { background-color: #405189; color: #fff !important; border-color: #405189; border-radius: 4px 4px 0 0; }
         #doPageTabs .nav-link:not(.active):hover { color: #405189; border-color: #dee2e6 #dee2e6 transparent; }
+
     </style>
 </head>
 
@@ -326,7 +327,7 @@ if ($canEditSawnTimber) {
                                                             </div>
                                                         </div>
                                                         <div class="card-body">
-                                                            <table id="weightTable" class="table table-bordered nowrap table-striped align-middle" style="width:100%">
+                                                            <table id="weightTable" class="table table-expandable table-bordered nowrap table-striped align-middle" style="width:100%">
                                                                 <thead>
                                                                     <tr>
                                                                         <th><input type="checkbox" id="selectAllCheckbox" class="selectAllCheckbox"></th>
@@ -461,7 +462,7 @@ if ($canEditSawnTimber) {
                                                 </div>
                                             </div>
                                             <div class="card-body">
-                                                <table id="sawnTimberTable" class="table table-bordered nowrap table-striped align-middle" style="width:100%">
+                                                <table id="sawnTimberTable" class="table table-expandable table-bordered nowrap table-striped align-middle" style="width:100%">
                                                     <thead>
                                                         <tr>
                                                             <th><input type="checkbox" id="stSelectAllCheckbox"></th>
@@ -1054,8 +1055,9 @@ if ($canEditSawnTimber) {
         <div style="width:0; min-width:100%;">
         <div class="dt-hidden-cols"></div>
         <!-- Weighing Section -->
+        <div class="expand-summary">
         <div class="d-flex justify-content-between align-items-center">
-            <span style="font-size:120%; text-decoration: underline;"><strong><?=$languageArray['delivery_order_information_code'][$language]?></strong></span>`;
+            <h5 class="expand-title"><i class="ri-file-list-3-fill"></i><?=$languageArray['delivery_order_information_code'][$language]?></h5>`;
 
         if (canUpdatePrice && row.weights && row.weights.length > 0) {
             returnString += `<div class="flex-shrink-0">`;
@@ -1092,7 +1094,7 @@ if ($canEditSawnTimber) {
 
         returnString += `
         </div>
-        <hr>
+        </div>
         <div>
             <table id="doWeightTable${groupId}" class="table table-bordered nowrap table-striped align-middle" style="width:100%">
                 <thead>
@@ -1672,8 +1674,9 @@ if ($canEditSawnTimber) {
         <div style="width:0; min-width:100%;">
         <div class="dt-hidden-cols"></div>
         <!-- Sawn Timber Section -->
+        <div class="expand-summary">
         <div class="d-flex justify-content-between align-items-center">
-            <span style="font-size:120%; text-decoration: underline;"><strong><?=$languageArray['delivery_order_information_code'][$language]?></strong></span>
+            <h5 class="expand-title"><i class="ri-file-list-3-fill"></i><?=$languageArray['delivery_order_information_code'][$language]?></h5>
         </div>
         <div class="row mt-2">
             <div class="col-4">
@@ -1695,7 +1698,7 @@ if ($canEditSawnTimber) {
                 <p><strong class="text-uppercase"><?=$languageArray['remarks_code'][$language]?>:</strong> ${displayValue(row.remarks)}</p>
             </div>
         </div>
-        <hr>
+        </div>
         <div>
             <table id="stDetailTable${recordId}" class="table table-bordered nowrap table-striped align-middle" style="width:100%">
                 <thead>

@@ -106,6 +106,7 @@ $canIncludePrice = hasModulePermission('Accounting', 'Goods Received', ['include
         .number-spinner {
             -moz-appearance: number-input;
         }
+
     </style>
 </head>
 
@@ -267,7 +268,7 @@ $canIncludePrice = hasModulePermission('Accounting', 'Goods Received', ['include
                                                         </div> 
                                                     </div>
                                                     <div class="card-body">
-                                                        <table id="weightTable" class="table table-bordered nowrap table-striped align-middle" style="width:100%">
+                                                        <table id="weightTable" class="table table-expandable table-bordered nowrap table-striped align-middle" style="width:100%">
                                                             <thead>
                                                                 <tr>
                                                                     <th><input type="checkbox" id="selectAllCheckbox" class="selectAllCheckbox"></th>
@@ -781,8 +782,9 @@ $canIncludePrice = hasModulePermission('Accounting', 'Goods Received', ['include
         <div style="width:0; min-width:100%;">
         <div class="dt-hidden-cols"></div>
         <!-- Weighing Section -->
+        <div class="expand-summary">
         <div class="d-flex justify-content-between align-items-center">
-            <span style="font-size:120%; text-decoration: underline;"><strong><?=$languageArray['goods_received_information_code'][$language]?></strong></span>`;
+            <h5 class="expand-title"><i class="ri-file-list-3-fill"></i><?=$languageArray['goods_received_information_code'][$language]?></h5>`;
 
         if (canUpdatePrice && row.weights && row.weights.length > 0) {
             returnString += `<div class="flex-shrink-0">`;
@@ -817,7 +819,7 @@ $canIncludePrice = hasModulePermission('Accounting', 'Goods Received', ['include
 
             returnString += `
         </div>
-        <hr>
+        </div>
         <div>
             <table id="grWeightTable${groupId}" class="table table-bordered nowrap table-striped align-middle" style="width:100%">
                 <thead>
