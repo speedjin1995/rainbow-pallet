@@ -434,8 +434,8 @@ $canIncludePrice = hasModulePermission('Accounting', 'Goods Received', ['include
             var fromDateI = $('#fromDateSearch').val();
             var toDateI = $('#toDateSearch').val();
 
-            // Exclude specific td elements by checking the event target
-            if ($(e.target).closest('td').hasClass('select-checkbox') || $(e.target).closest('td').hasClass('action-button')) {
+            // Exclude specific td elements by checking the event target, and rows of the nested weighing table
+            if ($(e.target).closest('td').hasClass('select-checkbox') || $(e.target).closest('td').hasClass('action-button') || !row.data()) {
                 return;
             }
 
@@ -443,15 +443,16 @@ $canIncludePrice = hasModulePermission('Accounting', 'Goods Received', ['include
                 // This row is already open - close it
                 row.child.hide();
                 tr.removeClass('shown');
-                delete updatePriceModes[row.data().id]; // re-expanding starts fresh in view mode
+                cleanupDetailTables();
             } else {
                 var groupId = row.data().id;
                 $.post('php/modules/weighing/index.php', { action: 'getWeight', userID: groupId, fromDate: fromDateI, toDate: toDateI, format: 'EXPANDABLE', acctType: 'GR' }, function (data) {
                     var obj = JSON.parse(data);
                     if (obj.status === 'success') {
                         expandedWeights[groupId] = obj.message;
-                        row.child(format(obj.message, groupId, false)).show();
-                        tr.addClass("shown").attr('data-group-id', groupId);
+                        updatePriceModes[groupId] = false; // expanding always starts in view mode
+                        tr.addClass("shown");
+                        showWeighingDetails(row, groupId, false);
                     }
                 });
             }
@@ -603,7 +604,7 @@ $canIncludePrice = hasModulePermission('Accounting', 'Goods Received', ['include
 
         // Create new Datatable
         table = $("#weightTable").DataTable({
-            "responsive": true,
+            "responsive": { details: false }, // hidden columns are shown in the expanded row (bindExpandableRows)
             "autoWidth": false,
             'processing': true,
             'serverSide': true,
@@ -631,6 +632,7 @@ $canIncludePrice = hasModulePermission('Accounting', 'Goods Received', ['include
                     data: 'id',
                     className: 'select-checkbox',
                     orderable: false,
+                    responsivePriority: 1,
                     render: function (data, type, row) {
                         return '<input type="checkbox" class="select-checkbox" id="checkbox_' + data + '" value="' + data + '"/>';
                     }
@@ -650,6 +652,74 @@ $canIncludePrice = hasModulePermission('Accounting', 'Goods Received', ['include
                 }
             ]
         });
+        bindExpandableRows(table);
+    }
+
+    // ─── Expandable rows ──────────────────────────────────────────────────────
+    // The list table runs Responsive with details: false - its child row holds our own details, so the
+    // columns Responsive hides are listed at the top of that child row (.dt-hidden-cols) instead
+    function bindExpandableRows(dtApi) {
+        var node = dtApi.table().node();
+        dtApi.on('responsive-resize', function (e) {
+            if (e.target === node) { // the inner detail tables' events bubble up to here too
+                dtApi.rows().every(function () {
+                    if (this.child.isShown()) {
+                        renderHiddenColumns(dtApi, this);
+                    }
+                });
+            }
+        });
+
+        // A redraw drops the child rows - clear out the detail tables that went with them
+        dtApi.on('draw', cleanupDetailTables);
+    }
+
+    function renderHiddenColumns(dtApi, rowApi) {
+        var visible = dtApi.columns().responsiveHidden(); // true = shown, false = hidden by Responsive
+        var html = '';
+        var visibleCount = 0;
+        for (var i = 0; i < visible.length; i++) {
+            if (visible[i]) {
+                visibleCount++;
+            } else {
+                html += `
+                <div class="col-auto">
+                    <p class="mb-2"><strong class="text-uppercase">${$(dtApi.column(i).header()).text()}:</strong> ${$(dtApi.cell(rowApi.index(), i).node()).html()}</p>
+                </div>`;
+            }
+        }
+        var $child = $(rowApi.child());
+        $child.find('.dt-hidden-cols').first().html(html ? '<div class="row">' + html + '</div><hr class="mt-0">' : '');
+
+        // DataTables sets the child cell's colspan to the columns shown when the row opened - keep it spanning
+        // the current ones, then let the inner table re-fit the new width
+        $child.children('td').attr('colspan', visibleCount);
+        $child.find('table.dataTable').each(function () {
+            $(this).DataTable().columns.adjust().responsive.recalc();
+        });
+    }
+
+    // Responsive DataTable for the table inside an expanded row
+    function initDetailTable(selector, options) {
+        $(selector).DataTable($.extend({
+            // default renderer (copies the cell HTML) - listHiddenNodes in Responsive 2.2.9 keeps one page-wide
+            // store keyed only by row-col, so it moves cells between this table and the list table
+            "responsive": true,
+            "autoWidth": false,
+            "paging": false,
+            "searching": false,
+            "ordering": false,
+            "info": false
+        }, options || {}));
+    }
+
+    // Destroy detail tables no longer on the page (row collapsed or list redrawn) so they stop handling resizes
+    function cleanupDetailTables() {
+        $.each($.fn.dataTable.tables(), function (i, node) {
+            if (!$.contains(document.documentElement, node)) {
+                $(node).DataTable().destroy();
+            }
+        });
     }
 
     // One badge per issue of the group, listed one per line; a tick when there is none
@@ -663,7 +733,11 @@ $canIncludePrice = hasModulePermission('Accounting', 'Goods Received', ['include
     }
 
     function format(row, groupId, editMode) {
+        // width:0 + min-width:100% keeps the inner table from stretching the parent row's cell,
+        // so it follows the outer table's width and its responsive columns collapse when the screen shrinks
         var returnString = `
+        <div style="width:0; min-width:100%;">
+        <div class="dt-hidden-cols"></div>
         <!-- Weighing Section -->
         <div class="d-flex justify-content-between align-items-center">
             <span style="font-size:120%; text-decoration: underline;"><strong><?=$languageArray['goods_received_information_code'][$language]?></strong></span>`;
@@ -702,8 +776,8 @@ $canIncludePrice = hasModulePermission('Accounting', 'Goods Received', ['include
             returnString += `
         </div>
         <hr>
-        <div class="row">
-            <table class="table table-bordered nowrap table-striped align-middle" style="width:100%">
+        <div>
+            <table id="grWeightTable${groupId}" class="table table-bordered nowrap table-striped align-middle" style="width:100%">
                 <thead>
                     <tr>
                         <th><?=$languageArray['transaction_id_code'][$language]?></th>
@@ -717,9 +791,11 @@ $canIncludePrice = hasModulePermission('Accounting', 'Goods Received', ['include
                         <th><?=$languageArray['outgoing_date_code'][$language]?></th>
                         <th><?=$languageArray['nett_weight_code'][$language]?></th>`;
                         if (editMode || canIncludePrice) {
+                            // "all" keeps the price inputs from collapsing - collapsed cells are copied as HTML, which would duplicate the input ids
+                            var priceClass = editMode ? ' class="all"' : '';
                             returnString += `
-                        <th><?=$languageArray['unit_price_code'][$language]?></th>
-                        <th><?=$languageArray['total_price_code'][$language]?></th>`;
+                        <th${priceClass}><?=$languageArray['unit_price_code'][$language]?></th>
+                        <th${priceClass}><?=$languageArray['total_price_code'][$language]?></th>`;
                         }
                         if (canEditWeight || canPrintWeight) {
                             returnString += `<th><?=$languageArray['action_code'][$language]?><?=actionPermissionNote([$canEditWeight, $canPrintWeight])?></th>`;
@@ -807,22 +883,45 @@ $canIncludePrice = hasModulePermission('Accounting', 'Goods Received', ['include
                 returnString += `</tbody>
             </table>
         </div>
+        </div>
         `;
         
         return returnString;
     }
 
+    // Render a GR group's weighings into its child row and turn the inner table into a responsive DataTable
+    function showWeighingDetails(rowApi, groupId, editMode) {
+        var selector = '#grWeightTable' + groupId;
+        if ($.fn.DataTable.isDataTable(selector)) {
+            $(selector).DataTable().destroy();
+        }
+
+        rowApi.child(format(expandedWeights[groupId], groupId, editMode)).show();
+        renderHiddenColumns(table, rowApi);
+
+        initDetailTable(selector, {
+            "columnDefs": [
+                { targets: 0, responsivePriority: 1 },
+                { targets: -1, responsivePriority: 2 }
+            ]
+        });
+    }
+
+    // The list row of a GR group - looked up by data, since a reload rebuilds the row nodes
+    function findGroupRow(groupId) {
+        return table.row(function (idx, data) { return data.id == groupId; });
+    }
+
     // ─── Update Price (expandable weighing table) ─────────────────────────────
     // Toggle a GR group's inline table between view mode and price-edit mode
     function toggleUpdatePrice(groupId) {
-        var tr = $('#weightTable tbody tr[data-group-id="' + groupId + '"]');
-        var rowApi = table.row(tr);
+        var rowApi = findGroupRow(groupId);
         if (!rowApi.length || !rowApi.child.isShown()) {
             return;
         }
 
         updatePriceModes[groupId] = !updatePriceModes[groupId];
-        rowApi.child(format(expandedWeights[groupId], groupId, updatePriceModes[groupId])).show();
+        showWeighingDetails(rowApi, groupId, updatePriceModes[groupId]);
 
         if (updatePriceModes[groupId]) {
             loadPriceSuggestions(groupId);
@@ -905,8 +1004,10 @@ $canIncludePrice = hasModulePermission('Accounting', 'Goods Received', ['include
             var obj = JSON.parse(data);
             if (obj.status === 'success') {
                 toastr["success"](obj.message, "Success:");
-                refreshGroupPrices(groupId);
-                table.ajax.reload(null, false);
+                // reload first, then reopen the group - the reload rebuilds the rows and drops their child rows
+                table.ajax.reload(function () {
+                    refreshGroupPrices(groupId);
+                }, false);
             } else {
                 toastr["error"](obj.message, "Failed:");
             }
@@ -915,19 +1016,22 @@ $canIncludePrice = hasModulePermission('Accounting', 'Goods Received', ['include
         });
     }
 
-    // Re-fetch a GR group's weighings after a price save and re-render its child row in view mode
+    // Re-fetch a GR group's weighings after a price save and reopen its child row in view mode
     function refreshGroupPrices(groupId) {
-        var tr = $('#weightTable tbody tr[data-group-id="' + groupId + '"]');
-        var rowApi = table.row(tr);
         var fromDateI = $('#fromDateSearch').val();
         var toDateI = $('#toDateSearch').val();
 
         $.post('php/modules/weighing/index.php', { action: 'getWeight', userID: groupId, fromDate: fromDateI, toDate: toDateI, format: 'EXPANDABLE', acctType: 'GR' }, function (data) {
             var obj = JSON.parse(data);
             if (obj.status === 'success') {
+                var rowApi = findGroupRow(groupId);
+                if (!rowApi.length) {
+                    return; // no longer in the list (e.g. filtered out after the save)
+                }
                 expandedWeights[groupId] = obj.message;
                 updatePriceModes[groupId] = false;
-                rowApi.child(format(obj.message, groupId, false)).show();
+                $(rowApi.node()).addClass('shown');
+                showWeighingDetails(rowApi, groupId, false);
             }
         });
     }
