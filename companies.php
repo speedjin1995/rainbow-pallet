@@ -21,8 +21,8 @@
     ];
     $documentTypeLabels = [
         'DO'  => $languageArray['delivery_order_no_code'][$language],
-        'PO'  => $languageArray['purchase_order_no_code'][$language],
-        'INV' => $languageArray['invoice_no_code'][$language],
+        // 'PO'  => $languageArray['purchase_order_no_code'][$language],
+        // 'INV' => $languageArray['invoice_no_code'][$language],
     ];
 
     // Table column setup: group label => [table value => label]
