@@ -191,7 +191,7 @@ foreach (['Sales', 'Purchase', 'Local', 'Port', 'Miscellaneous'] as $weighingSta
                                                             <label for="companySearch" class="form-label"><?=$languageArray['company_code'][$language]?></label>
                                                             <select id="companySearch" class="form-select select2" >
                                                                 <?php while($rowCompany = mysqli_fetch_assoc($company2)){ ?>
-                                                                    <option value="<?=$rowCompany['id'] ?>" <?=(hasPermission('Weighing', ['view_all_companies']) ? $rowCompany['id'] == 1 : $rowCompany['id'] == $companyId) ? 'selected' : ''?>><?=$rowCompany['name'] ?></option>
+                                                                    <option value="<?=$rowCompany['id'] ?>" <?=($rowCompany['id'] == $companyId) ? 'selected' : ''?>><?=$rowCompany['name'] ?></option>
                                                                 <?php } ?>
                                                             </select>
                                                         </div>

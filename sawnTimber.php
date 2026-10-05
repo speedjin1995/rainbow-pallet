@@ -120,7 +120,7 @@ require_once "components/sawnTimberModal/data.php";
                                                             <label for="companySearch" class="form-label"><?=$languageArray['company_code'][$language]?></label>
                                                             <select class="form-select select2" id="companySearch" name="companySearch" required>
                                                                 <?php while($rowCompany=mysqli_fetch_assoc($company)){ ?>
-                                                                    <option value="<?=$rowCompany['id'] ?>" <?=($canViewAllCompanies ? $rowCompany['id'] == 1 : $rowCompany['id'] == $companyId) ? 'selected' : ''?>><?=$rowCompany['name'] ?></option>
+                                                                    <option value="<?=$rowCompany['id'] ?>" <?=($rowCompany['id'] == $companyId) ? 'selected' : ''?>><?=$rowCompany['name'] ?></option>
                                                                 <?php } ?>
                                                             </select>
                                                         </div>
