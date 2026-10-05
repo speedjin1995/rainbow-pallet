@@ -68,7 +68,7 @@
                                     <label class="form-label small mb-1"><?=$languageArray['company_code'][$language]?> <span class="text-danger">*</span></label>
                                     <select class="form-control select2" id="stCompanyId" name="companyId" required>
                                         <?php while($rowStmCompany=mysqli_fetch_assoc($stmCompany)){ ?>
-                                            <option value="<?=$rowStmCompany['id'] ?>" <?=($stmCanViewAllCompanies ? $rowStmCompany['id'] == 1 : $rowStmCompany['id'] == $stmCompanyId) ? 'selected' : ''?>><?=$rowStmCompany['name'] ?></option>
+                                            <option value="<?=$rowStmCompany['id'] ?>" <?=($rowStmCompany['id'] == $stmCompanyId) ? 'selected' : ''?>><?=$rowStmCompany['name'] ?></option>
                                         <?php } ?>
                                     </select>
                                     <div class="invalid-feedback">

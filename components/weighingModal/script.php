@@ -405,7 +405,7 @@
         inModal('#id').val("");
         inModal('#currentWeight').text("0");
         inModal('#transactionId').val("");
-        inModal('#companyId').val(prefill && prefill.companyId ? prefill.companyId : DEFAULT_COMPANY_ID).trigger('change');
+        inModal('#companyId').val(prefill && prefill.companyId ? prefill.companyId : sessionCompanyId).trigger('change');
         inModal('#transactionStatus').val("Sales").trigger('change');
         inModal('#emptyContainerNo').val("").trigger('change');
         inModal('#weightType').val("Normal").trigger('change');
