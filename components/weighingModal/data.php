@@ -35,7 +35,7 @@ if (!hasPermission('Weighing', ['view_all_companies'])) {
     $wmVehicles = $db->query("SELECT * FROM Vehicle WHERE status='0' AND company=$wmSelectedCompanyId ORDER BY veh_number ASC");
     $wmVehicles2 = $db->query("SELECT * FROM Vehicle WHERE status='0' AND company=$wmSelectedCompanyId ORDER BY veh_number ASC");
     $wmCustomer = $db->query("SELECT * FROM Customer WHERE status='0' AND company=$wmSelectedCompanyId ORDER BY name ASC");
-    $wmProductSql = "SELECT p.*,IFNULL(c.is_sales,'Y') as is_sales,IFNULL(c.is_purchase,'Y') as is_purchase,IFNULL(c.is_local,'Y') as is_local,IFNULL(c.is_port,'Y') as is_port,IFNULL(c.is_misc,'Y') as is_misc FROM Product p LEFT JOIN Product_Categories c ON p.category=c.id WHERE p.status='0' AND p.company=$wmSelectedCompanyId ORDER BY p.name ASC";
+    $wmProductSql = "SELECT p.*,IFNULL(c.is_sales,'Y') as is_sales,IFNULL(c.is_purchase,'Y') as is_purchase,IFNULL(c.is_local,'Y') as is_local,IFNULL(c.is_port,'Y') as is_port,IFNULL(c.is_misc,'Y') as is_misc,IFNULL(c.is_production,'Y') as is_production FROM Product p LEFT JOIN Product_Categories c ON p.category=c.id WHERE p.status='0' AND p.company=$wmSelectedCompanyId ORDER BY p.name ASC";
     $wmProduct = $db->query($wmProductSql);
     $wmRawMaterial = $db->query($wmProductSql);
     $wmDestination = $db->query("SELECT * FROM Destination WHERE status='0' AND company=$wmSelectedCompanyId ORDER BY name ASC");
@@ -46,7 +46,7 @@ if (!hasPermission('Weighing', ['view_all_companies'])) {
     $wmVehicles = $db->query("SELECT * FROM Vehicle WHERE status = '0' ORDER BY veh_number ASC");
     $wmVehicles2 = $db->query("SELECT * FROM Vehicle WHERE status = '0' ORDER BY veh_number ASC");
     $wmCustomer = $db->query("SELECT * FROM Customer WHERE status = '0' ORDER BY name ASC");
-    $wmProductSql = "SELECT p.*, IFNULL(c.is_sales, 'Y') as is_sales, IFNULL(c.is_purchase, 'Y') as is_purchase, IFNULL(c.is_local, 'Y') as is_local, IFNULL(c.is_port, 'Y') as is_port, IFNULL(c.is_misc, 'Y') as is_misc FROM Product p LEFT JOIN Product_Categories c ON p.category = c.id WHERE p.status = '0' ORDER BY p.name ASC";
+    $wmProductSql = "SELECT p.*, IFNULL(c.is_sales, 'Y') as is_sales, IFNULL(c.is_purchase, 'Y') as is_purchase, IFNULL(c.is_local, 'Y') as is_local, IFNULL(c.is_port, 'Y') as is_port, IFNULL(c.is_misc, 'Y') as is_misc, IFNULL(c.is_production, 'Y') as is_production FROM Product p LEFT JOIN Product_Categories c ON p.category = c.id WHERE p.status = '0' ORDER BY p.name ASC";
     $wmProduct = $db->query($wmProductSql);
     $wmRawMaterial = $db->query($wmProductSql);
     $wmDestination = $db->query("SELECT * FROM Destination WHERE status = '0' ORDER BY name ASC");

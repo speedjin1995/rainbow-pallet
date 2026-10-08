@@ -149,6 +149,8 @@ while($m = $modules->fetch_assoc()){
                                                             $modName = $languageArray['trx_to_port_code']['en'];
                                                         } else if ($modName == 'Misc') {
                                                             $modName = $languageArray['miscellaneous_code']['en'];
+                                                        } else if ($modName == 'Production') {
+                                                            $modName = $languageArray['production_code']['en'];
                                                         } else if ($modName == 'Product Category') {
                                                             $modName = $languageArray['product_category_code']['en'];
                                                         }

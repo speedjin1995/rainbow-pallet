@@ -27,6 +27,7 @@ class PermissionService extends BaseService {
                     'Local'            => $languageArray['internal_transfer_code']['en'] ?? $mr['name'],
                     'Port'             => $languageArray['trx_to_port_code']['en'] ?? $mr['name'],
                     'Misc'             => $languageArray['miscellaneous_code']['en'] ?? $mr['name'],
+                    'Production'       => $languageArray['production_code']['en'] ?? $mr['name'],
                     'Product Category' => $languageArray['product_category_code']['en'] ?? $mr['name'],
                 ];
                 $name = $map[$mr['name']] ?? $mr['name'];
@@ -255,6 +256,7 @@ class PermissionService extends BaseService {
             ['name' => 'manual_date_change', 'modules' => [
                 ['Sales', 'Weighing'], 
                 ['Purchase', 'Weighing'], 
+                ['Production', 'Weighing'], 
                 ['Port', 'Weighing'], 
                 ['Miscellaneous', 'Weighing']
             ]],

@@ -10,6 +10,7 @@ class ReportService extends BaseService {
         'Port'     => 'Port',
         'Misc'     => 'Miscellaneous',
         'Local'    => 'Local',
+        'Production' => 'Production',
     ];
 
     // DataTables column => DB column (only whitelisted columns can be sorted)
@@ -49,12 +50,13 @@ class ReportService extends BaseService {
 
         $language      = $_SESSION['language'] ?? 'en';
         $languageArray = $_SESSION['languageArray'] ?? [];
-        $counts = ['Sales' => 0, 'Purchase' => 0, 'Local' => 0, 'Port' => 0, 'Misc' => 0];
+        $counts = ['Sales' => 0, 'Purchase' => 0, 'Local' => 0, 'Port' => 0, 'Misc' => 0, 'Production' => 0];
         $statusLabels = [
             'Sales'    => 'dispatch_code',
             'Purchase' => 'receiving_code',
             'Misc'     => 'miscellaneous_code',
             'Port'     => 'trx_to_port_code',
+            'Production' => 'production_code',
         ];
         $weightTypeLabels = [
             'Container'           => 'primer_mover_code',
@@ -139,6 +141,7 @@ class ReportService extends BaseService {
             'purchaseTotal'        => $counts['Purchase'],
             'localTotal'           => $counts['Local'],
             'miscTotal'            => $counts['Misc'],
+            'productionTotal'      => $counts['Production'],
         ];
     }
 
@@ -575,6 +578,7 @@ class ReportService extends BaseService {
             'Purchase' => 'receiving_code',
             'Port'     => 'trx_to_port_code',
             'Misc'     => 'miscellaneous_code',
+            'Production' => 'production_code',
         ];
 
         $html = '

@@ -71,6 +71,7 @@ class TableColumnService extends BaseService {
         'purchase_report' => self::REPORT_DEFAULT,
         'port_report'     => self::REPORT_DEFAULT,
         'misc_report'     => self::REPORT_DEFAULT,
+        'production_report' => self::REPORT_DEFAULT,
     ];
 
     // Report pages all had the same fixed headers
@@ -89,6 +90,7 @@ class TableColumnService extends BaseService {
         'purchase_report' => ['company_name'],
         'port_report'     => ['company_name'],
         'misc_report'     => ['company_name'],
+        'production_report' => ['company_name'],
     ];
 
     // Report table => Reports permission module (for the company scope, same as ReportService::buildScope)
@@ -97,6 +99,7 @@ class TableColumnService extends BaseService {
         'purchase_report' => 'Purchase',
         'port_report'     => 'Port',
         'misc_report'     => 'Miscellaneous',
+        'production_report' => 'Production',
     ];
 
     /**

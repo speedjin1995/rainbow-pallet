@@ -13,6 +13,7 @@
         // 'Local' => $languageArray['internal_transfer_code'][$language],
         'Port' => $languageArray['trx_to_port_code'][$language],
         'Misc' => $languageArray['miscellaneous_code'][$language],
+        'Production' => $languageArray['production_code'][$language],
     ];
     $resetLabels = [
         'Never'   => $languageArray['never_code'][$language],
@@ -37,6 +38,7 @@
             'purchase_report' => $languageArray['receiving_report_code'][$language],
             'port_report'     => $languageArray['trx_to_port_code'][$language],
             'misc_report'     => $languageArray['miscellaneous_report_code'][$language],
+            'production_report' => $languageArray['production_report_code'][$language],
         ],
     ];
 ?>

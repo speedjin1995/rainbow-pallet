@@ -200,6 +200,7 @@
                                                                                             <!-- <option value="Local"><?=$languageArray['internal_transfer_code'][$language]?></option> -->
                                                                                             <option value="Port"><?=$languageArray['trx_to_port_code'][$language]?></option>
                                                                                             <option value="Misc"><?=$languageArray['miscellaneous_code'][$language]?></option>
+                                                                                            <option value="Production"><?=$languageArray['production_code'][$language]?></option>
                                                                                         </select>
                                                                                         <div class="invalid-feedback">
                                                                                             <?=$languageArray['please_fill_in_the_field_code'][$language] ?? 'Please fill in the field'?>
@@ -371,6 +372,7 @@
                                                                     <!-- <th><?=$languageArray['local_code'][$language] ?? 'Local'?></th> -->
                                                                     <th><?=$languageArray['trx_to_port_code'][$language] ?? 'Transfer to Port'?></th>
                                                                     <th><?=$languageArray['miscellaneous_code'][$language] ?? 'Misc'?></th>
+                                                                    <th><?=$languageArray['production_code'][$language] ?? 'Production'?></th>
                                                                     <th><?=$languageArray['sawn_timber_code'][$language] ?? 'Sawn Timber'?></th>
                                                                     <th><?=$languageArray['status_code'][$language] ?? 'Status'?></th>
                                                                     <th><?=$languageArray['action_code'][$language] ?? 'Action'?><?=actionPermissionNote([hasModulePermission('Master Data', 'Product Category', ['edit']), hasModulePermission('Master Data', 'Product Category', ['cancelled'])])?></th>
@@ -719,6 +721,7 @@ function renderTable(){
             // { data: 'is_local' },
             { data: 'is_port' },
             { data: 'is_misc' },
+            { data: 'is_production' },
             { data: 'is_sawn_timber' },
             {
                 data: 'id',
@@ -791,6 +794,7 @@ function edit(id){
             if (obj.data.is_local === 'Y') transactionStatus.push('Local');
             if (obj.data.is_port === 'Y') transactionStatus.push('Port');
             if (obj.data.is_misc === 'Y') transactionStatus.push('Misc');
+            if (obj.data.is_production === 'Y') transactionStatus.push('Production');
             $('#addModal').find('#transactionStatus').val(transactionStatus).trigger('change');
             // Set isSawnTimber before the company change handler runs, so that handler
             // has the final say on visibility/reset if the company has no Sawn Timber tied

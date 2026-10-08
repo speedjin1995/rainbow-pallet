@@ -4393,3 +4393,75 @@ INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALU
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('generate_do_no_tooltip_code', 'Click to generate the next {status} Delivery No. The final number is assigned when you save.', '点击生成下一个{status}送货单号。最终单号将在保存时分配。', 'Klik untuk menjana No. DO {status} yang seterusnya. Nombor akhir akan ditetapkan semasa simpan.', 'அடுத்த {status} டெலிவரி எண்ணை உருவாக்க கிளிக் செய்யவும். இறுதி எண் சேமிக்கும்போது ஒதுக்கப்படும்.');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('do_no_not_setup_tooltip_code', 'Auto-generated Delivery No is not set up for {status} for this company. Please enter the Delivery No manually.', '该公司尚未为{status}设置自动生成送货单号。请手动输入送货单号。', 'No. DO automatik belum ditetapkan untuk {status} bagi syarikat ini. Sila masukkan No. DO secara manual.', 'இந்த நிறுவனத்திற்கு {status} க்கான தானியங்கி டெலிவரி எண் அமைக்கப்படவில்லை. டெலிவரி எண்ணைக் கைமுறையாக உள்ளிடவும்.');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('do_no_format_not_setup_code', 'Delivery No format is not set up for this company and transaction status. Please set it up in Companies > Document Number, or enter the Delivery No manually.', '该公司及交易状态尚未设置送货单号格式。请在 公司 > 单据编号 中设置，或手动输入送货单号。', 'Format No. DO belum ditetapkan untuk syarikat dan status transaksi ini. Sila tetapkan di Syarikat > Nombor Dokumen, atau masukkan No. DO secara manual.', 'இந்த நிறுவனம் மற்றும் பரிவர்த்தனை நிலைக்கு டெலிவரி எண் வடிவம் அமைக்கப்படவில்லை. நிறுவனங்கள் > ஆவண எண் பகுதியில் அமைக்கவும், அல்லது டெலிவரி எண்ணைக் கைமுறையாக உள்ளிடவும்.');
+
+-- 08/10/2026 --
+ALTER TABLE `Plant` ADD `production` VARCHAR(5) NOT NULL DEFAULT '1' AFTER `port`;
+ALTER TABLE `Plant_Log` ADD `production` VARCHAR(5) NOT NULL DEFAULT '1' AFTER `port`;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_PLANT` AFTER INSERT ON `Plant` FOR EACH ROW INSERT INTO Plant_Log (
+    plant_id, plant_code, name, address_line_1, address_line_2, address_line_3, phone_no, fax_no, sales, purchase, locals, misc, port, production, do_no, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.plant_code, NEW.name, NEW.address_line_1, NEW.address_line_2, NEW.address_line_3, NEW.phone_no, NEW.fax_no, NEW.sales, NEW.purchase, NEW.locals, NEW.misc, NEW.port, NEW.production, NEW.do_no, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_PLANT` BEFORE UPDATE ON `Plant` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Check if status = 1, set action_id to 3, otherwise set to 2
+    IF NEW.status = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Plant_Log table
+    INSERT INTO Plant_Log (
+        plant_id, plant_code, name, address_line_1, address_line_2, address_line_3, phone_no, fax_no, sales, purchase, locals, misc, port, production, do_no, action_id, action_by, event_date
+    ) 
+    VALUES (
+        NEW.id, NEW.plant_code, NEW.name, NEW.address_line_1, NEW.address_line_2, NEW.address_line_3, NEW.phone_no, NEW.fax_no, NEW.sales, NEW.purchase, NEW.locals, NEW.misc, NEW.port, NEW.production, NEW.do_no, action_value, NEW.modified_by, NEW.modified_date
+    );
+END
+$$
+DELIMITER ;
+
+ALTER TABLE `Product_Categories` ADD `is_production` VARCHAR(1) NOT NULL DEFAULT 'Y' AFTER `is_misc`;
+ALTER TABLE `Product_Categories_Log` ADD `is_production` VARCHAR(1) NOT NULL DEFAULT 'Y' AFTER `is_misc`;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_PROD_CAT` AFTER INSERT ON `Product_Categories` FOR EACH ROW INSERT INTO Product_Categories_Log (
+    category_id, category_name, post_to_sql, is_sales, is_purchase, is_local, is_port, is_misc, is_production, is_sawn_timber, company, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.category_name, NEW.post_to_sql, NEW.is_sales, NEW.is_purchase, NEW.is_local, NEW.is_port, NEW.is_misc, NEW.is_production, NEW.is_sawn_timber, NEW.company, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_PROD_CAT` BEFORE UPDATE ON `Product_Categories` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Check if status = 1, set action_id to 3, otherwise set to 2
+    IF NEW.status = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Product_Categories_Log table
+    INSERT INTO Product_Categories_Log (
+        category_id, category_name, post_to_sql, is_sales, is_purchase, is_local, is_port, is_misc, is_production, is_sawn_timber, company, action_id, action_by, event_date
+    ) 
+    VALUES (
+        NEW.id, NEW.category_name, NEW.post_to_sql, NEW.is_sales, NEW.is_purchase, NEW.is_local, NEW.is_port, NEW.is_misc, NEW.is_production, NEW.is_sawn_timber, NEW.company, action_value, NEW.modified_by, NEW.modified_date
+    );
+END
+$$
+DELIMITER ;
+
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('production_code', 'Production', '生产', 'Pengeluaran', 'உற்பத்தி');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('production_report_code', 'Production Report', '生产报告', 'Laporan Pengeluaran', 'உற்பத்தி அறிக்கை');

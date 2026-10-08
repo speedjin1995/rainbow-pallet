@@ -53,6 +53,7 @@ class ModuleService extends BaseService {
                     'Internal Transfer' => $languageArray['internal_transfer_code']['en'] ?? $row['name'],
                     'Miscellaneous'     => $languageArray['miscellaneous_code']['en'] ?? $row['name'],
                     'Port'              => $languageArray['trx_to_port_code']['en'] ?? $row['name'],
+                    'Production'        => $languageArray['production_code']['en'] ?? $row['name'],
                 ];
                 if (isset($map[$row['name']])) $row['name'] = $map[$row['name']];
             }
