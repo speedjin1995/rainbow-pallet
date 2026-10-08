@@ -4485,3 +4485,9 @@ INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALU
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('out_of_stock_code', 'Out of Stock', '缺货', 'Kehabisan Stok', 'கையிருப்பில் இல்லை');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('showing_of_code', 'Showing %s of %s', '显示 %s / %s', 'Memaparkan %s daripada %s', '%s / %s காட்டப்படுகிறது');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('no_record_code', 'No records found', '没有记录', 'Tiada rekod ditemui', 'பதிவுகள் எதுவும் இல்லை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('top_customers_code', 'Top Customers', '主要客户', 'Pelanggan Utama', 'முன்னணி வாடிக்கையாளர்கள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('top_customers_desc_code', 'By delivery order weight for the filtered period', '按筛选期间交货单重量排序', 'Mengikut berat pesanan penghantaran bagi tempoh yang ditapis', 'வடிகட்டிய காலத்திற்கான விநியோக ஆணை எடையின்படி');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('top_suppliers_code', 'Top Suppliers', '主要供应商', 'Pembekal Utama', 'முன்னணி விநியோகஸ்தர்கள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('top_suppliers_desc_code', 'By stock in weight for the filtered period', '按筛选期间入库重量排序', 'Mengikut berat stok masuk bagi tempoh yang ditapis', 'வடிகட்டிய காலத்திற்கான சரக்கு வரவு எடையின்படி');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('share_code', 'Share', '占比', 'Bahagian', 'பங்கு');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('filters_code', 'Filters', '筛选', 'Penapis', 'வடிகட்டிகள்');

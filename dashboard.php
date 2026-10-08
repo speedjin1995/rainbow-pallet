@@ -69,8 +69,30 @@ $productionLabel = $label('production_code', 'Production');
         #productTable thead th { font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; }
         #productTable td { vertical-align: middle; padding-top: 0.9rem; padding-bottom: 0.9rem; }
         #productTable .item-avatar { width: 36px; height: 36px; font-size: 0.7rem; }
-        .recent-movement { background-color: #1f3b33; border-radius: 0.75rem; }
-        .recent-movement .movement-badge { width: 34px; height: 34px; font-size: 0.65rem; background-color: rgba(255, 255, 255, 0.1); }
+        .dashboard-date { width: auto; flex-wrap: nowrap; }
+        .dashboard-date .form-control { width: 115px; }
+        /* Phones: toolbar, date range and table tools take the full width */
+        @media (max-width: 575.98px) {
+            .dashboard-toolbar, .dashboard-date, .product-tools { width: 100%; }
+            .dashboard-date .form-control { width: auto; flex: 1 1 0; min-width: 0; }
+            .dashboard-toolbar .btn-filters, .product-tools > * { flex: 1 1 0; min-width: 0; }
+            .product-tools .select2-container { width: auto !important; }
+            .dashboard-card .total { font-size: 1.6rem; }
+        }
+        .filter-chip { font-size: 0.75rem; font-weight: 500; }
+        .filter-chip .remove-filter { cursor: pointer; opacity: 0.7; }
+        .filter-chip .remove-filter:hover { opacity: 1; }
+        #filterDrawer .select2-container { width: 100% !important; }
+        .product-tools .select2-container .select2-selection--single { height: 100%; display: flex; align-items: center; }
+        .party-table thead th { font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; }
+        .party-table td { vertical-align: middle; padding-top: 0.75rem; padding-bottom: 0.75rem; }
+        .party-table .item-avatar { width: 32px; height: 32px; font-size: 0.65rem; }
+        .party-table tbody tr[data-party] { cursor: pointer; }
+        .party-table .progress { height: 6px; width: 80px; }
+        /* Primary indigo to match the sidebar / DO chart */
+        .recent-movement { background: linear-gradient(135deg, var(--vz-primary) 0%, #2f3d6b 100%); border-radius: 0.75rem; }
+        .recent-movement .movement-badge { width: 34px; height: 34px; font-size: 0.65rem; background-color: rgba(255, 255, 255, 0.12); }
+        .recent-movement .movement-row + .movement-row { border-top: 1px solid rgba(255, 255, 255, 0.08); }
         .recent-movement .text-white-50 { color: rgba(255, 255, 255, 0.6) !important; }
     </style>
 
@@ -92,106 +114,105 @@ $productionLabel = $label('production_code', 'Production');
                 <div class="row">
                     <div class="col">
                         <div class="h-100">
-                            <div class="col-xxl-12 col-lg-12">
-                                <div class="card">
-                                    <div class="card-header fs-5" href="#collapseSearch" data-bs-toggle="collapse" role="button" aria-expanded="true" aria-controls="collapseSearch">
-                                        <i class="mdi mdi-chevron-down pull-right"></i>
-                                        <?=$languageArray['search_records_code'][$language]?>
-                                    </div>
-                                    <div id="collapseSearch" class="collapse show" aria-labelledby="collapseSearch">
-                                        <div class="card-body">
-                                            <form action="javascript:void(0);">
-                                                <div class="row">
-                                                    <div class="col-3">
-                                                        <div class="mb-3">
-                                                            <label for="fromDateSearch" class="form-label"><?=$languageArray['from_date_code'][$language]?></label>
-                                                            <input type="date" class="form-control" data-provider="flatpickr" id="fromDateSearch">
-                                                        </div>
-                                                    </div><!--end col-->
-                                                    <div class="col-3">
-                                                        <div class="mb-3">
-                                                            <label for="toDateSearch" class="form-label"><?=$languageArray['to_date_code'][$language]?></label>
-                                                            <input type="date" class="form-control" data-provider="flatpickr" id="toDateSearch">
-                                                        </div>
-                                                    </div><!--end col-->
-                                                    <div class="col-3">
-                                                        <div class="mb-3">
-                                                            <label for="transactionStatusSearch" class="form-label"><?=$languageArray['transaction_status_code'][$language]?></label>
-                                                            <select id="transactionStatusSearch" class="form-select select2">
-                                                                <option value="-" selected>-</option>
-                                                                <option value="Purchase"><?=$stockInLabel?></option>
-                                                                <option value="Port"><?=$transferLabel?></option>
-                                                                <option value="DO"><?=$doLabel?></option>
-                                                            </select>
-                                                        </div>
-                                                    </div><!--end col-->
-                                                    <div class="col-3">
-                                                        <div class="mb-3">
-                                                            <label for="plantSearch" class="form-label"><?=$languageArray['plant_code'][$language]?></label>
-                                                            <select id="plantSearch" class="form-select select2">
-                                                                <option value="-" selected>-</option>
-                                                                <?php while($plant && $rowPlant=mysqli_fetch_assoc($plant)){ ?>
-                                                                    <option value="<?=htmlspecialchars($rowPlant['plant_code'])?>"><?=htmlspecialchars($rowPlant['name'])?></option>
-                                                                <?php } ?>
-                                                            </select>
-                                                        </div>
-                                                    </div><!--end col-->
-                                                    <?php if ($dashboardViewAllCompanies) { ?>
-                                                    <div class="col-3">
-                                                        <div class="mb-3">
-                                                            <label for="companySearch" class="form-label"><?=$languageArray['company_code'][$language]?></label>
-                                                            <select id="companySearch" class="form-select select2">
-                                                                <option value="-">-</option>
-                                                                <?php while($rowCompany=mysqli_fetch_assoc($company)){ ?>
-                                                                    <option value="<?=$rowCompany['id']?>" <?=($rowCompany['id'] == $selectedCompanyId) ? 'selected' : ''?>><?=htmlspecialchars($rowCompany['name'])?></option>
-                                                                <?php } ?>
-                                                            </select>
-                                                        </div>
-                                                    </div><!--end col-->
-                                                    <?php } ?>
-                                                    <div class="col-3">
-                                                        <div class="mb-3">
-                                                            <label for="productSearch" class="form-label"><?=$label('product_code', 'Product')?></label>
-                                                            <select id="productSearch" class="form-select select2">
-                                                                <option value="-" selected>-</option>
-                                                                <?php while($rowProduct=mysqli_fetch_assoc($product)){ ?>
-                                                                    <option value="<?=htmlspecialchars($rowProduct['product_code'])?>"><?=htmlspecialchars($rowProduct['name'])?></option>
-                                                                <?php } ?>
-                                                            </select>
-                                                        </div>
-                                                    </div><!--end col-->
-                                                    <div class="col-3">
-                                                        <div class="mb-3">
-                                                            <label for="customerSupplierSearch" class="form-label"><?=$label('customer_supplier_code', 'Customer / Supplier')?></label>
-                                                            <select id="customerSupplierSearch" class="form-select select2">
-                                                                <option value="-" selected>-</option>
-                                                                <optgroup label="<?=$label('customer_code', 'Customer')?>">
-                                                                    <?php while($rowCustomer=mysqli_fetch_assoc($customer)){ ?>
-                                                                        <option value="C|<?=htmlspecialchars($rowCustomer['customer_code'])?>"><?=htmlspecialchars($rowCustomer['name'])?></option>
-                                                                    <?php } ?>
-                                                                </optgroup>
-                                                                <optgroup label="<?=$label('supplier_code', 'Supplier')?>">
-                                                                    <?php while($rowSupplier=mysqli_fetch_assoc($supplier)){ ?>
-                                                                        <option value="S|<?=htmlspecialchars($rowSupplier['supplier_code'])?>"><?=htmlspecialchars($rowSupplier['name'])?></option>
-                                                                    <?php } ?>
-                                                                </optgroup>
-                                                            </select>
-                                                        </div>
-                                                    </div><!--end col-->
-                                                    <div class="col">
-                                                        <div class="text-end mt-4">
-                                                            <button type="button" class="btn btn-danger" id="clearAllSearch">
-                                                                <i class="bx bx-reset"></i>
-                                                                <?=$languageArray['clear_all_code'][$language]?></button>
-                                                            <button type="submit" class="btn btn-success" id="filterSearch">
-                                                                <i class="bx bx-search-alt"></i>
-                                                                <?=$languageArray['search_code'][$language]?></button>
-                                                        </div>
-                                                    </div><!--end col-->
-                                                </div><!--end row-->
-                                            </form>
+                            <!-- Header: date range, filter drawer button and active filter chips -->
+                            <div class="card dashboard-panel">
+                                <div class="card-body py-3">
+                                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                                        <div>
+                                            <h5 class="card-title mb-1"><?=$label('dashboard_code', 'Dashboard')?></h5>
+                                            <p class="text-muted mb-0 fs-12" id="periodText"></p>
+                                        </div>
+                                        <div class="d-flex flex-wrap align-items-center gap-2 dashboard-toolbar">
+                                            <div class="input-group dashboard-date">
+                                                <span class="input-group-text"><i class="ri-calendar-2-line"></i></span>
+                                                <input type="text" class="form-control" data-provider="flatpickr" id="fromDateSearch" placeholder="<?=$languageArray['from_date_code'][$language]?>">
+                                                <span class="input-group-text">&rarr;</span>
+                                                <input type="text" class="form-control" data-provider="flatpickr" id="toDateSearch" placeholder="<?=$languageArray['to_date_code'][$language]?>">
+                                            </div>
+                                            <button type="button" class="btn btn-soft-primary position-relative btn-filters" data-bs-toggle="offcanvas" data-bs-target="#filterDrawer" aria-controls="filterDrawer">
+                                                <i class="ri-filter-3-line align-bottom me-1"></i><?=$label('filters_code', 'Filters')?>
+                                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" id="filterCount">0</span>
+                                            </button>
+                                            <button type="button" class="btn btn-soft-secondary btn-icon" id="refreshDashboard" title="<?=$languageArray['search_code'][$language]?>">
+                                                <i class="ri-refresh-line"></i>
+                                            </button>
                                         </div>
                                     </div>
+                                    <div class="d-flex flex-wrap align-items-center gap-2 mt-3 d-none" id="activeFilters"></div>
+                                </div>
+                            </div>
+
+                            <!-- Filter drawer -->
+                            <div class="offcanvas offcanvas-end border-0" tabindex="-1" id="filterDrawer" aria-labelledby="filterDrawerLabel">
+                                <div class="offcanvas-header border-bottom">
+                                    <h5 class="offcanvas-title" id="filterDrawerLabel"><i class="ri-filter-3-line align-bottom me-1"></i><?=$languageArray['search_records_code'][$language]?></h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                                </div>
+                                <div class="offcanvas-body">
+                                    <form action="javascript:void(0);" id="filterForm">
+                                        <div class="mb-3">
+                                            <label for="transactionStatusSearch" class="form-label"><?=$languageArray['transaction_status_code'][$language]?></label>
+                                            <select id="transactionStatusSearch" class="form-select select2">
+                                                <option value="-" selected>-</option>
+                                                <option value="Purchase"><?=$stockInLabel?></option>
+                                                <option value="Port"><?=$transferLabel?></option>
+                                                <option value="DO"><?=$doLabel?></option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="plantSearch" class="form-label"><?=$languageArray['plant_code'][$language]?></label>
+                                            <select id="plantSearch" class="form-select select2">
+                                                <option value="-" selected>-</option>
+                                                <?php while($plant && $rowPlant=mysqli_fetch_assoc($plant)){ ?>
+                                                    <option value="<?=htmlspecialchars($rowPlant['plant_code'])?>"><?=htmlspecialchars($rowPlant['name'])?></option>
+                                                <?php } ?>
+                                            </select>
+                                        </div>
+                                        <?php if ($dashboardViewAllCompanies) { ?>
+                                        <div class="mb-3">
+                                            <label for="companySearch" class="form-label"><?=$languageArray['company_code'][$language]?></label>
+                                            <select id="companySearch" class="form-select select2">
+                                                <option value="-">-</option>
+                                                <?php while($rowCompany=mysqli_fetch_assoc($company)){ ?>
+                                                    <option value="<?=$rowCompany['id']?>" <?=($rowCompany['id'] == $selectedCompanyId) ? 'selected' : ''?>><?=htmlspecialchars($rowCompany['name'])?></option>
+                                                <?php } ?>
+                                            </select>
+                                        </div>
+                                        <?php } ?>
+                                        <div class="mb-3">
+                                            <label for="productSearch" class="form-label"><?=$label('product_code', 'Product')?></label>
+                                            <select id="productSearch" class="form-select select2">
+                                                <option value="-" selected>-</option>
+                                                <?php while($rowProduct=mysqli_fetch_assoc($product)){ ?>
+                                                    <option value="<?=htmlspecialchars($rowProduct['product_code'])?>"><?=htmlspecialchars($rowProduct['name'])?></option>
+                                                <?php } ?>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="customerSupplierSearch" class="form-label"><?=$label('customer_supplier_code', 'Customer / Supplier')?></label>
+                                            <select id="customerSupplierSearch" class="form-select select2">
+                                                <option value="-" selected>-</option>
+                                                <optgroup label="<?=$label('customer_code', 'Customer')?>">
+                                                    <?php while($rowCustomer=mysqli_fetch_assoc($customer)){ ?>
+                                                        <option value="C|<?=htmlspecialchars($rowCustomer['customer_code'])?>"><?=htmlspecialchars($rowCustomer['name'])?></option>
+                                                    <?php } ?>
+                                                </optgroup>
+                                                <optgroup label="<?=$label('supplier_code', 'Supplier')?>">
+                                                    <?php while($rowSupplier=mysqli_fetch_assoc($supplier)){ ?>
+                                                        <option value="S|<?=htmlspecialchars($rowSupplier['supplier_code'])?>"><?=htmlspecialchars($rowSupplier['name'])?></option>
+                                                    <?php } ?>
+                                                </optgroup>
+                                            </select>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="offcanvas-footer border-top p-3 d-flex gap-2">
+                                    <button type="button" class="btn btn-danger w-50" id="clearAllSearch">
+                                        <i class="bx bx-reset"></i>
+                                        <?=$languageArray['clear_all_code'][$language]?></button>
+                                    <button type="button" class="btn btn-success w-50" id="filterSearch">
+                                        <i class="bx bx-search-alt"></i>
+                                        <?=$languageArray['search_code'][$language]?></button>
                                 </div>
                             </div>
 
@@ -230,22 +251,22 @@ $productionLabel = $label('production_code', 'Production');
                             <div class="row">
                                 <!-- Product inventory -->
                                 <div class="col-xl-8">
-                                    <div class="card dashboard-panel">
+                                    <div class="card dashboard-panel card-height-100">
                                         <div class="card-header border-0 pb-0">
                                             <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
                                                 <div>
                                                     <h5 class="card-title mb-1"><?=$label('product_inventory_code', 'Product Inventory')?></h5>
                                                     <p class="text-muted mb-0"><?=$label('product_inventory_desc_code', 'Stock balance by product for the filtered period')?></p>
                                                 </div>
-                                                <div class="d-flex gap-2">
+                                                <div class="d-flex gap-2 product-tools">
                                                     <input type="text" class="form-control" id="productTableSearch" placeholder="<?=$languageArray['search_code'][$language]?>">
-                                                    <select class="form-select" id="categoryFilter">
+                                                    <select class="form-select select2" id="categoryFilter">
                                                         <option value=""><?=$label('all_categories_code', 'All Categories')?></option>
                                                     </select>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="card-body px-0">
+                                        <div class="card-body px-0 flex-grow-1">
                                             <table id="productTable" class="table table-hover nowrap align-middle mb-0" style="width:100%">
                                                 <thead class="table-light text-muted">
                                                     <tr>
@@ -268,18 +289,20 @@ $productionLabel = $label('production_code', 'Production');
                                 </div>
 
                                 <div class="col-xl-4">
+                                    <div class="row">
                                     <!-- DO breakdown -->
-                                    <div class="card dashboard-panel">
+                                    <div class="col-md-6 col-xl-12">
+                                    <div class="card dashboard-panel card-height-100">
                                         <div class="card-header border-0 pb-0">
                                             <h5 class="card-title mb-1"><?=$label('do_breakdown_code', 'DO Breakdown')?></h5>
                                             <p class="text-muted mb-0"><?=$label('do_breakdown_desc_code', 'Delivery orders for the filtered period')?></p>
                                         </div>
                                         <div class="card-body">
                                             <div class="row align-items-center">
-                                                <div class="col-6">
+                                                <div class="col-sm-6">
                                                     <div id="doChart" dir="ltr"></div>
                                                 </div>
-                                                <div class="col-6">
+                                                <div class="col-sm-6 mt-3 mt-sm-0">
                                                     <div class="d-flex justify-content-between mb-3">
                                                         <span><span class="dot d-inline-block rounded-circle bg-primary me-2" style="width:8px;height:8px;"></span><?=$salesLabel?></span>
                                                         <span class="fw-semibold" id="salesPercent">0%</span>
@@ -292,9 +315,11 @@ $productionLabel = $label('production_code', 'Production');
                                             </div>
                                         </div>
                                     </div>
+                                    </div>
 
                                     <!-- Recent movement -->
-                                    <div class="card recent-movement text-white">
+                                    <div class="col-md-6 col-xl-12">
+                                    <div class="card recent-movement text-white card-height-100">
                                         <div class="card-body">
                                             <div class="d-flex justify-content-between align-items-start mb-3">
                                                 <div>
@@ -306,7 +331,42 @@ $productionLabel = $label('production_code', 'Production');
                                             <div id="recentMovement"></div>
                                         </div>
                                     </div>
+                                    </div>
+                                    </div>
                                 </div>
+                            </div><!--end row-->
+
+                            <div class="row">
+                                <?php foreach ([
+                                    ['id' => 'customerTable', 'title' => $label('top_customers_code', 'Top Customers'), 'desc' => $label('top_customers_desc_code', 'By delivery order weight for the filtered period'), 'party' => $label('customer_code', 'Customer')],
+                                    ['id' => 'supplierTable', 'title' => $label('top_suppliers_code', 'Top Suppliers'), 'desc' => $label('top_suppliers_desc_code', 'By stock in weight for the filtered period'), 'party' => $label('supplier_code', 'Supplier')],
+                                ] as $partyPanel) { ?>
+                                <!-- <?=$partyPanel['title']?> -->
+                                <div class="col-xl-6">
+                                    <div class="card dashboard-panel">
+                                        <div class="card-header border-0 pb-0">
+                                            <h5 class="card-title mb-1"><?=$partyPanel['title']?></h5>
+                                            <p class="text-muted mb-0"><?=$partyPanel['desc']?></p>
+                                        </div>
+                                        <div class="card-body px-0">
+                                            <div class="table-responsive">
+                                                <table id="<?=$partyPanel['id']?>" class="table table-hover nowrap align-middle mb-0 party-table">
+                                                    <thead class="table-light text-muted">
+                                                        <tr>
+                                                            <th class="ps-4">#</th>
+                                                            <th><?=$partyPanel['party']?></th>
+                                                            <th class="text-end"><?=$label('trips_code', 'Trips')?></th>
+                                                            <th class="text-end">kg</th>
+                                                            <th class="pe-4"><?=$label('share_code', 'Share')?></th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody></tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <?php } ?>
                             </div><!--end row-->
 
                         </div> <!-- end .h-100-->
@@ -348,8 +408,17 @@ $productionLabel = $label('production_code', 'Production');
         outOfStock: '<?=addslashes($label('out_of_stock_code', 'Out of Stock'))?>',
         showing: '<?=addslashes($label('showing_of_code', 'Showing %s of %s'))?>',
         noRecord: '<?=addslashes($label('no_record_code', 'No records found'))?>',
-        total: '<?=addslashes($label('total_code', 'Total'))?>'
+        total: '<?=addslashes($label('total_code', 'Total'))?>',
+        clearAll: '<?=addslashes($languageArray['clear_all_code'][$language])?>'
     };
+    // Drawer filters shown as chips when they differ from their default
+    var drawerFilters = [
+        { id: '#transactionStatusSearch', label: '<?=addslashes($languageArray['transaction_status_code'][$language])?>', def: '-' },
+        { id: '#plantSearch', label: '<?=addslashes($languageArray['plant_code'][$language])?>', def: '-' },
+        { id: '#companySearch', label: '<?=addslashes($languageArray['company_code'][$language])?>', def: '<?=$selectedCompanyId?>' },
+        { id: '#productSearch', label: '<?=addslashes($label('product_code', 'Product'))?>', def: '-' },
+        { id: '#customerSupplierSearch', label: '<?=addslashes($label('customer_supplier_code', 'Customer / Supplier'))?>', def: '-' }
+    ];
     // Recent movement badge / sign per movement type
     var movementTypes = {
         stockIn: { badge: 'IN', sign: '+', label: '<?=addslashes($stockInLabel)?>' },
@@ -362,10 +431,11 @@ $productionLabel = $label('production_code', 'Production');
         const today = new Date();
         const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
-        // Initialize all Select2 elements in the search bar
-        $('#collapseSearch .select2').select2({
+        // Initialize all Select2 elements in the filter drawer
+        $('#filterDrawer .select2').select2({
             allowClear: true,
             placeholder: "Please Select",
+            dropdownParent: $('#filterDrawer') // Keeps the dropdown search usable inside the offcanvas
         });
 
         // Apply custom styling to Select2 elements in search bar
@@ -380,18 +450,42 @@ $productionLabel = $label('production_code', 'Production');
             'height': 'auto'
         });
 
+        // Product table category filter (after the drawer styling above, which is only meant for the drawer fields)
+        $('#categoryFilter').select2({
+            width: '200px'
+        });
+
         //Date picker
         fromDateSearchPicker = $('#fromDateSearch').flatpickr({
             dateFormat: "d-m-Y",
-            defaultDate: firstOfMonth
+            defaultDate: firstOfMonth,
+            onChange: function(){ loadDashboard(); }
         });
 
         toDateSearchPicker = $('#toDateSearch').flatpickr({
             dateFormat: "d-m-Y",
-            defaultDate: today
+            defaultDate: today,
+            onChange: function(){ loadDashboard(); }
         });
 
         $('#filterSearch').on('click', function(){
+            bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('filterDrawer')).hide();
+            loadDashboard();
+        });
+
+        $('#refreshDashboard').on('click', function(){
+            loadDashboard();
+        });
+
+        // Remove one filter chip / clear all chips
+        $('#activeFilters').on('click', '.remove-filter', function(){
+            var filter = drawerFilters[$(this).data('index')];
+            $(filter.id).val(filter.def).trigger('change');
+            loadDashboard();
+        });
+
+        $('#activeFilters').on('click', '#clearAllChips', function(){
+            $('#clearAllSearch').trigger('click');
             loadDashboard();
         });
 
@@ -424,10 +518,21 @@ $productionLabel = $label('production_code', 'Production');
             }
         });
 
+        // Top customer / supplier row => filter the dashboard by that party
+        $('.party-table').on('click', 'tbody tr[data-party]', function(){
+            var party = $(this).attr('data-party');
+            if ($('#customerSupplierSearch option').filter(function(){ return this.value === party; }).length) {
+                $('#customerSupplierSearch').val(party).trigger('change');
+                loadDashboard();
+            }
+        });
+
         loadDashboard();
     });
 
     function loadDashboard() {
+        renderActiveFilters();
+
         $.post('php/modules/dashboard/index.php', {
             action: 'summary',
             fromDate: $('#fromDateSearch').val(),
@@ -445,6 +550,8 @@ $productionLabel = $label('production_code', 'Production');
                 renderDoChart(obj.totals);
                 renderProductTable(obj.products);
                 renderRecent(obj.recent);
+                renderPartyTable('#customerTable', obj.customers, obj.totals.deliveryOrder.weight, 'C', 'bg-primary');
+                renderPartyTable('#supplierTable', obj.suppliers, obj.totals.stockIn.weight, 'S', 'bg-success');
             }
             else {
                 toastr["error"](obj.message || "Something went wrong", "Failed:");
@@ -452,6 +559,34 @@ $productionLabel = $label('production_code', 'Production');
         }).fail(function(){
             toastr["error"]("Something went wrong", "Failed:");
         });
+    }
+
+    // Period text and chips for the filters applied from the drawer
+    function renderActiveFilters() {
+        var $chips = $('#activeFilters').empty();
+        var count = 0;
+
+        $('#periodText').text(($('#fromDateSearch').val() || '-') + ' → ' + ($('#toDateSearch').val() || '-'));
+
+        $.each(drawerFilters, function(i, filter){
+            var $select = $(filter.id);
+            var value = $select.val();
+            if (!$select.length || !value || value === filter.def) {
+                return;
+            }
+            count++;
+            $chips.append(
+                $('<span class="badge bg-soft-primary text-primary filter-chip d-inline-flex align-items-center gap-1 px-2 py-1">')
+                    .append($('<span>').text(filter.label + ': ' + $select.find('option:selected').text()))
+                    .append($('<i class="ri-close-line remove-filter">').attr('data-index', i))
+            );
+        });
+
+        if (count) {
+            $chips.append($('<a href="javascript:void(0);" class="fs-12 text-danger ms-1" id="clearAllChips">').text(labels.clearAll));
+        }
+        $chips.toggleClass('d-none', count === 0);
+        $('#filterCount').text(count).toggleClass('d-none', count === 0);
     }
 
     function loadCompanyLists(companyId) {
@@ -583,8 +718,10 @@ $productionLabel = $label('production_code', 'Production');
 
         productTable = $('#productTable').DataTable({
             data: products,
-            dom: 't',
-            paging: false,
+            dom: "<'table-responsive't><'d-flex justify-content-center justify-content-sm-end px-4 pt-3'p>",
+            paging: true,
+            pageLength: 10,
+            lengthChange: false,
             order: [[0, 'asc']],
             language: { emptyTable: labels.noRecord, zeroRecords: labels.noRecord },
             columns: [
@@ -629,7 +766,9 @@ $productionLabel = $label('production_code', 'Production');
             ],
             drawCallback: function(){
                 var info = this.api().page.info();
-                $('#productTableInfo').text(labels.showing.replace('%s', info.recordsDisplay).replace('%s', info.recordsTotal));
+                $('#productTableInfo').text(labels.showing.replace('%s', info.end - info.start).replace('%s', info.recordsDisplay));
+                // No pager when everything fits on one page
+                $(this.api().table().container()).find('.dataTables_paginate').toggle(info.pages > 1);
             }
         });
 
@@ -643,7 +782,7 @@ $productionLabel = $label('production_code', 'Production');
 
         $.each(recent, function(i, row){
             var type = movementTypes[row.type];
-            html += '<div class="d-flex align-items-center' + (i < recent.length - 1 ? ' mb-3' : '') + '">' +
+            html += '<div class="d-flex align-items-center movement-row py-2">' +
                 '<div class="movement-badge flex-shrink-0 rounded d-flex align-items-center justify-content-center fw-semibold text-warning me-3">' + type.badge + '</div>' +
                 '<div class="flex-grow-1 overflow-hidden">' +
                     '<h6 class="text-white fs-13 mb-0 text-truncate">' + escapeHtml(type.label) + ' · ' + escapeHtml(row.item_name || '-') + '</h6>' +
@@ -654,6 +793,33 @@ $productionLabel = $label('production_code', 'Production');
         });
 
         $('#recentMovement').html(html || '<p class="text-white-50 mb-0">' + labels.noRecord + '</p>');
+    }
+
+    // Top 5 customers / suppliers with their share of the DO / Stock In total
+    function renderPartyTable(selector, rows, total, prefix, barClass) {
+        var $tbody = $(selector).find('tbody').empty();
+
+        if (!rows || !rows.length) {
+            $tbody.append('<tr><td colspan="5" class="text-center text-muted py-4">' + labels.noRecord + '</td></tr>');
+            return;
+        }
+
+        $.each(rows, function(i, row){
+            var share = total > 0 ? Math.round(row.weight / total * 100) : 0;
+            var $tr = $('<tr>').attr('data-party', prefix + '|' + row.code);
+            $tr.append('<td class="ps-4 text-muted">' + (i + 1) + '</td>');
+            $tr.append('<td><div class="d-flex align-items-center">' +
+                '<div class="item-avatar flex-shrink-0 rounded bg-soft-success text-success fw-semibold d-flex align-items-center justify-content-center me-3">' + escapeHtml(initials(row.name || row.code)) + '</div>' +
+                '<div><h6 class="fs-14 mb-0">' + escapeHtml(row.name || row.code) + '</h6><p class="text-muted fs-12 mb-0">' + escapeHtml(row.code) + '</p></div>' +
+                '</div></td>');
+            $tr.append('<td class="text-end text-muted">' + row.trips + '</td>');
+            $tr.append('<td class="text-end fw-semibold">' + formatWeight(row.weight) + '</td>');
+            $tr.append('<td class="pe-4"><div class="d-flex align-items-center gap-2">' +
+                '<div class="progress flex-shrink-0"><div class="progress-bar ' + barClass + '" style="width:' + share + '%"></div></div>' +
+                '<span class="fs-12 text-muted">' + share + '%</span>' +
+                '</div></td>');
+            $tbody.append($tr);
+        });
     }
 
     function initials(name) {

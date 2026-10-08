@@ -39,7 +39,38 @@ class DashboardService extends BaseService {
             'totals'   => $this->getTotals($where, $types, $values),
             'products' => $this->getProducts($where, $types, $values),
             'recent'   => $this->getRecent($where, $types, $values),
+            'customers' => $this->getParties('customer', ['Sales', 'Production'], $where, $types, $values),
+            'suppliers' => $this->getParties('supplier', ['Purchase'], $where, $types, $values),
         ];
+    }
+
+    // Top 5 customers (by DO weight) or suppliers (by Stock In weight) in the filter
+    private function getParties($party, $statuses, $where, $types, $values) {
+        $columns = [
+            'customer' => ['customer_code', 'customer_name'],
+            'supplier' => ['supplier_code', 'supplier_name'],
+        ];
+        list($code, $name) = $columns[$party];
+        $statusIn = implode(',', array_fill(0, count($statuses), '?'));
+
+        $rows = $this->fetchAll(
+            "SELECT {$code} AS code, MAX({$name}) AS name, COUNT(*) AS trips, IFNULL(SUM(final_weight), 0) AS weight
+            FROM Weight" . $where . " AND transaction_status IN ({$statusIn}) AND {$code} IS NOT NULL AND {$code} <> ''
+            GROUP BY company_id, {$code}
+            ORDER BY weight DESC LIMIT 5",
+            $types . str_repeat('s', count($statuses)), array_merge($values, $statuses)
+        );
+
+        $parties = [];
+        foreach ($rows as $row) {
+            $parties[] = [
+                'code'   => $row['code'],
+                'name'   => $row['name'] ?? '',
+                'trips'  => intval($row['trips']),
+                'weight' => (float) $row['weight'],
+            ];
+        }
+        return $parties;
     }
 
     private function getTotals($where, $types, $values) {
@@ -107,7 +138,7 @@ class DashboardService extends BaseService {
     private function getRecent($where, $types, $values) {
         $rows = $this->fetchAll(
             "SELECT transaction_id, transaction_status, transaction_date, final_weight, {$this->itemName} AS item_name
-            FROM Weight" . $where . " ORDER BY transaction_date DESC, id DESC LIMIT 5",
+            FROM Weight" . $where . " ORDER BY transaction_date DESC, id DESC LIMIT 10",
             $types, $values
         );
 
