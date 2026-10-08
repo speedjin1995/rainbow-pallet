@@ -288,6 +288,7 @@ class PermissionService extends BaseService {
                 ['Miscellaneous', 'Weighing'],
                 ['Sawn Timber', 'Sawn Timber'],
                 ['User Setup', 'User Management'],
+                ['Dashboard', 'Dashboard'],
             ]],
             ['name' => 'view_all_companies', 'modules' => [
                 ['Customer', 'Master Data'], 
@@ -320,6 +321,7 @@ class PermissionService extends BaseService {
                 ['Port', 'Weighing'],
                 ['Miscellaneous', 'Weighing'],
                 ['Sawn Timber', 'Sawn Timber'],
+                ['Dashboard', 'Dashboard'],
             ]],
             ['name' => 'download_template', 'modules' => [
                 ['Companies', 'Master Data'], 

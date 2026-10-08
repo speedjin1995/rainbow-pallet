@@ -162,6 +162,7 @@ class ModuleService extends BaseService {
             ['name' => 'Empty Container Type', 'category' => 'Weighing'],
             ['name' => 'Different Container Type', 'category' => 'Weighing'],
             ['name' => 'Sawn Timber', 'category' => 'Sawn Timber'],
+            ['name' => 'Dashboard', 'category' => 'Dashboard'],
         ];
 
         $stmt = $this->db->prepare("INSERT INTO {$this->table} (name, category) SELECT ?, ? FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM {$this->table} WHERE name = ? AND category = ?)");

@@ -1,28 +1,78 @@
 <?php include 'layouts/session.php'; ?>
 <?php include 'layouts/head-main.php'; ?>
 
+<?php
+require_once "php/requires/lookup.php";
+if (!hasModulePermission('Dashboard', 'Dashboard', ['view'])){
+    header('Location: no-permission.php');
+    exit;
+}
+
+$plantId = $_SESSION['plant_id'] ?? [];
+$selectedPlantId = intval($_SESSION['selected_plant_id'] ?? 0);
+$selectedCompanyId = intval($_SESSION['company_id']);
+$dashboardViewAllCompanies = hasModulePermission('Dashboard', 'Dashboard', ['view_all_companies']);
+$dashboardViewAllPlants = hasModulePermission('Dashboard', 'Dashboard', ['view_all_plants']);
+
+if ($dashboardViewAllCompanies) {
+    $company = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
+}
+
+$customer = $db->query("SELECT * FROM Customer WHERE status = '0' AND company IN ($selectedCompanyId) ORDER BY name ASC");
+$supplier = $db->query("SELECT * FROM Supplier WHERE status = '0' AND company IN ($selectedCompanyId) ORDER BY name ASC");
+$product = $db->query("SELECT * FROM Product WHERE status = '0' AND company IN ($selectedCompanyId) ORDER BY name ASC");
+
+if (!$dashboardViewAllPlants) {
+    if (!empty($selectedPlantId)){
+        // Locked to the plant selected at login - backend restricts "-" to this plant only
+        $plant = searchPlantById($selectedPlantId, $db);
+    }else{
+        // No plant selected - list every plant the user is tied to
+        $plant = searchPlantsByIds($plantId, $db);
+    }
+} else {
+    $plant = $db->query("SELECT * FROM Plant WHERE status = '0' ORDER BY name ASC");
+}
+
+// Translated label with an English fallback until the key is added
+$label = function($key, $fallback) use ($languageArray, $language) {
+    return $languageArray[$key][$language] ?? $fallback;
+};
+
+$stockInLabel = $label('stock_in_code', 'Stock In');
+$transferLabel = $label('stock_transfer_code', 'Stock Transfer');
+$doLabel = $label('delivery_order_code', 'Delivery Order');
+$balanceLabel = $label('balance_code', 'Balance');
+$salesLabel = $label('dispatch_code', 'Sales');
+$productionLabel = $label('production_code', 'Production');
+?>
+
 <head>
 
-    <title>Weighing | Synctronix - Weighing System</title>
+    <title><?=$label('dashboard_code', 'Dashboard')?> | Synctronix - Weighing System</title>
     <?php include 'layouts/title-meta.php'; ?>
 
-    <!-- jsvectormap css -->
-    <link href="assets/libs/jsvectormap/css/jsvectormap.min.css" rel="stylesheet" type="text/css" />
-
-    <!--Swiper slider css-->
-    <link href="assets/libs/swiper/swiper-bundle.min.css" rel="stylesheet" type="text/css" />
     <!--datatable css-->
     <link rel="stylesheet" href="plugins/datatables-bs4/css/dataTables.bootstrap4.min.css" />
-    <!--datatable responsive css-->
-    <link rel="stylesheet" href="plugins/datatables-responsive/css/responsive.bootstrap4.min.css" />
-    <link rel="stylesheet" href="plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
 
     <!-- Include jQuery library -->
     <script src="plugins/jquery/jquery.min.js"></script>
-    <!-- Include jQuery Validate plugin -->
-    <script src="plugins/jquery-validation/jquery.validate.min.js"></script>
 
     <?php include 'layouts/head-css.php'; ?>
+
+    <style>
+        .dashboard-card { border-top: 4px solid; border-radius: 0.75rem; }
+        .dashboard-card .eyebrow { font-size: 0.7rem; letter-spacing: 0.08em; }
+        .dashboard-card .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+        .dashboard-card .total { font-size: 1.9rem; }
+        .dashboard-panel { border-radius: 0.75rem; }
+        #productTable thead th { font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; }
+        #productTable td { vertical-align: middle; padding-top: 0.9rem; padding-bottom: 0.9rem; }
+        #productTable .item-avatar { width: 36px; height: 36px; font-size: 0.7rem; }
+        .recent-movement { background-color: #1f3b33; border-radius: 0.75rem; }
+        .recent-movement .movement-badge { width: 34px; height: 34px; font-size: 0.65rem; background-color: rgba(255, 255, 255, 0.1); }
+        .recent-movement .text-white-50 { color: rgba(255, 255, 255, 0.6) !important; }
+    </style>
 
 </head>
 
@@ -42,663 +92,222 @@
                 <div class="row">
                     <div class="col">
                         <div class="h-100">
-                            <div class="row mb-3 pb-1">
-                                <div class="col-12">
-                                    <div class="d-flex align-items-lg-center flex-lg-row flex-column">
-                                        <div class="flex-grow-1">
-                                            <!--h4 class="fs-16 mb-1">Good Morning, Anna!</h4>
-                                            <p class="text-muted mb-0">Here's what's happening with your store
-                                                today.</p-->
-                                        </div>
-                                        <div class="mt-3 mt-lg-0">
-                                            <form action="javascript:void(0);">
-                                                <div class="row g-3 mb-0 align-items-center">
-                                                    <!-- <div class="col-sm-auto">
-                                                        <div class="input-group">
-                                                            <input type="text"
-                                                                class="form-control border-0 dash-filter-picker shadow"
-                                                                data-provider="flatpickr" data-range-date="true"
-                                                                data-date-format="d M, Y"
-                                                                data-deafult-date="01 Jan 2023 to 31 Jan 2023">
-                                                            <div
-                                                                class="input-group-text bg-primary border-primary text-white">
-                                                                <i class="ri-calendar-2-line"></i>
-                                                            </div>
-                                                        </div>
-                                                    </div> -->
-                                                    <!--end col-->
-                                                    <!--div class="col-auto">
-                                                        <button type="button" class="btn btn-soft-success"><i
-                                                                class="ri-add-circle-line align-middle me-1"></i>
-                                                            Add Product</button>
-                                                    </div>
-                                                    <!--end col-->
-                                                    <!--div class="col-auto">
-                                                        <button type="button"
-                                                            class="btn btn-soft-info btn-icon waves-effect waves-light layout-rightside-btn"><i
-                                                                class="ri-pulse-line"></i></button>
-                                                    </div>
-                                                    <!--end col-->
-                                                </div>
-                                                <!--end row-->
-                                            </form>
-                                        </div>
-                                    </div><!-- end card header -->
-                                </div>
-                                <!--end col-->
-                            </div>
-                            <!--end row-->
-
                             <div class="col-xxl-12 col-lg-12">
                                 <div class="card">
-                                    <div class="card-header fs-5" href="#collapseOne" data-bs-toggle="collapse" role="button" aria-expanded="true" aria-controls="collapseOne">
+                                    <div class="card-header fs-5" href="#collapseSearch" data-bs-toggle="collapse" role="button" aria-expanded="true" aria-controls="collapseSearch">
                                         <i class="mdi mdi-chevron-down pull-right"></i>
-                                        Search Records
+                                        <?=$languageArray['search_records_code'][$language]?>
                                     </div>
-                                    <div id="collapseOne" class="collapse" aria-labelledby="collapseOne">                                    
+                                    <div id="collapseSearch" class="collapse show" aria-labelledby="collapseSearch">
                                         <div class="card-body">
                                             <form action="javascript:void(0);">
                                                 <div class="row">
                                                     <div class="col-3">
                                                         <div class="mb-3">
-                                                            <label for="fromDateSearch" class="form-label">First Name</label>
+                                                            <label for="fromDateSearch" class="form-label"><?=$languageArray['from_date_code'][$language]?></label>
                                                             <input type="date" class="form-control" data-provider="flatpickr" id="fromDateSearch">
                                                         </div>
                                                     </div><!--end col-->
                                                     <div class="col-3">
                                                         <div class="mb-3">
-                                                            <label for="toDateSearch" class="form-label">Last Name</label>
+                                                            <label for="toDateSearch" class="form-label"><?=$languageArray['to_date_code'][$language]?></label>
                                                             <input type="date" class="form-control" data-provider="flatpickr" id="toDateSearch">
                                                         </div>
                                                     </div><!--end col-->
                                                     <div class="col-3">
                                                         <div class="mb-3">
-                                                            <label for="statusSearch" class="form-label">Status</label>
-                                                            <select id="statusSearch" class="form-select" data-choices data-choices-sorting="true" >
-                                                                <option selected>Sales</option>
-                                                                <option>Purchase</option>
-                                                                <option>Local</option>
+                                                            <label for="transactionStatusSearch" class="form-label"><?=$languageArray['transaction_status_code'][$language]?></label>
+                                                            <select id="transactionStatusSearch" class="form-select select2">
+                                                                <option value="-" selected>-</option>
+                                                                <option value="Purchase"><?=$stockInLabel?></option>
+                                                                <option value="Port"><?=$transferLabel?></option>
+                                                                <option value="DO"><?=$doLabel?></option>
                                                             </select>
                                                         </div>
                                                     </div><!--end col-->
                                                     <div class="col-3">
                                                         <div class="mb-3">
-                                                            <label for="customerNoSearch" class="form-label">Customer No</label>
-                                                            <select id="customerNoSearch" class="form-select" data-choices data-choices-sorting="true" >
-                                                                <option selected>...</option>
-                                                                <!-- <option>Purchase</option>
-                                                                <option>Local</option> -->
+                                                            <label for="plantSearch" class="form-label"><?=$languageArray['plant_code'][$language]?></label>
+                                                            <select id="plantSearch" class="form-select select2">
+                                                                <option value="-" selected>-</option>
+                                                                <?php while($plant && $rowPlant=mysqli_fetch_assoc($plant)){ ?>
+                                                                    <option value="<?=htmlspecialchars($rowPlant['plant_code'])?>"><?=htmlspecialchars($rowPlant['name'])?></option>
+                                                                <?php } ?>
+                                                            </select>
+                                                        </div>
+                                                    </div><!--end col-->
+                                                    <?php if ($dashboardViewAllCompanies) { ?>
+                                                    <div class="col-3">
+                                                        <div class="mb-3">
+                                                            <label for="companySearch" class="form-label"><?=$languageArray['company_code'][$language]?></label>
+                                                            <select id="companySearch" class="form-select select2">
+                                                                <option value="-">-</option>
+                                                                <?php while($rowCompany=mysqli_fetch_assoc($company)){ ?>
+                                                                    <option value="<?=$rowCompany['id']?>" <?=($rowCompany['id'] == $selectedCompanyId) ? 'selected' : ''?>><?=htmlspecialchars($rowCompany['name'])?></option>
+                                                                <?php } ?>
+                                                            </select>
+                                                        </div>
+                                                    </div><!--end col-->
+                                                    <?php } ?>
+                                                    <div class="col-3">
+                                                        <div class="mb-3">
+                                                            <label for="productSearch" class="form-label"><?=$label('product_code', 'Product')?></label>
+                                                            <select id="productSearch" class="form-select select2">
+                                                                <option value="-" selected>-</option>
+                                                                <?php while($rowProduct=mysqli_fetch_assoc($product)){ ?>
+                                                                    <option value="<?=htmlspecialchars($rowProduct['product_code'])?>"><?=htmlspecialchars($rowProduct['name'])?></option>
+                                                                <?php } ?>
                                                             </select>
                                                         </div>
                                                     </div><!--end col-->
                                                     <div class="col-3">
                                                         <div class="mb-3">
-                                                            <label for="vehicleNo" class="form-label">Vehicle No</label>
-                                                            <input type="text" class="form-control" placeholder="Vehicle No" id="vehicleNo">
-                                                        </div>
-                                                    </div><!--end col-->
-                                                    <div class="col-3">
-                                                        <div class="mb-3">
-                                                            <label for="invoiceNoSearch" class="form-label">Invoice No</label>
-                                                            <input type="text" class="form-control" placeholder="Invoice No" id="invoiceNoSearch">
-                                                        </div>
-                                                    </div><!--end col-->
-                                                    <div class="col-3">
-                                                        <div class="mb-3">
-                                                            <label for="batchNoSearch" class="form-label">Batch No</label>
-                                                            <input type="text" class="form-control" placeholder="Batch No" id="batchNoSearch">
-                                                        </div>
-                                                    </div><!--end col-->                                                
-                                                    <div class="col-3">
-                                                        <div class="mb-3">
-                                                            <label for="ForminputState" class="form-label">Product</label>
-                                                            <select id="transactionStatus" class="form-select" data-choices data-choices-sorting="true" >
-                                                                <option selected>...</option>
-                                                                <!-- <option>Purchase</option>
-                                                                <option>Local</option> -->
+                                                            <label for="customerSupplierSearch" class="form-label"><?=$label('customer_supplier_code', 'Customer / Supplier')?></label>
+                                                            <select id="customerSupplierSearch" class="form-select select2">
+                                                                <option value="-" selected>-</option>
+                                                                <optgroup label="<?=$label('customer_code', 'Customer')?>">
+                                                                    <?php while($rowCustomer=mysqli_fetch_assoc($customer)){ ?>
+                                                                        <option value="C|<?=htmlspecialchars($rowCustomer['customer_code'])?>"><?=htmlspecialchars($rowCustomer['name'])?></option>
+                                                                    <?php } ?>
+                                                                </optgroup>
+                                                                <optgroup label="<?=$label('supplier_code', 'Supplier')?>">
+                                                                    <?php while($rowSupplier=mysqli_fetch_assoc($supplier)){ ?>
+                                                                        <option value="S|<?=htmlspecialchars($rowSupplier['supplier_code'])?>"><?=htmlspecialchars($rowSupplier['name'])?></option>
+                                                                    <?php } ?>
+                                                                </optgroup>
                                                             </select>
                                                         </div>
                                                     </div><!--end col-->
-                                                    <div class="col-lg-12">
-                                                        <div class="text-end">
-                                                            <button type="submit" class="btn btn-success">
+                                                    <div class="col">
+                                                        <div class="text-end mt-4">
+                                                            <button type="button" class="btn btn-danger" id="clearAllSearch">
+                                                                <i class="bx bx-reset"></i>
+                                                                <?=$languageArray['clear_all_code'][$language]?></button>
+                                                            <button type="submit" class="btn btn-success" id="filterSearch">
                                                                 <i class="bx bx-search-alt"></i>
                                                                 <?=$languageArray['search_code'][$language]?></button>
                                                         </div>
                                                     </div><!--end col-->
                                                 </div><!--end row-->
-                                            </form>                                                                        
+                                            </form>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
+                            <!-- Totals -->
                             <div class="row">
-                                <div class="col-xl-4 col-md-6">
-                                    <!-- card -->
-                                    <div class="card card-animate">
+                                <?php
+                                $cards = [
+                                    ['id' => 'stockIn', 'eyebrow' => $label('receiving_code', 'Purchase'), 'title' => $stockInLabel, 'colour' => 'success'],
+                                    ['id' => 'transfer', 'eyebrow' => $label('trx_to_port_code', 'Transfer To Port'), 'title' => $transferLabel, 'colour' => 'warning'],
+                                    ['id' => 'deliveryOrder', 'eyebrow' => $salesLabel . ' + ' . $productionLabel, 'title' => $doLabel, 'colour' => 'primary'],
+                                    ['id' => 'balance', 'eyebrow' => $label('available_stock_code', 'Available Stock'), 'title' => $balanceLabel, 'colour' => 'dark'],
+                                ];
+                                foreach ($cards as $card) { ?>
+                                <div class="col-xl-3 col-md-6">
+                                    <div class="card dashboard-card border-<?=$card['colour']?>">
                                         <div class="card-body">
-                                            <div class="d-flex align-items-center">
-                                                <div class="flex-grow-1 overflow-hidden">
-                                                    <p class="text-uppercase fw-medium text-muted text-truncate mb-0">
-                                                        Sales</p>
-                                                </div>
-                                            </div>
-                                            <div class="d-flex align-items-end justify-content-between mt-4">
+                                            <div class="d-flex align-items-start justify-content-between">
                                                 <div>
-                                                    <h4 class="fs-22 fw-semibold ff-secondary mb-4">$<span
-                                                            class="counter-value" data-target="559.25">0</span>k
-                                                    </h4>
+                                                    <p class="eyebrow text-uppercase fw-semibold text-muted mb-1"><?=$card['eyebrow']?></p>
+                                                    <h6 class="fs-15 mb-0"><?=$card['title']?></h6>
                                                 </div>
-                                                <div class="avatar-sm flex-shrink-0">
-                                                    <span class="avatar-title bg-soft-success rounded fs-3">
-                                                        <i class="bx bx-dollar-circle text-success"></i>
-                                                    </span>
-                                                </div>
+                                                <span class="dot bg-<?=$card['colour']?> mt-1"></span>
                                             </div>
+                                            <h2 class="total fw-semibold ff-secondary mt-4 mb-2"><span id="<?=$card['id']?>Weight">0.00</span> <span class="fs-14 fw-normal text-muted">kg</span></h2>
+                                            <p class="text-muted fs-12 mb-0" id="<?=$card['id']?>Trips">
+                                                <?php if ($card['id'] === 'balance') { ?>
+                                                    <?=$stockInLabel?> - <?=$transferLabel?> - <?=$doLabel?>
+                                                <?php } ?>
+                                            </p>
                                         </div><!-- end card body -->
                                     </div><!-- end card -->
                                 </div><!-- end col -->
-
-                                <div class="col-xl-4 col-md-6">
-                                    <!-- card -->
-                                    <div class="card card-animate">
-                                        <div class="card-body">
-                                            <div class="d-flex align-items-center">
-                                                <div class="flex-grow-1 overflow-hidden">
-                                                    <p class="text-uppercase fw-medium text-muted text-truncate mb-0">
-                                                        Purchase</p>
-                                                </div>
-                                                <div class="flex-shrink-0">
-                                                    <h5 class="text-danger fs-14 mb-0">
-                                                        <i class="ri-arrow-right-down-line fs-13 align-middle"></i>
-                                                        -3.57 %
-                                                    </h5>
-                                                </div>
-                                            </div>
-                                            <div class="d-flex align-items-end justify-content-between mt-4">
-                                                <div>
-                                                    <h4 class="fs-22 fw-semibold ff-secondary mb-4"><span
-                                                            class="counter-value" data-target="36894">0</span></h4>
-                                                </div>
-                                                <div class="avatar-sm flex-shrink-0">
-                                                    <span class="avatar-title bg-soft-info rounded fs-3">
-                                                        <i class="bx bx-shopping-bag text-info"></i>
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div><!-- end card body -->
-                                    </div><!-- end card -->
-                                </div><!-- end col -->
-
-                                <div class="col-xl-4 col-md-6">
-                                    <!-- card -->
-                                    <div class="card card-animate">
-                                        <div class="card-body">
-                                            <div class="d-flex align-items-center">
-                                                <div class="flex-grow-1 overflow-hidden">
-                                                    <p class="text-uppercase fw-medium text-muted text-truncate mb-0">
-                                                    Miscellaneous</p>
-                                                </div>
-                                                <div class="flex-shrink-0">
-                                                    <h5 class="text-success fs-14 mb-0">
-                                                        <i class="ri-arrow-right-up-line fs-13 align-middle"></i>
-                                                        +29.08 %
-                                                    </h5>
-                                                </div>
-                                            </div>
-                                            <div class="d-flex align-items-end justify-content-between mt-4">
-                                                <div>
-                                                    <h4 class="fs-22 fw-semibold ff-secondary mb-4"><span
-                                                            class="counter-value" data-target="183.35">0</span>M
-                                                    </h4>
-                                                </div>
-                                                <div class="avatar-sm flex-shrink-0">
-                                                    <span class="avatar-title bg-soft-warning rounded fs-3">
-                                                        <i class="bx bx-user-circle text-warning"></i>
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div><!-- end card body -->
-                                    </div><!-- end card -->
-                                </div><!-- end col -->
+                                <?php } ?>
                             </div> <!-- end row-->
 
-
-                            <!--datatable--> 
                             <div class="row">
-                                <div class="col-lg-12">
-                                    <div class="card">
-                                        <div class="card-header">
-                                            <div class="d-flex justify-content-between">
+                                <!-- Product inventory -->
+                                <div class="col-xl-8">
+                                    <div class="card dashboard-panel">
+                                        <div class="card-header border-0 pb-0">
+                                            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
                                                 <div>
-                                                    <h5 class="card-title mb-0"><?=$languageArray['previous_records_code'][$language]?></h5>
+                                                    <h5 class="card-title mb-1"><?=$label('product_inventory_code', 'Product Inventory')?></h5>
+                                                    <p class="text-muted mb-0"><?=$label('product_inventory_desc_code', 'Stock balance by product for the filtered period')?></p>
                                                 </div>
-                                                <div class="flex-shrink-0">
-                                                    <button type="button" class="btn btn-success waves-effect waves-light" id="excelSearch">
-                                                    <i class="mdi mdi-file-excel-outline"></i>
-                                                    <?=$languageArray['export_excel_code'][$language]?>
-                                                    </button>
-                                                </div> 
-                                            </div>                                            
-                                        </div>                                      
-                                        <div class="card-body">                                              
-                                            <table id="model-datatables" class="table table-bordered nowrap table-striped align-middle" style="width:100%">
-                                                <thead>
+                                                <div class="d-flex gap-2">
+                                                    <input type="text" class="form-control" id="productTableSearch" placeholder="<?=$languageArray['search_code'][$language]?>">
+                                                    <select class="form-select" id="categoryFilter">
+                                                        <option value=""><?=$label('all_categories_code', 'All Categories')?></option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="card-body px-0">
+                                            <table id="productTable" class="table table-hover nowrap align-middle mb-0" style="width:100%">
+                                                <thead class="table-light text-muted">
                                                     <tr>
-                                                        <th>SR No.</th>
-                                                        <th>ID</th>
-                                                        <th>Purchase ID</th>
-                                                        <th>Title</th>
-                                                        <th>User</th>
-                                                        <th>Assigned To</th>
-                                                        <th>Created By</th>
-                                                        <th>Create Date</th>
-                                                        <th><?=$languageArray['status_code'][$language]?></th>
-                                                        <th>Priority</th>
-                                                        <th><?=$languageArray['action_code'][$language]?></th>
+                                                        <th class="ps-4"><?=$label('product_code', 'Product')?></th>
+                                                        <th><?=$label('category_code', 'Category')?></th>
+                                                        <th class="text-end"><?=$stockInLabel?></th>
+                                                        <th class="text-end"><?=$transferLabel?></th>
+                                                        <th class="text-end"><?=$doLabel?></th>
+                                                        <th class="text-end"><?=$balanceLabel?></th>
+                                                        <th class="pe-4"><?=$languageArray['status_code'][$language]?></th>
                                                     </tr>
                                                 </thead>
-                                                <tbody>
-                                                    <tr>
-                                                        <td>01</td>
-                                                        <td>VLZ-452</td>
-                                                        <td>VLZ1400087402</td>
-                                                        <td><a href="#!">Post launch reminder/ post list</a></td>
-                                                        <td>Joseph Parker</td>
-                                                        <td>Alexis Clarke</td>
-                                                        <td>Joseph Parker</td>
-                                                        <td>03 Oct, 2021</td>
-                                                        <td><span class="badge badge-soft-info">Re-open</span></td>
-                                                        <td><span class="badge bg-danger">High</span></td>
-                                                        <td>
-                                                            <div class="dropdown d-inline-block">
-                                                                <button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                                    <i class="ri-more-fill align-middle"></i>
-                                                                </button>
-                                                                <ul class="dropdown-menu dropdown-menu-end">
-                                                                    <li><a href="#!" class="dropdown-item"><i class="ri-eye-fill align-bottom me-2 text-muted"></i> View</a></li>
-                                                                    <li><a class="dropdown-item edit-item-btn"><i class="ri-pencil-fill align-bottom me-2 text-muted"></i> Edit</a></li>
-                                                                    <li>
-                                                                        <a class="dropdown-item remove-item-btn">
-                                                                            <i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i> Delete
-                                                                        </a>
-                                                                    </li>
-                                                                </ul>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>02</td>
-                                                        <td>VLZ-453</td>
-                                                        <td>VLZ1400087425</td>
-                                                        <td><a href="#!">Additional Calendar</a></td>
-                                                        <td>Diana Kohler</td>
-                                                        <td>Admin</td>
-                                                        <td>Mary Rucker</td>
-                                                        <td>05 Oct, 2021</td>
-                                                        <td><span class="badge badge-soft-secondary">On-Hold</span></td>
-                                                        <td><span class="badge bg-info">Medium</span></td>
-                                                        <td>
-                                                            <div class="dropdown d-inline-block">
-                                                                <button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                                    <i class="ri-more-fill align-middle"></i>
-                                                                </button>
-                                                                <ul class="dropdown-menu dropdown-menu-end">
-                                                                    <li><a href="#!" class="dropdown-item"><i class="ri-eye-fill align-bottom me-2 text-muted"></i> View</a></li>
-                                                                    <li><a class="dropdown-item edit-item-btn"><i class="ri-pencil-fill align-bottom me-2 text-muted"></i> Edit</a></li>
-                                                                    <li>
-                                                                        <a class="dropdown-item remove-item-btn">
-                                                                            <i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i> Delete
-                                                                        </a>
-                                                                    </li>
-                                                                </ul>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>03</td>
-                                                        <td>VLZ-454</td>
-                                                        <td>VLZ1400087438</td>
-                                                        <td><a href="#!">Make a creating an account profile</a></td>
-                                                        <td>Tonya Noble</td>
-                                                        <td>Admin</td>
-                                                        <td>Tonya Noble</td>
-                                                        <td>27 April, 2022</td>
-                                                        <td><span class="badge badge-soft-danger">Closed</span></td>
-                                                        <td><span class="badge bg-success">Low</span></td>
-                                                        <td>
-                                                            <div class="dropdown d-inline-block">
-                                                                <button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                                    <i class="ri-more-fill align-middle"></i>
-                                                                </button>
-                                                                <ul class="dropdown-menu dropdown-menu-end">
-                                                                    <li><a href="#!" class="dropdown-item"><i class="ri-eye-fill align-bottom me-2 text-muted"></i> View</a></li>
-                                                                    <li><a class="dropdown-item edit-item-btn"><i class="ri-pencil-fill align-bottom me-2 text-muted"></i> Edit</a></li>
-                                                                    <li>
-                                                                        <a class="dropdown-item remove-item-btn">
-                                                                            <i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i> Delete
-                                                                        </a>
-                                                                    </li>
-                                                                </ul>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>04</td>
-                                                        <td>VLZ-455</td>
-                                                        <td>VLZ1400087748</td>
-                                                        <td><a href="#!">Apologize for shopping Error!</a></td>
-                                                        <td>Joseph Parker</td>
-                                                        <td>Alexis Clarke</td>
-                                                        <td>Joseph Parker</td>
-                                                        <td>14 June, 2021</td>
-                                                        <td><span class="badge badge-soft-warning">Inprogress</span></td>
-                                                        <td><span class="badge bg-info">Medium</span></td>
-                                                        <td>
-                                                            <div class="dropdown d-inline-block">
-                                                                <button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                                    <i class="ri-more-fill align-middle"></i>
-                                                                </button>
-                                                                <ul class="dropdown-menu dropdown-menu-end">
-                                                                    <li><a href="#!" class="dropdown-item"><i class="ri-eye-fill align-bottom me-2 text-muted"></i> View</a></li>
-                                                                    <li><a class="dropdown-item edit-item-btn"><i class="ri-pencil-fill align-bottom me-2 text-muted"></i> Edit</a></li>
-                                                                    <li>
-                                                                        <a class="dropdown-item remove-item-btn">
-                                                                            <i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i> Delete
-                                                                        </a>
-                                                                    </li>
-                                                                </ul>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>05</td>
-                                                        <td>VLZ-456</td>
-                                                        <td>VLZ1400087547</td>
-                                                        <td><a href="#!">Support for theme</a></td>
-                                                        <td>Donald Palmer</td>
-                                                        <td>Admin</td>
-                                                        <td>Donald Palmer</td>
-                                                        <td>25 June, 2021</td>
-                                                        <td><span class="badge badge-soft-danger">Closed</span></td>
-                                                        <td><span class="badge bg-success">Low</span></td>
-                                                        <td>
-                                                            <div class="dropdown d-inline-block">
-                                                                <button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                                    <i class="ri-more-fill align-middle"></i>
-                                                                </button>
-                                                                <ul class="dropdown-menu dropdown-menu-end">
-                                                                    <li><a href="#!" class="dropdown-item"><i class="ri-eye-fill align-bottom me-2 text-muted"></i> View</a></li>
-                                                                    <li><a class="dropdown-item edit-item-btn"><i class="ri-pencil-fill align-bottom me-2 text-muted"></i> Edit</a></li>
-                                                                    <li>
-                                                                        <a class="dropdown-item remove-item-btn">
-                                                                            <i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i> Delete
-                                                                        </a>
-                                                                    </li>
-                                                                </ul>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>06</td>
-                                                        <td>VLZ-457</td>
-                                                        <td>VLZ1400087245</td>
-                                                        <td><a href="#!">Benner design for FB & Twitter</a></td>
-                                                        <td>Mary Rucker</td>
-                                                        <td>Jennifer Carter</td>
-                                                        <td>Mary Rucker</td>
-                                                        <td>14 Aug, 2021</td>
-                                                        <td><span class="badge badge-soft-warning">Inprogress</span></td>
-                                                        <td><span class="badge bg-info">Medium</span></td>
-                                                        <td>
-                                                            <div class="dropdown d-inline-block">
-                                                                <button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                                    <i class="ri-more-fill align-middle"></i>
-                                                                </button>
-                                                                <ul class="dropdown-menu dropdown-menu-end">
-                                                                    <li><a href="#!" class="dropdown-item"><i class="ri-eye-fill align-bottom me-2 text-muted"></i> View</a></li>
-                                                                    <li><a class="dropdown-item edit-item-btn"><i class="ri-pencil-fill align-bottom me-2 text-muted"></i> Edit</a></li>
-                                                                    <li>
-                                                                        <a class="dropdown-item remove-item-btn">
-                                                                            <i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i> Delete
-                                                                        </a>
-                                                                    </li>
-                                                                </ul>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>07</td>
-                                                        <td>VLZ-458</td>
-                                                        <td>VLZ1400087785</td>
-                                                        <td><a href="#!">Change email option process</a></td>
-                                                        <td>James Morris</td>
-                                                        <td>Admin</td>
-                                                        <td>James Morris</td>
-                                                        <td>12 March, 2022</td>
-                                                        <td><span class="badge badge-soft-primary">Open</span></td>
-                                                        <td><span class="badge bg-danger">High</span></td>
-                                                        <td>
-                                                            <div class="dropdown d-inline-block">
-                                                                <button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                                    <i class="ri-more-fill align-middle"></i>
-                                                                </button>
-                                                                <ul class="dropdown-menu dropdown-menu-end">
-                                                                    <li><a href="#!" class="dropdown-item"><i class="ri-eye-fill align-bottom me-2 text-muted"></i> View</a></li>
-                                                                    <li><a class="dropdown-item edit-item-btn"><i class="ri-pencil-fill align-bottom me-2 text-muted"></i> Edit</a></li>
-                                                                    <li>
-                                                                        <a class="dropdown-item remove-item-btn">
-                                                                            <i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i> Delete
-                                                                        </a>
-                                                                    </li>
-                                                                </ul>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>08</td>
-                                                        <td>VLZ-460</td>
-                                                        <td>VLZ1400087745</td>
-                                                        <td><a href="#!">Support for theme</a></td>
-                                                        <td>Nathan Cole</td>
-                                                        <td>Nancy Martino</td>
-                                                        <td>Nathan Cole</td>
-                                                        <td>28 Feb, 2022</td>
-                                                        <td><span class="badge badge-soft-secondary">On-Hold</span></td>
-                                                        <td><span class="badge bg-success">Low</span></td>
-                                                        <td>
-                                                            <div class="dropdown d-inline-block">
-                                                                <button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                                    <i class="ri-more-fill align-middle"></i>
-                                                                </button>
-                                                                <ul class="dropdown-menu dropdown-menu-end">
-                                                                    <li><a href="#!" class="dropdown-item"><i class="ri-eye-fill align-bottom me-2 text-muted"></i> View</a></li>
-                                                                    <li><a class="dropdown-item edit-item-btn"><i class="ri-pencil-fill align-bottom me-2 text-muted"></i> Edit</a></li>
-                                                                    <li>
-                                                                        <a class="dropdown-item remove-item-btn">
-                                                                            <i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i> Delete
-                                                                        </a>
-                                                                    </li>
-                                                                </ul>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>09</td>
-                                                        <td>VLZ-461</td>
-                                                        <td>VLZ1400087179</td>
-                                                        <td><a href="#!">Form submit issue</a></td>
-                                                        <td>Grace Coles</td>
-                                                        <td>Admin</td>
-                                                        <td>Grace Coles</td>
-                                                        <td>07 Jan, 2022</td>
-                                                        <td><span class="badge badge-soft-success">New</span></td>
-                                                        <td><span class="badge bg-danger">High</span></td>
-                                                        <td>
-                                                            <div class="dropdown d-inline-block">
-                                                                <button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                                    <i class="ri-more-fill align-middle"></i>
-                                                                </button>
-                                                                <ul class="dropdown-menu dropdown-menu-end">
-                                                                    <li><a href="#!" class="dropdown-item"><i class="ri-eye-fill align-bottom me-2 text-muted"></i> View</a></li>
-                                                                    <li><a class="dropdown-item edit-item-btn"><i class="ri-pencil-fill align-bottom me-2 text-muted"></i> Edit</a></li>
-                                                                    <li>
-                                                                        <a class="dropdown-item remove-item-btn">
-                                                                            <i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i> Delete
-                                                                        </a>
-                                                                    </li>
-                                                                </ul>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>10</td>
-                                                        <td>VLZ-462</td>
-                                                        <td>VLZ140008856</td>
-                                                        <td><a href="#!">Edit customer testimonial</a></td>
-                                                        <td>Freda</td>
-                                                        <td>Alexis Clarke</td>
-                                                        <td>Freda</td>
-                                                        <td>16 Aug, 2021</td>
-                                                        <td><span class="badge badge-soft-danger">Closed</span></td>
-                                                        <td><span class="badge bg-info">Medium</span></td>
-                                                        <td>
-                                                            <div class="dropdown d-inline-block">
-                                                                <button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                                    <i class="ri-more-fill align-middle"></i>
-                                                                </button>
-                                                                <ul class="dropdown-menu dropdown-menu-end">
-                                                                    <li><a href="#!" class="dropdown-item"><i class="ri-eye-fill align-bottom me-2 text-muted"></i> View</a></li>
-                                                                    <li><a class="dropdown-item edit-item-btn"><i class="ri-pencil-fill align-bottom me-2 text-muted"></i> Edit</a></li>
-                                                                    <li>
-                                                                        <a class="dropdown-item remove-item-btn">
-                                                                            <i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i> Delete
-                                                                        </a>
-                                                                    </li>
-                                                                </ul>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>11</td>
-                                                        <td>VLZ-463</td>
-                                                        <td>VLZ1400078031</td>
-                                                        <td><a href="#!">Ca i have an e-copy invoice</a></td>
-                                                        <td>Williams</td>
-                                                        <td>Admin</td>
-                                                        <td>Williams</td>
-                                                        <td>24 Feb, 2022</td>
-                                                        <td><span class="badge badge-soft-primary">Open</span></td>
-                                                        <td><span class="badge bg-success">Low</span></td>
-                                                        <td>
-                                                            <div class="dropdown d-inline-block">
-                                                                <button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                                    <i class="ri-more-fill align-middle"></i>
-                                                                </button>
-                                                                <ul class="dropdown-menu dropdown-menu-end">
-                                                                    <li><a href="#!" class="dropdown-item"><i class="ri-eye-fill align-bottom me-2 text-muted"></i> View</a></li>
-                                                                    <li><a class="dropdown-item edit-item-btn"><i class="ri-pencil-fill align-bottom me-2 text-muted"></i> Edit</a></li>
-                                                                    <li>
-                                                                        <a class="dropdown-item remove-item-btn">
-                                                                            <i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i> Delete
-                                                                        </a>
-                                                                    </li>
-                                                                </ul>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>12</td>
-                                                        <td>VLZ-464</td>
-                                                        <td>VLZ1400087416</td>
-                                                        <td><a href="#!">Brand logo design</a></td>
-                                                        <td>Richard V.</td>
-                                                        <td>Admin</td>
-                                                        <td>Richard V.</td>
-                                                        <td>16 March, 2021</td>
-                                                        <td><span class="badge badge-soft-warning">Inprogress</span></td>
-                                                        <td><span class="badge bg-danger">High</span></td>
-                                                        <td>
-                                                            <div class="dropdown d-inline-block">
-                                                                <button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                                    <i class="ri-more-fill align-middle"></i>
-                                                                </button>
-                                                                <ul class="dropdown-menu dropdown-menu-end">
-                                                                    <li><a href="#!" class="dropdown-item"><i class="ri-eye-fill align-bottom me-2 text-muted"></i> View</a></li>
-                                                                    <li><a class="dropdown-item edit-item-btn"><i class="ri-pencil-fill align-bottom me-2 text-muted"></i> Edit</a></li>
-                                                                    <li>
-                                                                        <a class="dropdown-item remove-item-btn">
-                                                                            <i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i> Delete
-                                                                        </a>
-                                                                    </li>
-                                                                </ul>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>13</td>
-                                                        <td>VLZ-466</td>
-                                                        <td>VLZ1400089015</td>
-                                                        <td><a href="#!">Issue with finding information about order ?</a></td>
-                                                        <td>Olive Gunther</td>
-                                                        <td>Alexis Clarke</td>
-                                                        <td>Schaefer</td>
-                                                        <td>32 March, 2022</td>
-                                                        <td><span class="badge badge-soft-success">New</span></td>
-                                                        <td><span class="badge bg-danger">High</span></td>
-                                                        <td>
-                                                            <div class="dropdown d-inline-block">
-                                                                <button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                                    <i class="ri-more-fill align-middle"></i>
-                                                                </button>
-                                                                <ul class="dropdown-menu dropdown-menu-end">
-                                                                    <li><a href="#!" class="dropdown-item"><i class="ri-eye-fill align-bottom me-2 text-muted"></i> View</a></li>
-                                                                    <li><a class="dropdown-item edit-item-btn"><i class="ri-pencil-fill align-bottom me-2 text-muted"></i> Edit</a></li>
-                                                                    <li>
-                                                                        <a class="dropdown-item remove-item-btn">
-                                                                            <i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i> Delete
-                                                                        </a>
-                                                                    </li>
-                                                                </ul>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>14</td>
-                                                        <td>VLZ-467</td>
-                                                        <td>VLZ1400090324</td>
-                                                        <td><a href="#!">Make a creating an account profile</a></td>
-                                                        <td>Edwin</td>
-                                                        <td>Admin</td>
-                                                        <td>Edwin</td>
-                                                        <td>05 April, 2022</td>
-                                                        <td><span class="badge badge-soft-warning">Inprogress</span></td>
-                                                        <td><span class="badge bg-success">Low</span></td>
-                                                        <td>
-                                                            <div class="dropdown d-inline-block">
-                                                                <button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                                    <i class="ri-more-fill align-middle"></i>
-                                                                </button>
-                                                                <ul class="dropdown-menu dropdown-menu-end">
-                                                                    <li><a href="#!" class="dropdown-item"><i class="ri-eye-fill align-bottom me-2 text-muted"></i> View</a></li>
-                                                                    <li><a class="dropdown-item edit-item-btn"><i class="ri-pencil-fill align-bottom me-2 text-muted"></i> Edit</a></li>
-                                                                    <li>
-                                                                        <a class="dropdown-item remove-item-btn">
-                                                                            <i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i> Delete
-                                                                        </a>
-                                                                    </li>
-                                                                </ul>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
                                             </table>
+                                        </div>
+                                        <div class="card-footer d-flex justify-content-between text-muted fs-12">
+                                            <span id="productTableInfo"></span>
+                                            <span>kg</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-xl-4">
+                                    <!-- DO breakdown -->
+                                    <div class="card dashboard-panel">
+                                        <div class="card-header border-0 pb-0">
+                                            <h5 class="card-title mb-1"><?=$label('do_breakdown_code', 'DO Breakdown')?></h5>
+                                            <p class="text-muted mb-0"><?=$label('do_breakdown_desc_code', 'Delivery orders for the filtered period')?></p>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row align-items-center">
+                                                <div class="col-6">
+                                                    <div id="doChart" dir="ltr"></div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="d-flex justify-content-between mb-3">
+                                                        <span><span class="dot d-inline-block rounded-circle bg-primary me-2" style="width:8px;height:8px;"></span><?=$salesLabel?></span>
+                                                        <span class="fw-semibold" id="salesPercent">0%</span>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between">
+                                                        <span><span class="dot d-inline-block rounded-circle bg-warning me-2" style="width:8px;height:8px;"></span><?=$productionLabel?></span>
+                                                        <span class="fw-semibold" id="productionPercent">0%</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Recent movement -->
+                                    <div class="card recent-movement text-white">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                                <div>
+                                                    <h5 class="text-white mb-1"><?=$label('recent_movement_code', 'Recent Movement')?></h5>
+                                                    <p class="text-white-50 mb-0"><?=$label('recent_movement_desc_code', 'Latest weighing activity')?></p>
+                                                </div>
+                                                <a href="index.php" class="text-warning"><?=$label('view_all_code', 'View All')?></a>
+                                            </div>
+                                            <div id="recentMovement"></div>
                                         </div>
                                     </div>
                                 </div>
                             </div><!--end row-->
-                    
 
                         </div> <!-- end .h-100-->
 
@@ -715,47 +324,351 @@
     </div>
     <!-- END layout-wrapper -->
 
-
-
-
     <?php include 'layouts/customizer.php'; ?>
 
     <?php include 'layouts/vendor-scripts.php'; ?>
 
     <!-- apexcharts -->
     <script src="assets/libs/apexcharts/apexcharts.min.js"></script>
-
-    <!-- Vector map-->
-    <script src="assets/libs/jsvectormap/js/jsvectormap.min.js"></script>
-    <script src="assets/libs/jsvectormap/maps/world-merc.js"></script>
-
-    <!--Swiper slider js-->
-    <script src="assets/libs/swiper/swiper-bundle.min.js"></script>
-    <!-- Dashboard init -->
-    <script src="assets/js/pages/dashboard-ecommerce.init.js"></script>   
-    <script src="assets/js/pages/form-validation.init.js"></script>
     <!-- App js -->
     <script src="assets/js/app.js"></script>
-
-    <!-- prismjs plugin -->
-    <script src="assets/libs/prismjs/prism.js"></script>
-
-    <!-- notifications init -->
-    <script src="assets/js/pages/notifications.init.js"></script>
     <script src="plugins/datatables/jquery.dataTables.js"></script>
     <script src="plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
-    <script src="plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
-    <script src="plugins/datatables-buttons/js/dataTables.buttons.min.js"></script>
-    <script src="plugins/datatables-buttons/js/buttons.print.min.js"></script>
-    <script src="plugins/datatables-buttons/js/buttons.html5.min.js"></script>
-    <script src="assets/js/pages/datatables.init.js"></script>
-
 
     <script type="text/javascript">
-    $(function () {
+    var fromDateSearchPicker;
+    var toDateSearchPicker;
+    var doChart = null;
+    var productTable = null;
+    var labels = {
+        sales: '<?=addslashes($salesLabel)?>',
+        production: '<?=addslashes($productionLabel)?>',
+        trips: '<?=addslashes($label('trips_code', 'Trips'))?>',
+        inStock: '<?=addslashes($label('in_stock_code', 'In Stock'))?>',
+        outOfStock: '<?=addslashes($label('out_of_stock_code', 'Out of Stock'))?>',
+        showing: '<?=addslashes($label('showing_of_code', 'Showing %s of %s'))?>',
+        noRecord: '<?=addslashes($label('no_record_code', 'No records found'))?>',
+        total: '<?=addslashes($label('total_code', 'Total'))?>'
+    };
+    // Recent movement badge / sign per movement type
+    var movementTypes = {
+        stockIn: { badge: 'IN', sign: '+', label: '<?=addslashes($stockInLabel)?>' },
+        transfer: { badge: 'TR', sign: '-', label: '<?=addslashes($transferLabel)?>' },
+        sales: { badge: 'DO', sign: '-', label: '<?=addslashes($salesLabel)?>' },
+        production: { badge: 'PR', sign: '-', label: '<?=addslashes($productionLabel)?>' }
+    };
 
+    $(function () {
+        const today = new Date();
+        const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+
+        // Initialize all Select2 elements in the search bar
+        $('#collapseSearch .select2').select2({
+            allowClear: true,
+            placeholder: "Please Select",
+        });
+
+        // Apply custom styling to Select2 elements in search bar
+        $('.select2-container .select2-selection--single').css({
+            'padding-top': '4px',
+            'padding-bottom': '4px',
+            'height': 'auto'
+        });
+
+        $('.select2-container .select2-selection__arrow').css({
+            'padding-top': '33px',
+            'height': 'auto'
+        });
+
+        //Date picker
+        fromDateSearchPicker = $('#fromDateSearch').flatpickr({
+            dateFormat: "d-m-Y",
+            defaultDate: firstOfMonth
+        });
+
+        toDateSearchPicker = $('#toDateSearch').flatpickr({
+            dateFormat: "d-m-Y",
+            defaultDate: today
+        });
+
+        $('#filterSearch').on('click', function(){
+            loadDashboard();
+        });
+
+        // Clear All Filter Function
+        $('#clearAllSearch').on('click', function(){
+            fromDateSearchPicker.setDate(firstOfMonth);
+            toDateSearchPicker.setDate(today);
+            $('#transactionStatusSearch').val('-').trigger('change');
+            $('#companySearch').val('<?=$selectedCompanyId?>').trigger('change');
+            $('#plantSearch').val('-').trigger('change');
+            $('#productSearch').val('-').trigger('change');
+            $('#customerSupplierSearch').val('-').trigger('change');
+        });
+
+        // Product / customer / supplier lists follow the selected company
+        $('#companySearch').on('change', function(){
+            loadCompanyLists($(this).val());
+        });
+
+        // Product table search / category filter
+        $('#productTableSearch').on('keyup', function(){
+            if (productTable) {
+                productTable.search($(this).val()).draw();
+            }
+        });
+
+        $('#categoryFilter').on('change', function(){
+            if (productTable) {
+                productTable.column(1).search($(this).val() ? '^' + $.fn.dataTable.util.escapeRegex($(this).val()) + '$' : '', true, false).draw();
+            }
+        });
+
+        loadDashboard();
     });
+
+    function loadDashboard() {
+        $.post('php/modules/dashboard/index.php', {
+            action: 'summary',
+            fromDate: $('#fromDateSearch').val(),
+            toDate: $('#toDateSearch').val(),
+            transactionStatus: $('#transactionStatusSearch').val() || '',
+            company: $('#companySearch').val() || '',
+            plant: $('#plantSearch').val() || '',
+            product: $('#productSearch').val() || '',
+            customerSupplier: $('#customerSupplierSearch').val() || ''
+        }, function(data){
+            var obj = JSON.parse(data);
+
+            if (obj.status === 'success') {
+                renderTotals(obj.totals);
+                renderDoChart(obj.totals);
+                renderProductTable(obj.products);
+                renderRecent(obj.recent);
+            }
+            else {
+                toastr["error"](obj.message || "Something went wrong", "Failed:");
+            }
+        }).fail(function(){
+            toastr["error"]("Something went wrong", "Failed:");
+        });
+    }
+
+    function loadCompanyLists(companyId) {
+        var $product = $('#productSearch');
+        var $party = $('#customerSupplierSearch');
+        var $customers = $party.find('optgroup').eq(0);
+        var $suppliers = $party.find('optgroup').eq(1);
+
+        $product.find('option:not(:first)').remove();
+        $customers.empty();
+        $suppliers.empty();
+        $product.val('-').trigger('change');
+        $party.val('-').trigger('change');
+
+        // "-" (all companies) has no single company list to load
+        if (!companyId || companyId === '-') {
+            return;
+        }
+
+        $.post('php/modules/item/index.php', { action: 'list', company: companyId }, function(data){
+            var obj = JSON.parse(data);
+            if (obj.status === 'success') {
+                $.each(obj.data, function(i, item){
+                    $product.append($('<option>').val(item.product_code).text(item.name));
+                });
+            }
+        });
+
+        $.post('php/modules/customer/index.php', { action: 'list', company: companyId }, function(data){
+            var obj = JSON.parse(data);
+            if (obj.status === 'success') {
+                $.each(obj.data, function(i, item){
+                    $customers.append($('<option>').val('C|' + item.customer_code).text(item.name));
+                });
+            }
+        });
+
+        $.post('php/modules/supplier/index.php', { action: 'list', company: companyId }, function(data){
+            var obj = JSON.parse(data);
+            if (obj.status === 'success') {
+                $.each(obj.data, function(i, item){
+                    $suppliers.append($('<option>').val('S|' + item.supplier_code).text(item.name));
+                });
+            }
+        });
+    }
+
+    function renderTotals(totals) {
+        $.each(['stockIn', 'transfer', 'deliveryOrder'], function(i, key){
+            $('#' + key + 'Weight').text(formatWeight(totals[key].weight));
+            $('#' + key + 'Trips').text(totals[key].trips + ' ' + labels.trips);
+        });
+
+        $('#balanceWeight').text(formatWeight(totals.balance.weight))
+            .toggleClass('text-danger', totals.balance.weight < 0);
+    }
+
+    function renderDoChart(totals) {
+        var sales = totals.sales.weight;
+        var production = totals.production.weight;
+        var total = sales + production;
+
+        $('#salesPercent').text(total > 0 ? Math.round(sales / total * 100) + '%' : '0%');
+        $('#productionPercent').text(total > 0 ? Math.round(production / total * 100) + '%' : '0%');
+
+        var options = {
+            chart: { type: 'donut', height: 200 },
+            series: [sales, production],
+            labels: [labels.sales, labels.production],
+            colors: ['#405189', '#f7b84b'],
+            legend: { show: false },
+            dataLabels: { enabled: false },
+            stroke: { width: 0 },
+            tooltip: { y: { formatter: function(v){ return formatWeight(v) + ' kg'; } } },
+            plotOptions: {
+                pie: {
+                    donut: {
+                        size: '72%',
+                        labels: {
+                            show: true,
+                            value: { formatter: function(v){ return formatWeight(v); } },
+                            total: {
+                                show: true,
+                                showAlways: true,
+                                label: 'kg',
+                                fontSize: '12px',
+                                formatter: function(){ return formatWeight(total); }
+                            }
+                        }
+                    }
+                }
+            }
+        };
+
+        if (doChart) {
+            doChart.destroy();
+        }
+        doChart = new ApexCharts(document.querySelector('#doChart'), options);
+        doChart.render();
+    }
+
+    function renderProductTable(products) {
+        if (productTable) {
+            productTable.destroy();
+        }
+
+        // Category options from the filtered products
+        var selectedCategory = $('#categoryFilter').val();
+        var categories = [];
+        $.each(products, function(i, row){
+            if (row.category_name && categories.indexOf(row.category_name) < 0) {
+                categories.push(row.category_name);
+            }
+        });
+        categories.sort();
+        $('#categoryFilter').find('option:not(:first)').remove();
+        $.each(categories, function(i, category){
+            $('#categoryFilter').append($('<option>').val(category).text(category));
+        });
+        $('#categoryFilter').val(categories.indexOf(selectedCategory) >= 0 ? selectedCategory : '');
+
+        var weightColumn = function(key, bold){
+            return {
+                data: key,
+                className: 'text-end' + (bold ? ' fw-semibold' : ' text-muted'),
+                render: function(v, type){ return type === 'display' ? formatWeight(v) : v; }
+            };
+        };
+
+        productTable = $('#productTable').DataTable({
+            data: products,
+            dom: 't',
+            paging: false,
+            order: [[0, 'asc']],
+            language: { emptyTable: labels.noRecord, zeroRecords: labels.noRecord },
+            columns: [
+                {
+                    data: 'item_name',
+                    className: 'ps-4',
+                    render: function(v, type, row){
+                        if (type !== 'display') {
+                            return (v || '') + ' ' + (row.item_code || '');
+                        }
+                        var subtitle = escapeHtml(row.item_code || '-') + (row.category_name ? ' · ' + escapeHtml(row.category_name) : '');
+                        return '<div class="d-flex align-items-center">' +
+                            '<div class="item-avatar flex-shrink-0 rounded bg-soft-success text-success fw-semibold d-flex align-items-center justify-content-center me-3">' + escapeHtml(initials(v || row.item_code)) + '</div>' +
+                            '<div><h6 class="fs-14 mb-0">' + escapeHtml(v || row.item_code || '-') + '</h6><p class="text-muted fs-12 mb-0">' + subtitle + '</p></div>' +
+                            '</div>';
+                    }
+                },
+                { data: 'category_name', visible: false },
+                weightColumn('stockIn', true),
+                weightColumn('transfer', false),
+                weightColumn('deliveryOrder', false),
+                {
+                    data: 'balance',
+                    className: 'text-end fw-semibold',
+                    render: function(v, type){
+                        if (type !== 'display') {
+                            return v;
+                        }
+                        return '<span class="' + (v < 0 ? 'text-danger' : '') + '">' + formatWeight(v) + '</span>';
+                    }
+                },
+                {
+                    data: 'balance',
+                    className: 'pe-4',
+                    orderable: false,
+                    render: function(v){
+                        return v > 0
+                            ? '<span class="badge bg-soft-success text-success">' + labels.inStock + '</span>'
+                            : '<span class="badge bg-soft-danger text-danger">' + labels.outOfStock + '</span>';
+                    }
+                }
+            ],
+            drawCallback: function(){
+                var info = this.api().page.info();
+                $('#productTableInfo').text(labels.showing.replace('%s', info.recordsDisplay).replace('%s', info.recordsTotal));
+            }
+        });
+
+        // Re-apply the table search / category filter to the new data
+        productTable.search($('#productTableSearch').val());
+        $('#categoryFilter').trigger('change');
+    }
+
+    function renderRecent(recent) {
+        var html = '';
+
+        $.each(recent, function(i, row){
+            var type = movementTypes[row.type];
+            html += '<div class="d-flex align-items-center' + (i < recent.length - 1 ? ' mb-3' : '') + '">' +
+                '<div class="movement-badge flex-shrink-0 rounded d-flex align-items-center justify-content-center fw-semibold text-warning me-3">' + type.badge + '</div>' +
+                '<div class="flex-grow-1 overflow-hidden">' +
+                    '<h6 class="text-white fs-13 mb-0 text-truncate">' + escapeHtml(type.label) + ' · ' + escapeHtml(row.item_name || '-') + '</h6>' +
+                    '<p class="text-white-50 fs-11 mb-0 text-truncate">' + escapeHtml(row.transaction_id) + ' · ' + escapeHtml(row.date) + '</p>' +
+                '</div>' +
+                '<div class="flex-shrink-0 fw-semibold fs-13 ms-2">' + type.sign + ' ' + formatWeight(row.weight) + ' kg</div>' +
+                '</div>';
+        });
+
+        $('#recentMovement').html(html || '<p class="text-white-50 mb-0">' + labels.noRecord + '</p>');
+    }
+
+    function initials(name) {
+        var words = $.trim(name || '').split(/\s+/);
+        return ((words[0] || '').charAt(0) + (words[1] || words[0] || '').charAt(words[1] ? 0 : 1)).toUpperCase();
+    }
+
+    function escapeHtml(value) {
+        return $('<div>').text(value == null ? '' : value).html();
+    }
+
+    function formatWeight(value) {
+        return parseFloat(value || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
     </script>
     </body>
 
-    </html>
+</html>

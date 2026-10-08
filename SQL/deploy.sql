@@ -4465,3 +4465,23 @@ DELIMITER ;
 
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('production_code', 'Production', '生产', 'Pengeluaran', 'உற்பத்தி');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('production_report_code', 'Production Report', '生产报告', 'Laporan Pengeluaran', 'உற்பத்தி அறிக்கை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('dashboard_code', 'Dashboard', '仪表板', 'Papan Pemuka', 'டாஷ்போர்டு');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('stock_in_code', 'Stock In', '入库', 'Stok Masuk', 'சரக்கு உள்வரவு');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('stock_transfer_code', 'Stock Transfer', '库存转移', 'Pemindahan Stok', 'சரக்கு பரிமாற்றம்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('balance_code', 'Balance', '余额', 'Baki', 'இருப்பு');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('trips_code', 'Trips', '车次', 'Trip', 'பயணங்கள்');
+
+INSERT INTO `modules` (`name`, `category`) SELECT 'Dashboard', 'Dashboard' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `modules` WHERE `name` = 'Dashboard' AND `category` = 'Dashboard');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('available_stock_code', 'Available Stock', '可用库存', 'Stok Tersedia', 'கிடைக்கும் சரக்கு');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('product_inventory_code', 'Product Inventory', '产品库存', 'Inventori Produk', 'தயாரிப்பு சரக்கு');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('product_inventory_desc_code', 'Stock balance by product for the filtered period', '筛选期间各产品库存余额', 'Baki stok mengikut produk bagi tempoh yang ditapis', 'வடிகட்டிய காலத்திற்கான தயாரிப்பு வாரியான சரக்கு இருப்பு');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('all_categories_code', 'All Categories', '所有类别', 'Semua Kategori', 'அனைத்து வகைகள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('do_breakdown_code', 'DO Breakdown', '交货单明细', 'Pecahan DO', 'DO பிரிவு');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('do_breakdown_desc_code', 'Delivery orders for the filtered period', '筛选期间的交货单', 'Pesanan penghantaran bagi tempoh yang ditapis', 'வடிகட்டிய காலத்திற்கான விநியோக ஆணைகள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('recent_movement_code', 'Recent Movement', '最近动态', 'Pergerakan Terkini', 'சமீபத்திய இயக்கம்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('recent_movement_desc_code', 'Latest weighing activity', '最新称重记录', 'Aktiviti penimbangan terkini', 'சமீபத்திய எடையிடல் செயல்பாடு');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('view_all_code', 'View All', '查看全部', 'Lihat Semua', 'அனைத்தையும் காண்க');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('in_stock_code', 'In Stock', '有库存', 'Ada Stok', 'கையிருப்பில் உள்ளது');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('out_of_stock_code', 'Out of Stock', '缺货', 'Kehabisan Stok', 'கையிருப்பில் இல்லை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('showing_of_code', 'Showing %s of %s', '显示 %s / %s', 'Memaparkan %s daripada %s', '%s / %s காட்டப்படுகிறது');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('no_record_code', 'No records found', '没有记录', 'Tiada rekod ditemui', 'பதிவுகள் எதுவும் இல்லை');

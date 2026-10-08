@@ -5,6 +5,7 @@
     $hasAccountingView = hasPermission('Accounting', ['view', 'create', 'edit']);
     $hasMasterDataView = hasPermission('Master Data', ['view', 'create', 'edit']);
     $hasReportView = hasPermission('Reports', ['view']);
+    $hasDashboardView = hasModulePermission('Dashboard', 'Dashboard', ['view']);
     $hasUserManagementView = hasPermission('User Management', ['view', 'create', 'edit']);
 ?>
 <!-- ========== App Menu ========== -->
@@ -42,9 +43,11 @@
             </div>
             <ul class="navbar-nav" id="navbar-nav">
                 <li class="menu-title"><span><?=$lang['t-menu']?></span></li>
-                <!--li class="nav-item">
-                    <a href="dashboard.php" class="nav-link"><i class="mdi mdi-billboard"></i><?=$lang['t-billboard']?></a>
-                </li-->
+                <?php if($hasDashboardView): ?>
+                <li class="nav-item">
+                    <a href="dashboard.php" class="nav-link menu-link"><i class="mdi mdi-view-dashboard-outline"></i> <span><?=$languageArray['dashboard_code'][$language] ?? 'Dashboard'?></span></a>
+                </li>
+                <?php endif; ?>
                 <?php if($hasWeighingView || $hasSawnTimberView): ?>
                 <li class="nav-item">
                     <a class="nav-link menu-link" href="#sidebarWeighing" data-bs-toggle="collapse" role="button"
