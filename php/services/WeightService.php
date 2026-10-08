@@ -252,9 +252,16 @@ class WeightService extends BaseService {
         if ($companyFilter > 0) {
             $q .= " AND company_id = {$companyFilter}";
         }
+        $allStatuses = empty($post['transactionStatus']) || $post['transactionStatus'] === '-';
         foreach (['transactionStatus' => 'transaction_status', 'customer' => 'customer_code', 'supplier' => 'supplier_code', 'invoice' => 'weight_type', 'product' => 'product_code', 'rawMaterial' => 'raw_mat_code', 'plant' => 'plant_code'] as $param => $col) {
             if (!empty($post[$param]) && $post[$param] !== '-') {
-                $q .= " AND {$col} = '" . mysqli_real_escape_string($this->db, $post[$param]) . "'";
+                $v = mysqli_real_escape_string($this->db, $post[$param]);
+                // With all statuses, the product dropdown also covers Purchase/Local rows, whose item is in raw_mat_code
+                if ($param === 'product' && $allStatuses) {
+                    $q .= " AND (product_code = '{$v}' OR raw_mat_code = '{$v}')";
+                } else {
+                    $q .= " AND {$col} = '{$v}'";
+                }
             }
         }
         if (!empty($post['status']) && $post['status'] !== '-') {
