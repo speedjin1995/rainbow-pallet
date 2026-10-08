@@ -53,6 +53,7 @@ class PermissionService extends BaseService {
                 $display = 'All';
             } else {
                 $names = array_map(fn($mid) => $moduleLookup[$mid] ?? $mid, $modulesArr);
+                sort($names, SORT_NATURAL | SORT_FLAG_CASE);
                 $display = implode('<br>', $names);
             }
             $data[] = [
@@ -157,6 +158,7 @@ class PermissionService extends BaseService {
                 ['User Setup', 'User Management'],
                 ['Sales', 'Weighing'], 
                 ['Purchase', 'Weighing'], 
+                ['Production', 'Weighing'], 
                 ['Port', 'Weighing'], 
                 ['Miscellaneous', 'Weighing'],
                 ['Normal Type', 'Weighing'], 
@@ -189,6 +191,7 @@ class PermissionService extends BaseService {
                 ['User Setup', 'User Management'],
                 ['Sales', 'Weighing'], 
                 ['Purchase', 'Weighing'], 
+                ['Production', 'Weighing'], 
                 ['Port', 'Weighing'], 
                 ['Miscellaneous', 'Weighing'],
                 ['Normal Type', 'Weighing'], 
@@ -220,6 +223,7 @@ class PermissionService extends BaseService {
                 ['User Setup', 'User Management'],
                 ['Sales', 'Weighing'], 
                 ['Purchase', 'Weighing'], 
+                ['Production', 'Weighing'], 
                 ['Port', 'Weighing'], 
                 ['Miscellaneous', 'Weighing'],
                 ['Normal Type', 'Weighing'], 
@@ -231,12 +235,14 @@ class PermissionService extends BaseService {
             ['name' => 'reactivate', 'modules' => [
                 ['Sales', 'Weighing'], 
                 ['Purchase', 'Weighing'], 
+                ['Production', 'Weighing'], 
                 ['Port', 'Weighing'], 
                 ['Miscellaneous', 'Weighing'],
             ]],
             ['name' => 'weight_out', 'modules' => [
                 ['Sales', 'Weighing'], 
                 ['Purchase', 'Weighing'], 
+                ['Production', 'Weighing'], 
                 ['Port', 'Weighing'], 
                 ['Miscellaneous', 'Weighing']
             ]],
@@ -256,10 +262,12 @@ class PermissionService extends BaseService {
                 // ['Payment Voucher', 'Accounting'],
                 ['Sales', 'Reports'], 
                 ['Purchase', 'Reports'], 
+                ['Production', 'Reports'], 
                 ['Port', 'Reports'], 
                 ['Miscellaneous', 'Reports'],
                 ['Sales', 'Weighing'], 
                 ['Purchase', 'Weighing'], 
+                ['Production', 'Weighing'], 
                 ['Port', 'Weighing'], 
                 ['Miscellaneous', 'Weighing']
             ]],
@@ -268,10 +276,12 @@ class PermissionService extends BaseService {
                 ['Goods Received', 'Accounting'],
                 ['Sales', 'Reports'], 
                 ['Purchase', 'Reports'], 
+                ['Production', 'Reports'], 
                 ['Port', 'Reports'], 
                 ['Miscellaneous', 'Reports'],
                 ['Sales', 'Weighing'], 
                 ['Purchase', 'Weighing'], 
+                ['Production', 'Weighing'], 
                 ['Port', 'Weighing'], 
                 ['Miscellaneous', 'Weighing'],
                 ['Sawn Timber', 'Sawn Timber'],
@@ -299,10 +309,12 @@ class PermissionService extends BaseService {
                 ['Sales', 'Reports'], 
                 ['Purchase', 'Reports'], 
                 ['Port', 'Reports'], 
+                ['Production', 'Reports'],
                 ['Miscellaneous', 'Reports'],
                 ['Audit Log', 'Reports'],
                 ['Sales', 'Weighing'],
                 ['Purchase', 'Weighing'],
+                ['Production', 'Weighing'],
                 ['Port', 'Weighing'],
                 ['Miscellaneous', 'Weighing'],
                 ['Sawn Timber', 'Sawn Timber'],
@@ -352,6 +364,7 @@ class PermissionService extends BaseService {
                 ['Api Log', 'Reports'],
                 ['Sales', 'Reports'], 
                 ['Purchase', 'Reports'], 
+                ['Production', 'Reports'], 
                 ['Port', 'Reports'], 
                 ['Miscellaneous', 'Reports'],
                 ['Sawn Timber', 'Sawn Timber'],
