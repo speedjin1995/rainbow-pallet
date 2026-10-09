@@ -800,7 +800,8 @@ class ItemService extends BaseService {
             IFNULL(c.is_purchase, 'Y') as is_purchase,
             IFNULL(c.is_local, 'Y') as is_local,
             IFNULL(c.is_port, 'Y') as is_port,
-            IFNULL(c.is_misc, 'Y') as is_misc
+            IFNULL(c.is_misc, 'Y') as is_misc,
+            IFNULL(c.is_production, 'Y') as is_production
             FROM {$this->table} p LEFT JOIN Product_Categories c ON p.category = c.id
             WHERE p.company = ? AND p.status = '0' ORDER BY p.name");
         if (!$stmt) throw new Exception($this->db->error);

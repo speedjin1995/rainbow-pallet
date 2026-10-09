@@ -232,6 +232,9 @@ class WeightController extends BaseController {
         try {
             $f = $this->parseFields();
             $isUpdate = !empty($f['weightId']);
+            // New weighings need create, existing ones need edit, on the transaction status's Weighing module
+            $statusModule = $f['transactionStatus'] === 'Misc' ? 'Miscellaneous' : $f['transactionStatus'];
+            if (!hasModulePermission('Weighing', $statusModule, $isUpdate ? ['edit'] : ['create'])) $this->failed('Unauthorized');
             $this->db->begin_transaction();
             $f['deliveryNo'] = $this->resolveDeliveryNo($f);
             switch ($f['weightType']) {
@@ -283,6 +286,8 @@ class WeightController extends BaseController {
         $f['tareWeightBy1']         = $this->getPost('tareWeightBy1', 0);
         $f['nettWeight']            = $this->getPost('nettWeight', 0);
         $f['manualWeight']          = $this->getPost('manualWeight');
+        // Production gross / tare are always entered manually
+        if ($f['transactionStatus'] === 'Production') $f['manualWeight'] = 'true';
         $f['weighbridge']           = $this->getPost('weighbridge', 'Weigh1');
         $f['indicatorId']           = $this->getPost('indicatorId');
         $f['invoiceNo']             = $this->getPost('invoiceNo');

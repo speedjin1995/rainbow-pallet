@@ -36,9 +36,17 @@
     var USERNAME = '<?php echo $wmUsername; ?>';
     var DEFAULT_PLANT = "<?=$wmPlantName ?>";
     var PRINT_LANGUAGE = "<?=$language ?>";
-    var CAN_CHANGE_DATE = <?= hasPermission('Weighing', ['manual_date_change']) ? 'true' : 'false' ?>;
+    // Transaction statuses whose Weighing module has manual_date_change (Misc => Miscellaneous module)
+    var DATE_CHANGE_STATUSES = <?php
+        $wmDateChangeStatuses = [];
+        foreach (['Sales' => 'Sales', 'Purchase' => 'Purchase', 'Local' => 'Local', 'Port' => 'Port', 'Misc' => 'Miscellaneous', 'Production' => 'Production'] as $wmStatus => $wmModule) {
+            if (hasModulePermission('Weighing', $wmModule, ['manual_date_change'])) $wmDateChangeStatuses[] = $wmStatus;
+        }
+        echo json_encode($wmDateChangeStatuses);
+    ?>;
     var sessionCompanyId = '<?=$wmCompanyId?>';
     var DEFAULT_COMPANY_ID = <?= hasPermission('Weighing', ['view_all_companies']) ? 1 : 'sessionCompanyId' ?>;
+    var CAN_MANUAL_WEIGH = <?= hasPermission('Weighing', ['manual_weighing']) ? 'true' : 'false' ?>;
 
     var LANG = {
         pendingBin: "<?= $languageArray['pending_bin_code'][$language] ?>",
@@ -48,6 +56,9 @@
         trxToPort: '<?=$languageArray['trx_to_port_code'][$language]?>',
         internalTransfer: '<?=$languageArray['internal_transfer_code'][$language]?>',
         miscellaneous: '<?=$languageArray['miscellaneous_code'][$language]?>',
+        addNew: '<?=$languageArray['add_new_code'][$language]?>',
+        edit: '<?=$languageArray['edit_code'][$language]?>',
+        production: '<?=$languageArray['production_code'][$language]?>',
         doNoTooltip: <?=json_encode($languageArray['generate_do_no_tooltip_code'][$language] ?? 'Click to generate the next {status} Delivery No. The final number is assigned when you save.')?>,
         doNoNotSetupTooltip: <?=json_encode($languageArray['do_no_not_setup_tooltip_code'][$language] ?? 'Auto-generated Delivery No is not set up for {status} for this company. Please enter the Delivery No manually.')?>
     };
@@ -75,6 +86,9 @@
 
     var settings = { onSaved: null };
     var optionCache = { allProductOptions: null, allRawMatOptions: null };
+    // 'create' (opened by addWeight) or 'edit' (opened by editWeight)
+    var modalMode = 'create';
+    var allStatusOptions = null;
     var modalCompanyId = sessionCompanyId;
     var modalListsReady = $.Deferred().resolve().promise();
     var doNoStatuses = []; // transaction statuses the modal's company has a DO No format for
@@ -87,6 +101,8 @@
     var tareOutgoingDatePicker2;
     var customerSideTimeInPicker;
     var customerSideTimeOutPicker;
+    var datePickers = []; // every picker in the modal, locked / unlocked by applyDateChangePermission()
+    var canChangeDate = false;
 
     // =========================================================================
     // 2. Initialisation
@@ -124,10 +140,10 @@
     }
 
     function initDatePickers() {
-        inModal('#transactionDate').flatpickr(datePickerOptions({
+        datePickers.push(inModal('#transactionDate').flatpickr(datePickerOptions({
             dateFormat: "d-m-Y",
             defaultDate: ''
-        }));
+        })));
 
         grossIncomingDatePicker = createDateTimePicker('#grossIncomingDate');
         tareOutgoingDatePicker = createDateTimePicker('#tareOutgoingDate');
@@ -137,22 +153,40 @@
         customerSideTimeOutPicker = createDateTimePicker('#customerSideTimeOut');
     }
 
-    // Shared flatpickr options - users without manual_date_change can't open or type in the pickers
+    // Shared flatpickr options - pickers start locked; applyDateChangePermission() unlocks them
+    // when the selected transaction status has manual_date_change
     function datePickerOptions(options) {
         return $.extend({
             allowInput: true,
-            clickOpens: CAN_CHANGE_DATE,
             onReady: function(selectedDates, dateStr, instance) {
-                if (!CAN_CHANGE_DATE) {
+                if (!canChangeDate) {
                     instance._input.setAttribute('readonly', true);
+                    instance.close();
+                }
+            },
+            // Locked pickers close as soon as they open
+            onOpen: function(selectedDates, dateStr, instance) {
+                if (!canChangeDate) {
                     instance.close();
                 }
             }
         }, options);
     }
 
+    // Users without manual_date_change on the transaction status can't open or type in the pickers.
+    // Only readonly is toggled: picker.set() would redraw the input and wipe dates filled in with .val()
+    function applyDateChangePermission(status) {
+        canChangeDate = $.inArray(status, DATE_CHANGE_STATUSES) !== -1;
+        $.each(datePickers, function(i, picker) {
+            $(picker._input).prop('readonly', !canChangeDate);
+            if (!canChangeDate) {
+                picker.close();
+            }
+        });
+    }
+
     function createDateTimePicker(selector) {
-        return inModal(selector).flatpickr(datePickerOptions({
+        var picker = inModal(selector).flatpickr(datePickerOptions({
             enableTime: true,
             enableSeconds: true,
             time_24hr: true,
@@ -160,6 +194,8 @@
             altInput: true,
             altFormat: "d/m/Y H:i:S K"
         }));
+        datePickers.push(picker);
+        return picker;
     }
 
     // Company, transaction status, weight type, product and the code-carrying dropdowns
@@ -406,7 +442,9 @@
         inModal('#currentWeight').text("0");
         inModal('#transactionId').val("");
         inModal('#companyId').val(prefill && prefill.companyId ? prefill.companyId : sessionCompanyId).trigger('change');
-        inModal('#transactionStatus').val("Sales").trigger('change');
+        setModalMode('create');
+        var defaultStatus = inModal('#transactionStatus option[value="Sales"]').length ? 'Sales' : inModal('#transactionStatus option:first').val();
+        inModal('#transactionStatus').val(defaultStatus).trigger('change');
         inModal('#emptyContainerNo').val("").trigger('change');
         inModal('#weightType').val("Normal").trigger('change');
         inModal('#customerType').val("Normal").trigger('change');
@@ -509,6 +547,7 @@
 
     function fillFormFromRecord(record) {
         // Header
+        setModalMode('edit', record.transaction_status);
         inModal('#transactionId').val(record.transaction_id);
         inModal('#transactionStatus').val(record.transaction_status).trigger('change');
         inModal('#weightType').val(record.weight_type).trigger('change');
@@ -616,6 +655,7 @@
         var isManualWeight = record.manual_weight == 'true';
         inModal('#manualWeightToggle').prop('checked', isManualWeight).val(isManualWeight ? 'true' : 'false');
         inModal('#manualWeightToggle').trigger('change');
+        applyManualWeightLock(record.transaction_status);
 
         // Hidden fields, price and containers
         inModal('#indicatorId').val(record.indicator_id);
@@ -655,6 +695,26 @@
 
         initModalSelect2();
         showWeightModal();
+    }
+
+    // Title shows Add New / Edit, and the transaction status dropdown keeps only the statuses the user
+    // may create (create mode) or edit (edit mode). An edited record always keeps its own status.
+    function setModalMode(mode, currentStatus) {
+        modalMode = mode;
+        inModal('#exampleModalScrollableTitle').text(mode == 'edit' ? LANG.edit : LANG.addNew);
+
+        if (!allStatusOptions) {
+            allStatusOptions = inModal('#transactionStatus option').clone();
+        }
+
+        var permissionAttr = mode == 'edit' ? 'can-edit' : 'can-create';
+        var $sel = inModal('#transactionStatus').empty();
+        allStatusOptions.each(function() {
+            if ($(this).data(permissionAttr) === 'Y' || $(this).val() === currentStatus) {
+                // Drop Select2's internal id: a clone carrying the old one is matched to stale data and can't be picked
+                $sel.append($(this).clone().removeAttr('data-select2-id').prop('selected', false));
+            }
+        });
     }
 
     // prefill: { companyId, transactionStatus, plantCode, customerCode, supplierCode, productCode, rawMaterialCode, deliveryNo, purchaseOrder }
@@ -857,7 +917,7 @@
             return;
         }
         var status = inModal('#transactionStatus').val();
-        var statusLabels = { Sales: LANG.dispatch, Purchase: LANG.receiving, Local: LANG.internalTransfer, Port: LANG.trxToPort, Misc: LANG.miscellaneous };
+        var statusLabels = { Sales: LANG.dispatch, Purchase: LANG.receiving, Local: LANG.internalTransfer, Port: LANG.trxToPort, Misc: LANG.miscellaneous, Production: LANG.production };
         var template = $.inArray(status, doNoStatuses) === -1 ? LANG.doNoNotSetupTooltip : LANG.doNoTooltip;
         var text = template.replace('{status}', statusLabels[status] || status || '');
 
@@ -895,6 +955,7 @@
         else if (status === 'Local') dataAttr = 'is-local';
         else if (status === 'Port') dataAttr = 'is-port';
         else if (status === 'Misc') dataAttr = 'is-misc';
+        else if (status === 'Production') dataAttr = 'is-production';
 
         var $sel = inModal(selector);
         $sel.empty();
@@ -921,7 +982,8 @@
             .attr('data-is-purchase', item.is_purchase)
             .attr('data-is-local', item.is_local)
             .attr('data-is-port', item.is_port)
-            .attr('data-is-misc', item.is_misc);
+            .attr('data-is-misc', item.is_misc)
+            .attr('data-is-production', item.is_production);
     }
 
     // Fill the pending container dropdown for the transaction status
@@ -974,6 +1036,27 @@
 
         // Customer side details only apply to Purchase
         inModal('#customerSideCard, #customerSideLabel').toggle(status == "Purchase");
+
+        applyManualWeightLock(status);
+        applyDateChangePermission(status);
+    }
+
+    // Production gross / tare are always typed in: the manual weight switch is forced on and locked
+    // (shown even without the manual_weighing permission). Leaving Production unlocks it and switches it back off.
+    function applyManualWeightLock(status) {
+        var toggle = inModal('#manualWeightToggle');
+        var isProduction = status == 'Production';
+        var wasLocked = toggle.prop('disabled');
+
+        inModal('#manualWeightWrapper').toggleClass('d-none', !isProduction && !CAN_MANUAL_WEIGH);
+        toggle.prop('disabled', isProduction);
+
+        if (isProduction) {
+            toggle.prop('checked', true).trigger('change');
+        }
+        else if (wasLocked) {
+            toggle.prop('checked', false).trigger('change');
+        }
     }
 
     // Normal / Empty Container weigh the lorry directly; Container / Different Container
@@ -1259,8 +1342,12 @@
     function saveWeight(withPrint, isEmptyContainer) {
         $('#spinnerLoading').show();
 
-        // Unchecked checkboxes are not serialized, so always send manualWeight
-        var formData = inModal('#weightForm').serialize() + (inModal('#manualWeightToggle').is(':checked') ? '' : '&manualWeight=false');
+        // Unchecked and disabled (locked for Production) checkboxes are not serialized, so always send manualWeight
+        var manualWeightToggle = inModal('#manualWeightToggle');
+        var formData = inModal('#weightForm').serialize();
+        if (!manualWeightToggle.is(':checked') || manualWeightToggle.is(':disabled')) {
+            formData += '&manualWeight=' + (manualWeightToggle.is(':checked') ? 'true' : 'false');
+        }
 
         // A generated DO No (not edited since) is replaced by the real next number on save; a typed one is kept
         var generatedDoNo = inModal('#deliveryNo').data('generated');
@@ -1364,6 +1451,7 @@
         if (status == 'Purchase') return LANG.receiving;
         if (status == 'Port') return LANG.trxToPort;
         if (status == 'Local') return LANG.internalTransfer;
+        if (status == 'Production') return LANG.production;
         return LANG.miscellaneous;
     }
 

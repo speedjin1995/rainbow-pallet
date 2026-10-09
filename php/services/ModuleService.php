@@ -53,6 +53,7 @@ class ModuleService extends BaseService {
                     'Internal Transfer' => $languageArray['internal_transfer_code']['en'] ?? $row['name'],
                     'Miscellaneous'     => $languageArray['miscellaneous_code']['en'] ?? $row['name'],
                     'Port'              => $languageArray['trx_to_port_code']['en'] ?? $row['name'],
+                    'Production'        => $languageArray['production_code']['en'] ?? $row['name'],
                 ];
                 if (isset($map[$row['name']])) $row['name'] = $map[$row['name']];
             }
@@ -142,6 +143,7 @@ class ModuleService extends BaseService {
             ['name' => 'Sales', 'category' => 'Reports'],
             ['name' => 'Purchase', 'category' => 'Reports'],
             // ['name' => 'Internal Transfer', 'category' => 'Reports'],
+            ['name' => 'Production', 'category' => 'Reports'],
             ['name' => 'Port', 'category' => 'Reports'],
             ['name' => 'Miscellaneous', 'category' => 'Reports'],
             ['name' => 'Audit Log', 'category' => 'Reports'],
@@ -152,6 +154,7 @@ class ModuleService extends BaseService {
             ['name' => 'Sales', 'category' => 'Weighing'],
             ['name' => 'Purchase', 'category' => 'Weighing'],
             // ['name' => 'Internal Transfer', 'category' => 'Weighing'],
+            ['name' => 'Production', 'category' => 'Weighing'],
             ['name' => 'Port', 'category' => 'Weighing'],
             ['name' => 'Miscellaneous', 'category' => 'Weighing'],
             ['name' => 'Normal Type', 'category' => 'Weighing'],
@@ -159,6 +162,7 @@ class ModuleService extends BaseService {
             ['name' => 'Empty Container Type', 'category' => 'Weighing'],
             ['name' => 'Different Container Type', 'category' => 'Weighing'],
             ['name' => 'Sawn Timber', 'category' => 'Sawn Timber'],
+            ['name' => 'Dashboard', 'category' => 'Dashboard'],
         ];
 
         $stmt = $this->db->prepare("INSERT INTO {$this->table} (name, category) SELECT ?, ? FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM {$this->table} WHERE name = ? AND category = ?)");

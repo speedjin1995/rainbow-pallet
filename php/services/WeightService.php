@@ -252,9 +252,16 @@ class WeightService extends BaseService {
         if ($companyFilter > 0) {
             $q .= " AND company_id = {$companyFilter}";
         }
+        $allStatuses = empty($post['transactionStatus']) || $post['transactionStatus'] === '-';
         foreach (['transactionStatus' => 'transaction_status', 'customer' => 'customer_code', 'supplier' => 'supplier_code', 'invoice' => 'weight_type', 'product' => 'product_code', 'rawMaterial' => 'raw_mat_code', 'plant' => 'plant_code'] as $param => $col) {
             if (!empty($post[$param]) && $post[$param] !== '-') {
-                $q .= " AND {$col} = '" . mysqli_real_escape_string($this->db, $post[$param]) . "'";
+                $v = mysqli_real_escape_string($this->db, $post[$param]);
+                // With all statuses, the product dropdown also covers Purchase/Local rows, whose item is in raw_mat_code
+                if ($param === 'product' && $allStatuses) {
+                    $q .= " AND (product_code = '{$v}' OR raw_mat_code = '{$v}')";
+                } else {
+                    $q .= " AND {$col} = '{$v}'";
+                }
             }
         }
         if (!empty($post['status']) && $post['status'] !== '-') {
@@ -313,12 +320,13 @@ class WeightService extends BaseService {
 
         $result = $this->db->query($dataQuery);
         $data = [];
-        $salesCount = $purchaseCount = $localCount = $portCount = $miscCount = 0;
+        $salesCount = $purchaseCount = $localCount = $portCount = $miscCount = $productionCount = 0;
         $statusLabels = [
             'Sales'    => [$languageArray['dispatch_code'][$language],    &$salesCount],
             'Purchase' => [$languageArray['receiving_code'][$language],   &$purchaseCount],
             'Misc'     => [$languageArray['miscellaneous_code'][$language],&$miscCount],
             'Port'     => [$languageArray['trx_to_port_code'][$language],  &$portCount],
+            'Production' => [$languageArray['production_code'][$language], &$productionCount],
         ];
         $weightTypeLabels = [
             'Container'          => $languageArray['primer_mover_code'][$language],
@@ -354,6 +362,7 @@ class WeightService extends BaseService {
             'purchaseTotal' => $purchaseCount,
             'localTotal'    => $localCount,
             'miscTotal'     => $miscCount,
+            'productionTotal' => $productionCount,
         ];
     }
 
@@ -399,12 +408,13 @@ class WeightService extends BaseService {
         $result = $this->db->query("SELECT * FROM Weight_Container WHERE status='0'{$q} ORDER BY {$columnName} {$sortOrder} LIMIT {$start},{$length}");
 
         $data = [];
-        $salesCount = $purchaseCount = $localCount = $portCount = $miscCount = 0;
+        $salesCount = $purchaseCount = $localCount = $portCount = $miscCount = $productionCount = 0;
         $statusLabels = [
             'Sales'    => [$languageArray['dispatch_code'][$language],    &$salesCount],
             'Purchase' => [$languageArray['receiving_code'][$language],   &$purchaseCount],
             'Misc'     => [$languageArray['miscellaneous_code'][$language],&$miscCount],
             'Port'     => [$languageArray['trx_to_port_code'][$language],  &$portCount],
+            'Production' => [$languageArray['production_code'][$language], &$productionCount],
         ];
 
         while ($row = $result->fetch_assoc()) {
@@ -433,6 +443,7 @@ class WeightService extends BaseService {
             'purchaseTotal'   => $purchaseCount,
             'localTotal'      => $localCount,
             'miscTotal'       => $miscCount,
+            'productionTotal' => $productionCount,
         ];
     }
 
@@ -602,7 +613,7 @@ class WeightService extends BaseService {
 
     // ─── Plant / Transaction Helpers ─────────────────────────────────────────────
     private function getPlantCountColumn($status) {
-        $map = ['Purchase' => 'purchase', 'Local' => 'locals', 'Port' => 'port', 'Misc' => 'misc'];
+        $map = ['Purchase' => 'purchase', 'Local' => 'locals', 'Port' => 'port', 'Misc' => 'misc', 'Production' => 'production'];
         return $map[$status] ?? 'sales';
     }
 
@@ -636,7 +647,7 @@ class WeightService extends BaseService {
 
     private function buildTransactionId($plantCode, $status, $weightType, $misValue) {
         // Transaction ID prefix per transaction status
-        $prefixes = ['Sales' => 'D', 'Purchase' => 'R', 'Local' => 'I', 'Misc' => 'M', 'Port' => 'P'];
+        $prefixes = ['Sales' => 'D', 'Purchase' => 'R', 'Local' => 'I', 'Misc' => 'M', 'Port' => 'P', 'Production' => 'PR'];
         if (!isset($prefixes[$status])) {
             throw new Exception("Status not found: {$status}");
         }

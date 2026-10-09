@@ -4393,3 +4393,101 @@ INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALU
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('generate_do_no_tooltip_code', 'Click to generate the next {status} Delivery No. The final number is assigned when you save.', '点击生成下一个{status}送货单号。最终单号将在保存时分配。', 'Klik untuk menjana No. DO {status} yang seterusnya. Nombor akhir akan ditetapkan semasa simpan.', 'அடுத்த {status} டெலிவரி எண்ணை உருவாக்க கிளிக் செய்யவும். இறுதி எண் சேமிக்கும்போது ஒதுக்கப்படும்.');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('do_no_not_setup_tooltip_code', 'Auto-generated Delivery No is not set up for {status} for this company. Please enter the Delivery No manually.', '该公司尚未为{status}设置自动生成送货单号。请手动输入送货单号。', 'No. DO automatik belum ditetapkan untuk {status} bagi syarikat ini. Sila masukkan No. DO secara manual.', 'இந்த நிறுவனத்திற்கு {status} க்கான தானியங்கி டெலிவரி எண் அமைக்கப்படவில்லை. டெலிவரி எண்ணைக் கைமுறையாக உள்ளிடவும்.');
 INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('do_no_format_not_setup_code', 'Delivery No format is not set up for this company and transaction status. Please set it up in Companies > Document Number, or enter the Delivery No manually.', '该公司及交易状态尚未设置送货单号格式。请在 公司 > 单据编号 中设置，或手动输入送货单号。', 'Format No. DO belum ditetapkan untuk syarikat dan status transaksi ini. Sila tetapkan di Syarikat > Nombor Dokumen, atau masukkan No. DO secara manual.', 'இந்த நிறுவனம் மற்றும் பரிவர்த்தனை நிலைக்கு டெலிவரி எண் வடிவம் அமைக்கப்படவில்லை. நிறுவனங்கள் > ஆவண எண் பகுதியில் அமைக்கவும், அல்லது டெலிவரி எண்ணைக் கைமுறையாக உள்ளிடவும்.');
+
+-- 08/10/2026 --
+ALTER TABLE `Plant` ADD `production` VARCHAR(5) NOT NULL DEFAULT '1' AFTER `port`;
+ALTER TABLE `Plant_Log` ADD `production` VARCHAR(5) NOT NULL DEFAULT '1' AFTER `port`;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_PLANT` AFTER INSERT ON `Plant` FOR EACH ROW INSERT INTO Plant_Log (
+    plant_id, plant_code, name, address_line_1, address_line_2, address_line_3, phone_no, fax_no, sales, purchase, locals, misc, port, production, do_no, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.plant_code, NEW.name, NEW.address_line_1, NEW.address_line_2, NEW.address_line_3, NEW.phone_no, NEW.fax_no, NEW.sales, NEW.purchase, NEW.locals, NEW.misc, NEW.port, NEW.production, NEW.do_no, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_PLANT` BEFORE UPDATE ON `Plant` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Check if status = 1, set action_id to 3, otherwise set to 2
+    IF NEW.status = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Plant_Log table
+    INSERT INTO Plant_Log (
+        plant_id, plant_code, name, address_line_1, address_line_2, address_line_3, phone_no, fax_no, sales, purchase, locals, misc, port, production, do_no, action_id, action_by, event_date
+    ) 
+    VALUES (
+        NEW.id, NEW.plant_code, NEW.name, NEW.address_line_1, NEW.address_line_2, NEW.address_line_3, NEW.phone_no, NEW.fax_no, NEW.sales, NEW.purchase, NEW.locals, NEW.misc, NEW.port, NEW.production, NEW.do_no, action_value, NEW.modified_by, NEW.modified_date
+    );
+END
+$$
+DELIMITER ;
+
+ALTER TABLE `Product_Categories` ADD `is_production` VARCHAR(1) NOT NULL DEFAULT 'Y' AFTER `is_misc`;
+ALTER TABLE `Product_Categories_Log` ADD `is_production` VARCHAR(1) NOT NULL DEFAULT 'Y' AFTER `is_misc`;
+
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_INS_PROD_CAT` AFTER INSERT ON `Product_Categories` FOR EACH ROW INSERT INTO Product_Categories_Log (
+    category_id, category_name, post_to_sql, is_sales, is_purchase, is_local, is_port, is_misc, is_production, is_sawn_timber, company, action_id, action_by, event_date
+) 
+VALUES (
+    NEW.id, NEW.category_name, NEW.post_to_sql, NEW.is_sales, NEW.is_purchase, NEW.is_local, NEW.is_port, NEW.is_misc, NEW.is_production, NEW.is_sawn_timber, NEW.company, 1, NEW.created_by, NEW.created_date
+)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE OR REPLACE TRIGGER `TRG_UPD_PROD_CAT` BEFORE UPDATE ON `Product_Categories` FOR EACH ROW BEGIN
+    DECLARE action_value INT;
+
+    -- Check if status = 1, set action_id to 3, otherwise set to 2
+    IF NEW.status = 1 THEN
+        SET action_value = 3;
+    ELSE
+        SET action_value = 2;
+    END IF;
+
+    -- Insert into Product_Categories_Log table
+    INSERT INTO Product_Categories_Log (
+        category_id, category_name, post_to_sql, is_sales, is_purchase, is_local, is_port, is_misc, is_production, is_sawn_timber, company, action_id, action_by, event_date
+    ) 
+    VALUES (
+        NEW.id, NEW.category_name, NEW.post_to_sql, NEW.is_sales, NEW.is_purchase, NEW.is_local, NEW.is_port, NEW.is_misc, NEW.is_production, NEW.is_sawn_timber, NEW.company, action_value, NEW.modified_by, NEW.modified_date
+    );
+END
+$$
+DELIMITER ;
+
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('production_code', 'Production', '生产', 'Pengeluaran', 'உற்பத்தி');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('production_report_code', 'Production Report', '生产报告', 'Laporan Pengeluaran', 'உற்பத்தி அறிக்கை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('dashboard_code', 'Dashboard', '仪表板', 'Papan Pemuka', 'டாஷ்போர்டு');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('stock_in_code', 'Stock In', '入库', 'Stok Masuk', 'சரக்கு உள்வரவு');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('stock_transfer_code', 'Stock Transfer', '库存转移', 'Pemindahan Stok', 'சரக்கு பரிமாற்றம்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('balance_code', 'Balance', '余额', 'Baki', 'இருப்பு');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('trips_code', 'Trips', '车次', 'Trip', 'பயணங்கள்');
+
+INSERT INTO `modules` (`name`, `category`) SELECT 'Dashboard', 'Dashboard' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `modules` WHERE `name` = 'Dashboard' AND `category` = 'Dashboard');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('available_stock_code', 'Available Stock', '可用库存', 'Stok Tersedia', 'கிடைக்கும் சரக்கு');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('product_inventory_code', 'Product Inventory', '产品库存', 'Inventori Produk', 'தயாரிப்பு சரக்கு');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('product_inventory_desc_code', 'Stock balance by product for the filtered period', '筛选期间各产品库存余额', 'Baki stok mengikut produk bagi tempoh yang ditapis', 'வடிகட்டிய காலத்திற்கான தயாரிப்பு வாரியான சரக்கு இருப்பு');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('all_categories_code', 'All Categories', '所有类别', 'Semua Kategori', 'அனைத்து வகைகள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('do_breakdown_code', 'DO Breakdown', '交货单明细', 'Pecahan DO', 'DO பிரிவு');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('do_breakdown_desc_code', 'Delivery orders for the filtered period', '筛选期间的交货单', 'Pesanan penghantaran bagi tempoh yang ditapis', 'வடிகட்டிய காலத்திற்கான விநியோக ஆணைகள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('recent_movement_code', 'Recent Movement', '最近动态', 'Pergerakan Terkini', 'சமீபத்திய இயக்கம்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('recent_movement_desc_code', 'Latest weighing activity', '最新称重记录', 'Aktiviti penimbangan terkini', 'சமீபத்திய எடையிடல் செயல்பாடு');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('view_all_code', 'View All', '查看全部', 'Lihat Semua', 'அனைத்தையும் காண்க');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('in_stock_code', 'In Stock', '有库存', 'Ada Stok', 'கையிருப்பில் உள்ளது');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('out_of_stock_code', 'Out of Stock', '缺货', 'Kehabisan Stok', 'கையிருப்பில் இல்லை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('showing_of_code', 'Showing %s of %s', '显示 %s / %s', 'Memaparkan %s daripada %s', '%s / %s காட்டப்படுகிறது');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('no_record_code', 'No records found', '没有记录', 'Tiada rekod ditemui', 'பதிவுகள் எதுவும் இல்லை');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('top_customers_code', 'Top Customers', '主要客户', 'Pelanggan Utama', 'முன்னணி வாடிக்கையாளர்கள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('top_customers_desc_code', 'By delivery order weight for the filtered period', '按筛选期间交货单重量排序', 'Mengikut berat pesanan penghantaran bagi tempoh yang ditapis', 'வடிகட்டிய காலத்திற்கான விநியோக ஆணை எடையின்படி');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('top_suppliers_code', 'Top Suppliers', '主要供应商', 'Pembekal Utama', 'முன்னணி விநியோகஸ்தர்கள்');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('top_suppliers_desc_code', 'By stock in weight for the filtered period', '按筛选期间入库重量排序', 'Mengikut berat stok masuk bagi tempoh yang ditapis', 'வடிகட்டிய காலத்திற்கான சரக்கு வரவு எடையின்படி');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('share_code', 'Share', '占比', 'Bahagian', 'பங்கு');
+INSERT INTO `message_resource` (`message_key_code`, `en`, `zh`, `my`, `ne`) VALUES ('filters_code', 'Filters', '筛选', 'Penapis', 'வடிகட்டிகள்');

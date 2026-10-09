@@ -32,7 +32,7 @@ if (!hasPermission('Weighing', ['view_all_companies'])) {
     $company_ids = implode(',', array_map('intval', $_SESSION['company_ids']));
     $company2 = $db->query("SELECT * FROM Company WHERE status = 0 AND id IN ($selectedCompanyId) ORDER BY name");
     $customer2 = $db->query("SELECT * FROM Customer WHERE status='0' AND company=$selectedCompanyId ORDER BY name ASC");
-    $productSql="SELECT p.*,IFNULL(c.is_sales,'Y') as is_sales,IFNULL(c.is_purchase,'Y') as is_purchase,IFNULL(c.is_local,'Y') as is_local,IFNULL(c.is_port,'Y') as is_port,IFNULL(c.is_misc,'Y') as is_misc FROM Product p LEFT JOIN Product_Categories c ON p.category=c.id WHERE p.status='0' AND p.company=$selectedCompanyId ORDER BY p.name ASC";
+    $productSql="SELECT p.*,IFNULL(c.is_sales,'Y') as is_sales,IFNULL(c.is_purchase,'Y') as is_purchase,IFNULL(c.is_local,'Y') as is_local,IFNULL(c.is_port,'Y') as is_port,IFNULL(c.is_misc,'Y') as is_misc,IFNULL(c.is_production,'Y') as is_production FROM Product p LEFT JOIN Product_Categories c ON p.category=c.id WHERE p.status='0' AND p.company=$selectedCompanyId ORDER BY p.name ASC";
     $product2 = $db->query($productSql);
     $rawMaterial2 = $db->query($productSql);
     $supplier2 = $db->query("SELECT * FROM Supplier WHERE status='0' AND company=$selectedCompanyId ORDER BY name ASC");
@@ -40,7 +40,7 @@ if (!hasPermission('Weighing', ['view_all_companies'])) {
 } else {
     $company2 = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
     $customer2 = $db->query("SELECT * FROM Customer WHERE status = '0' ORDER BY name ASC");
-    $productSql = "SELECT p.*, IFNULL(c.is_sales, 'Y') as is_sales, IFNULL(c.is_purchase, 'Y') as is_purchase, IFNULL(c.is_local, 'Y') as is_local, IFNULL(c.is_port, 'Y') as is_port, IFNULL(c.is_misc, 'Y') as is_misc FROM Product p LEFT JOIN Product_Categories c ON p.category = c.id WHERE p.status = '0' ORDER BY p.name ASC";
+    $productSql = "SELECT p.*, IFNULL(c.is_sales, 'Y') as is_sales, IFNULL(c.is_purchase, 'Y') as is_purchase, IFNULL(c.is_local, 'Y') as is_local, IFNULL(c.is_port, 'Y') as is_port, IFNULL(c.is_misc, 'Y') as is_misc, IFNULL(c.is_production, 'Y') as is_production FROM Product p LEFT JOIN Product_Categories c ON p.category = c.id WHERE p.status = '0' ORDER BY p.name ASC";
     $product2 = $db->query($productSql);
     $rawMaterial2 = $db->query($productSql);
     $supplier2 = $db->query("SELECT * FROM Supplier WHERE status = '0' ORDER BY name ASC");
@@ -76,7 +76,7 @@ require_once "components/weighingModal/data.php";
 // Action column note: a row's buttons (edit/print/cancelled/reactivate) depend on its own
 // transaction status, so this flags true if the user is missing any of them for any status they can view
 $weighingActionFlags = [];
-foreach (['Sales', 'Purchase', 'Local', 'Port', 'Miscellaneous'] as $weighingStatus) {
+foreach (['Sales', 'Purchase', 'Local', 'Port', 'Miscellaneous', 'Production'] as $weighingStatus) {
     if (hasModulePermission('Weighing', $weighingStatus, ['view'])) {
         $weighingActionFlags[] = hasModulePermission('Weighing', $weighingStatus, ['edit']);
         $weighingActionFlags[] = hasModulePermission('Weighing', $weighingStatus, ['print']);
@@ -183,6 +183,9 @@ foreach (['Sales', 'Purchase', 'Local', 'Port', 'Miscellaneous'] as $weighingSta
                                                                 <?php if(hasModulePermission('Weighing', 'Miscellaneous', ['view'])) { ?>
                                                                     <option value="Misc"><?=$languageArray['miscellaneous_code'][$language]?></option>
                                                                 <?php } ?>
+                                                                <?php if(hasModulePermission('Weighing', 'Production', ['view'])) { ?>
+                                                                    <option value="Production"><?=$languageArray['production_code'][$language]?></option>
+                                                                <?php } ?>
                                                             </select>
                                                         </div>
                                                     </div><!--end col-->
@@ -260,7 +263,7 @@ foreach (['Sales', 'Purchase', 'Local', 'Port', 'Miscellaneous'] as $weighingSta
                                                             <select id="productSearch" class="form-select select2" >
                                                                 <option selected>-</option>
                                                                 <?php while($rowProductF=mysqli_fetch_assoc($product2)){ ?>
-                                                                    <option value="<?=$rowProductF['product_code'] ?>" data-is-sales="<?=$rowProductF['is_sales'] ?>" data-is-purchase="<?=$rowProductF['is_purchase'] ?>" data-is-port="<?=$rowProductF['is_port'] ?>" data-is-misc="<?=$rowProductF['is_misc'] ?>"><?=$rowProductF['name'] ?></option>
+                                                                    <option value="<?=$rowProductF['product_code'] ?>" data-is-sales="<?=$rowProductF['is_sales'] ?>" data-is-purchase="<?=$rowProductF['is_purchase'] ?>" data-is-port="<?=$rowProductF['is_port'] ?>" data-is-misc="<?=$rowProductF['is_misc'] ?>" data-is-production="<?=$rowProductF['is_production'] ?>"><?=$rowProductF['name'] ?></option>
                                                                 <?php } ?>
                                                             </select>
                                                         </div>
@@ -271,7 +274,7 @@ foreach (['Sales', 'Purchase', 'Local', 'Port', 'Miscellaneous'] as $weighingSta
                                                             <select id="rawMatSearch" class="form-select select2" >
                                                                 <option selected>-</option>
                                                                 <?php while($rowRawMatF=mysqli_fetch_assoc($rawMaterial2)){ ?>
-                                                                    <option value="<?=$rowRawMatF['product_code'] ?>" data-is-sales="<?=$rowRawMatF['is_sales'] ?>" data-is-purchase="<?=$rowRawMatF['is_purchase'] ?>" data-is-port="<?=$rowRawMatF['is_port'] ?>" data-is-misc="<?=$rowRawMatF['is_misc'] ?>"><?=$rowRawMatF['name'] ?></option>
+                                                                    <option value="<?=$rowRawMatF['product_code'] ?>" data-is-sales="<?=$rowRawMatF['is_sales'] ?>" data-is-purchase="<?=$rowRawMatF['is_purchase'] ?>" data-is-port="<?=$rowRawMatF['is_port'] ?>" data-is-misc="<?=$rowRawMatF['is_misc'] ?>" data-is-production="<?=$rowRawMatF['is_production'] ?>"><?=$rowRawMatF['name'] ?></option>
                                                                 <?php } ?>
                                                             </select>
                                                         </div>
@@ -1157,6 +1160,7 @@ foreach (['Sales', 'Purchase', 'Local', 'Port', 'Miscellaneous'] as $weighingSta
         else if (status === 'Purchase') dataAttr = 'is-purchase';
         else if (status === 'Port') dataAttr = 'is-port';
         else if (status === 'Misc') dataAttr = 'is-misc';
+        else if (status === 'Production') dataAttr = 'is-production';
 
         $(selector).empty();
         window[allOptionsVar].each(function() {
@@ -1181,7 +1185,8 @@ foreach (['Sales', 'Purchase', 'Local', 'Port', 'Miscellaneous'] as $weighingSta
             .attr('data-is-sales', item.is_sales)
             .attr('data-is-purchase', item.is_purchase)
             .attr('data-is-port', item.is_port)
-            .attr('data-is-misc', item.is_misc);
+            .attr('data-is-misc', item.is_misc)
+            .attr('data-is-production', item.is_production);
     }
 
     function renderTable() {
@@ -1548,6 +1553,8 @@ foreach (['Sales', 'Purchase', 'Local', 'Port', 'Miscellaneous'] as $weighingSta
             transactionStatus = '<?=$languageArray['internal_transfer_code'][$language]?>';
         } else if (row.transaction_status == 'Port') {
             transactionStatus = '<?=$languageArray['trx_to_port_code'][$language]?>';
+        } else if (row.transaction_status == 'Production') {
+            transactionStatus = '<?=$languageArray['production_code'][$language]?>';
         } else {
             transactionStatus = '<?=$languageArray['miscellaneous_code'][$language]?>';
         }

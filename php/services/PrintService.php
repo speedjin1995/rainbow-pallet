@@ -371,6 +371,7 @@ class PrintService {
             'Sales'    => 'dispatch_code',
             'Purchase' => 'receiving_code',
             'Local'    => 'internal_transfer_code',
+            'Production' => 'production_code',
             default    => 'miscellaneous_code',
         };
 

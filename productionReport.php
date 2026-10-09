@@ -1,0 +1,1054 @@
+<?php include 'layouts/session.php'; ?>
+<?php include 'layouts/head-main.php'; ?>
+
+<?php
+require_once "php/requires/lookup.php";
+
+if (!hasModulePermission('Reports', 'Production', ['view'])) {
+    header('Location: no-permission.php');
+    exit;
+}
+
+$companyId = $_SESSION['company_id'];
+$selectedPlantId = intval($_SESSION['selected_plant_id'] ?? 0);
+
+$selectedCompanyId = intval($companyId);
+if (!hasModulePermission('Reports', 'Production', ['view_all_companies'])) {
+    $company_ids = implode(',', array_map('intval', $_SESSION['company_ids']));
+    $company = $db->query("SELECT * FROM Company WHERE status = 0 AND id IN ($company_ids) ORDER BY name");
+} else {
+    $company = $db->query("SELECT * FROM Company WHERE status = '0' ORDER BY name ASC");
+}
+$customer = $db->query("SELECT * FROM Customer WHERE status = '0' AND company IN ($selectedCompanyId) ORDER BY name ASC");
+$product = $db->query("SELECT p.*, IFNULL(c.is_sales, 'Y') as is_sales, IFNULL(c.is_purchase, 'Y') as is_purchase, IFNULL(c.is_local, 'Y') as is_local, IFNULL(c.is_port, 'Y') as is_port, IFNULL(c.is_misc, 'Y') as is_misc, IFNULL(c.is_production, 'Y') as is_production FROM Product p LEFT JOIN Product_Categories c ON p.category = c.id WHERE p.status = '0' AND p.company IN ($selectedCompanyId) ORDER BY p.name ASC");
+$destination = $db->query("SELECT * FROM Destination WHERE status = '0' AND company = $selectedCompanyId ORDER BY name ASC");
+$transporter = $db->query("SELECT * FROM Transporter WHERE status = '0'");
+
+$plantName = '-';
+$plantCode = '-';
+if (!hasModulePermission('Reports', 'Production', ['view_all_plants'])) {
+    if (!empty($selectedPlantId)){
+        // Locked to the plant selected at login - backend restricts "-" to this plant only
+        $plant = searchPlantById($selectedPlantId, $db);
+    }else{
+        // No plant selected - list every plant the user is tied to
+        $plant = searchPlantsByIds($plantId ?? [], $db);
+    }
+
+    $stmt2 = $db->prepare("SELECT * FROM Plant WHERE id = ? AND status = '0'");
+    $stmt2->bind_param('i', $selectedPlantId);
+    $stmt2->execute();
+    $result2 = $stmt2->get_result();
+    if (($row2 = $result2->fetch_assoc()) !== null) {
+        $plantName = $row2['name'];
+        $plantCode = $row2['plant_code'];
+    }
+    $stmt2->close();
+} else {
+    $plant = $db->query("SELECT * FROM Plant WHERE status = '0'");
+}
+?>
+
+<head>
+
+    <title><?=$languageArray['report_code'][$language]?> | Synctronix - Weighing System</title>
+    <?php include 'layouts/title-meta.php'; ?>
+
+    <!-- jsvectormap css -->
+    <link href="assets/libs/jsvectormap/css/jsvectormap.min.css" rel="stylesheet" type="text/css" />
+
+    <!--Swiper slider css-->
+    <link href="assets/libs/swiper/swiper-bundle.min.css" rel="stylesheet" type="text/css" />
+    <!--datatable css-->
+    <link rel="stylesheet" href="plugins/datatables-bs4/css/dataTables.bootstrap4.min.css" />
+    <!--datatable responsive css-->
+    <link rel="stylesheet" href="plugins/datatables-responsive/css/responsive.bootstrap4.min.css" />
+    <link rel="stylesheet" href="plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
+
+    <!-- Include jQuery library -->
+    <script src="plugins/jquery/jquery.min.js"></script>
+    <!-- Include jQuery Validate plugin -->
+    <script src="plugins/jquery-validation/jquery.validate.min.js"></script>
+
+    <?php include 'layouts/head-css.php'; ?>
+    <style>
+        .mb-3 {
+            margin-bottom: 0.5rem !important;
+        }
+
+        .modal-header {
+            padding: var(1rem, 1rem) !important;
+        }
+    </style>
+</head>
+
+<?php include 'layouts/body.php'; ?>
+
+<!-- <div class="loading" id="spinnerLoading" style="display:none">
+  <div class='mdi mdi-loading' style='transform:scale(0.79);'>
+    <div></div>
+  </div>
+</div> -->
+
+<!-- Begin page -->
+<div id="layout-wrapper">
+
+    <?php include 'layouts/menu.php'; ?>
+
+    <!-- ============================================================== -->
+    <!-- Start right Content here -->
+    <!-- ============================================================== -->
+    <div class="main-content">
+        <div class="page-content">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col">
+                        <div class="h-100">
+                            <div class="col-xxl-12 col-lg-12">
+                                <div class="card">
+                                    <div class="card-header fs-5 text-white" href="#collapseSearch" data-bs-toggle="collapse" role="button" aria-expanded="true" aria-controls="collapseSearch" style="background-color: #405189;">
+                                        <i class="mdi mdi-chevron-down pull-right"></i>
+                                        <?=$languageArray['search_records_code'][$language]?>
+                                    </div>
+                                    <div id="collapseSearch" class="collapse" aria-labelledby="collapseSearch">                                    
+                                        <div class="card-body">
+                                            <form action="javascript:void(0);">
+                                                <div class="row">
+                                                    <div class="col-3">
+                                                        <div class="mb-3">
+                                                            <label for="fromDateSearch" class="form-label"><?=$languageArray['from_date_code'][$language]?></label>
+                                                            <input type="date" class="form-control" data-provider="flatpickr" id="fromDateSearch">
+                                                        </div>
+                                                    </div><!--end col-->
+                                                    <div class="col-3">
+                                                        <div class="mb-3">
+                                                            <label for="toDateSearch" class="form-label"><?=$languageArray['to_date_code'][$language]?></label>
+                                                            <input type="date" class="form-control" data-provider="flatpickr" id="toDateSearch">
+                                                        </div>
+                                                    </div><!--end col-->
+                                                    <div class="col-3">
+                                                        <div class="mb-3">
+                                                            <label for="transactionStatusSearch" class="form-label"><?=$languageArray['transaction_status_code'][$language]?></label>
+                                                            <select id="transactionStatusSearch" class="form-select select2">
+                                                                <option value="Production" selected><?=$languageArray['production_code'][$language]?></option>
+                                                            </select>
+                                                        </div>
+                                                    </div><!--end col-->
+                                                    <div class="col-3" <?= !hasModulePermission('Reports', 'Production', ['view_all_companies']) ? "style='display:none'" : '' ?>>
+                                                        <div class="mb-3">
+                                                            <label for="companySearch" class="form-label"><?=$languageArray['company_code'][$language]?></label>
+                                                            <select id="companySearch" class="form-select select2">
+                                                                <option>-</option>
+                                                                <?php while($rowCompany = mysqli_fetch_assoc($company)){ ?>
+                                                                    <option value="<?=$rowCompany['id'] ?>" <?=($rowCompany['id'] == $companyId) ? 'selected' : ''?>><?=$rowCompany['name'] ?></option>
+                                                                <?php } ?>
+                                                            </select>
+                                                        </div>
+                                                    </div><!--end col-->
+                                                    <div class="col-3" id="customerSearchDisplay">
+                                                        <div class="mb-3">
+                                                            <label for="customerNoSearch" class="form-label"><?=$languageArray['customer_name_code'][$language]?></label>
+                                                            <select id="customerNoSearch" class="form-select select2">
+                                                                <option selected>-</option>
+                                                                <?php while($rowPF = mysqli_fetch_assoc($customer)){ ?>
+                                                                    <option value="<?=$rowPF['customer_code'] ?>"><?=$rowPF['name'] ?></option>
+                                                                <?php } ?>
+                                                            </select>
+                                                        </div>
+                                                    </div><!--end col-->
+                                                    <div class="col-3">
+                                                        <div class="mb-3">
+                                                            <label for="vehicleNo" class="form-label"><?=$languageArray['vehicle_no_code'][$language]?></label>
+                                                            <input type="text" class="form-control" placeholder="<?=$languageArray['vehicle_no_code'][$language]?>" id="vehicleNo">
+                                                        </div>
+                                                    </div><!--end col-->
+                                                    <div class="col-3">
+                                                        <div class="mb-3">
+                                                            <label for="invoiceNoSearch" class="form-label"><?=$languageArray['weighing_type_code'][$language]?></label>
+                                                            <select id="invoiceNoSearch" class="form-select select2">
+                                                                <option selected>-</option>
+                                                                <option value="Normal"><?=$languageArray['normal_weighing_code'][$language]?></option>
+                                                                <option value="Container"><?=$languageArray['primer_mover_code'][$language]?></option>
+                                                                <option value="Different Container"><?=$languageArray['primer_mover_different_bins_code'][$language]?></option>
+                                                            </select>
+                                                        </div>
+                                                    </div><!--end col-->                                               
+                                                    <!--<div class="col-3">
+                                                        <div class="mb-3">
+                                                            <label for="customerTypeSearch" class="form-label">Customer Type</label>
+                                                            <select id="customerTypeSearch" class="form-select">
+                                                                <option selected>-</option>
+                                                                <option value="Cash">Cash</option>
+                                                                <option value="Normal">Normal</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>--><!--end col-->
+                                                    <div class="col-3" id="productSearchDisplay">
+                                                        <div class="mb-3">
+                                                            <label for="ForminputState" class="form-label"><?=$languageArray['product_code'][$language]?></label>
+                                                            <select id="productSearch" class="form-select select2">
+                                                                <option selected>-</option>
+                                                                <?php while($rowProductF=mysqli_fetch_assoc($product)){ ?>
+                                                                    <option value="<?=$rowProductF['product_code'] ?>" data-is-sales="<?=$rowProductF['is_sales'] ?>" data-is-purchase="<?=$rowProductF['is_purchase'] ?>" data-is-port="<?=$rowProductF['is_port'] ?>" data-is-misc="<?=$rowProductF['is_misc'] ?>" data-is-production="<?=$rowProductF['is_production'] ?>"><?=$rowProductF['name'] ?></option>
+                                                                <?php } ?>
+                                                            </select>
+                                                        </div>
+                                                    </div><!--end col-->
+                                                    <div class="col-3">
+                                                        <div class="mb-3">
+                                                            <label for="destinationSearch" class="form-label"><?=$languageArray['destination_code'][$language]?></label>
+                                                            <select id="destinationSearch" class="form-select select2">
+                                                                <option selected>-</option>
+                                                                <?php while($rowDestination=mysqli_fetch_assoc($destination)){ ?>
+                                                                    <option value="<?=$rowDestination['name'] ?>" data-code="<?=$rowDestination['destination_code'] ?>"><?=$rowDestination['name'] ?></option>
+                                                                <?php } ?>
+                                                            </select>
+                                                        </div>
+                                                    </div><!--end col-->
+                                                    <div class="col-3">
+                                                        <div class="mb-3">
+                                                            <label for="plantSearch" class="form-label"><?=$languageArray['plant_code'][$language]?></label>
+                                                            <select id="plantSearch" class="form-select select2">
+                                                                <option selected>-</option>
+                                                                <?php while($rowPlantF=mysqli_fetch_assoc($plant)){ ?>
+                                                                    <option value="<?=$rowPlantF['plant_code'] ?>" <?= ($rowPlantF['plant_code'] == $plantCode) ? 'selected' : '' ?>><?=$rowPlantF['name'] ?></option>
+                                                                <?php } ?>
+                                                            </select>
+                                                        </div>
+                                                    </div><!--end col-->
+                                                    <div class="col-3">
+                                                        <div class="mb-3">
+                                                            <label for="statusSearch" class="form-label"><?=$languageArray['status_code'][$language]?></label>
+                                                            <select id="statusSearch" class="form-select select2">
+                                                                <option value="Complete" selected><?=$languageArray['complete_code'][$language]?></option>
+                                                                <option value="Cancelled"><?=$languageArray['cancelled_code'][$language]?></option>
+                                                            </select>
+                                                        </div>
+                                                    </div><!--end col-->
+                                                    <div class="col-3">
+                                                        <div class="mb-3">
+                                                            <label for="invDelPoSearch" class="form-label"><?=$languageArray['inv_del_po_no_code'][$language]?></label>
+                                                            <input type="text" class="form-control" id="invDelPoSearch" name="invDelPoSearch" placeholder="<?=$languageArray['inv_del_po_no_code'][$language]?>">                                                                                  
+                                                        </div>
+                                                    </div><!--end col-->
+                                                    <div class="col-lg-12">
+                                                        <div class="text-end">
+                                                            <button type="button" class="btn btn-danger" id="clearAllSearch"><i class="bx bx-x"></i> <?=$languageArray['clear_all_code'][$language]?></button>
+                                                            <button type="submit" class="btn btn-success" id="filterSearch"><i class="bx bx-search-alt"></i> <?=$languageArray['search_code'][$language]?></button>
+                                                        </div>
+                                                    </div><!--end col-->
+                                                </div><!--end row-->
+                                            </form>                                                                        
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col">
+                                    <div class="h-100">
+                                        <!--datatable--> 
+                                        <div class="row">
+                                            <div class="col-lg-12">
+                                                <div class="card">
+                                                    <div class="card-header" style="background-color: #405189;">
+                                                        <div class="d-flex justify-content-between">
+                                                            <div>
+                                                                <h5 class="card-title text-white mb-0"><?=$languageArray['weighing_records_code'][$language]?></h5>
+                                                            </div>
+                                                            <div class="flex-shrink-0">
+                                                                <div class="dropdown d-inline-block">
+                                                                    <button type="button" class="btn btn-info waves-effect waves-light dropdown-toggle" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                                                                        <i class="ri-layout-column-line align-middle me-1"></i>
+                                                                        <?=$languageArray['table_columns_code'][$language]?>
+                                                                    </button>
+                                                                    <div class="dropdown-menu dropdown-menu-end p-2" id="weightColumnMenu"></div>
+                                                                </div>
+                                                                <?php if(hasModulePermission('Reports', 'Production', ['export'])): ?>
+                                                                <button type="button" id="exportPdf" class="btn btn-danger waves-effect waves-light">
+                                                                    <i class="ri-file-pdf-line align-middle me-1"></i>
+                                                                    <?=$languageArray['export_pdf_code'][$language]?>
+                                                                </button>
+                                                                <button type="button" id="exportExcel" class="btn btn-success waves-effect waves-light">
+                                                                    <i class="ri-file-excel-line align-middle me-1"></i>
+                                                                    <?=$languageArray['export_excel_code'][$language]?>
+                                                                </button>
+                                                                <?php endif; ?>
+                                                            </div> 
+                                                        </div> 
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <table id="weightTable" class="table table-bordered nowrap table-striped align-middle" style="width:100%">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th><input type="checkbox" id="selectAllCheckbox" class="selectAllCheckbox"></th>
+                                                                    <!-- Data columns are added by setTableHeader() from the company's table column setup -->
+                                                                    <th><?=$languageArray['action_code'][$language]?><?=actionPermissionNote([hasModulePermission('Reports', 'Production', ['print'])])?></th>
+                                                                </tr>
+                                                            </thead>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div><!--end row-->
+                                    </div> <!-- end .h-100-->
+                                </div> <!-- end col -->
+                            </div><!-- container-fluid -->
+                        </div> <!-- end .h-100-->
+                    </div> <!-- end col -->
+                </div>
+                <!-- container-fluid -->
+            </div>
+            <!-- End Page-content -->
+            </div>
+
+            <?php include 'layouts/footer.php'; ?>
+        </div>
+        <!-- end main content-->
+
+    </div>
+    <!-- END layout-wrapper -->
+    
+    <!-- Export Excel Modal - Commented out for direct export
+    <div class="modal fade" id="exportExcelModal" tabindex="-1" role="dialog" aria-labelledby="exportExcelModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable custom-xxl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exportExcelModalTitle"><?=$languageArray['export_weighing_records_code'][$language]?></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="exportExcelForm" class="needs-validation" novalidate autocomplete="off">
+                        <div class="row col-12">
+                            <div class="col-12">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-12">
+                                                <div class="row">
+                                                    <label for="excelReportType" class="col-sm-4 col-form-label"><?=$languageArray['report_type_code'][$language]?> *</label>
+                                                    <div class="col-sm-8">
+                                                        <select id="excelReportType" name="reportType" class="form-select" required>
+                                                            <option value="SUMMARY"><?=$languageArray['summary_report_code'][$language]?></option>
+                                                        </select>   
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-12">
+                            <div class="hstack gap-2 justify-content-end">
+                                <button type="button" class="btn btn-light" data-bs-dismiss="modal"><?=$languageArray['close_code'][$language]?></button>
+                                <button type="submit" class="btn btn-success" id="submitExcel"><?=$languageArray['submit_code'][$language]?></button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    -->
+
+    <!-- Export PDF Modal - Commented out for direct export
+    <div class="modal fade" id="exportPdfModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalScrollableTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable custom-xxl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalScrollableTitle"><?=$languageArray['export_weighing_records_code'][$language]?></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="exportPdfForm" class="needs-validation" novalidate autocomplete="off">
+                        <div class="row col-12">
+                            <div class="col-12">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <input type="hidden" class="form-control" id="id" name="id"> 
+                                            <div class="col-12">
+                                                <div class="row">
+                                                    <label for="reportType" class="col-sm-4 col-form-label"><?=$languageArray['report_type_code'][$language]?> *</label>
+                                                    <div class="col-sm-8">
+                                                        <select id="reportType" name="reportType" class="form-select" required>
+                                                            <option value="CUSTOMER">Customer Report</option>
+                                                            <option value="SUMMARY"><?=$languageArray['summary_report_code'][$language]?></option>
+                                                            <option value="PRODUCT"><?=$languageArray['product_report_code'][$language]?></option>
+                                                            <option value="S&P"><?=$languageArray['sales_purchase_report_code'][$language]?> - <?=$languageArray['product_code'][$language]?></option>
+                                                            <option value="S&PC"><?=$languageArray['sales_purchase_report_code'][$language]?> - <?=$languageArray['customer_code'][$language]?></option>
+                                                        </select>   
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <input type="hidden" class="form-control" id="fromDate" name="fromDate">                                   
+                                            <input type="hidden" class="form-control" id="toDate" name="toDate">                                   
+                                            <input type="hidden" class="form-control" id="transactionStatus" name="transactionStatus">                                   
+                                            <input type="hidden" class="form-control" id="customer" name="customer">     
+                                            <input type="hidden" class="form-control" id="supplier" name="supplier"> 
+                                            <input type="hidden" class="form-control" id="vehicle" name="vehicle">     
+                                            <input type="hidden" class="form-control" id="weighingType" name="weighingType">     
+                                            <input type="hidden" class="form-control" id="customerType" name="customerType">     
+                                            <input type="hidden" class="form-control" id="product" name="product">  
+                                            <input type="hidden" class="form-control" id="rawMat" name="rawMat">   
+                                            <input type="hidden" class="form-control" id="destination" name="destination">     
+                                            <input type="hidden" class="form-control" id="plant" name="plant">   
+                                            <input type="hidden" class="form-control" id="status" name="status">                                     
+                                            <input type="hidden" class="form-control" id="file" name="file">     
+                                            <input type="hidden" class="form-control" id="isMulti" name="isMulti">     
+                                            <input type="hidden" class="form-control" id="ids" name="ids">     
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-12">
+                            <div class="hstack gap-2 justify-content-end">
+                                <button type="button" class="btn btn-light" data-bs-dismiss="modal"><?=$languageArray['close_code'][$language]?></button>
+                                <button type="submit" class="btn btn-success" id="submit"><?=$languageArray['submit_code'][$language]?></button>
+                            </div>
+                        </div>                                                             
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>-->
+
+    <div class="modal fade" id="prePrintModal">
+        <div class="modal-dialog modal-xl" style="max-width: 90%;">
+            <div class="modal-content">
+                <form role="form" id="prePrintForm">
+                    <div class="modal-header bg-gray-dark color-palette">
+                        <h4 class="modal-title"><?=$languageArray['language_code'][$language]?></h4>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row mb-3">
+                            <label for="prePrint" class="col-sm-4 col-form-label"><?=$languageArray['language_code'][$language]?></label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <div class="col-12">
+                                        <select class="form-select select2" id="prePrint" name="prePrint" >
+                                            <option value="en">English</option>
+                                            <option value="zh">Chinese</option>
+                                            <option value="my">Bahasa Malaysia</option>
+                                            <option value="ne">नेपाली</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mb-3" id="printTemplateDisplay">
+                            <label for="printTemplate" class="col-sm-4 col-form-label"><?=$languageArray['print_template_code'][$language]?></label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <div class="col-12">
+                                        <select class="form-select select2" id="printTemplate" name="printTemplate" >
+                                            <option value="with_weight" selected><?=$languageArray['with_weight_code'][$language]?></option>
+                                            <option value="without_weight"><?=$languageArray['without_weight_code'][$language]?></option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                            
+                        <input type="hidden" class="form-control" id="isEmptyContainer" name="isEmptyContainer">
+                        <input type="hidden" class="form-control" id="prePrintTransactionStatus" name="prePrintTransactionStatus">
+                        <input type="hidden" class="form-control" id="id" name="id">
+                    </div>
+                    <div class="modal-footer justify-content-between bg-gray-dark color-palette">
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal"><?=$languageArray['close_code'][$language]?></button>
+                        <button type="button" class="btn btn-success" id="submitPrePrint"><?=$languageArray['submit_code'][$language]?></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <?php include 'layouts/customizer.php'; ?>
+    <?php include 'layouts/vendor-scripts.php'; ?>
+    <!-- apexcharts -->
+    <script src="assets/libs/apexcharts/apexcharts.min.js"></script>
+    <!-- Vector map-->
+    <script src="assets/libs/jsvectormap/js/jsvectormap.min.js"></script>
+    <script src="assets/libs/jsvectormap/maps/world-merc.js"></script>
+    <!--Swiper slider js-->
+    <script src="assets/libs/swiper/swiper-bundle.min.js"></script>
+    <!-- Dashboard init -->
+    <script src="assets/js/pages/dashboard-ecommerce.init.js"></script>   
+    <!-- App js -->
+    <script src="assets/js/app.js"></script>
+    <!-- prismjs plugin -->
+    <script src="assets/libs/prismjs/prism.js"></script>
+    <!-- notifications init -->
+    <script src="assets/js/pages/notifications.init.js"></script>
+    <script src="plugins/datatables/jquery.dataTables.js"></script>
+    <script src="plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+    <script src="plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+    <script src="plugins/datatables-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="plugins/datatables-buttons/js/buttons.print.min.js"></script>
+    <script src="plugins/datatables-buttons/js/buttons.html5.min.js"></script>
+    <script src="assets/js/pages/datatables.init.js"></script>
+
+    <script type="text/javascript">
+    
+    var fromDateSearchPicker;
+    var toDateSearchPicker;
+    var table = null;
+    var columnTableName = 'production_report';
+    var tableColumns = {}; // company id => [{key, label, visible}]
+    var permissions = <?= json_encode($_SESSION['permissions'] ?? []) ?>;
+    var isSADMIN = <?= json_encode($_SESSION['roles'] == 'SADMIN') ?>;
+    var allProductOptions = null;
+
+    $(function () {
+        const today = new Date();
+        const tomorrow = new Date(today);
+        const yesterday = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        yesterday.setDate(yesterday.getDate() - 1);
+
+        // Initialize all Select2 elements in the search bar
+        $('#collapseSearch .select2').select2({
+            allowClear: true,
+            placeholder: "Please Select",
+        });
+
+        // Apply custom styling to Select2 elements in search bar
+        $('.select2-container .select2-selection--single').css({
+            'padding-top': '4px',
+            'padding-bottom': '4px',
+            'height': 'auto'
+        });
+
+        $('.select2-container .select2-selection__arrow').css({
+            'padding-top': '33px',
+            'height': 'auto'
+        });
+
+        //Date picker
+        fromDateSearchPicker = $('#fromDateSearch').flatpickr({
+            dateFormat: "d-m-Y",
+            defaultDate: yesterday
+        });
+
+        toDateSearchPicker = $('#toDateSearch').flatpickr({
+            dateFormat: "d-m-Y",
+            defaultDate: today
+        });
+
+        $('#transactionDate').flatpickr({
+            dateFormat: "d-m-Y",
+            defaultDate: today
+        });
+
+        // Clear All Filter Function
+        $('#clearAllSearch').on('click', function(){
+            fromDateSearchPicker.setDate(yesterday);
+            toDateSearchPicker.setDate(today);
+            $('#transactionStatusSearch').val('Production').trigger('change');
+            $('#companySearch').val('<?=$companyId?>').trigger('change');
+            $('#customerNoSearch').val('-').trigger('change');
+            $('#vehicleNo').val('');
+            $('#invoiceNoSearch').val('-').trigger('change');
+            $('#productSearch').val('-').trigger('change');
+            $('#destinationSearch').val('-').trigger('change');
+            $('#plantSearch').val('-').trigger('change');
+            $('#statusSearch').val('Complete').trigger('change');
+            $('#invDelPoSearch').val('');
+        });
+
+        $('#selectAllCheckbox').on('change', function() {
+            var checkboxes = $('#weightTable tbody input[type="checkbox"]');
+            checkboxes.prop('checked', $(this).prop('checked')).trigger('change');
+        });
+
+        // Initial load
+        renderTable();
+
+        // Filter search
+        $('#filterSearch').on('click', function () {
+            renderTable();
+        });
+
+        /* Modal form submit - Commented out for direct export
+        $('#exportPdfForm').on('submit', function(e) {
+            e.preventDefault();
+            $('#exportPdfModal').modal('hide');
+
+            $.post('php/modules/report/index.php?action=exportPdf', $(this).serialize(), function(response){
+                var obj = JSON.parse(response);
+
+                if(obj.status === 'success'){
+                    var printWindow = window.open('', '', 'height=' + screen.height + ',width=' + screen.width);
+                    printWindow.document.write(obj.message);
+                    printWindow.document.close();
+                    setTimeout(function(){
+                        printWindow.print();
+                        printWindow.close();
+                    }, 500);
+                }
+                else if(obj.status === 'failed'){
+                    toastr["error"](obj.message, "Failed:");
+                }
+                else{
+                    toastr["error"]("Something wrong when exporting", "Failed:");
+                }
+            }).fail(function(error){
+                console.error("Error exporting PDF:", error);
+                toastr["error"]("An error occurred while generating the PDF.", "Failed:");
+            });
+        });
+
+        $('#exportPdf').on('click', function(){
+            var fromDateI = $('#fromDateSearch').val();
+            var toDateI = $('#toDateSearch').val();
+            var transactionStatusI = $('#transactionStatusSearch').val() || '';
+            var customerNoI = $('#customerNoSearch').val() || '';
+            var vehicleNoI = $('#vehicleNo').val() || '';
+            var weightTypeI = $('#invoiceNoSearch').val() || '';
+            var customerTypeI = $('#customerTypeSearch').val() || '';
+            var productI = $('#productSearch').val() || '';
+            var destinationI = $('#destinationSearch').val() || '';
+            var plantI = $('#plantSearch').val() || '';
+            var statusI = $('#statusSearch').val() || '';
+
+            $('#exportPdfForm').find('#fromDate').val(fromDateI);
+            $('#exportPdfForm').find('#toDate').val(toDateI);
+            $('#exportPdfForm').find('#transactionStatus').val(transactionStatusI);
+            $('#exportPdfForm').find('#customer').val(customerNoI);
+            $('#exportPdfForm').find('#vehicle').val(vehicleNoI);
+            $('#exportPdfForm').find('#weighingType').val(weightTypeI);
+            $('#exportPdfForm').find('#customerType').val(customerTypeI);
+            $('#exportPdfForm').find('#product').val(productI);
+            $('#exportPdfForm').find('#destination').val(destinationI);
+            $('#exportPdfForm').find('#plant').val(plantI);
+            $('#exportPdfForm').find('#status').val(statusI);
+            $('#exportPdfForm').find('#file').val('weight');
+
+            var selectedIds = [];
+            $("#weightTable tbody input[type='checkbox']").each(function () {
+                if (this.checked) {
+                    selectedIds.push($(this).val());
+                }
+            });
+
+            if (selectedIds.length > 0){
+                $('#exportPdfForm').find('#isMulti').val('Y');
+                $('#exportPdfForm').find('#ids').val(selectedIds);
+            } else {
+                $('#exportPdfForm').find('#isMulti').val('N');
+            }
+        });
+
+        $('#exportExcelForm').on('submit', function(e) {
+            e.preventDefault();
+            var fromDateI = $('#fromDateSearch').val();
+            var toDateI = $('#toDateSearch').val();
+            var transactionStatusI = $('#transactionStatusSearch').val() || '';
+            var customerNoI = $('#customerNoSearch').val() || '';
+            var supplierNoI = $('#supplierSearch').val() || '';
+            var vehicleNoI = $('#vehicleNo').val() || '';
+            var weightTypeI = $('#invoiceNoSearch').val() || '';
+            var productI = $('#productSearch').val() || '';
+            var rawMatI = $('#rawMatSearch').val() || '';
+            var destinationI = $('#destinationSearch').val() || '';
+            var plantI = $('#plantSearch').val() || '';
+            var statusI = $('#statusSearch').val() || '';
+            var reportTypeI = $('#excelReportType').val() || '';
+            
+            var selectedIds = [];
+            $("#weightTable tbody input[type='checkbox']").each(function () {
+                if (this.checked) {
+                    selectedIds.push($(this).val());
+                }
+            });
+
+            var isMulti = selectedIds.length > 0 ? 'Y' : 'N';
+            var url = "php/modules/report/index.php?action=exportExcel&file=weight&fromDate="+encodeURIComponent(fromDateI)+"&toDate="+encodeURIComponent(toDateI)+
+                "&transactionStatus="+encodeURIComponent(transactionStatusI)+"&customer="+encodeURIComponent(customerNoI)+"&supplier="+encodeURIComponent(supplierNoI)+"&vehicle="+encodeURIComponent(vehicleNoI)+
+                "&weighingType="+encodeURIComponent(weightTypeI)+"&product="+encodeURIComponent(productI)+"&rawMat="+encodeURIComponent(rawMatI)+
+                "&destination="+encodeURIComponent(destinationI)+"&plant="+encodeURIComponent(plantI)+"&status="+encodeURIComponent(statusI)+
+                "&reportType="+encodeURIComponent(reportTypeI)+"&isMulti="+isMulti;
+
+            if (selectedIds.length > 0) {
+                url += "&ids="+encodeURIComponent(selectedIds);
+            }
+
+            window.open(url);
+            $('#exportExcelModal').modal('hide');
+        });
+        */
+
+        // Direct PDF Export
+        $('#exportPdf').on('click', function(){
+            var selectedIds = [];
+            $("#weightTable tbody input[type='checkbox']").each(function () {
+                if (this.checked) selectedIds.push($(this).val());
+            });
+
+            var params = {
+                fromDate: $('#fromDateSearch').val(),
+                toDate: $('#toDateSearch').val(),
+                transactionStatus: $('#transactionStatusSearch').val() || '',
+                company: $('#companySearch').val() || '',
+                customer: $('#customerNoSearch').val() || '',
+                vehicle: $('#vehicleNo').val() || '',
+                weighingType: $('#invoiceNoSearch').val() || '',
+                product: $('#productSearch').val() || '',
+                destination: $('#destinationSearch').val() || '',
+                plant: $('#plantSearch').val() || '',
+                status: $('#statusSearch').val() || '',
+                file: 'weight',
+                reportType: 'SUMMARY',
+                isMulti: selectedIds.length > 0 ? 'Y' : 'N',
+                ids: selectedIds.join(',')
+            };
+
+            $.post('php/modules/report/index.php?action=exportPdf', params, function(response){
+                var obj = JSON.parse(response);
+                if(obj.status === 'success'){
+                    var printWindow = window.open('', '', 'height=' + screen.height + ',width=' + screen.width);
+                    printWindow.document.write(obj.message);
+                    printWindow.document.close();
+                    setTimeout(function(){
+                        printWindow.print();
+                        printWindow.close();
+                    }, 500);
+                } else {
+                    toastr["error"](obj.message || "Something wrong when exporting", "Failed:");
+                }
+            }).fail(function(){
+                toastr["error"]("An error occurred while generating the PDF.", "Failed:");
+            });
+        });
+
+        // Direct Excel Export
+        $('#exportExcel').on('click', function(){
+            var selectedIds = [];
+            $("#weightTable tbody input[type='checkbox']").each(function () {
+                if (this.checked) selectedIds.push($(this).val());
+            });
+
+            var url = "php/modules/report/index.php?action=exportExcel&file=weight" +
+                "&fromDate=" + encodeURIComponent($('#fromDateSearch').val()) +
+                "&toDate=" + encodeURIComponent($('#toDateSearch').val()) +
+                "&transactionStatus=" + encodeURIComponent($('#transactionStatusSearch').val() || '') +
+                "&company=" + encodeURIComponent($('#companySearch').val() || '') +
+                "&customer=" + encodeURIComponent($('#customerNoSearch').val() || '') +
+                "&vehicle=" + encodeURIComponent($('#vehicleNo').val() || '') +
+                "&weighingType=" + encodeURIComponent($('#invoiceNoSearch').val() || '') +
+                "&product=" + encodeURIComponent($('#productSearch').val() || '') +
+                "&destination=" + encodeURIComponent($('#destinationSearch').val() || '') +
+                "&plant=" + encodeURIComponent($('#plantSearch').val() || '') +
+                "&status=" + encodeURIComponent($('#statusSearch').val() || '') +
+                "&reportType=SUMMARY" +
+                "&isMulti=" + (selectedIds.length > 0 ? 'Y' : 'N');
+
+            if (selectedIds.length > 0) {
+                url += "&ids=" + encodeURIComponent(selectedIds.join(','));
+            }
+
+            window.open(url);
+        });
+
+        $('#submitPrePrint').on('click', function(){
+            if($('#prePrintForm').valid()){
+                $('#spinnerLoading').show();
+                var id = $('#prePrintModal').find('#id').val();
+                var prePrintStatus = $('#prePrintModal').find('#prePrint').val();
+                var isEmptyContainer = $('#prePrintModal').find('#isEmptyContainer').val();
+                var printTemplate = $('#prePrintModal').find('#printTemplate').val();
+                var transactionStatus = $('#prePrintModal').find('#prePrintTransactionStatus').val();
+                $.post('php/modules/weighing/index.php', {action: 'print', userID: id, file: 'weight', prePrint: prePrintStatus, isEmptyContainer: isEmptyContainer, printTemplate: printTemplate, transactionStatus: transactionStatus}, function(data){
+                    var obj = JSON.parse(data);
+
+                    if(obj.status === 'success'){
+                        var printWindow = window.open('', '', 'height=' + screen.height + ',width=' + screen.width);
+                        printWindow.document.write(obj.message);
+                        printWindow.document.close();
+                        setTimeout(function(){
+                            printWindow.print();
+                            printWindow.close();
+                        }, 500);
+
+                        $("#prePrintModal").modal("hide");
+                        $('#spinnerLoading').hide();
+                    }
+                    else if(obj.status === 'failed'){
+                        $("#failBtn").attr('data-toast-text', obj.message );
+                        $("#failBtn").click();
+                    }
+                    else{
+                        $("#failBtn").attr('data-toast-text', "Something wrong when print");
+                        $("#failBtn").click();
+                    }
+                });
+            }
+        });
+
+        filterDropdownByTransactionStatus('#productSearch', 'allProductOptions', 'Production');
+
+        $('#companySearch').on('change', function() {
+            var companyId = $(this).val();
+            loadCustomersByCompany(companyId);
+            loadProductsByCompany(companyId);
+            loadDestinationsByCompany(companyId);
+        });
+    });
+
+    function loadCustomersByCompany(companyId) {
+        $.post('php/modules/customer/index.php', { action: 'list', company: companyId }, function(data) {
+            var obj = JSON.parse(data);
+            var $sel = $('#customerNoSearch');
+            $sel.empty().append('<option selected>-</option>');
+            if (obj.status === 'success') {
+                $.each(obj.data, function(i, item) {
+                    $sel.append('<option value="' + item.customer_code + '">' + item.name + '</option>');
+                });
+            }
+            $sel.val('-').trigger('change');
+        });
+    }
+
+    function loadProductsByCompany(companyId) {
+        $.post('php/modules/item/index.php', { action: 'list', company: companyId }, function(data) {
+            var obj = JSON.parse(data);
+            var $sel = $('#productSearch');
+            $sel.empty().append('<option selected>-</option>');
+            if (obj.status === 'success') {
+                $.each(obj.data, function(i, item) {
+                    $sel.append('<option value="' + item.product_code + '"'
+                        + ' data-is-sales="' + item.is_sales + '"'
+                        + ' data-is-purchase="' + item.is_purchase + '"'
+                        + ' data-is-port="' + item.is_port + '"'
+                        + ' data-is-misc="' + item.is_misc + '"'
+                        + ' data-is-production="' + item.is_production + '">'
+                        + item.name + '</option>');
+                });
+            }
+            allProductOptions = null;
+            filterDropdownByTransactionStatus('#productSearch', 'allProductOptions', 'Production');
+        });
+    }
+
+    function loadDestinationsByCompany(companyId) {
+        $.post('php/modules/destination/index.php', { action: 'list', company: companyId }, function(data) {
+            var obj = JSON.parse(data);
+            var $sel = $('#destinationSearch');
+            $sel.empty().append('<option selected>-</option>');
+            if (obj.status === 'success') {
+                $.each(obj.data, function(i, item) {
+                    $sel.append('<option value="' + item.name + '" data-code="' + item.destination_code + '">' + item.name + '</option>');
+                });
+            }
+            $sel.val('-').trigger('change');
+        });
+    }
+
+    // Filter dropdown options based on transaction status
+    function filterDropdownByTransactionStatus(selector, allOptionsVar, status) {
+        if (!window[allOptionsVar]) {
+            window[allOptionsVar] = $(selector + ' option').clone(true);
+        }
+
+        var dataAttr = 'is-sales';
+        if (status === 'Sales') dataAttr = 'is-sales';
+        else if (status === 'Purchase') dataAttr = 'is-purchase';
+        else if (status === 'Port') dataAttr = 'is-port';
+        else if (status === 'Misc') dataAttr = 'is-misc';
+        else if (status === 'Production') dataAttr = 'is-production';
+
+        $(selector).empty();
+        window[allOptionsVar].each(function() {
+            var $option = $(this).clone(true);
+            if ($option.val() === '-' || $option.val() === '') {
+                $(selector).append($option);
+            } else if ($option.data(dataAttr) === 'Y') {
+                $(selector).append($option);
+            }
+        });
+
+        $(selector).val('-').trigger('change');
+    }
+
+    function renderTable() {
+        // Columns follow the filtered company's setup, loaded once per company
+        var columnCompany = $('#companySearch').val() || '';
+        if (!tableColumns[columnCompany]) {
+            loadTableColumns(columnCompany);
+            return;
+        }
+
+        var fromDateI = $('#fromDateSearch').val();
+        var toDateI = $('#toDateSearch').val();
+        var transactionStatusI = $('#transactionStatusSearch').val() || '';
+        var companyI = $('#companySearch').val() || '';
+        var customerNoI = $('#customerNoSearch').val() || '';
+        var supplierNoI = $('#supplierSearch').val() || '';
+        var vehicleNoI = $('#vehicleNo').val() || '';
+        var weightTypeI = $('#invoiceNoSearch').val() || '';
+        var customerTypeI = $('#customerTypeSearch').val() || '';
+        var productI = $('#productSearch').val() || '';
+        var rawMatI = $('#rawMatSearch').val() || '';
+        var destinationI = $('#destinationSearch').val() || '';
+        var plantI = $('#plantSearch').val() || '';
+        var statusI = $('#statusSearch').val() || '';
+        var invDelPoI = $('#invDelPoSearch').val() || '';
+
+        // Destroy the old Datatable if exists
+        if ($.fn.DataTable.isDataTable('#weightTable')) {
+            $("#weightTable").DataTable().clear().destroy();
+        }
+        setTableHeader('#weightTable', tableColumns[columnCompany]);
+
+        // Create new Datatable
+        table = $("#weightTable").DataTable({
+            "responsive": true,
+            "autoWidth": false,
+            'processing': true,
+            'serverSide': true,
+            'searching': true,
+            'serverMethod': 'post',
+            'ajax': {
+                'url': 'php/modules/report/index.php?action=filter',
+                'data': {
+                    fromDate: fromDateI,
+                    toDate: toDateI,
+                    transactionStatus: transactionStatusI,
+                    company: companyI,
+                    customer: customerNoI,
+                    supplier: supplierNoI,
+                    vehicle: vehicleNoI,
+                    weightType: weightTypeI,
+                    customerType: customerTypeI,
+                    product: productI,
+                    rawMaterial: rawMatI,
+                    destination: destinationI,
+                    plant: plantI,
+                    status: statusI,
+                    invDelPo: invDelPoI
+                }
+            },
+            'columns': [
+                {
+                    data: 'id',
+                    className: 'select-checkbox',
+                    orderable: false,
+                    render: function (data, type, row) {
+                        return '<input type="checkbox" class="select-checkbox" id="checkbox_' + data + '" value="' + data + '"/>';
+                    }
+                },
+                ...dataColumns(tableColumns[columnCompany]),
+                {
+                    data: 'id',
+                    responsivePriority: 1,
+                    render: function (data, type, row) {
+                        if (isSADMIN || (permissions['Reports'] && permissions['Reports']['Production'] && permissions['Reports']['Production'].includes('print'))) {
+                            return '<div class="dropdown d-inline-block"><button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">' +
+                                '<i class="ri-more-fill align-middle"></i></button><ul class="dropdown-menu dropdown-menu-end">' +
+                                '<li><a class="dropdown-item print-item-btn" id="print' + data + '" onclick="print(' + data + ')"><i class="ri-printer-fill align-bottom me-2 text-muted"></i> <?=$languageArray['print_code'][$language] ?? 'Print'?></a></li></ul></div>';
+                        }
+                        return '';
+                    }
+                }
+            ]
+        });
+
+        setColumnMenu('#weightColumnMenu', table, tableColumns[columnCompany]);
+    }
+
+    function loadTableColumns(companyId) {
+        $.post('php/modules/report/index.php', { action: 'tableColumns', tableName: columnTableName, companyId: companyId }, function(data){
+            var obj = JSON.parse(data);
+            if (obj.status === 'success') {
+                tableColumns[companyId] = obj.message;
+                renderTable();
+            } else {
+                toastr["error"](obj.message, "Failed:");
+            }
+        }).fail(function(){
+            toastr["error"]("Something went wrong", "Failed:");
+        });
+    }
+
+    // Replaces the header cells between the checkbox and action columns
+    function setTableHeader(selector, columns) {
+        var $headerRow = $(selector).find('thead tr');
+        $headerRow.find('th').slice(1, -1).remove();
+        $.each(columns, function(i, column){
+            $headerRow.find('th').last().before($('<th>').text(column.label));
+        });
+        $(selector).find('tbody').empty();
+    }
+
+    // Columns outside the company's setup are loaded hidden so the Columns dropdown can show them
+    function dataColumns(columns) {
+        return $.map(columns, function(column){
+            return { data: column.key, defaultContent: '', visible: column.visible };
+        });
+    }
+
+    // Columns dropdown ticked from the company's setup; a change is kept until the page reloads or the company changes
+    function setColumnMenu(selector, dataTable, columns) {
+        var $menu = $(selector).empty();
+        $.each(columns, function(i, column){
+            var id = selector.substring(1) + '_' + column.key;
+            var $item = $(`
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox">
+                    <label class="form-check-label text-nowrap"></label>
+                </div>`);
+            $item.find('input').attr('id', id).data('index', i).prop('checked', column.visible);
+            $item.find('label').attr('for', id).text(column.label);
+            $menu.append($item);
+        });
+
+        $menu.off('change').on('change', 'input', function(){
+            var index = $(this).data('index');
+            columns[index].visible = $(this).is(':checked');
+            // +1 for the checkbox column
+            dataTable.column(index + 1).visible(columns[index].visible);
+            dataTable.columns.adjust().responsive.recalc();
+        });
+    }
+
+    function preparePrePrintModal(id, transactionStatus, isEmptyContainer) {
+        $('#prePrintModal').find('#id').val(id);
+        $('#prePrintModal').find('#isEmptyContainer').val(isEmptyContainer);
+        $('#prePrintModal').find('#prePrintTransactionStatus').val(transactionStatus);
+        $('#prePrintModal').find('#prePrint').val("<?=$language ?>");
+        $('#prePrintModal').find('#printTemplate').val("with_weight");
+
+        if (transactionStatus == 'Purchase' || isEmptyContainer == 'Y') {
+            $('#prePrintModal').find('#printTemplateDisplay').hide();
+        } else {
+            $('#prePrintModal').find('#printTemplateDisplay').show();
+        }
+    }
+
+    function print(id, transactionStatus, isEmptyContainer = 'N') {
+        preparePrePrintModal(id, transactionStatus, isEmptyContainer);
+        $("#prePrintModal").modal("show");
+
+        $('#prePrintForm').validate({
+            errorElement: 'span',
+            errorPlacement: function (error, element) {
+                error.addClass('invalid-feedback');
+                element.closest('.form-group').append(error);
+            },
+            highlight: function (element, errorClass, validClass) {
+                $(element).addClass('is-invalid');
+            },
+            unhighlight: function (element, errorClass, validClass) {
+                $(element).removeClass('is-invalid');
+            }
+        });
+    }
+    </script>
+</body>
+</html>

@@ -174,7 +174,8 @@
                                                                     data-is-purchase="<?=$rowProduct['is_purchase'] ?>"
                                                                     data-is-local="<?=$rowProduct['is_local'] ?>"
                                                                     data-is-port="<?=$rowProduct['is_port'] ?>"
-                                                                    data-is-misc="<?=$rowProduct['is_misc'] ?>">
+                                                                    data-is-misc="<?=$rowProduct['is_misc'] ?>"
+                                                                    data-is-production="<?=$rowProduct['is_production'] ?>">
                                                                     <?=$rowProduct['product_code'] .' - '. $rowProduct['name']?>
                                                                 </option>
                                                             <?php } ?>
@@ -195,7 +196,7 @@
                                                         <select class="form-select select2" id="rawMaterialName" name="rawMaterialName" required>
                                                             <option selected="-">-</option>
                                                             <?php while($rowRowMat=mysqli_fetch_assoc($wmRawMaterial)){ ?>
-                                                                <option value="<?=$rowRowMat['name'] ?>" data-code="<?=$rowRowMat['product_code'] ?>" data-is-sales="<?=$rowRowMat['is_sales'] ?>" data-is-purchase="<?=$rowRowMat['is_purchase'] ?>" data-is-local="<?=$rowRowMat['is_local'] ?>" data-is-port="<?=$rowRowMat['is_port'] ?>" data-is-misc="<?=$rowRowMat['is_misc'] ?>"><?=$rowRowMat['product_code'] .' - '. $rowRowMat['name'] ?></option>
+                                                                <option value="<?=$rowRowMat['name'] ?>" data-code="<?=$rowRowMat['product_code'] ?>" data-is-sales="<?=$rowRowMat['is_sales'] ?>" data-is-purchase="<?=$rowRowMat['is_purchase'] ?>" data-is-local="<?=$rowRowMat['is_local'] ?>" data-is-port="<?=$rowRowMat['is_port'] ?>" data-is-misc="<?=$rowRowMat['is_misc'] ?>" data-is-production="<?=$rowRowMat['is_production'] ?>"><?=$rowRowMat['product_code'] .' - '. $rowRowMat['name'] ?></option>
                                                             <?php } ?>
                                                         </select>
                                                     </div>
@@ -248,19 +249,22 @@
                                             <div class="col-sm-8">
                                                 <select id="transactionStatus" name="transactionStatus" class="form-select select2" required>
                                                     <?php if(hasModulePermission('Weighing', 'Sales', ['create', 'edit'])) { ?>
-                                                        <option value="Sales" selected><?=$languageArray['dispatch_code'][$language]?></option>
+                                                        <option value="Sales" data-can-create="<?=hasModulePermission('Weighing', 'Sales', ['create']) ? 'Y' : 'N'?>" data-can-edit="<?=hasModulePermission('Weighing', 'Sales', ['edit']) ? 'Y' : 'N'?>" selected><?=$languageArray['dispatch_code'][$language]?></option>
                                                     <?php } ?>
                                                     <?php if(hasModulePermission('Weighing', 'Purchase', ['create', 'edit'])) { ?>
-                                                        <option value="Purchase"><?=$languageArray['receiving_code'][$language]?></option>
+                                                        <option value="Purchase" data-can-create="<?=hasModulePermission('Weighing', 'Purchase', ['create']) ? 'Y' : 'N'?>" data-can-edit="<?=hasModulePermission('Weighing', 'Purchase', ['edit']) ? 'Y' : 'N'?>"><?=$languageArray['receiving_code'][$language]?></option>
                                                     <?php } ?>
                                                     <?php if(hasModulePermission('Weighing', 'Local', ['create', 'edit'])) { ?>
                                                         <!-- <option value="Local"><?=$languageArray['internal_transfer_code'][$language]?></option> -->
                                                     <?php } ?>
                                                     <?php if(hasModulePermission('Weighing', 'Port', ['create', 'edit'])) { ?>
-                                                        <option value="Port"><?=$languageArray['trx_to_port_code'][$language]?></option>
+                                                        <option value="Port" data-can-create="<?=hasModulePermission('Weighing', 'Port', ['create']) ? 'Y' : 'N'?>" data-can-edit="<?=hasModulePermission('Weighing', 'Port', ['edit']) ? 'Y' : 'N'?>"><?=$languageArray['trx_to_port_code'][$language]?></option>
                                                     <?php } ?>
                                                     <?php if(hasModulePermission('Weighing', 'Miscellaneous', ['create', 'edit'])) { ?>
-                                                        <option value="Misc"><?=$languageArray['miscellaneous_code'][$language]?></option>
+                                                        <option value="Misc" data-can-create="<?=hasModulePermission('Weighing', 'Miscellaneous', ['create']) ? 'Y' : 'N'?>" data-can-edit="<?=hasModulePermission('Weighing', 'Miscellaneous', ['edit']) ? 'Y' : 'N'?>"><?=$languageArray['miscellaneous_code'][$language]?></option>
+                                                    <?php } ?>
+                                                    <?php if(hasModulePermission('Weighing', 'Production', ['create', 'edit'])) { ?>
+                                                        <option value="Production" data-can-create="<?=hasModulePermission('Weighing', 'Production', ['create']) ? 'Y' : 'N'?>" data-can-edit="<?=hasModulePermission('Weighing', 'Production', ['edit']) ? 'Y' : 'N'?>"><?=$languageArray['production_code'][$language]?></option>
                                                     <?php } ?>
                                                 </select>
                                             </div>
@@ -396,7 +400,7 @@
                         <div class="d-flex align-items-center border-bottom pb-2">
                             <i class="ri-scales-3-line fs-5 text-primary me-2"></i>
                             <span class="fw-semibold"><?=$languageArray['weighing_code'][$language]?></span>
-                            <div class="d-flex align-items-center ms-4  <?php if(!hasPermission('Weighing', ['manual_weighing'])){ echo 'd-none'; }?>">
+                            <div class="d-flex align-items-center ms-4  <?php if(!hasPermission('Weighing', ['manual_weighing'])){ echo 'd-none'; }?>" id="manualWeightWrapper">
                                 <span class="text-dark me-2"><?=$languageArray['manual_weight_code'][$language]?></span>
                                 <div class="form-check form-switch mb-0">
                                     <input class="form-check-input" type="checkbox" role="switch" id="manualWeightToggle" name="manualWeight" value="false" style="width: 4em; height: 1.5em; cursor: pointer;">

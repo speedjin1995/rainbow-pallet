@@ -656,6 +656,8 @@ function format (row) {
         transactionStatus = '<?=$languageArray['internal_transfer_code'][$language]?>';
     } else if (row.transaction_status == 'Port') {
         transactionStatus = '<?=$languageArray['trx_to_port_code'][$language]?>';
+    } else if (row.transaction_status == 'Production') {
+        transactionStatus = '<?=$languageArray['production_code'][$language]?>';
     } else {
         transactionStatus = '<?=$languageArray['miscellaneous_code'][$language]?>';
     }

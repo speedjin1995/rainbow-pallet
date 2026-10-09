@@ -20,7 +20,7 @@ class DocumentNumberService extends BaseService {
     const DOCUMENT_TYPES = ['DO', 'PO', 'INV'];
 
     // Fixed list rather than the status table, which has no Port row
-    const TRANSACTION_STATUSES = ['Sales', 'Purchase', 'Local', 'Port', 'Misc'];
+    const TRANSACTION_STATUSES = ['Sales', 'Purchase', 'Local', 'Port', 'Misc', 'Production'];
 
     /**
      * One row per transaction status for the company and document type, with its format (blank when not set up)
